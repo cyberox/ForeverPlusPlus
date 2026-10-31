@@ -323,8 +323,10 @@ end
 function module:OnEnable()
     self:Hook("MerchantFrame_UpdateMerchantInfo", updateMerchant)
     self:Hook("MerchantFrame_UpdateBuybackInfo", clearMerchant)
-    self:Hook("InboxFrame_Update", updateInbox)
-    self:Hook("OpenMail_Update", updateOpenMail)
+    -- Forever's mail frame redraws through its mixins (InboxMixin:Update, OpenMailMixin:Update,
+    -- build 70338 on), not Classic's InboxFrame_Update and OpenMail_Update.
+    self:Hook(_G.InboxFrame, "Update", updateInbox)
+    self:Hook(_G.OpenMailFrame, "Update", updateOpenMail)
     ItemButtons.HookBags(self, updateBag)
     ItemButtons.HookLoot(self, markLoot)
     ItemButtons.HookRolls(self, markRoll)

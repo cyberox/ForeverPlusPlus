@@ -39,6 +39,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - Updating from 0.8 puts Blizzard's map coordinate settings back the way you had them before Forever++ turned them on, and gives the Quest Tracker's background and the waypoint arrow today's defaults if you never changed them.
 - Forever++'s chat messages start with the chat timestamp while timestamps are on in the game's chat settings, like the game's own lines.
 - **Already Known**: items on a vendor's Buyback tab no longer get the marks of the vendor's own items.
+- **Already Known**: mail in the inbox and the attachments of an open letter get marks again; a game update had changed how the mailbox redraws.
 - **Auto Screenshot**: reaching Neutral with a faction counts as a step up and takes a screenshot.
 - **Auto Stow**: no longer draws your bow, gun, or thrown weapon when it meant to put your melee weapon away: it keeps toggling until everything is away.
 - **Chat Copy**: turning Click Timestamps off no longer brings back chat lines that had faded out.

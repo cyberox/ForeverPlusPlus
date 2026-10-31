@@ -137,6 +137,8 @@ ns.changelog = {
                     .. "in the game's chat settings, like the game's own lines.",
                 { L.ALREADYKNOWN_TITLE, "Items on a vendor's Buyback tab no longer get the marks "
                     .. "of the vendor's own items." },
+                { L.ALREADYKNOWN_TITLE, "Mail in the inbox and the attachments of an open letter "
+                    .. "get marks again; a game update had changed how the mailbox redraws." },
                 { L.AUTOSCREENSHOT_TITLE, "Reaching Neutral with a faction counts as a step up and "
                     .. "takes a screenshot." },
                 { L.AUTOSTOW_TITLE, "No longer draws your bow, gun, or thrown weapon when it "
