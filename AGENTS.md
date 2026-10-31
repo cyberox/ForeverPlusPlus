@@ -47,7 +47,7 @@ There is no build step or library folder. Plain Lua, loaded straight from the TO
 
 ## The client
 
-- Client folder: `D:\BattleNet\World of Warcraft\_classic_beta_\` (product `wow_classic_beta`, version 1.60.1).
+- Client folder: `D:\BattleNet\World of Warcraft\_forever_\` (product `wowf`, version 1.60.1). The beta's `_classic_beta_` is gone; its `WTF` was copied over.
 - `Interface\AddOns\ForeverPlusPlus` there is a link to `ForeverPlusPlus/` in this repo, so edits show up after `/reload`.
 - **Treat the client folder as read only.** Never create, edit, or delete anything in it, including `WTF`, `Logs`, `Cache`, and other addons. Reading is fine.
 - Useful things to read there:
