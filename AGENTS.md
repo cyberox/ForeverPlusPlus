@@ -40,6 +40,7 @@ Names:
 - `README.md`: for players and contributors: the module list, install, settings and commands, and "Add a module". Keep it short; rules and client detail belong here and in `docs/`.
 - `docs/forever-api.md`: what we know about the Forever client API, with sources and how sure we are.
 - `docs/stat-weights.md`: Upgrade Arrows' default stat weights for every talent tree, how each was worked out, and the sources.
+- `docs/description.md`: the project description on CurseForge and Wago. Nothing syncs it: CurseForge's upload API takes only files, and Wago's description is edited on its site, so paste it into both by hand after it changes.
 - `.luarc.json`: LuaLS settings (Lua 5.1 and the known globals).
 - `tests/run.lua`: offline tests for pure-logic `Lib/` code (see "Verification").
 
@@ -81,7 +82,7 @@ When unsure whether an API exists, check it in game (`/dump C_Foo`, `/api`) or f
 - When a release renames or merges a module or setting the player chose, or one holding data they built up (prices, learned flight points), migrate it: `ns.Migrate(version, fn)` in the module that now owns it moves the old saved values at login, before the core clears them. The saved file has a layout version (`Lib/Store.lua`), so each step runs once: give a new step the next version and raise `Store.VERSION` to it. Moving across modules is the same: the step moves `db.settings[old][key]` or `db.data[old][key]` to the new module. Data kept per character uses `ns.MigrateCharacter`. Only migrate from what a release shipped, not from unreleased work. A dropped setting needs nothing. Keep every migration, so a player updating from any older release keeps their settings. Dropping data that holds the player's own CVar values (a `saved` table) needs a step that puts them back first.
 - Game data a patch can change (item, spell, map, and quest IDs, node and NPC names, the skill something needs) goes through `ns.GameData`, not a bare table. Read it from the game where an API or tooltip line says it; otherwise ship it as a seed with `ns.GameData.New(name, seed, { kind = "item" })` and `set:Learn` what play shows, so a patch mends itself instead of breaking the module. A lone ID gets `ns.GameData.Spell(id, "Name")` (or `Item`, `Map`), which Self Test checks. Say where a seed came from (build and source) in a comment.
 - Add a new file to the TOC, after `Core.lua` and `Commands.lua` and before `Init.lua`: `Locales/` first (`enUS/` before other languages), then `Lib/`, then `Modules/`.
-- Update `README.md` in the same change when a module is added, removed, or changes what it does or its default, or when commands or install steps change. Update the module list in "Project map" above too.
+- Update `README.md` in the same change when a module is added, removed, or changes what it does or its default, or when commands or install steps change. Update the module list in "Project map" above too, and `docs/description.md` when a module is added, removed, or renamed, or a release has new headline features.
 - Record things learned about the Forever client in `docs/forever-api.md`, tagged with how you know. Promote a fact to "How Forever differs from Classic" above only when it changes how code must be written.
 
 ## Lua rules
