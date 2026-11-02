@@ -6,7 +6,7 @@ local _, ns = ...
 
 local format, floor, max, type, _G = string.format, math.floor, math.max, type, _G
 local gmatch, gsub, tonumber = string.gmatch, string.gsub, tonumber
-local find, sub, ipairs = string.find, string.sub, ipairs
+local find, sub, match, ipairs = string.find, string.sub, string.match, ipairs
 local BreakUpLargeNumbers = BreakUpLargeNumbers
 
 -- Probe: WoW's strtrim, or the same in plain Lua (for tests/run.lua).
@@ -91,25 +91,43 @@ function Text.Ago(seconds)
     return format(L.TEXT_AGO_DAYS, floor(seconds / 86400))
 end
 
+-- The numbers of a version, or of its pre-release suffix, in order.
+local function versionParts(text)
+    local parts = {}
+    for part in gmatch(text or "", "%d+") do
+        parts[#parts + 1] = tonumber(part)
+    end
+    return parts
+end
+
+-- 1, -1, or 0 as `left` comes after, before, or with `right`, part by part.
+local function comparePartLists(left, right)
+    for i = 1, max(#left, #right) do
+        local x, y = left[i] or 0, right[i] or 0
+        if x ~= y then
+            return x > y and 1 or -1
+        end
+    end
+    return 0
+end
+
 ---Whether version `a` comes after version `b`, part by part: "0.10.0" is newer than "0.9.2".
+---A pre-release comes before its release: "1.0.0-beta.2" is newer than "1.0.0-beta.1" and
+---older than "1.0.0".
 ---@param a string such as "0.8.0"
 ---@param b string
 ---@return boolean
 function Text.NewerVersion(a, b)
-    local left, right = {}, {}
-    for part in gmatch(a, "%d+") do
-        left[#left + 1] = tonumber(part)
+    local coreA, preA = match(a, "^([^-]*)%-?(.*)$")
+    local coreB, preB = match(b, "^([^-]*)%-?(.*)$")
+    local order = comparePartLists(versionParts(coreA), versionParts(coreB))
+    if order ~= 0 then
+        return order > 0
     end
-    for part in gmatch(b, "%d+") do
-        right[#right + 1] = tonumber(part)
+    if preA == "" or preB == "" then
+        return preA == "" and preB ~= ""
     end
-    for i = 1, max(#left, #right) do
-        local x, y = left[i] or 0, right[i] or 0
-        if x ~= y then
-            return x > y
-        end
-    end
-    return false
+    return comparePartLists(versionParts(preA), versionParts(preB)) > 0
 end
 
 ---Text without its escape codes: colors, links (their text stays), textures, and atlases.
