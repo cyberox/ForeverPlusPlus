@@ -48,7 +48,7 @@ local module = ns.NewModule("UpgradeArrows", L.UPGRADEARROWS_DESC, {
 module.title = L.UPGRADEARROWS_TITLE
 module.pageTitle = L.UPGRADEARROWS_PAGE_TITLE
 module.category = "items"
-module.added = "0.10.0"
+module.added = "1.0.0-beta.1"
 module.internal = {}
 local internal = module.internal
 

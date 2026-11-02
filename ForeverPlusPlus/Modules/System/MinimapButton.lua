@@ -430,14 +430,14 @@ module.options = {
         key = "swapClicks",
         name = L.MINIMAPBUTTON_SWAP,
         description = L.MINIMAPBUTTON_SWAP_DESC,
-        added = "0.10.0",
+        added = "1.0.0-beta.1",
     },
     {
         key = "keysLeftClick",
         name = L.MINIMAPBUTTON_KEYS_LEFT,
         description = L.MINIMAPBUTTON_KEYS_LEFT_DESC,
         requires = "swapClicks",
-        added = "0.10.0",
+        added = "1.0.0-beta.1",
     },
     {
         key = "menuSide",
@@ -448,7 +448,7 @@ module.options = {
             { "left", L.MINIMAPBUTTON_MENU_SIDE_LEFT },
             { "right", L.MINIMAPBUTTON_MENU_SIDE_RIGHT },
         },
-        added = "0.10.0",
+        added = "1.0.0-beta.1",
     },
     Keys.Option("errorsKey", L.MINIMAPBUTTON_ERRORS_KEY, L.MINIMAPBUTTON_ERRORS_KEY_DESC),
     -- Changed: a click instead of a right-click, and Shift is a choice.

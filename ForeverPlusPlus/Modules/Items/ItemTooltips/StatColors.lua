@@ -11,7 +11,7 @@ local ItemTooltip, ItemStats, Colors, Text = ns.ItemTooltip, ns.ItemStats, ns.Co
 
 local module = ns.modules.ItemTooltips:NewPart({
     key = "statColors", name = L.ITEMTOOLTIPS_STATCOLORS, description = L.STATCOLORS_DESC,
-    section = L.STATCOLORS_TITLE, added = "0.10.0",
+    section = L.STATCOLORS_TITLE, added = "1.0.0-beta.1",
 }, {
     statColors = true,
 })

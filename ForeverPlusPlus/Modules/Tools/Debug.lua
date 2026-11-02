@@ -10,7 +10,7 @@ local L = ns.L
 local module = ns.NewModule("Debug", L.DEBUG_DESC, { enabled = false })
 module.title = L.DEBUG
 module.category = "tools"
-module.added = "0.10.0"
+module.added = "1.0.0-beta.1"
 module.notice = { text = L.DEBUG_NOTICE, description = L.DEBUG_NOTICE_DESC }
 
 -- Puts every module's debug options back to their defaults.

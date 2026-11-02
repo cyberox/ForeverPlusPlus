@@ -46,7 +46,7 @@ module.options = {
         description = L.AUTOSTOW_LOG_DESC,
         debug = true,
         section = L.DEBUG_SECTION_LOGGING,
-        added = "0.10.0",
+        added = "1.0.0-beta.1",
     },
 }
 

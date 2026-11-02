@@ -89,7 +89,7 @@ module:AddOptions({
     { key = "scanOnOpen", name = L.AUCTIONPRICES_SCAN_ON_OPEN, description = L.AUCTIONPRICES_SCAN_ON_OPEN_DESC },
     {
         key = "auctionator", name = L.AUCTIONPRICES_AUCTIONATOR, description = L.AUCTIONPRICES_AUCTIONATOR_DESC,
-        available = ns.Prices.AuctionatorLoaded, added = "0.10.0",
+        available = ns.Prices.AuctionatorLoaded, added = "1.0.0-beta.1",
     },
     ns.ChatOption(L.AUCTIONPRICES_CHAT_DESC),
 })

@@ -58,7 +58,7 @@ module.options = {
     { key = "socialNames", name = L.CLASSCOLORS_SOCIAL, description = L.CLASSCOLORS_SOCIAL_DESC, section = PARTS,
         added = "0.8.0" },
     { key = "offlineFriends", name = L.CLASSCOLORS_OFFLINE, description = L.CLASSCOLORS_OFFLINE_DESC,
-        section = PARTS, requires = "socialNames", added = "0.10.0" },
+        section = PARTS, requires = "socialNames", added = "1.0.0-beta.1" },
     { key = "player", name = L.CLASSCOLORS_PLAYER, description = L.CLASSCOLORS_PLAYER_DESC, section = FRAMES },
     { key = "target", name = L.CLASSCOLORS_TARGET, description = L.CLASSCOLORS_TARGET_DESC, section = FRAMES },
     { key = "focus", name = L.CLASSCOLORS_FOCUS, description = L.CLASSCOLORS_FOCUS_DESC, section = FRAMES },

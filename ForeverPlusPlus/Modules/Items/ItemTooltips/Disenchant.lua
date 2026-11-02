@@ -15,7 +15,7 @@ local Disenchant = ns.Disenchant
 
 local module = ns.modules.ItemTooltips:NewPart({
     key = "disenchant", name = L.ITEMTOOLTIPS_DISENCHANT, description = L.DISENCHANT_DESC,
-    section = L.DISENCHANT_TITLE, added = "0.10.0",
+    section = L.DISENCHANT_TITLE, added = "1.0.0-beta.1",
 }, {
     disenchant = false,
 })

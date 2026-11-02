@@ -18,7 +18,7 @@ local module = ns.NewModule("ChatLevels", L.CHATLEVELS_DESC, {
 })
 module.title = L.CHATLEVELS_TITLE
 module.category = "chat"
-module.added = "0.10.0"
+module.added = "1.0.0-beta.1"
 
 -- Blizzard's name link: |Hplayer:Name-Surname:lineID:CHANNEL:target|h[Name]|h, the name often in
 -- its class color.
