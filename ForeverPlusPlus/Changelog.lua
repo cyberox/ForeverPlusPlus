@@ -10,7 +10,8 @@ local L = ns.L
 
 ns.changelog = {
     {
-        version = L.CHANGELOG_UNRELEASED,
+        version = "1.0.0-beta.1",
+        date = "2026-11-02",
         sections = {
             { L.CHANGELOG_ADDED, {
                 { L.CHATLEVELS_TITLE, "A new module that shows each player's level before their "
