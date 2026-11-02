@@ -4,11 +4,12 @@
 
 Small improvements to the default UI for **WoW: Forever**, made to look like Blizzard's own.
 
-Forever++ isn't a UI replacement. It adds to Blizzard's windows with Blizzard's fonts, art, and colors, needs no setup, and shows no popups at login. Install it and play.
+Forever++ isn't a UI replacement: no new unit frames, action bars, or skins. It adds to Blizzard's own windows with Blizzard's fonts, art, and colors, so you can't tell where the game stops and the addon starts. It needs no setup and shows no popups at login. Install it and play.
 
 - **Over 60 modules**, each one turned on or off in the game's Settings, with no `/reload`.
-- **Deep customization**: most modules have their own options, all in Blizzard's Settings panel.
-- **Sensible defaults**: the changes nearly everyone wants are on; the rest wait for you to try them.
+- **Deep customization**: most modules have their own options, all in Blizzard's Settings panel under Options > AddOns > Forever++.
+- **Sensible defaults**: the changes nearly everyone wants are on; the rest are there when you want them.
+- **Light**: a module that's off costs nothing.
 
 ## New in 1.0
 
@@ -17,38 +18,130 @@ Forever++ isn't a UI replacement. It adds to Blizzard's windows with Blizzard's 
 - **Chat Levels**: each player's level before their name in chat, colored like a quest of that level.
 - **Item Tooltips**: what disenchanting an item gives, and each stat on gear in its own color.
 
-These are off by default. Turn them on under Options > AddOns > Forever++.
+These are off by default. Turn them on under Options > AddOns > Forever++. Every change in this release is in the changelog, and in game under Forever++ > Changelog.
+
+## Settings
+
+Open Game Menu > Options > AddOns > Forever++, or type `/fpp`. The Modules page lists every module by category with a checkbox each. Click one to see what it does and its options beside the list. A search box finds a module by its name, description, or options, and the New checkbox shows only what's new since you last looked. The Defaults button puts every setting back to how it starts.
 
 ## Modules
 
-**Automation**: Auto Decline, Auto Dismount, Auto Gossip, Auto Release, Auto Repair, Auto Screenshot, Auto Sell Junk, Auto Stow, Auto Weapon Buff, Comprehend Scrolls, Fast Loot, Fishing Cast, Gathering Tracking, Skip Cinematics
+Everything is on by default except where noted. Each module can be turned off, and most have options.
 
-**Character**: Buff Timers, Character Window (durability bars and more), Macros, Spell Ranks, Talent Planner (plan by level and share builds), XP Bar Text
+### Automation
 
-**Chat**: Chat Copy, Chat Font, Chat History, Chat Levels, Persistent Chat, Short Channel Names, Social Button, Whisper Window
+- **Auto Decline**: Turns down duel requests, and optionally party invites, guild invites, and guild charters, and says in chat who asked. Can let friends and guildmates through for duels and party invites. Off by default.
+- **Auto Dismount**: Gets you off your mount or stands you up when a spell, flight, loot, or attack fails because you're mounted or sitting. Can also leave shapeshift forms (off by default).
+- **Auto Gossip**: When an NPC has only one thing to say, or one service beside small talk, and no quests, picks it for you, so the bank, shop, trainer, or flight map opens straight away. Hold the Skip Key (Shift, Ctrl, Alt, or none) to choose yourself. Off by default, and so is its Other NPCs option.
+- **Auto Release**: Releases your spirit when you die in a battleground, unless you can resurrect yourself or someone is resurrecting you. Hold the Skip Key (an option, None by default) to stay where you fell. Off by default.
+- **Auto Screenshot**: Takes a screenshot when you level up, earn an achievement, or defeat a boss, and can for good loot, reputation, PvP ranks, titles, battlegrounds, and deaths. Can hide the interface for the shot, and for the ones you take with the Screenshot key too, and can show your `/played` time when you level up. Off by default.
+- **Auto Repair**: Repairs your gear at any merchant who repairs and says in chat what it cost. Hold the Skip Key (Shift, Ctrl, Alt, or none) to skip it.
+- **Auto Sell Junk**: Sells the gray items in your bags when a merchant opens and says in chat what they sold for. Can stop at what the buyback list has room for, so anything you sold yourself stays buyable. Hold the Skip Key (Shift, Ctrl, Alt, or none) to skip it. Off by default.
+- **Auto Stow**: Puts your weapons away once they've been out for a few seconds out of combat, whether a fight left them out or you drew them yourself (pressing Sheath starts the delay again). Melee and ranged alike.
+- **Auto Weapon Buff**: Right-clicking a sharpening stone, weightstone, oil, poison, or fishing lure in Blizzard's bags, or using one from an action bar, puts it straight onto your weapon, without clicking the weapon. Anything else you put on a weapon by hand works this way from then on. Not in combat, when the bags and bars work as usual. Main hand first; the off hand when only it can take it, or when the main hand already has a buff and the off hand doesn't (or its buff runs out sooner). When no equipped weapon can take it, a right-click in the bags says so in red instead (Warn When No Weapon Fits, on). Off by default.
+- **Comprehend Scrolls**: For Mages: right-clicking a scroll you read with Comprehension ("Scroll: CHAP BALK WELLES") in Blizzard's bags casts Comprehend Scroll on it, without opening the spellbook. Not in combat, when the bags work as usual. Does nothing for characters without the spell.
+- **Fishing Cast**: Double right-click in the world with a fishing pole equipped to cast Fishing, and the click after that loots as usual. Never while in combat, and it warns you once when combat starts with the pole still equipped. Off by default. Its Louder Bobber option (off by default) turns sound effects up and music down while you fish, and puts your volumes back after.
+- **Fast Loot**: With auto loot on, takes everything at once instead of waiting for the loot window.
+- **Gathering Tracking**: Keeps Find Minerals or Find Herbs on after logging in, zoning, or dying, and can swap between the two.
+- **Skip Cinematics**: Skips cinematics and movies you've already seen on any character, or every one. Hold the Watch Key (Shift, Ctrl, Alt, or none) to watch. Off by default.
 
-**Interface**: Combat Alert, Currency Bar, Recipe Colors, Tooltips
+### Character
 
-**Items**: Already Known, Bag Slot Counter, Easy Delete, Item Tooltips (sell price, auction prices, item count, disenchant, stat colors), Profession Tooltips, Unusable Items Tint, Upgrade Arrows, Waylaid Crates
+- **Buff Timers**: Shows the time left under your buff and debuff icons as a clock, like 1:23, instead of rounded minutes like 2 m: under 10 minutes (the default), under an hour, or always. When the game hides an aura's time in combat, Blizzard's own timer shows. On by default.
+- **Macros** *(New in 1.0)*: Makes macros in your general macros, shared by your characters, and keeps them up to date, each with its own checkbox, and deletes a macro when it's turned off. Smart Buff casts the buff your friendly target (or you, with none) should get from you, at the best rank you know that they can take: a Paladin's Blessing of Might for Warriors and Rogues and Wisdom for those who use mana, a Priest's Fortitude, a Mage's Arcane Intellect, and so on, with your own talent tree deciding for yourself. When none of those suit them, it gives one they may not use (Wisdom on a Warrior), but never one that would replace one of your Blessings on them. Buffs they already have, or a stronger one like a Greater Blessing, Prayer of Fortitude, Arcane Brilliance, or Gift of the Wild, are skipped (someone else's lower rank gets yours over it) until they're about to run out (Recast Below, a share of the buff's length, 50% by default), and when the target can't get anything from you, it buffs you and says on screen why; with nothing left for either, the macro's button shows a red X. Macros can't change in combat, so there a warning shows on the button and on screen when it would cast the wrong buff for a new target. Its Pick Up button puts the macro on your cursor. Off by default.
+- **Spell Ranks**: Marks the spells on your action bars that have a higher rank you already know, with a warning badge or a red tint over the button, and says the best rank in the spell's tooltip. `/fpp ranks` lists them.
+- **XP Bar Text**: Shows your experience on the experience bar all the time (or only under the mouse, an option), with the percent, your rested XP, and the XP of the quests in your log that are ready to turn in or all of them, in green once turning them in would level you. It can also fill the bar in green with the XP of the quests ready to turn in, like rested XP (an option, on by default), and adds XP left, rested and quest XP, XP per hour, and time to level to the bar's tooltip. On by default.
+- **Character Window**: Moves the Character window's Equipment, Titles, and Pet tabs to the side with the Reputation and Skills tabs, removes the portrait above the stats so they start at the top, shows your level and name in your class color as the title (hiding the game's own level line and moving your character up into its room), and puts a small bar beside each item with how worn it is (always, only when worn, below 50% or 25%, or off). Can also color the Skills tab's bars green for the weapons you have equipped. Options for each. On by default.
+- **Talent Planner**: Adds a Plan Talents button to the talent window. While planning, clicking a talent adds a point to a saved plan instead of learning it (right-click takes one out, Shift for every rank), in the order you click, and a Level box limits the plan to the points you have at that level. Tab headers show the plan's points, and the tooltip says at which level each rank comes. Afterwards the plan's next talent glows gold when you have a point to spend, and talent tooltips list the plan's levels. Level-Up Reminder (off by default) names the plan's next talent in chat when you gain a point. Hover the line beside the button for the plan in order, with each talent's levels. A dropdown keeps several named plans per character and spec, and shares one as a line of text another character of the class can import. On by default.
 
-**Map**: Flight Timer, Hide Filter Reset, Minimap Node Icons, Waypoints (`/way` with an arrow), World Map (points of interest, zone info, unexplored areas, coordinates)
+### Chat
 
-**Quests**: Auto Quest, Best Quest Reward, Forever Quest Icons, Quest Levels, Quest Nameplates, Quest Tracker
+- **Chat Copy**: Adds a button beside the chat window that opens the chat in its colors, already selected, so you can copy it as plain text with Ctrl+C. Its Click Timestamps option (off by default) lets you click a chat line's timestamp to copy that line.
+- **Chat Levels** *(New in 1.0)*: Shows each player's level before their name in chat, [60:Name], colored like a quest of that level against yours. The level is the last one Forever++ saw, so it shows for players far away too: it remembers the class, level, race, and guild of players in your group, your guild and friends, your `/who` results, and players you target, mouse over, or see a nameplate of, for 60 days. Off by default.
+- **Short Channel Names**: Shows chat channels as [1], [G], [LFG] (initials), or [General] (the name without its zone) instead of [1. General], alone or after the number, as number and initials ([3. T], [4. LFG]) by default, and [Guild], [Party], [Raid] and the like as [GD], [P], [R] (an option, on by default). Off by default.
+- **Chat Font**: Draws the chat windows in another of the game's fonts (Friz Quadrata, Arial Narrow, Skurri, or Morpheus), keeping their size, and optionally the chat input box too. Unavailable on Korean, Chinese, and Russian clients, whose chat font needs fallbacks.
+- **Persistent Chat**: Keeps chat text on screen instead of fading it out after a while.
+- **Chat History**: Keeps each chat window's latest lines, for each character, when you log out or reload and shows them again at login, except whispers. A slider sets how many lines, and a checkbox the line that marks where it ends.
+- **Social Button**: Moves the social (Quick Join) button down beside the chat window's other buttons.
+- **Whisper Window**: Keeps whispers in a window of their own, like a messenger: conversations on the left with unread counts, the one you pick on the right in Blizzard's whisper colors under their name in class color with their level, race, class, guild, and zone as far as the game knows (friends, guildmates, and players nearby) or Forever++ last saw, and a box to reply in (Shift-click an item to link it, Up and Down for what you sent, and a long message goes as several whispers; an unsent reply waits in its conversation). Whispers sent from chat, Battle.net whispers, away and busy replies, and "no player named" errors join their conversation, saved for each character. New Whisper starts one, right-click one to invite or remove it (or click its X to remove it at once), and `/fpp whispers` (or `/fpp whispers Name` to start one) or a gold button beside the chat window that counts the whispers waiting (an option, on by default) opens it. It opens for whispers (an option, on by default, after combat), can hide whispers from the chat windows (off by default), and fades to its own opacity while you move or fight. Drag it to move it and its corner to resize it. Off by default.
 
-**System**: AddOns List, Commands (`/rl`, `/clear`), Error Catcher, Hide Beta Feedback, Minimap Button, Movable Framerate
+### Interface
 
-**Units**: Class Colors, NPC Nameplates, Player Nameplates
+- **Recipe Colors**: Colors recipes in the professions window by your chance of a skill-up: orange, yellow, green, or gray, with the row's highlight to match.
+- **Combat Alert**: Floats a red "Entering Combat" or green "Leaving Combat" line up and away from the middle of the screen, each with its own checkbox, plus how long it stays and an optional sound (move and resize it in Edit Mode). Off by default.
+- **Currency Bar**: Shows your gold in a small tooltip-styled box, all three coins always, and optionally the currencies you tick Show on Backpack. Hovering it lists your gold and currencies with what this session gained or spent. Options for the tooltip, the session figures, and a column layout (move and resize it in Edit Mode). Off by default.
+- **Tooltips**: Colors unit and item tooltips by class, reaction, or quality, colors the Horde or Alliance line red or blue, and adds player titles and who a unit is targeting. Can hide the health bar under unit tooltips (off by default).
 
-**Tools**: Console Variables, Profiler
+### Items
 
-Every module is described in full, with its options, in the [README on GitHub](https://github.com/xIGBClutchIx/ForeverPlusPlus#modules).
+- **Already Known**: Marks recipes, mounts, pets, toys, and other items you already know or have with a green check (or tint) on their icon, on merchants, the auction house, bags, mail, the loot window, and loot rolls, each with its own checkbox.
+- **Bag Slot Counter**: Shows how many bag slots are free on the backpack button, or each bag's own count on its button, with the reagent bag counted on its own. The count turns orange at 4 or fewer free (or the number you pick) and red at 0.
+- **Easy Delete**: Types DELETE for you in the box Blizzard asks for when you destroy a good item, so Yes is a single click. Off by default.
+- **Item Tooltips**: Adds lines to item tooltips, each with its own checkbox. **Sell Price**: the vendor price of the whole stack (hold Shift for one item). **Repair Cost** (off by default): what repairing damaged gear costs, on gear you wear or carry, without a merchant's repair cursor. **Auction Prices**: scans the auction house when you open it and shows the lowest buyout under the sell price, with how long ago it was seen; in the professions window, a recipe's total reagent cost, the crafted items' worth, the estimated profit after the auction house's 5% cut, and the age of the oldest price used. With Auctionator installed, Use Auctionator's Prices shows its prices everywhere instead and skips the scan. **Item Count** (off by default): how many you own, above the prices, and how many are in your bags and your bank, with small bag and bank icons (or words); the bank is counted each time you open it. **Disenchant** (off by default): on green, blue, and purple weapons and armor, what disenchanting gives on average, priced from Auction Prices while that's on, or else the material it most likely gives; hold Shift for every outcome and its chance. **Stat Colors**: each stat on gear in its own color, like Strength, Agility, Stamina, Intellect, and Spirit, and Equip: bonuses like hit and spell power.
+- **Profession Tooltips**: Shows the skill a herb, ore, skinnable beast, or locked lockbox or chest needs in its tooltip, colored like trainer recipes against your skill, and the skill that gathers herb, ore, and stone items. Gathering for professions you have, or always; Lockpicking only for characters who can pick locks, or blacksmiths with their skeleton keys.
+- **Waylaid Crates**: Helps fill Waylaid Crates. **Bundle Costs**: beside each bundle a crate takes, what buying it costs at auction (or under each one, or off), from Item Tooltips' Auction Prices. **Auction House Category**: a Waylaid Crates entry at the bottom of the auction house's categories (or the top, or off) that lists every item your crates still need, one row each, less what's already in your bags and bank.
+- **Unusable Items Tint**: Tints red the icons of items you can't use (class, armor or weapon skill, level, profession), going by the red lines in their tooltip, in your bags, the bank, and at merchants where the merchant doesn't already, and in the auction house and the loot window and loot rolls (those two off by default), each with its own checkbox. On by default.
+- **Upgrade Arrows** *(New in 1.0)*: Puts Blizzard's green arrow on gear that beats what you wear, judged by stat weights for your class and the talent tree you have the most points in (or one you pick, with a Feral Bear profile for Druids), in your bags and bank, at merchants, in the loot window and on loot rolls, on the quest reward choice that's the biggest upgrade, and in the auction house, each with its own checkbox. A ring is judged against your weaker ring and a two-hander against both hands, from the game's own item comparison. The arrow sits in the corner of the icon you pick, at the size and padding you pick, with the percentage beside it if you like. In the item's tooltip the arrow and the percentage sit to the right of its name, or on an Upgrade line of their own, and Show Scores adds every item's score to check the weights. Show Downgrades marks worse gear with a red arrow pointing down, in a corner of its own, Higher Level Gear judges gear up to 5 levels (or as many as you pick) above yours, profession tools like fishing poles and the Mining Pick are left unmarked unless you turn off Ignore Profession Tools, as is the reagent bag unless you turn off Ignore Reagent Bag, and a Threshold slider hides small differences. The weights start from a template per talent tree, with Strength, Agility, Stamina, and Intellect worked out from what the game says a point of each gives your class (attack power, crit, dodge, armor, shield block value, health, spell crit, mana) and the rest from Classic's stat values ([how they were worked out](https://github.com/xIGBClutchIx/ForeverPlusPlus/blob/main/docs/stat-weights.md)), and its Stat Weights page in Settings (`/fpp weights`), there while the module is on, has a slider per stat to make them your own, per profile, with an undo arrow on each you change, and Import and Export of stat weight strings in the Pawn format sims and gear sites publish. Off by default.
+
+### Map
+
+- **World Map**: Adds to the world map in four parts, each with its own section and Enabled checkbox in its options. **Points of Interest** shows dungeons, raids, capital cities, flight masters, boats, zeppelins, and spirit healers on the world map, each with its own checkbox, icon size, and whether it also shows on continent maps. Skyborne ley lines and elemental convergences show too, saved as a Skyborne finds them (to Skyborne by default, or everyone, or no one), with ley lines as the minimap's blue portal swirl or a purple orb. **Zone Info** shows a panel in a corner of the world map (bottom left by default; in a right corner it is mirrored, icons on the right) with the zone's level range colored against yours, who holds it, its dungeons, the fishing skill it needs, and the herbs, ore, and skinning in it for the professions you have. On a continent map, it's the zone under the cursor. Herbs, ore, and skinning can each be off, shown with the profession, always, or only while you hold the detail key (Shift, Alt, or Ctrl), and so can fishing and dungeons; the panel has a size slider. **Unexplored Areas** shows the parts of zone maps you haven't explored yet on the world map and zone map, tinted in a color and strength you choose, or just like explored areas. **Coordinates** moves the game's own map coordinates into the world map's title bar, yours on the left and the cursor's on the right. Which ones show, and tenths, follow Blizzard's checkboxes under Settings > Gameplay > Interface.
+- **Flight Timer**: Times every flight you take, remembered by the game's flight point IDs, then shows a bar counting the flight down (move and scale it in Edit Mode) and the time on the flight map's tooltip. Sound on Landing (off by default) plays a sound a few seconds before you land.
+- **Minimap Node Icons**: Puts the herb's or ore's own icon on each tracking dot on the minimap while Find Herbs or Find Minerals is on, by asking the minimap what's under each spot, and following each dot every frame, out of combat and while your cursor isn't on the minimap. Classic's herbs and ore are known by name; any other node gets its icon once you gather it. Hovering an icon shows the minimap's own tooltip for the dot, and Gray Other Levels (on by default) grays an icon the minimap names in gray, as for a node in a cave. Tint Unusable (off by default) turns an icon red while your skill is too low to gather it, and Gray Out Trivial (off by default) turns it gray once it no longer raises your skill; icon size, a gold round border (on by default), and scan detail are options too. Off by default.
+- **Hide Filter Reset**: Hides the reset button on the world map's filter dropdown, which otherwise shows whenever a filter is off.
+- **Waypoints**: `/way [zone] x y` puts the game's own map pin on a spot and tracks it (`/way 45.2 67.8` in your zone, `/way Elwynn Forest 45 67`, or `/way clear`); TomTom's `/way` wins if it's installed. The Waypoint Arrow option (on by default) adds an arrow on screen that turns toward the pin, from `/way` or a click on the map, with the distance under it (move and resize it in Edit Mode). Follow Selected Quest (on by default) points it to the quest selected on the map instead, while one is, and Show Quest Name (on by default) adds the quest's name under it. Point to Corpse (on by default) points it to your corpse while you're a ghost, ahead of both. Clear Pin on Arrival (off by default) takes the pin away once you reach it. On by default.
+
+### Quests
+
+- **Auto Quest**: Accepts quests and turns in finished ones as you talk to quest givers, going through a quest giver's list one by one. Never picks a reward when there's a choice, skips shared quests unless you allow them, and pauses while you hold Shift (or another key). Off by default.
+- **Best Quest Reward**: Puts a gold coin on the quest reward choice that sells to a vendor for the most (price times count), in the quest window and the quest log. Ties are all marked; it never picks for you.
+- **Quest Tracker**: Restyles Blizzard's quest tracker rather than replacing it, so Edit Mode, its menus, and quest items work as before. Options for the font and outline (the text size stays Edit Mode's), a dark box behind it that fits your quests (opacity, border, and padding), fading it in combat (and how faint), sorting tracked quests by level, lowest or highest first (off by default), and showing only the tracked quests of the zone you're in (off by default). On by default.
+- **Forever Quest Icons**: Marks quests that are new to Forever (not in original Classic) with an infinity sign, or the Forever logo, after their name in the quest log on the world map, the objective tracker, a quest giver's list of quests, and the title of a quest's details, each with its own checkbox and icon size slider. On by default.
+- **Quest Levels**: Shows a quest's level before its name, like the quest log's [12] (with a + for elite quests), in a quest giver's list and at the top of the quest's details. On by default. Its Color by Difficulty option (off by default) colors the level gray through red by how it compares with yours.
+- **Quest Nameplates**: Shows a quest icon that matches the objective (kill, item, or interact) and your progress (3/8, or how many are left) beside the health bar of creatures you need for a quest. In a party it can count everyone's progress added up, or the member furthest from done.
+
+### System
+
+- **Hide Beta Feedback**: Hides the beta's "Press F6 to submit an issue" tooltip line, bug report button, and quest window feedback buttons. Off by default, and only on beta and PTR clients.
+- **AddOns List**: Shows the AddOns list without category headers, enabled addons first, each in name order. Options for ungrouping disabled addons, searching notes, and saving addon sets to turn back on later (off by default). On by default.
+- **Movable Framerate**: Lets you move and resize Blizzard's framerate text (Ctrl+R) in Edit Mode, like Blizzard's own frames. Until you move it, it stays where Blizzard puts it. Off by default.
+- **Error Catcher**: Catches Lua errors, blocked actions, and Lua warnings quietly instead of in Blizzard's error window and popup, and keeps them per session with how often each happened, its stack, and its locals. A window (`/fpp errors`, or Shift-click the Minimap Button) lists them for this session, the last one, or all, shows the one you pick, and has a Copy Bug Report button that selects a report with the addon version, client build, modules on, and the error, ready to copy. Option for a chat message for each new error (off by default). When another addon such as BugGrabber catches Lua errors, it says so in Settings and leaves those to it. On by default.
+- **Minimap Button**: A Forever++ button on the minimap, in the addon compartment, or both (an option). Right-click it to open Forever++ settings, or click it (the other way round with Swap Clicks turned off) for a menu that turns Auto Decline, Auto Dismount, Auto Gossip, Auto Quest, Auto Release, Auto Repair, Auto Screenshot, Auto Sell Junk, Auto Stow, Fast Loot, Fishing Cast, Gathering Tracking, Hide Beta Feedback (on the beta), Minimap Node Icons, Movable Framerate, and Skip Cinematics on or off, grouped by what you're doing, opening to either side of the cursor (Menu Side). While Error Catcher is on, Shift-click it to see the errors, Ctrl-click to clear this session's, or Alt-click to clear every saved error after it asks (each key is an option: Shift, Ctrl, Alt, or None to turn it off), and it shows how many this session caught. After a fresh install it wears a NEW label, and the first time it would open settings it opens the About page. Drag it around the minimap. On by default.
+- **Commands**: Adds short slash commands, each with its own checkbox: `/rl` reloads the UI, and `/clear` empties the chat window you type it in. A command another addon already has is left to that addon. `/fpp` is always there. On by default.
+
+### Units
+
+- **Class Colors**: Shows players' health bars, and optionally names (class color or white) and target and focus name backgrounds, in their class color on the player, target, focus, party, and target-of-target frames, and hostile and neutral NPCs' health bars in red and yellow. Also colors online friends' names in the friends list and names in the who list by class, and optionally offline friends' names by the class Forever++ last saw them as (on by default).
+- **NPC Nameplates**: Always shows friendly NPCs' names with their title, with a name size slider and a choice of where buffs sit. The health bar appears only when they're hurt or in combat. Players' pets, totems, and companions can keep Blizzard's plate.
+- **Player Nameplates**: Always shows friendly players' names with their guild, with a name size slider, a choice of where buffs sit, and an icon (or light blue name) for recent allies. The health bar appears only when they're hurt or in combat.
+
+### Tools
+
+- **Console Variables**: A page in Settings to browse and change the game's console variables (CVars). Off by default; off, the page and `/fpp cvar` are gone.
+- **Debug**: Every module's debug options and the testing tools (Self Test, Gear Probe, Screenshots), in its own settings on the Modules page. Off by default; off, they're greyed out, those tools' commands are gone, and every debug option is back at its default.
+- **Profiler**: A page in Settings that records how much CPU each module takes, heaviest first, beside Forever++'s total CPU and memory. A module made of parts folds open to show what each part takes. Nothing is timed until you press Record. Off by default; off, the page and `/fpp profile` are gone and nothing is timed.
 
 ## Commands
 
-- `/fpp`: open the settings (`/forever++` works too)
-- `/fpp list`: list the modules and whether each is on
-- `/fpp toggle <module>`: turn a module on or off
-- `/fpp reset`: put every setting back to its default
+- `/fpp`: Opens the Forever++ settings (`/forever++` works too).
+- `/fpp list`: Lists the modules and whether each is on, and the commands (`/fpp help` too).
+- `/fpp toggle <module> [option]`: Turns a module on or off, or with an option, flips that checkbox.
+- `/fpp options <module>`: Lists a module's options and their values.
+- `/fpp set <module> <option> [value]`: Changes an option: `on`/`off`, a choice such as `/fpp set PlayerNameplates level after`, or a number such as `/fpp set WorldMap dungeonSize 150`. Leave out the value to see the choices.
+- `/fpp reset`: Asks, then puts every setting back to its default, clears what Forever++ saved, and reloads.
+- `/fpp cvar [search]`: Opens Console Variables.
+- `/fpp profile`: Opens the Profiler.
+- `/fpp weights`: Opens Upgrade Arrows' Stat Weights page in Settings (the Modules page while the module is off): Class and Tree dropdowns and a weight slider per stat, for your class or one you'll play later.
+- `/fpp buffs`: Shows how Macros' Smart Buff judges your friendly target (or you): each of your buffs with your rank for them, whether they have it (and whose), which buff it casts, and their buffs. Only while Macros is on.
+- `/fpp errors`: Shows the errors Error Catcher caught.
+- `/fpp ranks`: Lists the spells on your action bars that have a higher rank you know (Spell Ranks).
+- `/fpp scan`: Scans the open auction house now.
+- `/fpp resetprices`: Forgets the saved auction prices.
+- `/fpp nodes [here]`: Checks what Minimap Node Icons sees on the minimap now: whether tracking is on and which herbs and veins it can read. With `here`, point at a dot and it says where the dot is against where a scan puts it.
+
+## Install
+
+Get it from CurseForge or Wago. To install it by hand, unzip it into the Forever client's AddOns folder, for example `World of Warcraft\_forever_\Interface\AddOns\`, so you end up with `AddOns\ForeverPlusPlus\ForeverPlusPlus.toc`, then start the game or `/reload`.
 
 ## How it's made
 
@@ -56,4 +149,6 @@ Forever++ is coded with AI by a longtime WoW addon developer, and every feature 
 
 ## Feedback
 
-Forever++ keeps getting updates as the game does, and ideas are always welcome. Report bugs and suggest features in [GitHub issues](https://github.com/xIGBClutchIx/ForeverPlusPlus/issues).
+Forever++ keeps getting updates as the game does, and ideas are always welcome. Report bugs and suggest features in [GitHub issues](https://github.com/xIGBClutchIx/ForeverPlusPlus/issues), or leave a comment here.
+
+Source code on [GitHub](https://github.com/xIGBClutchIx/ForeverPlusPlus). MIT license.
