@@ -15,194 +15,155 @@ ns.changelog = {
         sections = {
             { L.CHANGELOG_ADDED, {
                 { L.CHATLEVELS_TITLE, "A new module that shows each player's level before their "
-                    .. "name in chat, colored like a quest of that level. Forever++ now remembers "
-                    .. "the class, level, race, and guild of players you group with, your guild "
-                    .. "and friends, your /who results, and players you target or see nearby, so "
-                    .. "the level shows for players far away too. Off by default." },
-                { L.CLASSCOLORS_TITLE, "The new Offline Friends option (on by default) shows "
-                    .. "offline friends' names in the friends list in the class Forever++ last "
-                    .. "saw them as." },
-                { L.GEARPROBE_TITLE, "A new Run button under Testing in the Debug "
-                    .. "module's settings (and /fpp gearprobe) that reads what the client says "
-                    .. "about the gear you wear and carry, its own item comparison, your talent "
-                    .. "tabs, and your stats, and saves it after /reload, for the developers "
-                    .. "planning upgrade arrows." },
-                { L.ITEMTOOLTIPS_TITLE, "The new Disenchant line (off by default) shows on green, "
-                    .. "blue, and purple weapons and armor what disenchanting gives on average, "
-                    .. "priced from Auction Prices while that's on, or else the material it most "
-                    .. "likely gives. Hold Shift for every outcome and its chance." },
+                    .. "name in chat, colored like a quest of that level. Forever++ remembers "
+                    .. "players you group with, your guild and friends, your /who results, and "
+                    .. "players you see nearby, so the level shows for players far away too. Off "
+                    .. "by default." },
+                { L.CLASSCOLORS_TITLE, "The new Offline Friends option (on by default) colors "
+                    .. "offline friends in the friends list by the class Forever++ last saw them "
+                    .. "as." },
+                { L.GEARPROBE_TITLE, "A new Run button under Testing in the Debug module's "
+                    .. "settings (and /fpp gearprobe) that saves what the client says about your "
+                    .. "gear, its item comparison, your talents, and your stats, for the "
+                    .. "developers." },
+                { L.ITEMTOOLTIPS_TITLE, "The new Disenchant line (off by default) shows what "
+                    .. "disenchanting green, blue, and purple gear gives on average, priced from "
+                    .. "Auction Prices while that's on, or else the material it most likely "
+                    .. "gives. Hold Shift for every outcome and its chance." },
                 { L.ITEMTOOLTIPS_TITLE, "The new Color Stats option (on by default) shows each "
-                    .. "stat on gear in its own color, like Strength, Agility, Stamina, Intellect, "
-                    .. "and Spirit, and Equip: bonuses like hit and spell power, with Equip: still "
-                    .. "in green." },
+                    .. "stat on gear in its own color, including Equip: bonuses like hit and "
+                    .. "spell power." },
                 { L.ITEMTOOLTIPS_TITLE, "Auction Prices can use Auctionator's prices instead of "
-                    .. "scanning, when Auctionator is installed: turn on Use Auctionator's Prices. "
-                    .. "Your own saved prices are kept for when you turn it off." },
-                { L.MACROS_TITLE, "A new module that makes macros in your general macros, shared "
-                    .. "by your characters, each with its own checkbox, and deletes them when "
-                    .. "they're turned off. The first is Smart Buff: it casts the buff your friendly "
-                    .. "target (or you) should get from you, at the best rank you know, like Blessing "
-                    .. "of Might or Wisdom by class, skips buffs they already have (or a stronger one, "
-                    .. "like a Greater Blessing, and recasts over someone else's lower rank), buffs "
-                    .. "you when the target can't get anything from you and says on screen why, shows a red X only "
-                    .. "when there's nothing left for either, and warns in combat when it can't change "
-                    .. "to fit a new target. Off by default." },
+                    .. "scanning: turn on Use Auctionator's Prices. Your own saved prices are "
+                    .. "kept for when you turn it off." },
+                { L.MACROS_TITLE, "A new module that makes macros shared by your characters, "
+                    .. "each with its own checkbox, and deletes them when they're turned off. The "
+                    .. "first is Smart Buff: it casts the buff your friendly target (or you) "
+                    .. "should get from you at the best rank you know, skips buffs they already "
+                    .. "have or a stronger one, buffs you instead when they can't get anything "
+                    .. "from you and says why, and warns in combat when it can't change to fit a "
+                    .. "new target. Off by default." },
                 { L.MINIMAPBUTTON_TITLE, "The new Swap Clicks option (on by default) opens the "
-                    .. "quick toggles with a click and settings with a right-click; the error "
-                    .. "keys stay on a click unless you turn off Error Keys on Left-Click under "
-                    .. "it, which moves them to the settings click, and the tooltip says which "
-                    .. "is which. Menu Side (Left in Developer's Defaults) opens the quick "
-                    .. "toggles to the left or right of the cursor." },
+                    .. "quick toggles with a click and settings with a right-click, and Error "
+                    .. "Keys on Left-Click picks which click the error keys go on. Menu Side "
+                    .. "opens the quick toggles to the left or right of the cursor." },
                 { L.UPGRADEARROWS_TITLE, "A new module that puts Blizzard's green arrow on gear "
-                    .. "that beats what you wear, judged by stat weights for your class and the "
-                    .. "talent tree you have the most points in (or one you pick, with a Feral "
-                    .. "Bear profile for Druids), in your bags and bank, at merchants, in the loot "
-                    .. "window and on loot rolls, on the quest reward choice that's the biggest "
-                    .. "upgrade, and in the auction house, each with its own checkbox. A ring is "
-                    .. "judged against your weaker ring and a two-hander against both hands. The "
-                    .. "arrow sits in the corner of the icon you pick, at the size and padding "
-                    .. "you pick, with the percentage beside it if you like. In the "
-                    .. "item's tooltip the arrow and the percentage sit to the right of its name, "
-                    .. "or on an Upgrade line of their own, Show Scores adds every item's score, "
-                    .. "Show Downgrades marks worse gear with a red arrow pointing down, in a "
-                    .. "corner of its own, Higher Level Gear judges gear up to 5 levels (or as "
-                    .. "many as you pick) above yours, profession tools like fishing poles and the "
-                    .. "Mining Pick are left unmarked unless you turn off Ignore Profession Tools, "
-                    .. "as is the reagent bag unless you turn off Ignore Reagent Bag, "
-                    .. "and a Threshold slider hides small "
-                    .. "differences. The "
-                    .. "weights start from a template per talent tree, with Strength, Agility, "
-                    .. "Stamina, and Intellect worked out from what the game says a point of each "
-                    .. "gives your class, defaults for every tree worked out from Classic's stat "
-                    .. "values, and hit and crit on gear read as the ratings they are (10 hit is "
-                    .. "1%), and its Stat Weights page in Settings (/fpp weights), "
-                    .. "there while the module is on, has a slider per stat to make them your own, per profile, for any class, "
-                    .. "and Import and Export of stat weight strings in the Pawn format sims and "
-                    .. "gear sites publish. Off by default." },
+                    .. "that beats what you wear, judged by stat weights for your class and main "
+                    .. "talent tree (or one you pick, with a Feral Bear profile for Druids). It "
+                    .. "marks your bags and bank, merchants, loot and loot rolls, the best quest "
+                    .. "reward, and the auction house, each with its own checkbox. A ring is "
+                    .. "judged against your weaker ring and a two-hander against both hands. "
+                    .. "Pick the arrow's corner, size, and padding, and show the percentage beside "
+                    .. "it or in the tooltip. Options show every item's score, mark worse gear "
+                    .. "with a red arrow, judge gear up to 5 levels above yours, leave profession "
+                    .. "tools and the reagent bag unmarked, and hide small differences. The "
+                    .. "weights start from a template per talent tree, and the Stat Weights page "
+                    .. "(/fpp weights) has a slider per stat, per profile, with Import and Export "
+                    .. "of Pawn strings. Off by default." },
             } },
             { L.CHANGELOG_CHANGED, {
-                "Item marks, tints, and tooltip lines do much less work after a skill point or "
-                    .. "level, in your bags, and at the auction house, so bags open more smoothly "
-                    .. "while leveling.",
-                { L.AUTOSTOW_TITLE, "Also puts away weapons you draw yourself out of combat, "
-                    .. "once they've been out for the Delay. Pressing Sheath starts the Delay "
-                    .. "again." },
-                { L.AUTOWEAPONBUFF_TITLE, "Using a sharpening stone, weightstone, oil, poison, or "
-                    .. "lure from an action bar puts it straight on your weapon too, like a "
-                    .. "right-click in your bags. Not in combat." },
-                { L.CHATCOPY_TITLE, "The window looks like Forever++'s other windows, with the "
-                    .. "portrait and the title \"Forever++ Chat Copy\"." },
-                { L.ITEMTOOLTIPS_TITLE, "Sell Price also shows on a quest's reward tooltips, where "
-                    .. "the game leaves it off, so you can see what each choice sells for." },
-                { L.MINIMAPNODEICONS_TITLE, "Costs much less while you play: it looks the minimap "
-                    .. "over for new dots once a second or so instead of ten times, spreads the "
-                    .. "look after a zoom over a few moments instead of one frame, and does nothing "
-                    .. "while Find Herbs and Find Minerals are off. A new dot may take a moment "
-                    .. "longer to get its icon while you stand still." },
-                { L.PROFILER_TITLE, "Also times the work modules put off for a moment, like "
-                    .. "redrawing the marks on your bag items, so it shows under the module that "
-                    .. "did it." },
-                { L.QUESTTRACKER_TITLE, "The background is a little darker by default, at 40% "
-                    .. "opacity instead of 30%. If you set its Opacity yourself, it stays as you "
-                    .. "set it." },
-                { L.CHANGELOG_SETTINGS, "A module's warnings and limits, like what works only "
-                    .. "out of combat, sit in a gray line under its description on the Modules page "
-                    .. "instead of in it." },
-                { L.CHANGELOG_SETTINGS, "Option names on the Modules page have more room and a "
-                    .. "smaller indent under the option they depend on, so they wrap less. An "
-                    .. "option's NEW label sits just after its checkbox instead of squeezing its "
-                    .. "name." },
+                "Item marks, tints, and tooltip lines do much less work, so bags open more "
+                    .. "smoothly while leveling.",
+                { L.AUTOSTOW_TITLE, "Also puts away weapons you draw yourself, once they've been "
+                    .. "out for the Delay. Pressing Sheath starts the Delay again." },
+                { L.AUTOWEAPONBUFF_TITLE, "Using a stone, oil, poison, or lure from an action "
+                    .. "bar puts it straight on your weapon too. Not in combat." },
+                { L.CHATCOPY_TITLE, "The window looks like Forever++'s other windows." },
+                { L.ITEMTOOLTIPS_TITLE, "Sell Price also shows on quest reward tooltips, so you "
+                    .. "can see what each choice sells for." },
+                { L.MINIMAPNODEICONS_TITLE, "Costs much less while you play: it checks the "
+                    .. "minimap about once a second instead of ten times, and does nothing while "
+                    .. "Find Herbs and Find Minerals are off. A new dot may take a moment longer "
+                    .. "to get its icon." },
+                { L.PROFILER_TITLE, "Also times work modules put off for a moment, like "
+                    .. "redrawing bag marks." },
+                { L.QUESTTRACKER_TITLE, "The background is a little darker by default, 40% "
+                    .. "instead of 30%, unless you set its Opacity yourself." },
+                { L.CHANGELOG_SETTINGS, "A module's warnings and limits sit in a gray line under "
+                    .. "its description on the Modules page." },
+                { L.CHANGELOG_SETTINGS, "Option names on the Modules page have more room, so "
+                    .. "they wrap less, and NEW labels sit just after the checkbox." },
                 { L.CHANGELOG_SETTINGS, "Console Variables, Profiler, and Debug are modules "
                     .. "under a new Tools category, off by default (on in Developer's Defaults). "
-                    .. "Debug's options and testing buttons are in its own settings on the Modules "
-                    .. "page instead of a Debug page in the sidebar. Off, Console Variables' and "
-                    .. "Profiler's pages leave the sidebar and their commands are gone, "
-                    .. "the Profiler times nothing, and turning Debug off puts every debug option "
-                    .. "back to its default and takes away /fpp selftest, /fpp gearprobe, and "
-                    .. "/fpp shots." },
+                    .. "Debug's options and buttons are in its own settings on the Modules page. "
+                    .. "Turned off, a tool's page and commands go away, and Debug's options go "
+                    .. "back to their defaults." },
                 { L.WHISPERWINDOW_TITLE, "Shows the guild of the player you're talking to, and "
-                    .. "their level, race, and class from when Forever++ last saw them when the "
-                    .. "game can't say now." },
+                    .. "their level, race, and class from when Forever++ last saw them." },
             } },
             { L.CHANGELOG_FIXED, {
-                "An error in one module no longer stops Blizzard's own window or tooltip it hooks "
-                    .. "from finishing, or the other modules' changes to it.",
-                "Marks, tints, and arrows on a loot window that's already open show when you turn "
-                    .. "their module on, instead of only on the next loot.",
+                "An error in one module no longer breaks the Blizzard window or tooltip it "
+                    .. "hooks, or other modules' changes to it.",
+                "Marks, tints, and arrows on an open loot window show as soon as you turn their "
+                    .. "module on.",
                 "The buttons Forever++ adds beside the chat window sit below Blizzard's voice chat "
-                    .. "Deafen and Mute buttons while those show, instead of on top of them.",
+                    .. "Deafen and Mute buttons instead of on top of them.",
                 "Updating from 0.8 puts Blizzard's map coordinate settings back the way you had "
-                    .. "them before Forever++ turned them on, and gives the Quest Tracker's "
-                    .. "background and the waypoint arrow today's defaults if you never changed them.",
-                "Forever++'s chat messages start with the chat timestamp while timestamps are on "
-                    .. "in the game's chat settings, like the game's own lines.",
+                    .. "them, and gives the Quest Tracker's background and the waypoint arrow "
+                    .. "today's defaults if you never changed them.",
+                "Forever++'s chat messages start with the chat timestamp while timestamps are "
+                    .. "on, like the game's own lines.",
                 { L.ALREADYKNOWN_TITLE, "Items on a vendor's Buyback tab no longer get the marks "
                     .. "of the vendor's own items." },
-                { L.ALREADYKNOWN_TITLE, "Mail in the inbox and the attachments of an open letter "
-                    .. "get marks again; a game update had changed how the mailbox redraws." },
+                { L.ALREADYKNOWN_TITLE, "Mail in the inbox and open letters get marks again "
+                    .. "after a game update broke them." },
                 { L.AUTOSCREENSHOT_TITLE, "Reaching Neutral with a faction counts as a step up and "
                     .. "takes a screenshot." },
-                { L.AUTOSTOW_TITLE, "No longer draws your bow, gun, or thrown weapon when it "
-                    .. "meant to put your melee weapon away: it keeps toggling until everything "
-                    .. "is away." },
+                { L.AUTOSTOW_TITLE, "No longer draws your ranged weapon when it meant to put "
+                    .. "your melee weapon away." },
                 { L.CHATCOPY_TITLE, "Turning Click Timestamps off no longer brings back chat lines "
                     .. "that had faded out." },
                 { L.CHATFONT_TITLE, "Turning the module off gives the Communities and GM chat "
                     .. "windows their font back too." },
                 { L.CHANGELOG_COMMANDS, "/fpp reset turns every module off before it wipes the "
-                    .. "settings, so game settings a module changed, like Auto Dismount's, go back "
-                    .. "to your own. Started in combat, it waits until combat ends." },
-                { L.CHANGELOG_COMMANDS, "A /fpp command whose module is off, like /fpp shots "
-                    .. "while Debug is off, says so in chat instead of opening Settings." },
+                    .. "settings, so game settings a module changed go back to your own. In "
+                    .. "combat, it waits until combat ends." },
+                { L.CHANGELOG_COMMANDS, "A /fpp command whose module is off says so in chat "
+                    .. "instead of opening Settings." },
                 { L.FISHINGCAST_TITLE, "Changing Louder Bobber while the module is off no longer "
                     .. "changes your sound volumes." },
                 { L.FLIGHTTIMER_TITLE, "Bag items and action buttons no longer get a Flight Time "
                     .. "line while the old flight map is open." },
                 { L.GATHERINGTRACKING_TITLE, "Find Minerals or Find Herbs comes back on after "
-                    .. "dying again: it keeps checking for a few seconds after you come back to "
-                    .. "life, instead of giving up when the tracking list still showed it on or "
-                    .. "the first try didn't take." },
-                { L.HIDEBETAFEEDBACK_TITLE, "Turning the module off brings back the feedback button "
-                    .. "even if it showed up after the module hid it." },
+                    .. "dying again: it keeps trying for a few seconds after you come back to "
+                    .. "life." },
+                { L.HIDEBETAFEEDBACK_TITLE, "Turning the module off always brings the feedback "
+                    .. "button back." },
                 { L.ITEMTOOLTIPS_TITLE, "The Auction Prices scan no longer spins forever when the "
-                    .. "auction house stops answering partway: it asks again, then finishes with "
-                    .. "the prices it has." },
+                    .. "auction house stops answering: it asks again, then finishes with the "
+                    .. "prices it has." },
                 { L.ITEMTOOLTIPS_TITLE, "An auction price over 214,748 gold no longer causes an "
                     .. "error when it's saved." },
                 { L.ITEMTOOLTIPS_TITLE, "The lines stay above Forever's \"Press F6\" line on items "
-                    .. "whose last line another module redraws, like a junkbox's lockpicking "
-                    .. "requirement." },
+                    .. "like junkboxes." },
                 { L.PERSISTENTCHAT_TITLE, "Chat no longer starts fading again after you leave it "
                     .. "with a gamepad." },
                 { L.QUESTTRACKER_TITLE, "Turning the module on or off keeps the text size you "
-                    .. "set in Edit Mode, instead of setting it back to the default size." },
-                { L.CHANGELOG_SETTINGS, "The About page lists the commands of the modules that are on "
-                    .. "now, instead of the ones that were on when it first opened." },
-                { L.CHANGELOG_SETTINGS, "The About page's command list scrolls once it's longer "
-                    .. "than the page, and a long description wraps instead of running off the edge." },
+                    .. "set in Edit Mode." },
+                { L.CHANGELOG_SETTINGS, "The About page lists the commands of the modules that "
+                    .. "are on now, not the ones that were on when it first opened." },
+                { L.CHANGELOG_SETTINGS, "The About page's command list scrolls, and a long "
+                    .. "description wraps instead of running off the edge." },
                 { L.SOCIALBUTTON_TITLE, "Text to Speech and voice chat alerts no longer sit on top "
-                    .. "of the chat buttons once the social button is in their column." },
-                { L.SPELLRANKS_TITLE, "Spells in macros on your action bars get the badge too, "
-                    .. "instead of none, or one from an unrelated macro." },
-                { L.SPELLRANKS_TITLE, "The line saying how many action bar spells have a higher "
-                    .. "rank no longer shows at every login, only after you learn a spell or level "
-                    .. "up." },
-                { L.SPELLRANKS_TITLE, "The warning badge on a lower-rank spell sits fully inside "
-                    .. "the button's corner and draws above its icon, border, and cooldown, "
-                    .. "instead of being cut off." },
+                    .. "of the chat buttons." },
+                { L.SPELLRANKS_TITLE, "Spells in macros on your action bars get the right "
+                    .. "badge." },
+                { L.SPELLRANKS_TITLE, "The line about action bar spells with a higher rank shows "
+                    .. "only after you learn a spell or level up, not at every login." },
+                { L.SPELLRANKS_TITLE, "The warning badge sits fully inside the button's corner, "
+                    .. "above its icon, border, and cooldown." },
                 { L.TOOLTIPS_TITLE, "Class Color colors the class name on Russian, Korean, and "
                     .. "Chinese clients too." },
                 { L.WAYPOINTS_TITLE, "The arrow sits a little lower by default and always stays "
-                    .. "inside the game window, so a windowed game's title bar can't cover it. If "
-                    .. "you moved it in Edit Mode, it stays where you put it." },
+                    .. "inside the game window. If you moved it in Edit Mode, it stays where you "
+                    .. "put it." },
                 { L.WHISPERWINDOW_TITLE, "A whisper you start by a player's name without their "
-                    .. "surname goes to your conversation with them, instead of a new empty one. "
-                    .. "With chat set to open whispers in a new tab, Hide Whispers in Chat leaves "
-                    .. "them there instead of leaving the tab empty." },
-                { L.WORLDMAP_TITLE, "Points of Interest no longer marks a ley line where you "
-                    .. "cast Read Ley Line while an older ley line buff was still on you." },
-                { L.WORLDMAP_TITLE, "Unexplored Areas no longer draws over the edges of explored "
-                    .. "areas, which left straight lines across the map." },
+                    .. "surname goes to your conversation with them, and Hide Whispers in Chat "
+                    .. "no longer leaves a whisper tab empty." },
+                { L.WORLDMAP_TITLE, "Points of Interest no longer marks a ley line in the wrong "
+                    .. "place while an older ley line buff is still on you." },
+                { L.WORLDMAP_TITLE, "Unexplored Areas no longer draws straight lines over the "
+                    .. "edges of explored areas." },
             } },
         },
     },
