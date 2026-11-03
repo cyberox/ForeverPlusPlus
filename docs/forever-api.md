@@ -21,8 +21,9 @@ When you confirm or rule out something here, change its tag, add the date, and s
 
 ## Client identity
 
-- The live client: build 1.60.1.70707, interface **16001**, product `wowf`, exe `Wow.exe`, folder `_forever_`. **[local]** (2026-10-30: `.build.info`, `.flavor.info`, `WTF\Config.wtf` has `engineSurveyPatch "16001"`) Its `WTF` was copied from the beta, so the saved files and realm folders there are the beta's until the live game rewrites them.
-  - Every `C_` function and event the addon names is in build 70707's `Wow.exe` (`strings`), except `C_Console`, already known to be missing. **[local]** (2026-10-30) Every Blizzard global, hook target, and hooked method it names is in the `forever` branch of wow-ui-source at 70532, except the mail frame's `InboxFrame_Update` and `OpenMail_Update`, which became `InboxFrame:Update()` and `OpenMailFrame:Update()` (`InboxMixin`, `OpenMailMixin`) by 70338. **[web]**
+- The live client: build 1.60.1.70755 (2026-11-03; 70707 on 2026-10-30), interface **16001**, product `wowf`, exe `Wow.exe`, folder `_forever_`. **[local]** (`.build.info`, `.flavor.info`, `WTF\Config.wtf` has `engineSurveyPatch "16001"`) Its `WTF` was copied from the beta, so the saved files and realm folders there are the beta's until the live game rewrites them.
+  - Every `C_` function, event, and global function the addon names is in build 70755's `Wow.exe` (`strings`) or its Blizzard UI, except `C_Console`, already known to be missing. **[local]** (2026-11-03) Every Blizzard global, hook target, and hooked method it names is in the `forever` branch of wow-ui-source at 70755, except the mail frame's `InboxFrame_Update` and `OpenMail_Update`, which became `InboxFrame:Update()` and `OpenMailFrame:Update()` (`InboxMixin`, `OpenMailMixin`) by 70338. **[web]**
+  - 70755 changed bag item buttons' `Initialize(bag, slot)` to `Initialize(containerFrame, bag, slot)`, and gamepad bag slots now show their own free slot count, "(16)". Nothing here hooks either. **[web]** (wow-ui-source 70532...70755)
 - The beta client: build 1.60.1.70009, interface **16001**, product `wow_classic_beta`, exe `WowB.exe`, folder `_classic_beta_`. **[local]** (`.build.info`, `WTF\Config.wtf` has `engineSurveyPatch "16001"`)
 - Internal codename is **Camelot**. It shows up in TOC suffixes, TOC game types, and addon code. **[local]** (installed addons) **[web]** (wiki)
 - `GetBuildInfo()` returns `"1.60.1", <build>, <date>, 16001`. **[in-game]** (2026-09-23) **[dump]** (`client.interface = 16001`)
@@ -489,7 +490,7 @@ Web (checked 2026-09-25):
 - [TOC format, warcraft.wiki.gg](https://warcraft.wiki.gg/wiki/TOC_format): game types and suffix precedence.
 - [Thunderz96/forever-addon-kit](https://github.com/Thunderz96/forever-addon-kit) (README, updated 2026-09-24): measured findings; `data/forever_api.json` is an API dump from build 69893.
 - [Atraeau/WoW-Addons](https://github.com/Atraeau/WoW-Addons): `docs/api.json` and [browsable reference](https://atraeau.github.io/WoW-Addons/), generated from the client's own `APIDocumentation` on build 69913 (2026-09-20). Good for signatures.
-- [Gethe/wow-ui-source, `forever` branch](https://github.com/Gethe/wow-ui-source/tree/forever) (checked 2026-09-27, 1.60.1.70009; again 2026-10-30, 70532): Blizzard's own UI code for this client.
+- [Gethe/wow-ui-source, `forever` branch](https://github.com/Gethe/wow-ui-source/tree/forever) (checked 2026-09-27, 1.60.1.70009; again 2026-10-30, 70532, and 2026-11-03, 70755): Blizzard's own UI code for this client.
 - [wago.tools `GlobalColor`](https://wago.tools/db2/GlobalColor?build=1.60.1.70009) (checked 2026-09-27): the client's named colors, which become globals like `RECENT_ALLY_FONT_COLOR`.
 - [ClassicWoWCommunity/forever-bugs #74](https://github.com/ClassicWoWCommunity/forever-bugs/issues/74): the secure snippet load-order bug.
 - [Blizzard: Forever beta development notes, updated 2026-09-24](https://us.forums.blizzard.com/en/wow/t/wow-forever-beta-development-notes-%E2%80%93-updated-september-24/2360696) and [known issues, 2026-09-17](https://us.forums.blizzard.com/en/wow/t/wow-forever-beta-known-issues-september-17/2352687).
