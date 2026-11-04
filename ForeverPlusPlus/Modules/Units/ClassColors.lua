@@ -14,7 +14,8 @@
 local _, ns = ...
 
 local _G, setmetatable = _G, setmetatable
-local pairs, format, wipe = pairs, string.format, wipe
+local pairs, ipairs, format, wipe = pairs, ipairs, string.format, wipe
+local C_CVar = C_CVar
 local C_FriendList, GetPlayerInfoByGUID = C_FriendList, GetPlayerInfoByGUID
 local UnitIsPlayer, UnitIsConnected, UnitReaction = UnitIsPlayer, UnitIsConnected, UnitReaction
 local UnitIsTapDenied, UnitPlayerControlled, CreateColor = UnitIsTapDenied, UnitPlayerControlled, CreateColor
@@ -66,6 +67,35 @@ module.options = {
     { key = "targetOfTarget", name = L.CLASSCOLORS_TOT, description = L.CLASSCOLORS_TOT_DESC, section = FRAMES },
 }
 
+-- Nameplates are Blizzard's to color, so this module leaves them alone, but players' health bars
+-- on them are a flat blue or red unless these CVars are on (NamePlateDriverMixin's
+-- UpdateNamePlateOptions reads them into useClassColors, Gethe `forever` branch, checked
+-- 2026-11-04), so a player who wants class colors everywhere gets a button for them.
+local PLATE_BARS = { "nameplateShowClassColor", "nameplateShowFriendlyClassColor" }
+local plateBars = {
+    text = L.CLASSCOLORS_PLATE_BARS_OFF,
+    description = L.CLASSCOLORS_PLATE_BARS_OFF_DESC,
+    button = L.SETTINGS_TURN_ON,
+    fn = function()
+        for _, name in ipairs(PLATE_BARS) do
+            if C_CVar.GetCVar(name) ~= nil then
+                ns.CVars.Apply(name, "1")
+            end
+        end
+    end,
+    shown = function()
+        if not module.db.enabled then
+            return false
+        end
+        for _, name in ipairs(PLATE_BARS) do
+            if C_CVar.GetCVar(name) ~= nil and not ns.CVars.IsOn(name) then
+                return true
+            end
+        end
+        return false
+    end,
+}
+
 -- Friendly players' names on Blizzard's nameplates are white unless this CVar is on, so a player
 -- who wants class colors everywhere gets a button for it. Not while Player Nameplates is on: it
 -- draws its own names in their class color and keeps this off, so Blizzard's hidden ones stay white.
@@ -77,7 +107,7 @@ plateNames.shown = function()
     local playerPlates = ns.modules.PlayerNameplates
     return plateNamesOff() and not (playerPlates and playerPlates.enabled)
 end
-module.notice = plateNames
+module.notice = { plateBars, plateNames }
 
 local MAX_PARTY = 4
 -- Blizzard's own hostile, neutral, and tapped colors (UnitSelectionColor, Classic's tapped bar).

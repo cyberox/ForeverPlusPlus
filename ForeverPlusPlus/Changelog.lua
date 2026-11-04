@@ -17,6 +17,9 @@ ns.changelog = {
                     .. "as the default. If a later version changes that default, your choice is "
                     .. "kept. Only the undo arrow, Defaults, or /fpp reset puts it back, and after "
                     .. "that you get the new default." },
+                { L.CLASSCOLORS_TITLE, "While Blizzard's nameplates show players' health bars "
+                    .. "in blue or red instead of their class color, its settings say so, with a "
+                    .. "Turn On button for Blizzard's class colors on friendly and enemy players." },
                 { L.CLASSCOLORS_TITLE, "While Blizzard's nameplates show friendly players' "
                     .. "names in white, its settings say so, with a Turn On button for "
                     .. "Blizzard's class colors on them. It doesn't show while Player Nameplates "
