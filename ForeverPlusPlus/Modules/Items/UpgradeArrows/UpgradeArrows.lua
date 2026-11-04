@@ -283,7 +283,39 @@ end
 
 local function forgetScores()
     wipe(results)
+    ns.Providers.Changed("upgrades") -- other addons' scores are out of date too
 end
+
+-- What the public API (API.lua) reads while the module is on: copies, never `results` itself.
+local provider = {
+    -- An item link's result: { upgrade, downgrade, percent, score, rival }, false for an item
+    -- that can't be an upgrade, or nil while the game hasn't cached it.
+    Evaluate = function(link)
+        local result = evaluate(link)
+        if not result then
+            return result
+        end
+        return { upgrade = result.upgrade, downgrade = result.downgrade, percent = result.percent,
+            score = result.score, rival = result.rival }
+    end,
+    -- An item link's score by the weights in use, upgrade candidate or not.
+    Score = function(link)
+        local info = profile and ItemStats.Get(link)
+        return info and scoreOf(info) or nil
+    end,
+    -- The profile in use: its key ("MAGE:3"), class, talent tab, whether it's a guess, and weights.
+    Profile = function()
+        if not profile then
+            return nil
+        end
+        local weights = {}
+        for stat, weight in pairs(profile.weights) do
+            weights[stat] = weight
+        end
+        return { key = profile.key, class = profile.class, tab = not profile.bear and profile.index or nil,
+            bear = profile.bear and true or false, guess = profile.guess and true or false, weights = weights }
+    end,
+}
 
 -- Arrows ----------------------------------------------------------------------------------------
 
@@ -630,6 +662,7 @@ local function onPlayerChanged()
             results[link] = nil
         end
     end
+    ns.Providers.Changed("upgrades")
     refreshSoon()
 end
 
@@ -672,10 +705,12 @@ function module:OnEnable()
             self:On(event, onTalentsChanged)
         end
     end
+    ns.Providers.Set("upgrades", provider)
     refresh()
 end
 
 function module:OnDisable()
+    ns.Providers.Set("upgrades", nil)
     ItemButtons.CancelAuction(updateAuction)
     forgetScores()
     wipe(waiting)

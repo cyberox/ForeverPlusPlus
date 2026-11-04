@@ -311,7 +311,25 @@ module.actions = {
     },
 }
 
+-- What the public API (API.lua) reads while the module is on.
+local provider = {
+    -- Seconds the flight between two flight point IDs takes, once it has been flown.
+    Time = function(from, to)
+        return estimate(from, to)
+    end,
+    -- The flight underway: from and to node IDs, its length in seconds (nil the first time it's
+    -- flown), and the seconds since it took off. Nil when not flying.
+    Current = function()
+        if not (flight and flight.started) then
+            return nil
+        end
+        return { from = flight.from, to = flight.to, total = flight.total,
+            elapsed = GetTime() - flight.started }
+    end,
+}
+
 function module:OnEnable()
+    ns.Providers.Set("flights", provider)
     if not bar then
         bar = newBar()
         watcher = ns.Frames.Watcher(self, 0.1, tick)
@@ -326,6 +344,7 @@ function module:OnEnable()
 end
 
 function module:OnDisable()
+    ns.Providers.Set("flights", nil)
     if bar then
         ns.EditMode.Unregister(bar)
         cancel()

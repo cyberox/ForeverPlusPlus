@@ -145,7 +145,7 @@ Get it from CurseForge or Wago. To install it by hand, unzip it into the Forever
 
 ## For addon authors
 
-Other addons can read Forever++'s auction prices, disenchant values, players seen, colors, and dungeon levels through `ForeverPlusPlusAPI.v1`. See the [API documentation](https://github.com/xIGBClutchIx/ForeverPlusPlus/blob/main/docs/api.md).
+Other addons can read Forever++'s auction prices, disenchant values, upgrade scores, flight times, players seen, colors, dungeon levels, and module settings, and set waypoints, through `ForeverPlusPlusAPI.v1`. See the [API documentation](https://github.com/xIGBClutchIx/ForeverPlusPlus/blob/main/docs/api.md).
 
 ## How it's made
 

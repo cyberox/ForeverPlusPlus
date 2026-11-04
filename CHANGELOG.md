@@ -6,7 +6,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 ### Added
 
-- Other addons can read what Forever++ knows through `ForeverPlusPlusAPI.v1`: auction prices, what disenchanting an item gives and is worth, the class, level, race, and guild of players it has seen, class and level colors, dungeon and raid levels, gathering skills, and which modules are on, with a callback when prices change. See [docs/api.md](docs/api.md).
+- Other addons can read what Forever++ knows through `ForeverPlusPlusAPI.v1`: auction prices, what disenchanting an item gives and is worth, Upgrade Arrows' scores, flight times, the class, level, race, and guild of players it has seen, class and level colors, dungeon and raid levels, gathering skills, and each module with its options. They can set and clear the map pin, and get callbacks when these change. See [docs/api.md](docs/api.md).
 
 ## 1.0.0-beta.1 (2026-11-02)
 

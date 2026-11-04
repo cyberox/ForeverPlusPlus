@@ -30,6 +30,11 @@ Colors come back as `r, g, b` (0 to 1) plus a hex string `"ffrrggbb"`, the same 
 | `IsReady()` | Whether saved data has loaded (after `PLAYER_LOGIN`). |
 | `IsModuleEnabled(name)` | Whether a module is on, by its internal name (`"ItemTooltips"`, `"ClassColors"`), or `nil` for a name Forever++ doesn't have. Use it to skip something Forever++ is already showing. |
 | `GetModules()` | A list of `{ name, title, category, enabled }` for every module this client gets. |
+| `GetModuleInfo(name)` | One module in full: `{ name, title, description, category, enabled, options }`. Each option is `{ key, name, kind, value, default, choices, min, max }`, where `kind` is `"checkbox"`, `"dropdown"` (its `choices` are the values), or `"slider"`. The options are the ones the Modules page shows. |
+| `GetModuleOption(name, key)` | One option's value as the player set it, or its default. `nil` for an option the module doesn't have. |
+| `OpenSettings(name)` | Opens Forever++'s settings on that module, or on the Modules page when `name` is left out. Use it for a button in your addon's options that sends the player here. Returns `false` in combat. |
+
+The API can read modules and options but can't change them: those are the player's choices. To have the player change one, open the page with `OpenSettings`.
 
 ## Auction prices
 
@@ -49,6 +54,41 @@ These follow Classic's disenchanting rules, by quality, item level, and weapon o
 | --- | --- |
 | `GetDisenchantResults(item)` | What disenchanting gives, most likely first: a list of `{ itemID, chance (0 to 1), min, max }`. `nil` when the item can't be disenchanted, or the client hasn't loaded it yet (ask again after `GET_ITEM_INFO_RECEIVED`). |
 | `GetDisenchantValue(item)` | The average value in copper at the auction prices, and how many results had no price (the total leaves those out). `nil` without prices or results. |
+
+## Upgrade scores
+
+These come from Upgrade Arrows while it's on. They use the same stat weights for the player's class and talent tree, and the same comparison against what's worn, as its arrows: a ring is compared with the weaker ring, and a two-hander with both hands. Pass an item link where you have one, since the link carries the item's suffix (like "of the Bear").
+
+| Function | Returns |
+| --- | --- |
+| `HasUpgradeScores()` | Whether scores can be read (Upgrade Arrows is on). |
+| `GetItemUpgradeInfo(item)` | `{ canUpgrade, isUpgrade, isDowngrade, percent, score, equippedScore }`. `percent` is how much better or worse the item is than what it would replace (`nil` against an empty slot). `canUpgrade` is false for something that can never be an upgrade: not gear, can't be used, or already worn. `nil` while Upgrade Arrows is off or the client hasn't loaded the item. `isUpgrade` uses the player's Upgrade Threshold. |
+| `GetItemScore(item)` | The item's score by the weights in use, whether or not it could be an upgrade. |
+| `GetUpgradeProfile()` | The weights in use: `{ key ("MAGE:3"), class, tab, bear, guess, weights }`. `weights` maps stats in short keys (`"STR"`, `"SP"`, `"HIT"`, as in [stat-weights.md](stat-weights.md)) to their weight. `guess` is true while there are no talent points to go by. |
+
+Scores change when gear, level, talents, weights, or Upgrade Arrows' options change. `UPGRADES_UPDATED` says when.
+
+## Flight times
+
+These come from Flight Timer while it's on. Flight points are the game's node IDs (`nodeID` from `C_TaxiMap`). A route's time is known once the player has flown it. Each direction is its own route.
+
+| Function | Returns |
+| --- | --- |
+| `GetFlightTime(fromNodeID, toNodeID)` | The flight's length in seconds, or `nil` if it hasn't been flown. |
+| `GetCurrentFlight()` | The flight underway: `{ fromNodeID, toNodeID, duration, elapsed, remaining }` in seconds. `duration` and `remaining` are `nil` the first time a route is flown. `nil` when not flying. |
+
+## Waypoints and maps
+
+The waypoint is Blizzard's own map pin, the same one `/way` and a click on the map set. It shows on the map, as the marker in the world, and on Waypoints' arrow. Spots are 0 to 1 across and down a map, as `C_Map` gives them (not 0 to 100 as `/way` takes them).
+
+| Function | Returns |
+| --- | --- |
+| `SetWaypoint(map, x, y)` | Puts the pin on `map`, which is a map ID, a zone name (as `FindZone` reads it), or `nil` for the player's map, and tracks it. Returns `true`, or `false` and why: `"zone"` (no such zone), `"range"` (x or y outside 0 to 1), `"map"` (no pin allowed there, like inside a dungeon), or `"unavailable"`. |
+| `GetWaypoint()` | The pin's map ID and x, y, or `nil` when there's none. |
+| `ClearWaypoint()` | Takes the pin away. |
+| `GetWaypointTarget()` | What Waypoints' arrow points at: `{ kind, mapID, x, y, title, yards }`. `kind` is `"pin"`, `"quest"` (the quest selected on the map, with its `title`), or `"corpse"`. `yards` is `nil` when the game can't say how far. `nil` while there's nothing to point at, or while Waypoints or its Arrow is off. |
+| `FindZone(name)` | A zone's map ID from its name in the player's language, matched without caring about case or spaces. An exact name wins, then a zone whose name starts with it. `"#1429"` is a map ID. |
+| `GetPlayerPosition()` | The player's map ID and x, y, or `nil` when the game can't say, as in a dungeon. |
 
 ## Players seen
 
@@ -98,3 +138,7 @@ FPP.UnregisterCallback("PRICES_UPDATED", myAddon)
 | --- | --- |
 | `READY` | Saved data has loaded. Fires once, after `PLAYER_LOGIN`. |
 | `PRICES_UPDATED` | Auction prices changed: new prices were seen while browsing or scanning, they were reset, or their source changed (Auction Prices turned on or off, or the switch to or from Auctionator). Fires at most once a second. |
+| `UPGRADES_UPDATED` | Upgrade scores changed: gear, level, talents, weights, Upgrade Arrows' options, or it turned on or off. Fires at most twice a second. |
+| `MODULE_TOGGLED` | `name, enabled`: the player turned a module on or off. Modules turning on at login don't fire it. |
+| `OPTION_CHANGED` | `name, key, value`: the player changed one of a module's options. |
+| `WAYPOINT_CHANGED` | The map pin was set, moved, or cleared, by anyone. Forever++ only listens for this once something registers for it. |

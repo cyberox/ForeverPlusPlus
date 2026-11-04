@@ -57,52 +57,6 @@ module.options = {
 
 -- /way ----------------------------------------------------------------------------------------
 
--- Forever's Azeroth map (Classic map IDs: Kalimdor 1414, Eastern Kingdoms 1415), for finding a
--- zone by name where the player has no map, like in a dungeon.
-local AZEROTH = ns.GameData.Map(947, "Azeroth")
-
-local function canWaypoint()
-    return C_Map and C_Map.SetUserWaypoint and C_Map.CanSetUserWaypointOnMap and true or false
-end
-
--- A name made easy to compare: lowercase letters and digits only.
-local function plain(text)
-    return (text:lower():gsub("[^%w]", ""))
-end
-
--- The top map above the player's (the world or Azeroth), under which every zone is.
-local function rootMap()
-    return WorldMap.Root(C_Map.GetBestMapForUnit("player")) or AZEROTH
-end
-
--- The map called `name`: a zone before any other kind of map with that name, then the first
--- zone whose name starts with it. "#1429" is a map ID, as TomTom takes it.
-local function findMap(name)
-    local id = tonumber(name:match("^#(%d+)$"))
-    if id then
-        return C_Map.GetMapInfo(id) and id
-    end
-    local wanted = plain(name)
-    if wanted == "" or not C_Map.GetMapChildrenInfo then
-        return nil
-    end
-    local zone = Enum and Enum.UIMapType and Enum.UIMapType.Zone
-    local exact, other, partial
-    for _, info in ipairs(C_Map.GetMapChildrenInfo(rootMap(), nil, true) or {}) do
-        local have = plain(info.name or "")
-        if have == wanted then
-            if info.mapType == zone then
-                exact = exact or info.mapID
-            else
-                other = other or info.mapID
-            end
-        elseif not partial and info.mapType == zone and have:sub(1, #wanted) == wanted then
-            partial = info.mapID
-        end
-    end
-    return exact or other or partial
-end
-
 local function mapName(mapID)
     return WorldMap.MapName(mapID, "#" .. mapID)
 end
@@ -122,7 +76,7 @@ local function way(message)
     if not (module.enabled and module.db.way) then
         return -- chat cached the command before it was turned off, on a client we couldn't clear
     end
-    if not canWaypoint() then
+    if not WorldMap.CanWaypoint() then
         ns.Print(L.WAYPOINTS_UNAVAILABLE)
         return
     end
@@ -152,7 +106,7 @@ local function way(message)
     local mapID
     if at > 1 then
         local name = tconcat(list, " ", 1, at - 1)
-        mapID = findMap(name)
+        mapID = WorldMap.FindMap(name)
         if not mapID then
             ns.Print(format(L.WAYPOINTS_NO_ZONE, name))
             return
@@ -164,19 +118,9 @@ local function way(message)
             return
         end
     end
-    if not C_Map.CanSetUserWaypointOnMap(mapID) then
+    if not WorldMap.SetWaypoint(mapID, x / 100, y / 100) then
         ns.Print(format(L.WAYPOINTS_NOT_HERE, mapName(mapID)))
         return
-    end
-    local point
-    if UiMapPoint and UiMapPoint.CreateFromCoordinates then
-        point = UiMapPoint.CreateFromCoordinates(mapID, x / 100, y / 100)
-    else
-        point = { uiMapID = mapID, position = CreateVector2D(x / 100, y / 100) }
-    end
-    C_Map.SetUserWaypoint(point)
-    if C_SuperTrack and C_SuperTrack.SetSuperTrackedUserWaypoint then
-        C_SuperTrack.SetSuperTrackedUserWaypoint(true)
     end
     ns.Print(format(L.WAYPOINTS_SET, mapName(mapID), x, y))
 end
@@ -519,12 +463,33 @@ local function syncArrow()
     refresh()
 end
 
+-- What the public API (API.lua) reads while the module is on: where the arrow points, while it's
+-- on (its events keep destination()'s cache fresh). It goes through destination() and toward()
+-- like the arrow, so they share the route worked out per point.
+local provider = {
+    Target = function()
+        if not module.db.arrow then
+            return nil
+        end
+        local point, _, isPin = destination()
+        if not (point and point.uiMapID and point.position) then
+            return nil
+        end
+        local kind = isPin and "pin" or (point == cachedCorpse and "corpse") or "quest"
+        local yards = toward(point)
+        return { mapID = point.uiMapID, x = point.position.x, y = point.position.y, kind = kind,
+            title = kind == "quest" and cachedTitle or nil, yards = yards }
+    end,
+}
+
 function module:OnEnable()
+    ns.Providers.Set("waypoints", provider)
     syncWay()
     syncArrow()
 end
 
 function module:OnDisable()
+    ns.Providers.Set("waypoints", nil)
     syncWay()
     syncArrow()
 end

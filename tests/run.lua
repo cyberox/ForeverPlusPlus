@@ -82,7 +82,7 @@ for _, file in ipairs({ "Core", "Map" }) do
 end
 ITEM_MIN_SKILL = "Requires %s (%d)"
 for _, file in ipairs({ "Secret", "Colors", "Text", "GameData", "WorldMap", "Instances", "Chat",
-    "TalentPlan", "Errors", "Prices", "Disenchant", "Store", "Keys", "Professions", "ItemStats", "Equipment",
+    "TalentPlan", "Errors", "Prices", "Providers", "Disenchant", "Store", "Keys", "Professions", "ItemStats", "Equipment",
     "Talents", "Quests", "Taxi" }) do
     load("ForeverPlusPlus/Lib/" .. file .. ".lua")
 end
@@ -267,6 +267,41 @@ eq(WorldMap.PlayerPosition(12), nil, "PlayerPosition off the map")
 game.secret = 0.25
 eq(WorldMap.PlayerPosition(), nil, "PlayerPosition while secret")
 game.secret = nil
+
+-- Zones by name, under the root above the player's map, and the map pin.
+maps[1413] = { mapID = 1413, name = "The Barrens", mapType = 3, parentMapID = 12 }
+maps[1412] = { mapID = 1412, name = "Durotar", mapType = 5, parentMapID = 12 } -- not a zone
+local pin
+C_Map.GetMapChildrenInfo = function(root)
+    if root ~= 947 then
+        return {}
+    end
+    return { maps[1412], maps[1411], maps[1413], maps[9001] }
+end
+C_Map.CanSetUserWaypointOnMap = function(mapID)
+    return mapID ~= 9001
+end
+C_Map.SetUserWaypoint = function(point)
+    pin = point
+end
+UiMapPoint = { CreateFromCoordinates = function(mapID, px, py)
+    return { uiMapID = mapID, position = { x = px, y = py } }
+end }
+eq(WorldMap.FindMap("Durotar"), 1411, "FindMap: a zone before another map of the name")
+eq(WorldMap.FindMap("the barrens"), 1413, "FindMap: any case and spacing")
+eq(WorldMap.FindMap("Barr"), nil, "FindMap: a start must match the start")
+eq(WorldMap.FindMap("TheBar"), 1413, "FindMap: the start of a zone's name")
+eq(WorldMap.FindMap("#12"), 12, "FindMap: a map ID")
+eq(WorldMap.FindMap("#5"), nil, "FindMap: an unknown map ID")
+eq(WorldMap.FindMap("Nowhere"), nil, "FindMap: no such zone")
+eq(WorldMap.CanWaypoint(), true, "CanWaypoint")
+eq(WorldMap.SetWaypoint(1411, 0.5, 0.25), true, "SetWaypoint")
+eq(pin and pin.uiMapID == 1411 and pin.position.y == 0.25, true, "SetWaypoint sets the pin")
+local ok, why = WorldMap.SetWaypoint(1411, 1.5, 0)
+eq(ok == false and why, "range", "SetWaypoint: outside the map")
+ok, why = WorldMap.SetWaypoint(9001, 0.5, 0.5)
+eq(ok == false and why, "map", "SetWaypoint: a map without pins")
+UiMapPoint = nil
 C_Map = nil
 eq(WorldMap.PlayerSide(), "H", "Horde side")
 player.faction = "Alliance"
@@ -1600,13 +1635,30 @@ do
     local seenPlayers = {
         bob = { class = "MAGE", level = 42, race = "Gnome", guild = "Tinkers", seen = 5000 },
     }
+    local moduleChanged -- what Core would call when a module or option changes
+    local gameEvents = {} -- event -> fn, what the API listens to
+    local tooltips = {
+        title = "Item Tooltips", description = "Tooltip lines.", category = "items", enabled = true,
+        defaults = { enabled = true, sell = true, align = "edge", scale = 100 },
+        db = { enabled = true, sell = false, align = "edge", scale = 100, prices = {} },
+        options = {
+            { key = "sell", name = "Sell Price" },
+            { key = "align", name = "Align", choices = { { "edge", "Edge" }, { "inline", "Inline" } } },
+            { key = "scale", name = "Scale", min = 50, max = 150 },
+            { key = "trace", name = "Trace", debug = true },
+        },
+    }
     local api = setmetatable({
         modules = {
-            ItemTooltips = { title = "Item Tooltips", category = "items", enabled = true },
-            Gone = { title = "Gone", unavailable = true },
+            ItemTooltips = tooltips,
+            Gone = { title = "Gone", unavailable = true, defaults = {} },
         },
         order = { "ItemTooltips", "Gone" },
         version = "1.0.0",
+        OnModuleChanged = function(fn) moduleChanged = fn end,
+        HasEvent = function() return true end,
+        On = function(event, fn) gameEvents[event] = fn end,
+        OpenSettings = function(name) return name == "ItemTooltips" end,
         Frames = { Coalesce = function(fn) return fn end }, -- runs at once, so tests see each call
         Players = {
             Get = function(_, name)
@@ -1714,6 +1766,108 @@ do
     eq(v1.GetInstanceInfo("Nowhere"), nil, "api: not an instance")
 
     eq(type(v1.GetSkinningSkill(30)), "number", "api: skinning skill for a level")
+
+    -- Modules in full, and what changes in them.
+    local full = v1.GetModuleInfo("ItemTooltips")
+    eq(full and full.description, "Tooltip lines.", "api: module description")
+    eq(full and #full.options, 3, "api: options, without debug ones")
+    eq(full and full.options[1].value, false, "api: an option's value")
+    eq(full and full.options[1].default, true, "api: and its default")
+    eq(full and full.options[2].kind, "dropdown", "api: a dropdown")
+    eq(full and full.options[2].choices[2], "inline", "api: its choices")
+    eq(full and full.options[3].kind == "slider" and full.options[3].max, 150, "api: a slider")
+    eq(v1.GetModuleInfo("Gone"), nil, "api: no info for an unavailable module")
+    eq(v1.GetModuleOption("ItemTooltips", "align"), "edge", "api: one option")
+    eq(v1.GetModuleOption("ItemTooltips", "prices"), nil, "api: data isn't an option")
+    eq(v1.GetModuleOption("ItemTooltips", "trace"), nil, "api: nor is a debug option")
+    eq(v1.OpenSettings("ItemTooltips"), true, "api: opens settings on a module")
+    local toggled, changed = {}, {}
+    v1.RegisterCallback("MODULE_TOGGLED", function(_, name, on) toggled[#toggled + 1] = name .. ":" .. tostring(on) end)
+    v1.RegisterCallback("OPTION_CHANGED", function(_, name, key, value)
+        changed[#changed + 1] = name .. "." .. key .. "=" .. tostring(value)
+    end)
+    tooltips.enabled = false
+    moduleChanged("ItemTooltips", nil)
+    tooltips.db.align = "inline"
+    moduleChanged("ItemTooltips", "align")
+    moduleChanged("ItemTooltips", "trace") -- a debug option isn't told
+    eq(table.concat(toggled, ","), "ItemTooltips:false", "api: MODULE_TOGGLED")
+    eq(table.concat(changed, ","), "ItemTooltips.align=inline", "api: OPTION_CHANGED, not for debug options")
+
+    -- Upgrade scores, while Upgrade Arrows offers them.
+    C_Item.GetItemInfo = function(id)
+        if id == 100 then
+            return "Sword", "|Hitem:100::::::::60|h[Sword]|h"
+        end
+    end
+    eq(v1.HasUpgradeScores(), false, "api: no scores while Upgrade Arrows is off")
+    eq(v1.GetItemUpgradeInfo(100), nil, "api: no upgrade info while it's off")
+    local upgradesTold = 0
+    v1.RegisterCallback("UPGRADES_UPDATED", function() upgradesTold = upgradesTold + 1 end)
+    ns.Providers.Set("upgrades", {
+        Evaluate = function(link)
+            if link:find("item:100") then
+                return { upgrade = true, downgrade = false, percent = 12, score = 56, rival = 50 }
+            elseif link:find("item:200") then
+                return false
+            end
+        end,
+        Score = function(link) return link:find("item:100") and 56 or nil end,
+        Profile = function() return { key = "MAGE:3", class = "MAGE", tab = 3, weights = { INT = 1 } } end,
+    })
+    eq(upgradesTold, 1, "api: UPGRADES_UPDATED when scores are offered")
+    local upgrade = v1.GetItemUpgradeInfo(100)
+    eq(upgrade and upgrade.isUpgrade, true, "api: an upgrade, by ID")
+    eq(upgrade and upgrade.percent == 12 and upgrade.equippedScore, 50, "api: its percent and what it beats")
+    eq(v1.GetItemUpgradeInfo("|Hitem:200::|h[Shirt]|h").canUpgrade, false, "api: can't be an upgrade")
+    eq(v1.GetItemUpgradeInfo("|Hitem:300::|h[New]|h"), nil, "api: not loaded yet")
+    eq(v1.GetItemScore(100), 56, "api: an item's score")
+    eq(v1.GetUpgradeProfile().key, "MAGE:3", "api: the profile in use")
+    ns.Providers.Set("upgrades", nil)
+    eq(upgradesTold, 2, "api: and when they go")
+
+    -- Flight times, while Flight Timer offers them.
+    eq(v1.GetFlightTime(1, 2), nil, "api: no flight times while Flight Timer is off")
+    ns.Providers.Set("flights", {
+        Time = function(from, to) return from == 1 and to == 2 and 95 or nil end,
+        Current = function() return { from = 1, to = 2, total = 95, elapsed = 100 } end,
+    })
+    eq(v1.GetFlightTime(1, 2), 95, "api: a flight time")
+    eq(v1.GetFlightTime(2, 1), nil, "api: each way is its own")
+    local flying = v1.GetCurrentFlight()
+    eq(flying and flying.duration == 95 and flying.remaining, 0, "api: the flight underway, never below 0 left")
+    ns.Providers.Set("flights", nil)
+
+    -- The map pin.
+    local mapPin
+    C_Map = {
+        GetMapInfo = function(mapID) return mapID == 1411 and { mapID = 1411 } or nil end,
+        GetBestMapForUnit = function() return 1411 end,
+        CanSetUserWaypointOnMap = function() return true end,
+        SetUserWaypoint = function(point) mapPin = point end,
+        GetUserWaypoint = function() return mapPin end,
+        ClearUserWaypoint = function() mapPin = nil end,
+    }
+    UiMapPoint = { CreateFromCoordinates = function(mapID, px, py)
+        return { uiMapID = mapID, position = { x = px, y = py } }
+    end }
+    local pinChanged = 0
+    v1.RegisterCallback("WAYPOINT_CHANGED", function() pinChanged = pinChanged + 1 end)
+    eq(gameEvents.USER_WAYPOINT_UPDATED ~= nil, true, "api: listens for the pin once someone asks")
+    eq(v1.SetWaypoint(nil, 0.5, 0.4), true, "api: a pin on the player's map")
+    local pinMap, pinX, pinY = v1.GetWaypoint()
+    eq(pinMap == 1411 and pinX == 0.5 and pinY, 0.4, "api: reads the pin")
+    local _, why = v1.SetWaypoint("Nowhere", 0.5, 0.5)
+    eq(why, "zone", "api: no such zone")
+    _, why = v1.SetWaypoint(1411, 50, 50)
+    eq(why, "range", "api: spots are 0 to 1")
+    gameEvents.USER_WAYPOINT_UPDATED()
+    eq(pinChanged, 1, "api: WAYPOINT_CHANGED")
+    v1.ClearWaypoint()
+    eq(v1.GetWaypoint(), nil, "api: the pin is cleared")
+    eq(v1.GetWaypointTarget(), nil, "api: no arrow target while Waypoints is off")
+    C_Map, C_Item.GetItemInfo, UiMapPoint = nil, nil, nil
+    eq(#reported, 3, "api: nothing else went to the error handler")
     ForeverPlusPlusAPI, geterrorhandler = nil, nil
 end
 

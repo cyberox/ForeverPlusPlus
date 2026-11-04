@@ -16,7 +16,7 @@ local addonName, ns = ...
 local type, pairs, ipairs, pcall, error = type, pairs, ipairs, pcall, error
 local tonumber, tostring, setmetatable, format, floor = tonumber, tostring, setmetatable, string.format, math.floor
 local match, sort = string.match, table.sort
-local C_Item = C_Item
+local C_Item, InCombatLockdown = C_Item, InCombatLockdown
 
 local API = {}
 ns.API = API
@@ -115,6 +115,96 @@ export("IsModuleEnabled", function(name)
     return module.enabled and true or false
 end)
 
+-- An option's kind, as Settings draws it.
+local function optionKind(option)
+    if option.choices then
+        return "dropdown"
+    elseif option.min then
+        return "slider"
+    end
+    return "checkbox"
+end
+
+-- The module called `name`, when this client gets it.
+local function findModule(name)
+    local module = type(name) == "string" and ns.modules[name]
+    if module and not module.unavailable then
+        return module
+    end
+end
+
+-- The option `key` of a module, from what Settings shows (not data, not debug options).
+local function findOption(module, key)
+    for _, option in ipairs(module.options or {}) do
+        if option.key == key and not option.debug then
+            return option
+        end
+    end
+end
+
+---A module in full: { name, title, description, category, enabled, options }, where options is a
+---list of { key, name, kind ("checkbox", "dropdown", or "slider"), value, default, choices (a
+---dropdown's values), min, max }, as the Modules page shows them. Nil for a module that isn't
+---there.
+export("GetModuleInfo", function(name)
+    local module = findModule(name)
+    if not module then
+        return nil
+    end
+    local options = {}
+    for _, option in ipairs(module.options or {}) do
+        if not option.debug then
+            local choices
+            if option.choices then
+                choices = {}
+                for i, choice in ipairs(option.choices) do
+                    choices[i] = choice[1]
+                end
+            end
+            options[#options + 1] = {
+                key = option.key,
+                name = option.name,
+                kind = optionKind(option),
+                value = module.db and module.db[option.key],
+                default = module.defaults[option.key],
+                choices = choices,
+                min = option.min,
+                max = option.max,
+            }
+        end
+    end
+    return {
+        name = name,
+        title = module.title or name,
+        description = module.description,
+        category = module.category,
+        enabled = module.enabled and true or false,
+        options = options,
+    }
+end)
+
+---One of a module's options as the player set it (or its default), or nil for an option the
+---module doesn't have. Read only: the player's settings are theirs to change.
+export("GetModuleOption", function(name, key)
+    local module = findModule(name)
+    if not (module and module.db and findOption(module, key)) then
+        return nil
+    end
+    return module.db[key]
+end)
+
+---Opens Forever++'s settings on a module (or the Modules page without one), for a button in
+---another addon's options that sends the player here. False in combat, when Settings can't open.
+export("OpenSettings", function(name)
+    if InCombatLockdown and InCombatLockdown() then
+        return false
+    end
+    if not ns.OpenSettings then
+        return false
+    end
+    return ns.OpenSettings(findModule(name) and name or nil) and true or false
+end)
+
 ---Every module: a list of { name, title, category, enabled } in load order. Leaves out modules
 ---this client doesn't get.
 export("GetModules", function()
@@ -204,6 +294,171 @@ export("GetDisenchantValue", function(item)
         return nil
     end
     return ns.Disenchant.Value(list, ns.Prices.Auction)
+end)
+
+-- Upgrade Arrows ---------------------------------------------------------------------------------
+-- Offered by Upgrade Arrows while it's on (Lib/Providers.lua), judged by the same stat weights and
+-- the same comparison against what's worn as its arrows.
+
+-- An item link from an ID, link, or name: a link keeps the suffix and enchant a score depends on.
+local function itemLink(item)
+    if type(item) == "string" and match(item, "item:%d+") then
+        return item
+    end
+    local id = itemID(item)
+    if not (id and C_Item and C_Item.GetItemInfo) then
+        return nil
+    end
+    local _, link = C_Item.GetItemInfo(id)
+    return link
+end
+
+---Whether upgrade scores can be read: Upgrade Arrows is on.
+export("HasUpgradeScores", function()
+    return ns.Providers.Get("upgrades") ~= nil
+end)
+
+---How an item compares with what the player wears, as Upgrade Arrows judges it: { isUpgrade,
+---isDowngrade, percent (better or worse than what it replaces; nil against an empty slot), score,
+---equippedScore }. { canUpgrade = false } for something that can't be an upgrade (not gear, can't
+---be used, already worn); canUpgrade is true otherwise. Nil while Upgrade Arrows is off or the
+---client hasn't loaded the item. Pass a link where you have one: it carries the item's suffix.
+export("GetItemUpgradeInfo", function(item)
+    local upgrades = ns.Providers.Get("upgrades")
+    local link = upgrades and itemLink(item)
+    if not link then
+        return nil
+    end
+    local result = upgrades.Evaluate(link)
+    if result == false then
+        return { canUpgrade = false, isUpgrade = false, isDowngrade = false }
+    elseif not result then
+        return nil
+    end
+    return {
+        canUpgrade = true,
+        isUpgrade = result.upgrade and true or false,
+        isDowngrade = result.downgrade and true or false,
+        percent = result.percent,
+        score = result.score,
+        equippedScore = result.rival,
+    }
+end)
+
+---An item's score by the stat weights in use, whether or not it could be an upgrade. Nil while
+---Upgrade Arrows is off or the client hasn't loaded the item.
+export("GetItemScore", function(item)
+    local upgrades = ns.Providers.Get("upgrades")
+    local link = upgrades and itemLink(item)
+    if not link then
+        return nil
+    end
+    return upgrades.Score(link)
+end)
+
+---The stat weights gear is judged by: { key ("MAGE:3"), class, tab (the talent tab, nil for Bear),
+---bear, guess (true while there are no talent points to go by), weights = { [stat] = weight } },
+---stats in short keys such as "STR", "SP", "HIT". Nil while Upgrade Arrows is off.
+export("GetUpgradeProfile", function()
+    local upgrades = ns.Providers.Get("upgrades")
+    return upgrades and upgrades.Profile() or nil
+end)
+
+-- Flight Timer -----------------------------------------------------------------------------------
+-- Offered by Flight Timer while it's on. Flight points are the game's node IDs (C_TaxiMap's
+-- nodeID), and a time is known once the player has flown that route.
+
+---Seconds the flight from one flight point to another takes, once it has been flown, or nil.
+export("GetFlightTime", function(fromNodeID, toNodeID)
+    local flights = ns.Providers.Get("flights")
+    if not (flights and type(fromNodeID) == "number" and type(toNodeID) == "number") then
+        return nil
+    end
+    return flights.Time(fromNodeID, toNodeID)
+end)
+
+---The flight underway: { fromNodeID, toNodeID, duration (nil the first time a route is flown),
+---elapsed, remaining }, in seconds. Nil while not flying or Flight Timer is off.
+export("GetCurrentFlight", function()
+    local flights = ns.Providers.Get("flights")
+    local current = flights and flights.Current()
+    if not current then
+        return nil
+    end
+    local remaining = current.total and current.total - current.elapsed
+    return {
+        fromNodeID = current.from,
+        toNodeID = current.to,
+        duration = current.total,
+        elapsed = current.elapsed,
+        remaining = remaining and (remaining > 0 and remaining or 0) or nil,
+    }
+end)
+
+-- Waypoints and maps -----------------------------------------------------------------------------
+-- The waypoint is Blizzard's own map pin (the user waypoint), the one /way and a map click set,
+-- so it shows on the map, in the world, and on Waypoints' arrow. Spots are 0 to 1 across and down
+-- a map, as C_Map gives them.
+
+---A zone's map ID by its name (in the player's language; "#1429" for a map ID), a zone before any
+---other map of that name, then the first zone whose name starts with it. Nil when there's none.
+export("FindZone", function(name)
+    if type(name) ~= "string" then
+        return nil
+    end
+    return ns.WorldMap.FindMap(name)
+end)
+
+---Where the player stands: map ID and x, y (0 to 1). Nil when the game can't say, as in a dungeon.
+export("GetPlayerPosition", function()
+    return ns.WorldMap.PlayerPosition()
+end)
+
+---Puts the map pin at x, y (0 to 1) on `map`: a map ID, a zone name (as FindZone), or nil for the
+---player's map. True when it's set; else false and why: "zone" (no such zone), "range" (x or y
+---outside 0 to 1), "map" (no pin allowed there, like in a dungeon), or "unavailable".
+export("SetWaypoint", function(map, x, y)
+    if type(x) ~= "number" or type(y) ~= "number" then
+        return false, "range"
+    end
+    local mapID = map
+    if type(map) == "string" then
+        mapID = ns.WorldMap.FindMap(map)
+    elseif map == nil then
+        mapID = C_Map and C_Map.GetBestMapForUnit and C_Map.GetBestMapForUnit("player")
+    end
+    if type(mapID) ~= "number" then
+        return false, "zone"
+    end
+    return ns.WorldMap.SetWaypoint(mapID, x, y)
+end)
+
+---The map pin: map ID and x, y (0 to 1), or nil when there's none.
+export("GetWaypoint", function()
+    if not (C_Map and C_Map.GetUserWaypoint) then
+        return nil
+    end
+    local point = C_Map.GetUserWaypoint()
+    local position = point and point.position
+    if not (position and type(position.x) == "number" and type(position.y) == "number") then
+        return nil
+    end
+    return point.uiMapID, position.x, position.y
+end)
+
+---Takes the map pin away.
+export("ClearWaypoint", function()
+    if C_Map and C_Map.ClearUserWaypoint then
+        C_Map.ClearUserWaypoint()
+    end
+end)
+
+---What Waypoints' arrow points at: { kind ("pin", "quest" for the quest selected on the map, or
+---"corpse"), mapID, x, y, title (a quest's), yards (nil when the game can't say how far) }. Nil
+---while there's nothing to point at, or Waypoints or its Arrow is off.
+export("GetWaypointTarget", function()
+    local waypoints = ns.Providers.Get("waypoints")
+    return waypoints and waypoints.Target() or nil
 end)
 
 -- Players seen -----------------------------------------------------------------------------------
@@ -361,11 +616,28 @@ end)
 -- RegisterCallback(event, fn, owner): fn(event, ...) runs on each event. An owner (any value, such
 -- as the caller's addon table) can hold one function per event; without one, the function itself
 -- is the owner. Events:
---   READY           saved data has loaded (once, after PLAYER_LOGIN)
---   PRICES_UPDATED  auction prices changed: a scan or browse, a reset, or their source changed (at
---                   most once a second)
+--   READY             saved data has loaded (once, after PLAYER_LOGIN)
+--   PRICES_UPDATED    auction prices changed: a scan or browse, a reset, or their source changed
+--                     (at most once a second)
+--   UPGRADES_UPDATED  upgrade scores changed: gear, level, talents, weights, Upgrade Arrows'
+--                     options, or it turned on or off (at most twice a second)
+--   MODULE_TOGGLED    name, enabled: the player turned a module on or off
+--   OPTION_CHANGED    name, key, value: the player changed one of a module's options
+--   WAYPOINT_CHANGED  the map pin was set, moved, or cleared, by anyone
+-- What a game event drives (WAYPOINT_CHANGED) is listened to only once someone registers for it.
 
-local EVENTS = { READY = true, PRICES_UPDATED = true }
+local listen = {} -- event -> fn that starts listening, run on the first registration
+
+listen.WAYPOINT_CHANGED = function()
+    if ns.HasEvent("USER_WAYPOINT_UPDATED") then
+        ns.On("USER_WAYPOINT_UPDATED", function()
+            API.Fire("WAYPOINT_CHANGED")
+        end)
+    end
+end
+
+local EVENTS = { READY = true, PRICES_UPDATED = true, UPGRADES_UPDATED = true, MODULE_TOGGLED = true,
+    OPTION_CHANGED = true, WAYPOINT_CHANGED = true }
 local callbacks = {} -- event -> owner -> fn
 
 ---Calls every function registered for `event`, each wrapped so one failing can't stop the rest.
@@ -390,6 +662,11 @@ export("RegisterCallback", function(event, fn, owner)
     end
     callbacks[event] = callbacks[event] or {}
     callbacks[event][owner or fn] = fn
+    if listen[event] then
+        local start = listen[event]
+        listen[event] = nil
+        start()
+    end
     return true
 end)
 
@@ -405,6 +682,20 @@ local pricesChanged = ns.Frames.Coalesce(function()
     API.Fire("PRICES_UPDATED")
 end, 1)
 ns.Prices.OnChanged(pricesChanged)
+
+-- Scores are forgotten for every piece of gear changed, a few at a time.
+ns.Providers.OnChanged("upgrades", ns.Frames.Coalesce(function()
+    API.Fire("UPGRADES_UPDATED")
+end, 0.5))
+
+ns.OnModuleChanged(function(name, key)
+    local module = ns.modules[name]
+    if key == nil then
+        API.Fire("MODULE_TOGGLED", name, module.enabled and true or false)
+    elseif findOption(module, key) then
+        API.Fire("OPTION_CHANGED", name, key, module.db[key])
+    end
+end)
 
 -- The global ---------------------------------------------------------------------------------------
 

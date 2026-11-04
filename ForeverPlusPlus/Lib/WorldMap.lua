@@ -3,7 +3,7 @@
 -- module waits for it.
 local _, ns = ...
 
-local ipairs, pairs = ipairs, pairs
+local ipairs, pairs, tonumber = ipairs, pairs, tonumber
 local sqrt, atan2, pi = math.sqrt, math.atan2, math.pi
 local UnitFactionGroup, CreateFromMixins = UnitFactionGroup, CreateFromMixins
 local FACTION_ALLIANCE, FACTION_HORDE = FACTION_ALLIANCE, FACTION_HORDE
@@ -116,6 +116,84 @@ function WorldMap.Root(mapID)
         info = parent
     end
     return info and info.mapID or nil
+end
+
+-- Forever's Azeroth map (Classic map IDs: Kalimdor 1414, Eastern Kingdoms 1415), for finding a
+-- zone by name where the player has no map, like in a dungeon.
+local AZEROTH = ns.GameData.Map(947, "Azeroth")
+
+-- A name made easy to compare: lowercase letters and digits only.
+local function plain(text)
+    return (text:lower():gsub("[^%w]", ""))
+end
+
+---The map called `name`: a zone before any other kind of map with that name, then the first
+---zone whose name starts with it, under the top map above the player's (or Azeroth). "#1429" is a
+---map ID, as TomTom takes it. Nil when there's none.
+---@param name string
+---@return number? mapID
+function WorldMap.FindMap(name)
+    local id = tonumber(name:match("^#(%d+)$"))
+    if id then
+        return C_Map.GetMapInfo(id) and id or nil
+    end
+    local wanted = plain(name)
+    if wanted == "" or not C_Map.GetMapChildrenInfo then
+        return nil
+    end
+    local root = WorldMap.Root(C_Map.GetBestMapForUnit("player")) or AZEROTH
+    local zone = Enum and Enum.UIMapType and Enum.UIMapType.Zone
+    local exact, other, partial
+    for _, info in ipairs(C_Map.GetMapChildrenInfo(root, nil, true) or {}) do
+        local have = plain(info.name or "")
+        if have == wanted then
+            if info.mapType == zone then
+                exact = exact or info.mapID
+            else
+                other = other or info.mapID
+            end
+        elseif not partial and info.mapType == zone and have:sub(1, #wanted) == wanted then
+            partial = info.mapID
+        end
+    end
+    return exact or other or partial
+end
+
+---Whether this client lets addons place the map pin (the user waypoint).
+---@return boolean
+function WorldMap.CanWaypoint()
+    return C_Map and C_Map.SetUserWaypoint and C_Map.CanSetUserWaypointOnMap and true or false
+end
+
+---Puts Blizzard's map pin on `mapID` at x, y (0 to 1) and tracks it, so the game draws the pin
+---and its marker in the world. False with why not: "unavailable" (this client can't), "range"
+---(x or y outside 0 to 1), or "map" (no pin allowed on that map, like inside a dungeon).
+---@param mapID number
+---@param x number
+---@param y number
+---@return boolean ok
+---@return string? reason
+function WorldMap.SetWaypoint(mapID, x, y)
+    if not WorldMap.CanWaypoint() then
+        return false, "unavailable"
+    end
+    if x < 0 or x > 1 or y < 0 or y > 1 then
+        return false, "range"
+    end
+    if not C_Map.CanSetUserWaypointOnMap(mapID) then
+        return false, "map"
+    end
+    local point
+    if UiMapPoint and UiMapPoint.CreateFromCoordinates then
+        point = UiMapPoint.CreateFromCoordinates(mapID, x, y)
+    else
+        point = { uiMapID = mapID, position = CreateVector2D(x, y) }
+    end
+    C_Map.SetUserWaypoint(point)
+    if C_SuperTrack and C_SuperTrack.SetSuperTrackedUserWaypoint then
+        C_SuperTrack.SetSuperTrackedUserWaypoint(true)
+    end
+    return true
 end
 
 ---A map's name, or `fallback` for a map the game doesn't know.

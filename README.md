@@ -121,7 +121,7 @@ Settings are saved per account in `ForeverPlusPlusDB`, players seen (for Chat Le
 
 ## For addon authors
 
-Other addons can read what Forever++ knows through `ForeverPlusPlusAPI.v1`: auction prices (its own or Auctionator's), what disenchanting an item gives and is worth, the class, level, race, and guild of players it has seen, class and level colors, dungeon and raid level ranges, gathering skills, and which modules are on, with a callback when prices change. It's versioned, read only, and can't break the addon calling it. See [docs/api.md](docs/api.md).
+Other addons can read what Forever++ knows through `ForeverPlusPlusAPI.v1`: auction prices (its own or Auctionator's), what disenchanting an item gives and is worth, Upgrade Arrows' scores for any item, flight times, the class, level, race, and guild of players it has seen, class and level colors, dungeon and raid level ranges, gathering skills, and each module with its options. They can also set, read, and clear the map pin by zone name, and get callbacks when prices, scores, modules, options, or the pin change. It's versioned, read only, and can't break the addon calling it. See [docs/api.md](docs/api.md).
 
 ## Feedback
 

@@ -669,6 +669,26 @@ local function disable(module)
     offAll(module)
 end
 
+local changeListeners = {} -- fn(name, key) for each module turned on or off, or option changed
+local started = false -- ns.Start has run: modules turning on at login aren't changes
+
+---Calls `fn(name, key)` after the player turns a module on or off (`key` nil) or changes one of
+---its options (`key` the option's), from Settings, a command, or a preset; not for the modules
+---that turn on at login.
+---@param fn fun(name: string, key: string?)
+function ns.OnModuleChanged(fn)
+    changeListeners[#changeListeners + 1] = fn
+end
+
+local function moduleChanged(name, key)
+    if not started then
+        return
+    end
+    for _, fn in ipairs(changeListeners) do
+        call(fn, name, key)
+    end
+end
+
 -- Tells a module one of its options changed. A module and a part hear about their options only
 -- while they're on (OnEnable reads them anyway), and a part's checkbox turns it on or off. A part
 -- that stays on while its dropdown moves between choices hears about that too.
@@ -691,6 +711,7 @@ local function optionChanged(module, key)
         end
         syncWhiles(part) -- a part's OnWhile may name any of the module's options
     end
+    moduleChanged(module.name, key)
 end
 
 ---Tells a module one of its options changed, once its value is already saved (the presets set
@@ -849,6 +870,7 @@ function ns.Start()
             enable(module)
         end
     end
+    started = true
 end
 
 ---Turns a module on or off and remembers it.
@@ -859,11 +881,15 @@ function ns.SetEnabled(name, on)
     if module.alwaysOn or module.unavailable then
         return -- a tool that's always there, or a module this client doesn't get
     end
+    local was = module.enabled and true or false
     module.db.enabled = on
     if on then
         enable(module)
     else
         disable(module)
+    end
+    if was ~= (module.enabled and true or false) then
+        moduleChanged(name, nil)
     end
 end
 
