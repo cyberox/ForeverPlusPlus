@@ -116,7 +116,7 @@ local function moved(x, y)
 end
 
 local function resetPosition()
-    module.db.moved, module.db.x, module.db.y = false, 0, 0
+    module.db.moved, module.db.x, module.db.y = nil, nil, nil -- forgotten: back where Blizzard puts it
     if ready then
         restoreAnchor()
         layout()

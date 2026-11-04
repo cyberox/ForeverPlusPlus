@@ -2,6 +2,12 @@
 
 What changed in each release of Forever++. The same notes show in game under Settings > AddOns > Forever++ > Changelog, from [`ForeverPlusPlus/Changelog.lua`](ForeverPlusPlus/Changelog.lua); change both together.
 
+## Unreleased
+
+### Changed
+
+- **Settings**: a setting you pick stays yours, even when it's the same as the default. If a later version changes that default, your choice is kept. Only the undo arrow, Defaults, or `/fpp reset` puts it back, and after that you get the new default.
+
 ## 1.0.0-beta.2 (2026-11-04)
 
 ### Added

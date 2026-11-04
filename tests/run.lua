@@ -804,11 +804,17 @@ oldDB.data.BagSlotCounter = { gone = {} }
 local view = Store.Load(oldDB, oldChar, "BagSlotCounter", defaults)
 local settings = oldDB.settings.BagSlotCounter
 eq(view.size, "large", "store: a setting reads its default")
-eq(settings.size, nil, "store: a setting equal to its default isn't saved")
+eq(settings.size, nil, "store: the 0.8 layout's settings at their default are dropped")
 eq(settings.stale, nil, "store: a setting the defaults dropped is cleared")
 eq(view.position, "top", "store: a changed setting reads what was chosen")
 view.position = "bottomright"
-eq(settings.position, nil, "store: setting a value back to its default forgets it")
+eq(settings.position, "bottomright", "store: a choice at the default stays saved")
+defaults.position = "left" -- a later release's new default
+eq(view.position, "bottomright", "store: so a new default doesn't change the player's choice")
+view.position = nil
+eq(settings.position, nil, "store: nil forgets the choice")
+eq(view.position, "left", "store: and the new default reads back")
+defaults.position = "bottomright"
 view.size = "huge"
 eq(settings.size, "huge", "store: a changed setting is saved")
 eq(type(view.banks), "table", "store: data reads its table")
@@ -829,7 +835,7 @@ oldDB.unclaimed.Gone = { list = { a = {} } }
 Store.Prune(oldDB, oldChar, { BagSlotCounter = true })
 eq(oldDB.settings.TalentPlanner, nil, "store: a module that's gone loses its settings")
 eq(oldDB.unclaimed.Gone, nil, "store: a module that's gone loses its unclaimed data")
-view.size = "large"
+view.size = nil
 Store.Tidy(oldDB, oldChar)
 eq(oldDB.settings.BagSlotCounter, nil, "store: tidy drops a module with no changed settings")
 eq(oldDB.data.BagSlotCounter, nil, "store: tidy drops data with nothing collected")
@@ -1516,6 +1522,30 @@ do
     core.SetEnabled("Plain", true)
     fpp("ping")
     eq(ran, true, "commands: and runs once it's on")
+
+    -- A choice stays saved, even at the default, until a reset forgets it.
+    local saved = core.db.settings
+    core.SetEnabled("Plain", false)
+    core.SetEnabled("Plain", true)
+    eq(saved.Plain and saved.Plain.enabled, true, "choices: a module turned off and on keeps its choice")
+    core.SetOption("Plain", "loud", true)
+    core.SetOption("Plain", "loud", false)
+    eq(saved.Plain.loud, false, "choices: an option set back to its default keeps the choice")
+    plain.defaults.loud = true -- a later release turns it on by default
+    eq(plain.db.loud, false, "choices: so a new default doesn't change it")
+    core.ResetOption("Plain", "loud")
+    eq(saved.Plain.loud, nil, "choices: the undo arrow forgets it")
+    eq(plain.db.loud, true, "choices: and the new default reads back")
+    eq(registered("PLAYER_MONEY"), true, "choices: and the module hears it")
+    plain.defaults.loud = false
+    core.ResetOption("Plain", "loud")
+    core.SetOption("Plain", "mode", "a")
+    core.ApplyPreset()
+    eq(saved.Plain == nil or (saved.Plain.enabled == nil and saved.Plain.mode == nil), true,
+        "choices: a preset forgets what it puts back to the default")
+    core.ApplyPreset({ "Plain" }, { Plain = { mode = "b" } })
+    eq(saved.Plain and saved.Plain.mode, "b", "choices: and saves what it sets otherwise")
+    core.ApplyPreset()
 end
 
 -- Players ---------------------------------------------------------------------------------------

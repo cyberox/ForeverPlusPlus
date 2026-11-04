@@ -18,9 +18,12 @@ local function resetDebugOptions()
     for _, name in ipairs(ns.order) do
         local other = ns.modules[name]
         for _, option in ipairs(other.options or {}) do
-            if option.debug and other.db and other.db[option.key] ~= other.defaults[option.key] then
-                ns.SetOption(name, option.key, other.defaults[option.key])
-                ns.RefreshSetting(name)
+            if option.debug and other.db then
+                local before = other.db[option.key]
+                ns.ResetOption(name, option.key) -- forgotten, so none stays saved at its default
+                if before ~= other.db[option.key] then
+                    ns.RefreshSetting(name)
+                end
             end
         end
     end

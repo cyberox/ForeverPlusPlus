@@ -14,8 +14,10 @@
 --   ForeverPlusPlusCharDB = { version = 4, data = { [module] = { [key] = table } } }
 --   ForeverPlusPlusPlayersDB: players seen, kept by Lib/Players.lua apart from all this
 --
--- A module's settings are its scalar defaults: a value equal to the default isn't saved, so a
--- better default reaches everyone who never changed it. Its data is every default that is a table;
+-- A module's settings are its scalar defaults. What the player sets is saved, even when it's the
+-- default, so a later release changing that default doesn't change their choice; only a reset (the
+-- undo arrow, Defaults, `/fpp reset`) forgets it, by setting it to nil, and then a better default
+-- reaches them, as it does everyone who never touched the setting. Its data is every default that is a table;
 -- presets and Defaults never touch it. Keys listed in `module.perCharacter` keep their data in the
 -- character's table instead of the account's.
 local _, ns = ...
@@ -42,6 +44,7 @@ end
 -- the version saved says which have run.
 
 local steps, characterSteps = {}, {}
+local loose = false -- the saved settings came from the 0.8 layout this login (Store.Upgrade)
 
 local function add(list, version, fn)
     list[#list + 1] = { version = version, fn = fn, order = #list }
@@ -98,6 +101,8 @@ function Store.Upgrade(db, char)
     if fresh then
         db.version = Store.VERSION
     end
+    -- The 0.8 layout saved every default as if the player chose it; Store.Load drops those.
+    loose = loose or (db.version or 0) < 2
     run(steps, db.version or 0, db)
     db.version = Store.VERSION
     run(characterSteps, char.version or 0, char, db)
@@ -201,10 +206,11 @@ local function fill(target, defaults)
 end
 
 ---Gets a module's saved settings and data ready and returns the table it reads them through:
----a setting reads what the player chose or else its default, and setting it back to the default
----forgets the choice; a data key reads its table, in the account's or the character's saved
----variables. Settings and data the defaults no longer have are dropped, and so are settings equal
----to their default. Data whose key moved in or out of `perCharacter` moves with it.
+---a setting reads what the player chose or else its default; setting one saves it, even at the
+---default, and setting it to nil forgets the choice, so it reads the default again. A data key
+---reads its table, in the account's or the character's saved variables. Settings and data the
+---defaults no longer have are dropped (and settings at their default when they came from the 0.8
+---layout, which saved them all). Data whose key moved in or out of `perCharacter` moves with it.
 ---@param db table ForeverPlusPlusDB
 ---@param char table ForeverPlusPlusCharDB
 ---@param name string
@@ -231,7 +237,7 @@ function Store.Load(db, char, name, defaults, perCharacter)
     end
     local settings = settingsTable()
     for key, value in pairs(settings) do
-        if defaults[key] == nil or isData(defaults, key) or value == defaults[key] then
+        if defaults[key] == nil or isData(defaults, key) or (loose and value == defaults[key]) then
             settings[key] = nil
         end
     end
@@ -268,10 +274,8 @@ function Store.Load(db, char, name, defaults, perCharacter)
         __newindex = function(_, key, value)
             if isData(defaults, key) then
                 dataTable(key)[key] = value
-            elseif value == defaults[key] then
-                settingsTable()[key] = nil
             else
-                settingsTable()[key] = value
+                settingsTable()[key] = value -- nil forgets it
             end
         end,
     })

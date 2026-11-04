@@ -10,6 +10,17 @@ local L = ns.L
 
 ns.changelog = {
     {
+        version = L.CHANGELOG_UNRELEASED,
+        sections = {
+            { L.CHANGELOG_CHANGED, {
+                { L.CHANGELOG_SETTINGS, "A setting you pick stays yours, even when it's the same "
+                    .. "as the default. If a later version changes that default, your choice is "
+                    .. "kept. Only the undo arrow, Defaults, or /fpp reset puts it back, and after "
+                    .. "that you get the new default." },
+            } },
+        },
+    },
+    {
         version = "1.0.0-beta.2",
         date = "2026-11-04",
         sections = {

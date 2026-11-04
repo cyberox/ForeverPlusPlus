@@ -636,10 +636,7 @@ local function addResetButton(view, row, module, option, pair, on)
     local keys = { option, pair }
     local button, icon = Kit.NewResetButton(row, RESET_SIZE, function()
         for _, each in ipairs(keys) do
-            local default = module.defaults[each.key]
-            if module.db[each.key] ~= default then
-                ns.SetOption(module.name, each.key, default)
-            end
+            ns.ResetOption(module.name, each.key) -- forgets the choice, not just the value
         end
         ns.RefreshSetting(module.name)
     end)

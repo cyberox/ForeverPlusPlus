@@ -26,7 +26,9 @@ local developerOptions = {
 
 ---Puts every module's options (`module.options`) back to their defaults, then turns on the
 ---modules in `enable`. Everything else a module saves stays: data (prices, seen cinematics, chat
----history) and what's set in Edit Mode (positions and scale).
+---history) and what's set in Edit Mode (positions and scale). What it puts back to the default is
+---forgotten, not saved as a choice, so a later release's better default reaches it; what it sets
+---otherwise (an override, a module turned on) is saved like the player's own choice.
 ---Modules that are always on have nothing to reset. Applies live, like the checkboxes do.
 ---@param enable? string[] module names to turn on whatever their default is
 ---@param options? table<string, table<string, any>> per module, option values used instead of its defaults
@@ -42,20 +44,33 @@ function ns.ApplyPreset(enable, options)
             local overrides = options and options[name]
             for _, option in ipairs(module.options or {}) do
                 local key = option.key
-                local value = module.defaults[key]
+                local default = module.defaults[key]
+                local value = default
                 if overrides and overrides[key] ~= nil then
                     value = overrides[key]
                 end
-                if type(value) ~= "table" and module.db[key] ~= value then
-                    module.db[key] = value
-                    changed[#changed + 1] = { module, key }
+                if type(value) ~= "table" then
+                    local before = module.db[key]
+                    -- nil forgets the choice; the default reads back
+                    if value == default then
+                        module.db[key] = nil
+                    else
+                        module.db[key] = value
+                    end
+                    if before ~= value then
+                        changed[#changed + 1] = { module, key }
+                    end
                 end
             end
         end
     end
     for _, name in ipairs(ns.order) do
         local module = ns.modules[name]
-        ns.SetEnabled(name, wanted[name] or module.defaults.enabled)
+        local on = wanted[name] or module.defaults.enabled
+        ns.SetEnabled(name, on)
+        if on == module.defaults.enabled and not (module.alwaysOn or module.unavailable) then
+            module.db.enabled = nil -- at its default: forgotten, not a choice
+        end
     end
     for _, entry in ipairs(changed) do
         local module, key = entry[1], entry[2]

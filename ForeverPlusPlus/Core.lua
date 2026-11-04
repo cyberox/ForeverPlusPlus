@@ -288,10 +288,17 @@ local function checkValues(module)
                 valid = valid or choice[1] == value
             end
             if not valid then
-                module.db[option.key] = module.defaults[option.key]
+                module.db[option.key] = nil -- back to the default: the choice is gone
             end
         elseif option.min then
-            module.db[option.key] = ns.SliderValue(option, value) or module.defaults[option.key]
+            -- Only a saved value out of range changes; writing every slider would save its
+            -- default as if the player chose it.
+            local fixed = ns.SliderValue(option, value)
+            if fixed == nil then
+                module.db[option.key] = nil
+            elseif fixed ~= value then
+                module.db[option.key] = fixed
+            end
         end
     end
 end
@@ -862,7 +869,7 @@ function ns.Start()
             call(module.OnLoad, module)
         end
         if module.alwaysOn then
-            module.db.enabled = true
+            module.db.enabled = not module.defaults.enabled or nil -- on, without saving the default
         end
         -- A module only for some clients (IsAvailable false) stays off and out of sight.
         module.unavailable = module.IsAvailable and not module:IsAvailable() or nil
@@ -893,7 +900,8 @@ function ns.SetEnabled(name, on)
     end
 end
 
----Changes one of a module's options (from `module.options`) and tells the module.
+---Changes one of a module's options (from `module.options`) and tells the module. The value is
+---saved even when it's the default, so it stays the player's choice until they reset it.
 ---@param name string
 ---@param key string
 ---@param value any
@@ -901,4 +909,18 @@ function ns.SetOption(name, key, value)
     local module = ns.modules[name]
     module.db[key] = value
     optionChanged(module, key)
+end
+
+---Puts one of a module's options back to its default and forgets the choice, so a later release
+---changing the default reaches it too (the undo arrow, Debug turning off). Tells the module when
+---the value it reads changed.
+---@param name string
+---@param key string
+function ns.ResetOption(name, key)
+    local module = ns.modules[name]
+    local before = module.db[key]
+    module.db[key] = nil
+    if module.db[key] ~= before then
+        optionChanged(module, key)
+    end
 end

@@ -605,7 +605,7 @@ function EditMode.RegisterModule(module, frame, label, apply, onChange)
     end, {
         onChange = onChange,
         reset = function()
-            module.db.x, module.db.y = module.defaults.x, module.defaults.y
+            module.db.x, module.db.y = nil, nil -- forgotten: the default spot, today's or a later one
             apply()
         end,
         scale = {
