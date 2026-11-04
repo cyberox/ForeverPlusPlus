@@ -7,6 +7,9 @@ What changed in each release of Forever++. The same notes show in game under Set
 ### Changed
 
 - **Settings**: a setting you pick stays yours, even when it's the same as the default. If a later version changes that default, your choice is kept. Only the undo arrow, Defaults, or `/fpp reset` puts it back, and after that you get the new default.
+- **Class Colors**: while Blizzard's nameplates show friendly players' names in white, its settings say so, with a Turn On button for Blizzard's class colors on them. It doesn't show while Player Nameplates is on, since that draws its own names.
+- **Quest Nameplates**: while Blizzard's enemy nameplates are off, its settings say so, with a Turn On button, since quest icons need them.
+- **Settings**: a "Blizzard's ... is off" line with a Turn On button no longer shows on a client that doesn't have that setting.
 
 ## 1.0.0-beta.2 (2026-11-04)
 

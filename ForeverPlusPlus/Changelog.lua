@@ -17,6 +17,14 @@ ns.changelog = {
                     .. "as the default. If a later version changes that default, your choice is "
                     .. "kept. Only the undo arrow, Defaults, or /fpp reset puts it back, and after "
                     .. "that you get the new default." },
+                { L.CLASSCOLORS_TITLE, "While Blizzard's nameplates show friendly players' "
+                    .. "names in white, its settings say so, with a Turn On button for "
+                    .. "Blizzard's class colors on them. It doesn't show while Player Nameplates "
+                    .. "is on, since that draws its own names." },
+                { L.QUESTNAMEPLATES_TITLE, "While Blizzard's enemy nameplates are off, its "
+                    .. "settings say so, with a Turn On button, since quest icons need them." },
+                { L.CHANGELOG_SETTINGS, "A \"Blizzard's ... is off\" line with a Turn On button "
+                    .. "no longer shows on a client that doesn't have that setting." },
             } },
         },
     },

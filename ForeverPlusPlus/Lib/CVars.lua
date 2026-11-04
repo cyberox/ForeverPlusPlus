@@ -31,7 +31,8 @@ function CVars.IsOn(names)
 end
 
 ---A module's settings `notice` for a Blizzard setting it needs: a gray row saying so while the
----module is on and the CVar is off, with a button that turns the CVar on.
+---module is on and the CVar is off, with a button that turns the CVar on. Never shown on a client
+---without the CVar, where the button couldn't do anything.
 ---@param module table
 ---@param names string|string[] the CVar, or its names newest first
 ---@param text string the row's short gray label
@@ -49,7 +50,7 @@ function CVars.OffNotice(module, names, text, description)
             end
         end,
         shown = function()
-            return module.db.enabled and not CVars.IsOn(names)
+            return module.db.enabled and find(names) ~= nil and not CVars.IsOn(names)
         end,
     }
 end

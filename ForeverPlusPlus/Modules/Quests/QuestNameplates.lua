@@ -26,6 +26,10 @@ local module = ns.NewModule("QuestNameplates", L.QUESTNAMEPLATES_DESC, {
 })
 module.title = L.QUESTNAMEPLATES_TITLE
 module.category = "quests"
+-- Quest creatures are enemies (or neutral, which Blizzard shows with them), so with Blizzard's
+-- enemy nameplates off there's no plate to put the icon on.
+module.notice = ns.CVars.OffNotice(module, "nameplateShowEnemies", L.QUESTNAMEPLATES_BLIZZARD_OFF,
+    L.QUESTNAMEPLATES_BLIZZARD_OFF_DESC)
 
 module.options = {
     {

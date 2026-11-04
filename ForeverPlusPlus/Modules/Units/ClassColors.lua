@@ -66,6 +66,19 @@ module.options = {
     { key = "targetOfTarget", name = L.CLASSCOLORS_TOT, description = L.CLASSCOLORS_TOT_DESC, section = FRAMES },
 }
 
+-- Friendly players' names on Blizzard's nameplates are white unless this CVar is on, so a player
+-- who wants class colors everywhere gets a button for it. Not while Player Nameplates is on: it
+-- draws its own names in their class color and keeps this off, so Blizzard's hidden ones stay white.
+local FRIENDLY_PLATE_NAMES = "nameplateUseClassColorForFriendlyPlayerUnitNames"
+local plateNames = ns.CVars.OffNotice(module, FRIENDLY_PLATE_NAMES, L.CLASSCOLORS_PLATE_NAMES_OFF,
+    L.CLASSCOLORS_PLATE_NAMES_OFF_DESC)
+local plateNamesOff = plateNames.shown
+plateNames.shown = function()
+    local playerPlates = ns.modules.PlayerNameplates
+    return plateNamesOff() and not (playerPlates and playerPlates.enabled)
+end
+module.notice = plateNames
+
 local MAX_PARTY = 4
 -- Blizzard's own hostile, neutral, and tapped colors (UnitSelectionColor, Classic's tapped bar).
 local HOSTILE, NEUTRAL, TAPPED = CreateColor(1, 0, 0), CreateColor(1, 1, 0), CreateColor(0.5, 0.5, 0.5)
