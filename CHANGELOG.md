@@ -2,11 +2,11 @@
 
 What changed in each release of Forever++. The same notes show in game under Settings > AddOns > Forever++ > Changelog, from [`ForeverPlusPlus/Changelog.lua`](ForeverPlusPlus/Changelog.lua); change both together.
 
-## Unreleased
+## 1.0.0-beta.2 (2026-11-04)
 
 ### Added
 
-- Other addons can read what Forever++ knows through `ForeverPlusPlusAPI.v1`: auction prices, what disenchanting an item gives and is worth, Upgrade Arrows' scores, flight times, the class, level, race, and guild of players it has seen, class and level colors, dungeon and raid levels, gathering skills, and each module with its options. They can set and clear the map pin, and get callbacks when these change. See [docs/api.md](docs/api.md).
+- Other addons can read what Forever++ knows through `ForeverPlusPlusAPI.v1`: auction prices, what disenchanting an item gives and is worth, Upgrade Arrows' scores, flight times, the class, level, race, and guild of players it has seen, class and level colors, dungeon and raid levels, gathering skills, and each module with its options. They can set and clear the map pin, and get callbacks when these change. See the [API documentation](https://github.com/xIGBClutchIx/ForeverPlusPlus/blob/main/docs/api.md).
 
 ## 1.0.0-beta.1 (2026-11-02)
 

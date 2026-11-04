@@ -10,7 +10,8 @@ local L = ns.L
 
 ns.changelog = {
     {
-        version = L.CHANGELOG_UNRELEASED,
+        version = "1.0.0-beta.2",
+        date = "2026-11-04",
         sections = {
             { L.CHANGELOG_ADDED, {
                 "Other addons can read what Forever++ knows through ForeverPlusPlusAPI.v1: "
