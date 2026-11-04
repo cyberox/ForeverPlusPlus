@@ -4,4 +4,5 @@ local _, ns = ...
 ns.On("PLAYER_LOGIN", function()
     ns.Start()
     ns.RegisterSettings()
+    ns.API.Fire("READY") -- other addons can read saved data now
 end)

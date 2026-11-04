@@ -1587,6 +1587,136 @@ do
     UnitLevel, time, game.secret = savedUnitLevel, savedTime, savedSecret
 end
 
+-- Public API ------------------------------------------------------------------------------------
+-- API.lua against the Lib files loaded above, with the few things it needs from Core stubbed.
+
+do
+    local reported = {}
+    geterrorhandler = function()
+        return function(err)
+            reported[#reported + 1] = err
+        end
+    end
+    local seenPlayers = {
+        bob = { class = "MAGE", level = 42, race = "Gnome", guild = "Tinkers", seen = 5000 },
+    }
+    local api = setmetatable({
+        modules = {
+            ItemTooltips = { title = "Item Tooltips", category = "items", enabled = true },
+            Gone = { title = "Gone", unavailable = true },
+        },
+        order = { "ItemTooltips", "Gone" },
+        version = "1.0.0",
+        Frames = { Coalesce = function(fn) return fn end }, -- runs at once, so tests see each call
+        Players = {
+            Get = function(_, name)
+                return name and seenPlayers[name:lower():match("^[^%-]+")]
+            end,
+            ClassName = function(token)
+                return token == "MAGE" and "Mage" or nil
+            end,
+        },
+    }, { __index = ns })
+    assert(loadfile("ForeverPlusPlus/API.lua"))(ADDON, api)
+    local v1 = ForeverPlusPlusAPI.v1
+
+    local apiVersion, addonVersion = v1.GetVersion()
+    eq(apiVersion, 1, "api: version 1")
+    eq(addonVersion, "1.0.0", "api: addon version")
+    eq(pcall(function() ForeverPlusPlusAPI.v1.GetVersion = nil end), false, "api: v1 is read only")
+    eq(pcall(function() ForeverPlusPlusAPI.v2 = {} end), false, "api: the root is read only")
+
+    eq(v1.IsModuleEnabled("ItemTooltips"), true, "api: a module that's on")
+    eq(v1.IsModuleEnabled("Nope"), nil, "api: a module that isn't there")
+    local listed = v1.GetModules()
+    eq(#listed, 1, "api: modules leave out unavailable ones")
+    eq(listed[1].title, "Item Tooltips", "api: a module's title")
+
+    -- Prices, and the callback that says they changed.
+    local updates = 0
+    v1.RegisterCallback("PRICES_UPDATED", function() updates = updates + 1 end, "test")
+    eq(v1.HasAuctionPrices(), false, "api: no prices without a source")
+    eq(v1.GetAuctionPrice(4305), nil, "api: no price without a source")
+    eq(v1.GetAuctionPriceSource(), nil, "api: no source")
+    ns.Prices.SetSource({
+        price = function(itemID)
+            if itemID == 4305 then
+                return 120, 1000
+            elseif itemID == 666 then
+                error("broken source")
+            end
+        end,
+        itemByName = function(name)
+            return name == "Bolt of Silk Cloth" and 4305 or nil
+        end,
+        inline = function() return false end,
+        auctionator = function() return false end,
+    })
+    eq(updates, 1, "api: a new source tells PRICES_UPDATED")
+    eq(v1.GetAuctionPriceSource(), "ForeverPlusPlus", "api: our own prices")
+    local price, seen = v1.GetAuctionPrice(4305)
+    eq(price, 120, "api: price by ID")
+    eq(seen, 1000, "api: and when it was seen")
+    eq((v1.GetAuctionPrice("|cffffffff|Hitem:4305::::::::60:::::|h[Bolt of Silk Cloth]|h|r")), 120,
+        "api: price by link")
+    eq((v1.GetAuctionPrice("4305")), 120, "api: price by ID as text")
+    eq((v1.GetAuctionPrice("Bolt of Silk Cloth")), 120, "api: price by name")
+    eq(v1.GetAuctionPrice({}), nil, "api: nonsense gets nil")
+    eq(v1.GetAuctionPrice(666), nil, "api: our error returns nil")
+    eq(#reported, 1, "api: and goes to the error handler")
+    ns.Prices.Changed()
+    eq(updates, 2, "api: changed prices tell PRICES_UPDATED")
+    v1.RegisterCallback("PRICES_UPDATED", function() error("caller's bug") end, "broken")
+    ns.Prices.Changed()
+    eq(updates, 3, "api: one failing callback doesn't stop the others")
+    eq(#reported, 2, "api: the failing callback is reported")
+    v1.UnregisterCallback("PRICES_UPDATED", "broken")
+    v1.UnregisterCallback("PRICES_UPDATED", "test")
+    ns.Prices.Changed()
+    eq(updates, 3, "api: unregistered callbacks stop")
+    eq(v1.RegisterCallback("NOPE", function() end), nil, "api: an unknown event")
+    eq(#reported, 3, "api: is reported")
+    ns.Prices.SetSource(nil)
+    eq(v1.GetDisenchantValue(4305), nil, "api: no disenchant value without prices")
+
+    -- Players seen: a copy, so a caller can't change what's saved.
+    local info = v1.GetPlayerInfo("Bob-Surname")
+    eq(info and info.class, "MAGE", "api: player class")
+    eq(info and info.className, "Mage", "api: player class name")
+    eq(info and info.level, 42, "api: player level")
+    eq(info and info.lastSeen, 5000, "api: when they were seen")
+    info.level = 1
+    eq(v1.GetPlayerInfo("Bob").level, 42, "api: player info is a copy")
+    eq(v1.GetPlayerInfo("Nobody"), nil, "api: someone never seen")
+    eq(v1.GetPlayerInfo(nil, nil), nil, "api: no name, no player")
+
+    -- Colors. The Instances tests above stubbed LevelRange to nil; give it a color again.
+    local levelRange = ns.Colors.LevelRange
+    ns.Colors.LevelRange = function(low)
+        return { r = low / 100, g = 1, b = 0 }
+    end
+    local r, _, _, hex = v1.GetLevelColor(20, 30)
+    eq(r, 0.2, "api: level color")
+    eq(hex, "ff33ff00", "api: and its hex")
+    ns.Colors.LevelRange = levelRange
+    eq((v1.GetLevelColor("x")), nil, "api: a level that isn't a number")
+    eq(v1.GetClassColor(nil), nil, "api: no class, no color")
+
+    -- Dungeons and raids.
+    local list = v1.GetInstances()
+    eq(#list > 20, true, "api: every instance")
+    eq(list[1].minLevel <= list[#list].minLevel, true, "api: by lowest level")
+    local deadmines = v1.GetInstanceInfo(36)
+    eq(deadmines and deadmines.englishName, "The Deadmines", "api: instance by ID")
+    eq(deadmines and deadmines.isRaid, false, "api: a dungeon isn't a raid")
+    local mc = v1.GetInstanceInfo("molten core")
+    eq(mc and mc.isRaid, true, "api: instance by name")
+    eq(v1.GetInstanceInfo("Nowhere"), nil, "api: not an instance")
+
+    eq(type(v1.GetSkinningSkill(30)), "number", "api: skinning skill for a level")
+    ForeverPlusPlusAPI, geterrorhandler = nil, nil
+end
+
 -- Done ------------------------------------------------------------------------------------------
 
 print(("%d checks, %d failed"):format(count, failures))

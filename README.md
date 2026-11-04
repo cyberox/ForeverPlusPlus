@@ -119,6 +119,10 @@ Open Game Menu > Options > AddOns > Forever++ (or type `/fpp`). It opens on the 
 
 Settings are saved per account in `ForeverPlusPlusDB`, players seen (for Chat Levels and Whisper Window) per account in `ForeverPlusPlusPlayersDB`, and what belongs to one character (talent plans, learned flight points, Quest Tracker's zone-hidden quests) in `ForeverPlusPlusCharDB`.
 
+## For addon authors
+
+Other addons can read what Forever++ knows through `ForeverPlusPlusAPI.v1`: auction prices (its own or Auctionator's), what disenchanting an item gives and is worth, the class, level, race, and guild of players it has seen, class and level colors, dungeon and raid level ranges, gathering skills, and which modules are on, with a callback when prices change. It's versioned, read only, and can't break the addon calling it. See [docs/api.md](docs/api.md).
+
 ## Feedback
 
 Bugs and ideas go in [GitHub issues](https://github.com/xIGBClutchIx/ForeverPlusPlus/issues).
@@ -135,7 +139,7 @@ mklink /J "<WoW folder>\_forever_\Interface\AddOns\ForeverPlusPlus" "<this repo>
 
 ### Add a module
 
-1. Create `Modules/<Category>/YourThing.lua` (the folder is its category: Automation, Character, Chat, Interface, Items, Map, Quests, System, Units, or Tools) starting with `local _, ns = ...`, and add it to the TOC after the other modules, before `Changelog.lua`.
+1. Create `Modules/<Category>/YourThing.lua` (the folder is its category: Automation, Character, Chat, Interface, Items, Map, Quests, System, Units, or Tools) starting with `local _, ns = ...`, and add it to the TOC after the other modules, before `API.lua`.
 2. Call `ns.NewModule("YourThing", ns.L.YOURTHING_DESC, { enabled = true, ... })`. The description is its tooltip in Settings, and `module.title = ns.L.YOURTHING_TITLE` is the name shown there. Every string the player sees goes in `Locales/enUS/` (the file for its category), keyed with the module's name.
 3. Do the work in `OnEnable` and undo it in `OnDisable`: modules turn on and off without a reload. A hook can't be removed, so use `self:Hook(object, "Method", fn)` (or `self:Hook("GlobalFunction", fn)`, or `self:HookScript(frame, "OnShow", fn)`): it hooks once and does nothing while the module is off. Events added with `self:On(event, fn)` stop by themselves, and so do timers made with `ns.Frames.Timer(module)` or `ns.Frames.Coalesce(fn, delay, module)`, so a module that only uses those and hooks needs no `OnDisable`. Events wanted only while an option is on go in `module:OnWhile("optionKey", { EVENT = fn })`, once at file load: Core listens while the module is on and the option isn't false or `"off"`. Don't also add those handlers with `self:On`.
 4. Set `module.category` (`automation`, `character`, `chat`, `interface`, `items`, `map`, `quests`, `system`, `tools`, or `units`). A tool with nothing to turn off sets `module.alwaysOn = true` and gets no checkbox. A command only for while a module is on passes that module's name as `ns.AddCommand`'s last argument. A module only for some clients gives `module:IsAvailable()`. Set `module.added` to the version it first ships in (`"0.8.0"`) so the Modules page marks it NEW for players updating to that version; an option takes `added` the same way, or `changed` for the version it changed in.

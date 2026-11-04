@@ -190,6 +190,7 @@ local nextLook = 0 -- GetTime() the saved prices may next be looked through for 
 local function addResults(results)
     local items = house().items
     local now = time()
+    local changed = false
     for _, result in ipairs(results or {}) do
         local itemID = result.itemKey and result.itemKey.itemID
         local price = result.minPrice
@@ -200,6 +201,7 @@ local function addResults(results)
                 -- One item can come back once per item level or suffix: keep the lowest.
                 if price < old then
                     items[itemID] = packPrice(price, now)
+                    changed = true
                 end
             else
                 -- The first price in these results replaces the old one.
@@ -208,12 +210,16 @@ local function addResults(results)
                 end
                 listed[itemID] = true
                 items[itemID] = packPrice(price, now)
+                changed = true
             end
             if scanning and not seen[itemID] then
                 seen[itemID] = true
                 seenCount = seenCount + 1
             end
         end
+    end
+    if changed then
+        ns.Prices.Changed()
     end
 end
 
@@ -452,6 +458,7 @@ local function resetPrices()
     local data = house()
     data.items = {}
     data.scannedAt = 0
+    ns.Prices.Changed()
     ns.Print(L.AUCTIONPRICES_RESET_DONE)
 end
 
@@ -965,6 +972,7 @@ function module:OnOptionChanged(key)
     if key == "crafting" then
         refreshCrafting()
     elseif key == "auctionator" then
+        ns.Prices.Changed() -- every price now comes from the other source
         -- A scan running when Auctionator's prices take over stops, keeping what it saw.
         if ns.Prices.UsingAuctionator() then
             stopScan()

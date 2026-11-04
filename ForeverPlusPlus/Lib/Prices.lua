@@ -6,7 +6,7 @@
 local _, ns = ...
 
 local C_Item = C_Item
-local floor, format, tonumber, type, pairs = math.floor, string.format, tonumber, type, pairs
+local floor, format, tonumber, type, pairs, ipairs = math.floor, string.format, tonumber, type, pairs, ipairs
 local pcall, time = pcall, time
 
 local Prices = {}
@@ -117,13 +117,33 @@ end
 -- Sources -----------------------------------------------------------------------------------------
 
 local source -- { price, itemByName, inline, auctionator }, or nil
+local listeners = {} -- functions told when the prices change
+
+---Calls `fn()` whenever the prices change (see Prices.Changed). Called often while the auction
+---house is browsed, so a listener that does real work should coalesce.
+---@param fn function
+function Prices.OnChanged(fn)
+    listeners[#listeners + 1] = fn
+end
+
+---Tells the listeners the prices changed: new ones were seen, they were reset, or their source
+---changed.
+function Prices.Changed()
+    for _, fn in ipairs(listeners) do
+        ns.Call(fn)
+    end
+end
 
 ---Sets where auction prices come from, or nil when there are none (Auction Prices is off).
 ---`price` gives copper and the time() it was seen; `auctionator` whether the player chose
 ---Auctionator's prices.
 ---@param new table|nil { price = fun(itemID): number?, number?, itemByName = fun(name): number?, inline = fun(): boolean, auctionator = fun(): boolean }
 function Prices.SetSource(new)
+    if source == new then
+        return
+    end
     source = new
+    Prices.Changed()
 end
 
 ---Whether auction prices are available.

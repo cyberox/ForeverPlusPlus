@@ -160,6 +160,7 @@ Modules\Map\MinimapNodeIcons\Probe.lua
 Modules\Map\MinimapNodeIcons\Nodes.lua
 Modules\Map\MinimapNodeIcons\Learn.lua
 Modules\Map\MinimapNodeIcons\Report.lua
+API.lua
 Changelog.lua
 Settings\Settings.lua
 Settings\Debug.lua

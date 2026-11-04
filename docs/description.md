@@ -143,6 +143,10 @@ Everything is on by default except where noted. Each module can be turned off, a
 
 Get it from CurseForge or Wago. To install it by hand, unzip it into the Forever client's AddOns folder, for example `World of Warcraft\_forever_\Interface\AddOns\`, so you end up with `AddOns\ForeverPlusPlus\ForeverPlusPlus.toc`, then start the game or `/reload`.
 
+## For addon authors
+
+Other addons can read Forever++'s auction prices, disenchant values, players seen, colors, and dungeon levels through `ForeverPlusPlusAPI.v1`. See the [API documentation](https://github.com/xIGBClutchIx/ForeverPlusPlus/blob/main/docs/api.md).
+
 ## How it's made
 
 Forever++ is coded with AI by a longtime WoW addon developer, and every feature is tested in the game before it ships.

@@ -10,6 +10,18 @@ local L = ns.L
 
 ns.changelog = {
     {
+        version = L.CHANGELOG_UNRELEASED,
+        sections = {
+            { L.CHANGELOG_ADDED, {
+                "Other addons can read what Forever++ knows through ForeverPlusPlusAPI.v1: "
+                    .. "auction prices, what disenchanting an item gives and is worth, the class, "
+                    .. "level, race, and guild of players it has seen, class and level colors, "
+                    .. "dungeon and raid levels, gathering skills, and which modules are on, with a "
+                    .. "callback when prices change.",
+            } },
+        },
+    },
+    {
         version = "1.0.0-beta.1",
         date = "2026-11-02",
         sections = {

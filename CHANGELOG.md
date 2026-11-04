@@ -2,6 +2,12 @@
 
 What changed in each release of Forever++. The same notes show in game under Settings > AddOns > Forever++ > Changelog, from [`ForeverPlusPlus/Changelog.lua`](ForeverPlusPlus/Changelog.lua); change both together.
 
+## Unreleased
+
+### Added
+
+- Other addons can read what Forever++ knows through `ForeverPlusPlusAPI.v1`: auction prices, what disenchanting an item gives and is worth, the class, level, race, and guild of players it has seen, class and level colors, dungeon and raid levels, gathering skills, and which modules are on, with a callback when prices change. See [docs/api.md](docs/api.md).
+
 ## 1.0.0-beta.1 (2026-11-02)
 
 ### Added
