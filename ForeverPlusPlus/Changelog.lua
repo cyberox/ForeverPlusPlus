@@ -10,9 +10,12 @@ local L = ns.L
 
 ns.changelog = {
     {
-        version = L.CHANGELOG_UNRELEASED,
+        version = "1.0.0",
+        date = "2026-11-04",
         sections = {
             { L.CHANGELOG_ADDED, {
+                "Forever++'s first full release for WoW: Forever, with everything from the "
+                    .. "betas and the additions below. Thanks to everyone who tested it.",
                 { L.CLASSCOLORS_TITLE, "When Blizzard's nameplates don't show players in their "
                     .. "class color, its settings say so, with a Turn On button for each of "
                     .. "Blizzard's settings: friendly players' health bars, enemy players' health "

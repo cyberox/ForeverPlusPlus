@@ -2,7 +2,7 @@
 ## Title: Forever++
 ## Notes: Small additions and changes to the default UI for WoW Forever.
 ## Author: xIGBClutchIx
-## Version: 1.0.0-beta.2
+## Version: 1.0.0
 ## SavedVariables: ForeverPlusPlusDB, ForeverPlusPlusPlayersDB
 ## SavedVariablesPerCharacter: ForeverPlusPlusCharDB
 ## OptionalDeps: Auctionator

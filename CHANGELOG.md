@@ -2,7 +2,9 @@
 
 What changed in each release of Forever++. The same notes show in game under Settings > AddOns > Forever++ > Changelog, from [`ForeverPlusPlus/Changelog.lua`](ForeverPlusPlus/Changelog.lua); change both together.
 
-## Unreleased
+## 1.0.0 (2026-11-04)
+
+Forever++'s first full release for WoW: Forever, with everything from the betas and the additions below. Thanks to everyone who tested it. [Watch the 80-second trailer](https://www.youtube.com/watch?v=D_k53X4MYo0).
 
 ### Added
 
