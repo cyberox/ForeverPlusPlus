@@ -17,6 +17,7 @@ Forever++ isn't a UI replacement: no new unit frames, action bars, or skins. It 
 - **Macros**: macros Forever++ makes and keeps for you. The first is **Smart Buff**: one button that casts the right buff on your target at the best rank you know, and skips anyone who already has it.
 - **Chat Levels**: each player's level before their name in chat, colored like a quest of that level.
 - **Item Tooltips**: what disenchanting an item gives, and each stat on gear in its own color.
+- **Movable Windows**: hold Shift and drag Blizzard's windows (character, spellbook, professions, friends, bags, and more) wherever you want them, remembered for next time.
 
 These are off by default. Turn them on under Options > AddOns > Forever++. Every change in this release is in the changelog, and in game under Forever++ > Changelog.
 
