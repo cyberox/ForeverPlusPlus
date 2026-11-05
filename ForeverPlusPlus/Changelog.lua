@@ -25,9 +25,10 @@ ns.changelog = {
                     .. "names in white, its settings say so, with a Turn On button for "
                     .. "Blizzard's class colors on them. It doesn't show while Player Nameplates "
                     .. "is on, since that draws its own names." },
-                { L.WORLDMAP_TITLE, "Blizzard's player and cursor coordinates each have their "
-                    .. "own line and Turn On button in its settings while they're off, instead of "
-                    .. "one for both that showed only when both were off." },
+                { L.WORLDMAP_TITLE, "Coordinates has Player Coordinates, Cursor Coordinates, "
+                    .. "and Tenths checkboxes. They're Blizzard's own settings, so changing one "
+                    .. "here changes it in Blizzard's Interface options too. They replace the "
+                    .. "\"Blizzard's map coordinates are off\" line." },
                 { L.QUESTNAMEPLATES_TITLE, "While Blizzard's enemy nameplates are off, its "
                     .. "settings say so, with a Turn On button, since quest icons need them." },
                 { L.CHANGELOG_SETTINGS, "A \"Blizzard's ... is off\" line with a Turn On button "

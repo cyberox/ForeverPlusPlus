@@ -211,14 +211,18 @@ end
 ---reads its table, in the account's or the character's saved variables. Settings and data the
 ---defaults no longer have are dropped (and settings at their default when they came from the 0.8
 ---layout, which saved them all). Data whose key moved in or out of `perCharacter` moves with it.
+---A `linked` setting is kept somewhere else (one of Blizzard's settings): it reads `get()` and
+---setting it calls `set(value)`, nil for the default, and nothing of it is saved here.
 ---@param db table ForeverPlusPlusDB
 ---@param char table ForeverPlusPlusCharDB
 ---@param name string
 ---@param defaults table
 ---@param perCharacter? table<string, boolean>
+---@param linked? table<string, { get: fun(): any, set: fun(value: any) }>
 ---@return table view
-function Store.Load(db, char, name, defaults, perCharacter)
+function Store.Load(db, char, name, defaults, perCharacter, linked)
     perCharacter = perCharacter or {}
+    linked = linked or {}
     -- Looked up on each use, not kept: Store.Tidy drops empty tables before the game saves, and
     -- a write after it (a module saving at logout) makes them again.
     local function settingsTable()
@@ -237,7 +241,8 @@ function Store.Load(db, char, name, defaults, perCharacter)
     end
     local settings = settingsTable()
     for key, value in pairs(settings) do
-        if defaults[key] == nil or isData(defaults, key) or (loose and value == defaults[key]) then
+        if defaults[key] == nil or isData(defaults, key) or linked[key]
+            or (loose and value == defaults[key]) then
             settings[key] = nil
         end
     end
@@ -264,6 +269,8 @@ function Store.Load(db, char, name, defaults, perCharacter)
             if isData(defaults, key) then
                 local store = dataTable(key)
                 return type(store[key]) == "table" and store[key] or dataFor(key)
+            elseif linked[key] then
+                return linked[key].get()
             end
             local value = settingsTable()[key]
             if value == nil then
@@ -274,6 +281,8 @@ function Store.Load(db, char, name, defaults, perCharacter)
         __newindex = function(_, key, value)
             if isData(defaults, key) then
                 dataTable(key)[key] = value
+            elseif linked[key] then
+                linked[key].set(value)
             else
                 settingsTable()[key] = value -- nil forgets it
             end

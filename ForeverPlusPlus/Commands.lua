@@ -49,7 +49,8 @@ function ns.ApplyPreset(enable, options)
                 if overrides and overrides[key] ~= nil then
                     value = overrides[key]
                 end
-                if type(value) ~= "table" then
+                -- An option that is one of Blizzard's settings (`cvar`) stays the player's.
+                if type(value) ~= "table" and not option.cvar then
                     local before = module.db[key]
                     -- nil forgets the choice; the default reads back
                     if value == default then

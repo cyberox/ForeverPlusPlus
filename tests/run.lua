@@ -831,6 +831,23 @@ eq(moved.builds[2].active, 3, "store: data moved to the account keeps what the c
 eq(oldChar.data.TalentPlanner.builds, nil, "store: data moved to the account leaves the character")
 moved = Store.Load(oldDB, oldChar, "TalentPlanner", { enabled = true, builds = {} }, { builds = true })
 eq(moved.builds[2].active, 3, "store: data moved back to the character comes along")
+-- A linked setting (one of Blizzard's) reads and writes elsewhere, and nothing of it is saved.
+local blizzard = { value = false, sets = {} }
+oldDB.settings.WorldMap = { coordsTenths = true }
+local linkedView = Store.Load(oldDB, oldChar, "WorldMap", { enabled = true, coordsTenths = false }, nil, {
+    coordsTenths = {
+        get = function() return blizzard.value end,
+        set = function(value) blizzard.sets[#blizzard.sets + 1] = tostring(value) end,
+    },
+})
+eq(oldDB.settings.WorldMap.coordsTenths, nil, "store: a linked setting saved here is dropped")
+eq(linkedView.coordsTenths, false, "store: a linked setting reads its own value")
+blizzard.value = true
+eq(linkedView.coordsTenths, true, "store: a linked setting follows its own value")
+linkedView.coordsTenths = false
+linkedView.coordsTenths = nil
+eq(table.concat(blizzard.sets, ","), "false,nil", "store: setting a linked setting sets it there")
+eq(oldDB.settings.WorldMap.coordsTenths, nil, "store: setting a linked setting saves nothing here")
 oldDB.unclaimed.Gone = { list = { a = {} } }
 Store.Prune(oldDB, oldChar, { BagSlotCounter = true })
 eq(oldDB.settings.TalentPlanner, nil, "store: a module that's gone loses its settings")

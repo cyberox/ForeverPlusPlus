@@ -10,31 +10,30 @@ local max, min = math.max, math.min
 local CreateFrame = CreateFrame
 
 local L = ns.L
-local CVars = ns.CVars
 
+-- Blizzard's checkboxes for the player's and the cursor's coordinates on the map, and tenths.
+local MAP_CVARS = ns.WorldMap.COORDS_CVARS
+
+-- Defaults here are for a client without the CVars; Core reads the client's own.
 local module = ns.modules.WorldMap:NewPart({
     key = "coordinates", name = L.COORDS_TITLE, description = L.COORDS_DESC,
     section = L.COORDS_TITLE,
+}, {
+    coordsPlayer = true,
+    coordsCursor = true,
+    coordsTenths = false,
 })
 
--- Blizzard's checkboxes for the player's and the cursor's coordinates on the map.
-local MAP_CVARS = ns.WorldMap.COORDS_CVARS
-
--- Each of Blizzard's checkboxes that's off leaves a row out of the title bar, so World Map says so,
--- with a button for each, while this part is on.
-local function offNotice(name, text, description)
-    local notice = CVars.OffNotice(module.module, name, text, description)
-    local off = notice.shown
-    notice.shown = function()
-        return module.db.coordinates and off()
-    end
-    return notice
-end
-
-module.module.notice = {
-    offNotice(MAP_CVARS[1], L.COORDS_PLAYER_OFF, L.COORDS_PLAYER_OFF_DESC),
-    offNotice(MAP_CVARS[2], L.COORDS_CURSOR_OFF, L.COORDS_CURSOR_OFF_DESC),
-}
+-- Blizzard's own checkboxes, here too: each reads and sets the CVar (`cvar`), so this part's rows
+-- follow them and there's nothing of ours to keep in step.
+module:AddOptions({
+    { key = "coordsPlayer", name = L.COORDS_PLAYER, description = L.COORDS_PLAYER_DESC,
+        cvar = MAP_CVARS[1], added = "1.0.0" },
+    { key = "coordsCursor", name = L.COORDS_CURSOR, description = L.COORDS_CURSOR_DESC,
+        cvar = MAP_CVARS[2], added = "1.0.0" },
+    { key = "coordsTenths", name = L.COORDS_TENTHS, description = L.COORDS_TENTHS_DESC,
+        cvar = "coordsByTenths", added = "1.0.0" },
+})
 
 local INSET = 8 -- from the title bar's ends
 local GAP = 12 -- the least room kept either side of the title

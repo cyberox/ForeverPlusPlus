@@ -817,6 +817,36 @@ local function addCoreSteps()
 end
 
 ---Loads the saved settings and enables every module that is on (called once, at PLAYER_LOGIN).
+-- Checkbox options with `cvar` are one of Blizzard's own settings shown among the module's: they
+-- read and set the CVar, not saved settings, and their default is the client's. Store.Load links
+-- them. Not on a client without the CVar, where the option reads its declared default.
+local function cvarOptions(module)
+    local linked
+    local C_CVar = _G.C_CVar
+    for _, option in ipairs(module.options or {}) do
+        local name = option.cvar
+        if name and C_CVar and C_CVar.GetCVar(name) ~= nil then
+            local default = C_CVar.GetCVarDefault and C_CVar.GetCVarDefault(name)
+            if default ~= nil then
+                module.defaults[option.key] = default == "1"
+            end
+            linked = linked or {}
+            linked[option.key] = {
+                get = function()
+                    return ns.CVars.IsOn(name)
+                end,
+                set = function(value)
+                    if value == nil then
+                        value = module.defaults[option.key]
+                    end
+                    ns.CVars.Apply(name, value and "1" or "0")
+                end,
+            }
+        end
+    end
+    return linked
+end
+
 function ns.Start()
     local Store = ns.Store
     ForeverPlusPlusDB = type(ForeverPlusPlusDB) == "table" and ForeverPlusPlusDB or {}
@@ -860,7 +890,8 @@ function ns.Start()
     end)
     for _, name in ipairs(ns.order) do
         local module = ns.modules[name]
-        module.db = Store.Load(ns.db, ns.charDB, name, module.defaults, module.perCharacter)
+        module.db = Store.Load(ns.db, ns.charDB, name, module.defaults, module.perCharacter,
+            cvarOptions(module))
         for _, part in ipairs(module.parts or {}) do
             part.db = module.db
         end

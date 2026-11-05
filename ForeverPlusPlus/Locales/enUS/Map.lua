@@ -170,12 +170,16 @@ L.UNEXPLORED_PURPLE = "Purple"
 L.COORDS_TITLE = "Coordinates"
 L.COORDS_DESC = "Show the world map's coordinates in its title bar instead of the bottom left "
     .. "corner: yours on the left, the cursor's on the right."
-L.COORDS_PLAYER_OFF = "Blizzard's player coordinates are off" -- a gray row atop World Map, with a button
-L.COORDS_PLAYER_OFF_DESC = "Blizzard's player coordinates on the world map are off, so Coordinates "
-    .. "can't show where you are."
-L.COORDS_CURSOR_OFF = "Blizzard's cursor coordinates are off" -- a gray row atop World Map, with a button
-L.COORDS_CURSOR_OFF_DESC = "Blizzard's cursor coordinates on the world map are off, so Coordinates "
-    .. "can't show where the cursor points."
+-- These three are Blizzard's own checkboxes, shown here too.
+L.COORDS_PLAYER = "Player Coordinates"
+L.COORDS_PLAYER_DESC = "Show where you are. This is Blizzard's Player Coordinates setting in its "
+    .. "Interface options: changing it here changes it there too."
+L.COORDS_CURSOR = "Cursor Coordinates"
+L.COORDS_CURSOR_DESC = "Show where the cursor points on the map. This is Blizzard's Cursor "
+    .. "Coordinates setting in its Interface options: changing it here changes it there too."
+L.COORDS_TENTHS = "Tenths"
+L.COORDS_TENTHS_DESC = "Show coordinates to a tenth, like 45.3, 62.8. This is Blizzard's setting "
+    .. "in its Interface options: changing it here changes it there too."
 
 -- HideFilterReset
 L.HIDEFILTERRESET_TITLE = "Hide Filter Reset"
