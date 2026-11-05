@@ -41,6 +41,9 @@ ns.changelog = {
                     .. "says only what doesn't work, since the button turns it on." },
             } },
             { L.CHANGELOG_FIXED, {
+                "Picking one of Forever++'s frames in Edit Mode during combat no longer gets an "
+                    .. "action blocked (PlayerFrame:SetClampRectInsets()) or leaves Blizzard's Edit "
+                    .. "Mode open to later errors.",
                 { L.MINIMAPNODEICONS_TITLE, "Forever's own kinds of herbs and veins, like Poor "
                     .. "Copper Vein, get the icon of the one they're named after (Copper Vein) "
                     .. "right away, and a node it doesn't know learns its icon when you gather it, "

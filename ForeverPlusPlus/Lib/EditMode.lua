@@ -13,6 +13,7 @@ local abs, min, max = math.abs, math.min, math.max
 local format = string.format
 local CreateFrame, UIParent, hooksecurefunc = CreateFrame, UIParent, hooksecurefunc
 local GetCursorPosition, Screenshot, wipe = GetCursorPosition, Screenshot, wipe
+local InCombatLockdown = InCombatLockdown
 
 local L = ns.L
 local call = ns.Call
@@ -518,8 +519,13 @@ function pick(frame)
         return
     end
     selected = frame
-    -- Only one frame is selected at a time, so Blizzard's own selection and dialog go.
-    if EditModeManagerFrame and EditModeManagerFrame.ClearSelectedSystem then
+    -- Only one frame is selected at a time, so Blizzard's own selection and dialog go. Never in
+    -- combat: ClearSelectedSystem runs through a secure delegate only out of combat; in combat it
+    -- clears and highlights Blizzard's frames in our (tainted) call, which the client blocks
+    -- (PlayerFrame:SetClampRectInsets) and which leaves their Edit Mode state tainted after
+    -- (Gethe `forever` branch, EditModeManager.lua:762, checked 2026-11-04). Blizzard's selection
+    -- then stays until the player picks something else.
+    if EditModeManagerFrame and EditModeManagerFrame.ClearSelectedSystem and not InCombatLockdown() then
         selecting = true
         pcall(EditModeManagerFrame.ClearSelectedSystem, EditModeManagerFrame)
         selecting = false

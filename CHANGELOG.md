@@ -18,6 +18,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 ### Fixed
 
+- **Edit Mode**: picking one of Forever++'s frames in Edit Mode during combat no longer gets an action blocked (PlayerFrame:SetClampRectInsets()) or leaves Blizzard's Edit Mode open to later errors.
 - **Minimap Node Icons**: Forever's own kinds of herbs and veins, like Poor Copper Vein, get the icon of the one they're named after (Copper Vein) right away, and a node it doesn't know learns its icon when you gather it, which didn't work before.
 
 ## 1.0.0-beta.2 (2026-11-04)
