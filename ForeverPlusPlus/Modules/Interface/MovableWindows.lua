@@ -27,7 +27,7 @@ local module = ns.NewModule("MovableWindows", L.MOVABLEWINDOWS_DESC, {
     moveKey = "shift", -- held while dragging; "none" drags with the left button alone
     remember = "always", -- "always" (saved), "session" (until logout or /reload), or "never"
     -- (back to Blizzard's place when it closes)
-    resetKey = "shift", -- held while clicking a window to put it back; "none" for the click alone
+    resetKey = "ctrl", -- held while clicking a window to put it back; "none" for the click alone
     resetClick = "right", -- "right", "middle", "left", or "off"
     positions = {}, -- window name -> { point, relativePoint, x, y }, for "always"
 })
