@@ -4,13 +4,15 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 ## Unreleased
 
+### Added
+
+- **Class Colors**: when Blizzard's nameplates don't show players in their class color, its settings say so, with a Turn On button for each of Blizzard's settings: friendly players' health bars, enemy players' health bars, and friendly players' names. The names line doesn't show while Player Nameplates is on, since that draws its own names.
+- **Quest Nameplates**: while Blizzard's enemy nameplates are off, its settings say so, with a Turn On button, since quest icons need them.
+- **World Map**: Coordinates has Player Coordinates, Cursor Coordinates, and Tenths checkboxes. They're Blizzard's own settings, so changing one here changes it in Blizzard's Interface options too. They replace the "Blizzard's map coordinates are off" line.
+
 ### Changed
 
 - **Settings**: a setting you pick stays yours, even when it's the same as the default. If a later version changes that default, your choice is kept. Only the undo arrow, Defaults, or `/fpp reset` puts it back, and after that you get the new default.
-- **Class Colors**: while Blizzard's nameplates show players' health bars in blue or red instead of their class color, its settings say so, with a Turn On button each for Blizzard's class colors on friendly and enemy players.
-- **Class Colors**: while Blizzard's nameplates show friendly players' names in white, its settings say so, with a Turn On button for Blizzard's class colors on them. It doesn't show while Player Nameplates is on, since that draws its own names.
-- **World Map**: Coordinates has Player Coordinates, Cursor Coordinates, and Tenths checkboxes. They're Blizzard's own settings, so changing one here changes it in Blizzard's Interface options too. They replace the "Blizzard's map coordinates are off" line.
-- **Quest Nameplates**: while Blizzard's enemy nameplates are off, its settings say so, with a Turn On button, since quest icons need them.
 - **Settings**: a "Blizzard's ... is off" line with a Turn On button no longer shows on a client that doesn't have that setting, and its tooltip says only what doesn't work, since the button turns it on.
 
 ## 1.0.0-beta.2 (2026-11-04)
