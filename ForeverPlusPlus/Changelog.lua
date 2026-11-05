@@ -50,6 +50,8 @@ ns.changelog = {
                     .. "Console Variables, Profiler, Upgrade Arrows) no longer makes Blizzard's "
                     .. "Social options fail with an action blocked (C_Discord.IsUserOAuthed). Its "
                     .. "page shows in the sidebar the next time you pick a Forever++ page." },
+                "Edit Mode's settings box for Forever++'s frames is wide enough for the scale "
+                    .. "slider's value, with room on both sides.",
                 "Picking one of Forever++'s frames in Edit Mode during combat no longer gets an "
                     .. "action blocked (PlayerFrame:SetClampRectInsets()) or leaves Blizzard's Edit "
                     .. "Mode open to later errors.",

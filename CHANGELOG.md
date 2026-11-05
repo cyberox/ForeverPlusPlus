@@ -20,6 +20,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 ### Fixed
 
 - **Settings**: turning on a module with a page of its own (Debug, Console Variables, Profiler, Upgrade Arrows) no longer makes Blizzard's Social options fail with an action blocked (C_Discord.IsUserOAuthed). Its page shows in the sidebar the next time you pick a Forever++ page.
+- **Edit Mode**: the settings box for Forever++'s frames is wide enough for the scale slider's value, with room on both sides.
 - **Edit Mode**: picking one of Forever++'s frames in Edit Mode during combat no longer gets an action blocked (PlayerFrame:SetClampRectInsets()) or leaves Blizzard's Edit Mode open to later errors.
 - **Minimap Node Icons**: Forever's own kinds of herbs and veins, like Poor Copper Vein, get the icon of the one they're named after (Copper Vein) right away, and a node it doesn't know learns its icon when you gather it, which didn't work before.
 

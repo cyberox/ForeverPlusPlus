@@ -11,6 +11,8 @@ Forever++ isn't a UI replacement: no new unit frames, action bars, or skins. It 
 - **Sensible defaults**: the changes nearly everyone wants are on; the rest are there when you want them.
 - **Light**: a module that's off costs nothing.
 
+**[Watch the 80-second trailer](https://www.youtube.com/watch?v=D_k53X4MYo0)**
+
 ## New in 1.0
 
 - **Upgrade Arrows**: Blizzard's green arrow on gear that beats what you wear, in your bags and bank, at merchants, in loot and loot rolls, on quest rewards, and in the auction house. It uses stat weights for your class and talent tree, which you can edit or import as Pawn strings.
@@ -23,7 +25,7 @@ These are off by default. Turn them on under Options > AddOns > Forever++. Every
 
 ## Settings
 
-Open Game Menu > Options > AddOns > Forever++, or type `/fpp`. The Modules page lists every module by category with a checkbox each. Click one to see what it does and its options beside the list. A search box finds a module by its name, description, or options, and the New checkbox shows only what's new since you last looked. The Defaults button puts every setting back to how it starts.
+Open Game Menu > Options > AddOns > Forever++, or type `/fpp`. The Modules page lists every module by category with a checkbox each. Click one to see what it does and its options beside the list. A search box finds a module by its name, description, or options, and the New checkbox shows only what's new since you last looked. A setting you change stays changed, even if a later update changes its default; its undo arrow, or the Defaults button for everything, puts it back. When a module needs one of Blizzard's own settings on, its options say so with a Turn On button.
 
 ## Modules
 
