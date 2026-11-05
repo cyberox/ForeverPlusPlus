@@ -16,6 +16,10 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Settings**: a setting you pick stays yours, even when it's the same as the default. If a later version changes that default, your choice is kept. Only the undo arrow, Defaults, or `/fpp reset` puts it back, and after that you get the new default.
 - **Settings**: a "Blizzard's ... is off" line with a Turn On button no longer shows on a client that doesn't have that setting, and its tooltip says only what doesn't work, since the button turns it on.
 
+### Fixed
+
+- **Minimap Node Icons**: Forever's own kinds of herbs and veins, like Poor Copper Vein, get the icon of the one they're named after (Copper Vein) right away, and a node it doesn't know learns its icon when you gather it, which didn't work before.
+
 ## 1.0.0-beta.2 (2026-11-04)
 
 ### Added

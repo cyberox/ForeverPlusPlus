@@ -125,13 +125,45 @@ function Professions.IsTool(itemID, classID, subclassID)
 end
 
 local itemSkills -- item ID -> { skill line, skill }, built from the nodes when first asked
+local variants = {} -- name -> the known node it's a kind of, or false; emptied when one is learned
+
+-- The known node `name` is a kind of: one whose whole name it starts or ends with, a word apart,
+-- the longest such. Forever adds kinds of Classic's nodes, like "Poor Copper Vein", that give the
+-- same item, so they get its icon and skill before the game has taught their own.
+local function variantOf(name)
+    local found = variants[name]
+    if found ~= nil then
+        return found or nil
+    end
+    local best, bestLength = false, 0
+    for known, node in NODES:Pairs() do
+        local length = #known
+        if length > bestLength and length < #name and type(known) == "string"
+            and ((name:sub(-length - 1) == " " .. known) or (name:sub(1, length + 1) == known .. " ")) then
+            best, bestLength = node, length
+        end
+    end
+    variants[name] = best
+    return best or nil
+end
 
 ---The herb or vein named `name` (as the world writes it): { skill line, skill, item ID }, any of
----which may be nil for one learned in game, or nil for a name that isn't a node.
+---which may be nil for one learned in game, or nil for a name that isn't a node. A name not known
+---itself that is a kind of a known node ("Poor Copper Vein") takes what it lacks from that one.
 ---@param name string
 ---@return table? node
 function Professions.Node(name)
-    return NODES:Get(name)
+    local node = NODES:Get(name)
+    if (node and node[1] and node[2] and node[3]) or type(name) ~= "string" then
+        return node
+    end
+    local base = variantOf(name)
+    if not base then
+        return node
+    elseif not node then
+        return base
+    end
+    return { node[1] or base[1], node[2] or base[2], node[3] or base[3] }
 end
 
 ---The gathering skill an item comes from: the skill line and the skill of the lowest herb or vein
@@ -212,7 +244,7 @@ function Professions.LearnRequirement(name, skill, need)
     if node and node[1] == line and node[2] == need then
         return false
     end
-    itemSkills = nil
+    itemSkills, variants = nil, {}
     return NODES:Learn(name, { line, need, node and node[3] })
 end
 
@@ -229,14 +261,14 @@ function Professions.LearnNodeItem(name, item)
     if node and node[3] then
         return false
     end
-    itemSkills = nil
+    itemSkills, variants = nil, {}
     return NODES:Learn(name, { node and node[1], node and node[2], item })
 end
 
 ---Forgets every herb and vein learned in game; the seed stays.
 function Professions.ForgetNodes()
     NODES:Forget()
-    itemSkills = nil
+    itemSkills, variants = nil, {}
 end
 
 ---How hard gathering something that needs `need` is at skill `rank`, as a color (r, g, b): red

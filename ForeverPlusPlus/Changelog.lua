@@ -40,6 +40,12 @@ ns.changelog = {
                     .. "no longer shows on a client that doesn't have that setting, and its tooltip "
                     .. "says only what doesn't work, since the button turns it on." },
             } },
+            { L.CHANGELOG_FIXED, {
+                { L.MINIMAPNODEICONS_TITLE, "Forever's own kinds of herbs and veins, like Poor "
+                    .. "Copper Vein, get the icon of the one they're named after (Copper Vein) "
+                    .. "right away, and a node it doesn't know learns its icon when you gather it, "
+                    .. "which didn't work before." },
+            } },
         },
     },
     {

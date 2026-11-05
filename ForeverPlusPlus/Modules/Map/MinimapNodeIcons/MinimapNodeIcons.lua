@@ -483,6 +483,9 @@ function module:OnEnable()
     self:On("PLAYER_ENTERING_WORLD", readTracking)
     self:On("UNIT_SPELLCAST_SENT", internal.onCastSent)
     self:On("LOOT_OPENED", internal.onLootOpened)
+    if Enum and Enum.TooltipDataType then
+        self:TooltipPostCall(Enum.TooltipDataType.Object, internal.onObjectTooltip)
+    end
     self:On("SKILL_LINES_CHANGED", onSkill)
     self:On("MINIMAP_UPDATE_ZOOM", onZoom)
     self:On("CVAR_UPDATE", function()
