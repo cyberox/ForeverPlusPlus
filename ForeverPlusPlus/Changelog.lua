@@ -33,6 +33,10 @@ ns.changelog = {
                     .. "the sidebar, or goes away, once you pick another page. Blizzard's sidebar "
                     .. "can't be redrawn right away without breaking its Social options." },
             } },
+            { L.CHANGELOG_FIXED, {
+                { L.QUESTNAMEPLATES_TITLE, "On the left side, quest icons no longer overlap the "
+                    .. "gold dragon on elite and rare creatures' nameplates. They sit past it." },
+            } },
         },
     },
     {

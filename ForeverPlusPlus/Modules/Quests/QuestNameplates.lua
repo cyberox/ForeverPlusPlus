@@ -73,6 +73,7 @@ local ICON_SIZE = 18 -- at 100%
 local TEXT_SIZE = 12
 local GAP = 2 -- between the icon and the count
 local PAD = 8 -- between the column and the health bar
+local ELITE_PAD = 2 -- between the column and an elite's dragon
 local LIFT = 2 -- the column sits a little above the bar's middle, which looks centered
 -- Blizzard's quest atlases, the first this client has (probed: names change between builds).
 -- `default` is the plain quest icon; the others are the cursor icons Blizzard shows over that
@@ -266,6 +267,13 @@ local function create(frame)
     return box
 end
 
+-- The elite dragon at the bar's left end while it shows, or nil.
+local function eliteMark(frame)
+    local mark = Nameplates.Parts(frame).elite
+    local shown = mark and mark:IsVisible()
+    return readable(shown) and shown and mark or nil
+end
+
 local function place(box, frame, current, needed, kind, percent)
     local db = module.db
     local scale = db.size / 100
@@ -275,9 +283,16 @@ local function place(box, frame, current, needed, kind, percent)
         return
     end
     local right = db.side == "right"
-    -- The level badge sits at the bar's right end, so the box goes past it.
+    local pad = PAD
+    -- The level badge sits at the bar's right end and an elite's dragon at its left, so the box
+    -- goes past them. The dragon's art already has room around it.
     if right and parts.level then
         anchor = parts.level
+    elseif not right then
+        local mark = eliteMark(frame)
+        if mark then
+            anchor, pad = mark, ELITE_PAD
+        end
     end
     local size = floor(ICON_SIZE * scale + 0.5)
     local name = findAtlas(kind)
@@ -319,9 +334,9 @@ local function place(box, frame, current, needed, kind, percent)
     box.icon:SetPoint("TOP", box, "TOP")
     text:SetPoint("TOP", box.icon, "BOTTOM", 0, -GAP)
     if right then
-        box:SetPoint("LEFT", anchor, "RIGHT", PAD, lift)
+        box:SetPoint("LEFT", anchor, "RIGHT", pad, lift)
     else
-        box:SetPoint("RIGHT", anchor, "LEFT", -PAD, lift)
+        box:SetPoint("RIGHT", anchor, "LEFT", -pad, lift)
     end
     box:Show()
 end
@@ -381,7 +396,9 @@ local function update(unit, frame)
     end
     -- Quest events come often and mostly change nothing on a given plate: lay it out again only
     -- when what it shows changed.
+    -- Plates are pooled, so whether this one has an elite's dragon is part of it too.
     local shows = current .. "/" .. needed .. ":" .. tostring(kind) .. ":" .. tostring(percent)
+        .. (eliteMark(frame) and ":elite" or "")
     if box.shows == shows then
         return
     end

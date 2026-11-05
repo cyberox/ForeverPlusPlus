@@ -216,13 +216,16 @@ end
 ---12.x and breaks Blizzard's own anchors on the plate.
 ---@param frame table plate.UnitFrame
 ---@return table parts name, container (the health bar's frame), level, levelDiff, castBar, buffs,
----classification
+---classification, elite
 function Nameplates.Parts(frame)
     local auras = frame.AurasFrame
     return {
         -- The buff row beside the bar (a restricted region: set its anchors, never read them).
         buffs = auras and auras.BuffListFrame,
         classification = frame.ClassificationFrame, -- the buff row's anchor
+        -- The elite, rare, or boss dragon at the bar's left end, while the unit is one.
+        elite = frame.classificationIndicator
+            or frame.ClassificationFrame and frame.ClassificationFrame.classificationIndicator,
         name = frame.name or frame.Name,
         container = frame.HealthBarsContainer or frame.healthBar,
         level = frame.LevelFrame, -- Forever-only: the level badge at the bar's end
