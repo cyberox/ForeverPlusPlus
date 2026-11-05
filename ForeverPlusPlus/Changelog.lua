@@ -10,6 +10,16 @@ local L = ns.L
 
 ns.changelog = {
     {
+        version = L.CHANGELOG_UNRELEASED,
+        sections = {
+            { L.CHANGELOG_CHANGED, {
+                { L.ITEMTOOLTIPS_TITLE, "Auction Prices no longer shows on gray (Poor) items, "
+                    .. "which can only be sold to a merchant. Turn on its new Junk Items option to "
+                    .. "see it on them again." },
+            } },
+        },
+    },
+    {
         version = "1.0.0",
         date = "2026-11-04",
         sections = {
