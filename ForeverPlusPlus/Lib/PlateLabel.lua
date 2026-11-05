@@ -16,12 +16,15 @@
 --   style.SubtitleColor(unit)  { r, g, b }
 --   style.icons            true to show the group, friend, and recent ally icons
 --   style.ShowAllyIcon(unit)  whether this unit gets the recent ally icon (optional)
+--   style.classIcons       true to show the class icon where db.classIcon says ("off"/"before"/
+--                          "after"): next to the name, inside the level and the other icons
+--   style.Alpha(unit)      how opaque the name and what's beside it are, 0 to 1 (optional; 1)
 -- Labels are kept per Blizzard unit frame and shared by every module, since plates are pooled.
 local _, ns = ...
 
 local pairs, ipairs, setmetatable, unpack, floor = pairs, ipairs, setmetatable, unpack, math.floor
 local type, lower = type, string.lower
-local CreateFrame, UnitLevel = CreateFrame, UnitLevel
+local CreateFrame, UnitLevel, UnitClass = CreateFrame, UnitLevel, UnitClass
 local UnitGroupRolesAssigned, GetTexCoordsForRoleSmallCircle =
     UnitGroupRolesAssigned, GetTexCoordsForRoleSmallCircle
 
@@ -197,6 +200,46 @@ local function placeIcons(icons, anchor, left, fontSize, unit, style)
     return width
 end
 
+-- The class icon: Blizzard's round class art, the same size as the other icons. Probe: atlas
+-- names change between builds; the first this client has, or none.
+local classAtlases = {} -- class token -> atlas, or false without one
+
+local function classAtlas(unit)
+    local _, token = UnitClass(unit)
+    if not (readable(token) and token) then
+        return nil
+    end
+    local atlas = classAtlases[token]
+    if atlas == nil then
+        local name = lower(token)
+        atlas = ns.Frames.FirstAtlas("classicon-" .. name, "groupfinder-icon-class-" .. name) or false
+        classAtlases[token] = atlas
+    end
+    return atlas or nil
+end
+
+-- Shows the class icon beside `anchor` (left of it when `left`), or hides it without an atlas;
+-- returns the width it takes.
+local function placeClass(icon, anchor, left, size, atlas)
+    icon:ClearAllPoints()
+    if not atlas then
+        icon:Hide()
+        return 0
+    end
+    if icon.atlas ~= atlas then
+        icon.atlas = atlas
+        icon:SetAtlas(atlas, false)
+    end
+    icon:SetSize(size, size)
+    if left then
+        icon:SetPoint("RIGHT", anchor, "LEFT", -GAP, 0)
+    else
+        icon:SetPoint("LEFT", anchor, "RIGHT", GAP, 0)
+    end
+    icon:Show()
+    return size + GAP
+end
+
 -- Label ---------------------------------------------------------------------------------------
 
 local labels = setmetatable({}, { __mode = "k" }) -- Blizzard unit frame -> our label on it
@@ -240,6 +283,10 @@ local function createLabel(frame)
     -- One set of icons for each view: beside our name, and beside our bar-view name.
     label.icons = createIcons(label)
     label.barIcons = createIcons(label.barFrame)
+    label.classIcon = label:CreateTexture(nil, "OVERLAY")
+    label.classIcon:Hide()
+    label.barClassIcon = label.barFrame:CreateTexture(nil, "OVERLAY")
+    label.barClassIcon:Hide()
     return label
 end
 
@@ -357,8 +404,9 @@ local function matchFont(label, name, scale)
     setFont(label.barName, base, size)
 end
 
--- Puts the level beside the name; returns the width it takes.
-local function placeLevel(label, record, unit, where)
+-- Puts the level beside `anchor` (the name, or the class icon on its side); returns the width it
+-- takes.
+local function placeLevel(label, record, unit, where, anchor)
     local badge = label.level
     if not record.levelFrame or where == "off" then
         badge:Hide()
@@ -380,9 +428,9 @@ local function placeLevel(label, record, unit, where)
     width = readable(width) and width + GAP or 0
     badge:ClearAllPoints()
     if where == "after" then
-        badge:SetPoint("LEFT", label.name, "RIGHT", GAP, 0)
+        badge:SetPoint("LEFT", anchor, "RIGHT", GAP, 0)
     else
-        badge:SetPoint("RIGHT", label.name, "LEFT", -GAP, 0)
+        badge:SetPoint("RIGHT", anchor, "LEFT", -GAP, 0)
     end
     badge:Show()
     return width
@@ -454,38 +502,69 @@ function PlateLabel.Layout(label, record, unit, style)
     label.name:SetText(record.name:GetText())
     matchFont(label, record.name, (style.db.nameSize or 100) / 100)
     label.name:SetTextColor(style.NameColor(unit))
-    -- The level goes on one side of the name and the icons on the other. The name then shifts by
-    -- half the difference, so the whole row is centered over the bar. The subtitle stays centered.
-    local where = style.db.level
-    local levelWidth = placeLevel(label, record, unit, where)
-    local levelLeft = where ~= "after"
-    local iconsLeft = style.db.iconSide == "before"
+    -- Out from the name on each side: the class icon, then the level, then the other icons, on
+    -- whichever side each one's setting puts it. The name then shifts by half the difference, so
+    -- the whole row is centered over the bar. The subtitle stays centered.
+    local db = style.db
     local fontSize = label.nameSize or 12
-    -- Icons on the level's side sit past its badge.
-    local anchor = levelWidth > 0 and levelLeft == iconsLeft and label.level or label.name
+    local classWhere = style.classIcons and db.classIcon or "off"
+    local atlas = classWhere ~= "off" and classAtlas(unit) or nil
+    local classLeft = classWhere == "before"
+    local where = db.level
+    local levelLeft = where ~= "after"
+    local iconsLeft = db.iconSide == "before"
+    local size = fontSize * ICON_SCALE
+    local classWidth = placeClass(label.classIcon, label.name, classLeft, size, atlas)
+    local levelAnchor = atlas and classLeft == levelLeft and label.classIcon or label.name
+    local levelWidth = placeLevel(label, record, unit, where, levelAnchor)
+    local anchor = label.name
+    if levelWidth > 0 and levelLeft == iconsLeft then
+        anchor = label.level
+    elseif atlas and classLeft == iconsLeft then
+        anchor = label.classIcon
+    end
     local iconsWidth = placeIcons(label.icons, anchor, iconsLeft, fontSize, unit, style)
-    -- With the bar up: our bar-view name centered on the plate just above the bar, its icons after
-    -- it, and the pair shifted so they're centered together. Blizzard's level stays on the bar.
+    local leftWidth, rightWidth = 0, 0
+    local function add(left, width)
+        if left then
+            leftWidth = leftWidth + width
+        else
+            rightWidth = rightWidth + width
+        end
+    end
+    add(classLeft, classWidth)
+    add(levelLeft, levelWidth)
+    add(iconsLeft, iconsWidth)
+    -- With the bar up: our bar-view name centered on the plate just above the bar, the class
+    -- icon and other icons beside it, all shifted so they're centered together. Blizzard's level
+    -- stays on the bar.
     label.barName:SetText(record.name:GetText())
     label.barName:SetTextColor((style.BarNameColor or style.NameColor)(unit))
-    local barIconsWidth = placeIcons(label.barIcons, label.barName, iconsLeft, fontSize, unit, style)
+    local barClassWidth = placeClass(label.barClassIcon, label.barName, classLeft, size, atlas)
+    local barAnchor = atlas and classLeft == iconsLeft and label.barClassIcon or label.barName
+    local barIconsWidth = placeIcons(label.barIcons, barAnchor, iconsLeft, fontSize, unit, style)
+    local barLeft = (classLeft and barClassWidth or 0) + (iconsLeft and barIconsWidth or 0)
+    local barRight = (classLeft and 0 or barClassWidth) + (iconsLeft and 0 or barIconsWidth)
     local barRow = label.barRow
     span(barRow, record.container, label)
     label.barName:ClearAllPoints()
-    label.barNameShift = (iconsLeft and 1 or -1) * barIconsWidth / 2
+    label.barNameShift = (barLeft - barRight) / 2
     label.barName:SetPoint("BOTTOM", barRow, "TOP", label.barNameShift, 2)
-    local leftWidth, rightWidth = 0, 0
-    if levelLeft then
-        leftWidth = levelWidth
-    else
-        rightWidth = levelWidth
-    end
-    if iconsLeft then
-        leftWidth = leftWidth + iconsWidth
-    else
-        rightWidth = rightWidth + iconsWidth
-    end
     -- What sits beside the name on each side, so things placed beside the row can clear it.
     label.leftWidth, label.rightWidth = leftWidth, rightWidth
     placeSubtitle(label, record, unit, style, (leftWidth - rightWidth) / 2)
+    -- Dimmed (Player Nameplates' Dim Other Players): every part of both views. The views' own
+    -- alpha is FriendlyPlates' fade, so this is set on what's inside them.
+    local alpha = style.Alpha and style.Alpha(unit) or 1
+    if label.alpha ~= alpha then
+        label.alpha = alpha
+        for _, region in ipairs({ label.name, label.subtitle, label.level, label.classIcon,
+            label.barName, label.barSubtitle, label.barClassIcon }) do
+            region:SetAlpha(alpha)
+        end
+        for _, kind in ipairs(ORDER) do
+            label.icons[kind]:SetAlpha(alpha)
+            label.barIcons[kind]:SetAlpha(alpha)
+        end
+    end
 end

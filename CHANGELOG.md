@@ -7,9 +7,13 @@ What changed in each release of Forever++. The same notes show in game under Set
 ### Added
 
 - **Item Tooltips**: Auction Prices has a Hide on Junk option that leaves the auction price off gray (Poor) items. Off by default.
+- **Player Nameplates**: Dim Other Players fades the names of players who aren't in your group or guild, your friends, or recent allies (30% by default, with a slider), so NPCs stand out in a busy starting zone. Your target stays bright. On by default.
+- **Player Nameplates**: Lighter Rogue Yellow shows rogues in a pale yellow, so they don't look like neutral NPCs. Off by default.
+- **Player Nameplates**: Class Icon shows a player's class icon before or after their name. Off by default.
 
 ### Changed
 
+- **Settings**: when two options put things in the same place, like Class Icon and Level both before the name, a line under the option says so, with a button that goes to the other one.
 - **Settings**: a module with a page of its own (Console Variables, Profiler, Upgrade Arrows) says on the Modules page that its page shows in the sidebar, or goes away, once you pick another page. Blizzard's sidebar can't be redrawn right away without breaking its Social options.
 
 ## 1.0.0 (2026-11-04)

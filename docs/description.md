@@ -117,7 +117,7 @@ Everything is on by default except where noted. Each module can be turned off, a
 
 - **Class Colors**: Shows players' health bars, and optionally names (class color or white) and target and focus name backgrounds, in their class color on the player, target, focus, party, and target-of-target frames, and hostile and neutral NPCs' health bars in red and yellow. Also colors online friends' names in the friends list and names in the who list by class, and optionally offline friends' names by the class Forever++ last saw them as (on by default).
 - **NPC Nameplates**: Always shows friendly NPCs' names with their title, with a name size slider and a choice of where buffs sit. The health bar appears only when they're hurt or in combat. Players' pets, totems, and companions can keep Blizzard's plate.
-- **Player Nameplates**: Always shows friendly players' names with their guild, with a name size slider, a choice of where buffs sit, and an icon (or light blue name) for recent allies. The health bar appears only when they're hurt or in combat.
+- **Player Nameplates**: Always shows friendly players' names with their guild, with a name size slider, a choice of where buffs sit, and an icon (or light blue name) for recent allies. Players outside your group, guild, and friends are dimmed a little (Dim Other Players), and Class Icon and Lighter Rogue Yellow (both off by default) help tell players from neutral NPCs. The health bar appears only when they're hurt or in combat.
 
 ### Tools
 

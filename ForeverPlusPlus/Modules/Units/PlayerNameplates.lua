@@ -4,12 +4,18 @@
 local _, ns = ...
 
 local ipairs, GetGuildInfo = ipairs, GetGuildInfo
+local UnitClass, UnitIsUnit = UnitClass, UnitIsUnit
 
 local L = ns.L
+local readable = ns.IsReadable
 local Units = ns.Units
 
 local module = ns.NewModule("PlayerNameplates", L.PLAYERNAMEPLATES_DESC, ns.FriendlyPlates.Defaults({
     nameColor = "class", -- "class" or "white"
+    lightRogue = false, -- rogues in a pale yellow, apart from neutral NPCs' yellow
+    dimOthers = true, -- players not in your group or guild, or your friends, a little faded
+    dimAmount = 30, -- percent dimmer
+    classIcon = "off", -- "off", "before", or "after" the name
     recentAllies = "icon", -- "off", "color" (light blue name), or "icon"
     guildNames = "always", -- "always", "hidden" (only without the bar), or "off"
     guildColor = "gray", -- "gray" or "green"
@@ -28,6 +34,18 @@ module.options = ns.FriendlyPlates.Options(L.PLAYERNAMEPLATES_BAR_WHEN_HURT_DESC
         key = "nameColor", name = L.PLATES_NAME_COLOR, description = L.PLAYERNAMEPLATES_NAME_COLOR_DESC,
         choices = { { "class", L.PLAYERNAMEPLATES_NAME_COLOR_CLASS }, { "white", L.PLATES_COLOR_WHITE } },
         section = L.PLATES_SECTION_NAME,
+    },
+    {
+        key = "lightRogue", name = L.PLAYERNAMEPLATES_LIGHT_ROGUE, description = L.PLAYERNAMEPLATES_LIGHT_ROGUE_DESC,
+        section = L.PLATES_SECTION_NAME, added = "1.0.1",
+    },
+    {
+        key = "dimOthers", name = L.PLAYERNAMEPLATES_DIM, description = L.PLAYERNAMEPLATES_DIM_DESC,
+        slider = "dimAmount", section = L.PLATES_SECTION_NAME, added = "1.0.1",
+    },
+    {
+        key = "dimAmount", name = L.PLAYERNAMEPLATES_DIM_AMOUNT, description = L.PLAYERNAMEPLATES_DIM_AMOUNT_DESC,
+        min = 10, max = 60, step = 5, format = "%d%%", section = L.PLATES_SECTION_NAME,
     },
     ns.PlateLabel.NameSizeOption(L.PLATES_SECTION_NAME),
     {
@@ -51,6 +69,31 @@ module.options = ns.FriendlyPlates.Options(L.PLAYERNAMEPLATES_BAR_WHEN_HURT_DESC
     {
         key = "guildHighlight", name = L.PLAYERNAMEPLATES_GUILD_HIGHLIGHT, description = L.PLAYERNAMEPLATES_GUILD_HIGHLIGHT_DESC,
         requires = "guildNames", section = L.PLAYERNAMEPLATES_SECTION_GUILD,
+    },
+    {
+        key = "classIcon", name = L.PLAYERNAMEPLATES_CLASS_ICON, description = L.PLAYERNAMEPLATES_CLASS_ICON_DESC,
+        choices = {
+            { "off", L.PLAYERNAMEPLATES_CLASS_ICON_OFF },
+            { "before", L.PLAYERNAMEPLATES_ICON_SIDE_BEFORE },
+            { "after", L.PLAYERNAMEPLATES_ICON_SIDE_AFTER },
+        },
+        section = L.PLAYERNAMEPLATES_SECTION_ICONS, added = "1.0.1",
+        -- Sharing a side works (the class icon sits next to the name), but say so, with the way
+        -- to the other setting.
+        conflicts = {
+            {
+                key = "level",
+                when = function(db) return db.classIcon ~= "off" and db.level == db.classIcon end,
+                text = L.PLAYERNAMEPLATES_CLASS_ICON_WITH_LEVEL,
+            },
+            {
+                key = "iconSide",
+                when = function(db)
+                    return db.classIcon ~= "off" and db.socialIcons and db.iconSide == db.classIcon
+                end,
+                text = L.PLAYERNAMEPLATES_CLASS_ICON_WITH_ICONS,
+            },
+        },
     },
     {
         key = "socialIcons", name = L.PLAYERNAMEPLATES_SOCIAL_ICONS, description = L.PLAYERNAMEPLATES_SOCIAL_ICONS_DESC,
@@ -96,9 +139,16 @@ local GUILDMATE_COLORS = {
     green = { 0.9, 0.9, 0.9 },
 }
 
-local style = { icons = true }
+local style = { icons = true, classIcons = true }
 
 local RECENT_ALLY = ns.Colors.RECENT_ALLY
+-- Lighter Rogue Yellow: the rogue color halfway to white, so it doesn't read as a neutral NPC.
+local LIGHT_ROGUE = { 1, 0.98, 0.72 }
+
+local function isRogue(unit)
+    local _, class = UnitClass(unit)
+    return readable(class) and class == "ROGUE"
+end
 
 local function isRecentAlly(unit, mode)
     return module.db.recentAllies == mode and Units.IsRecentAlly(unit)
@@ -114,12 +164,33 @@ function style.NameColor(unit)
         return RECENT_ALLY[1], RECENT_ALLY[2], RECENT_ALLY[3]
     end
     if module.db.nameColor == "class" then
+        if module.db.lightRogue and isRogue(unit) then
+            return LIGHT_ROGUE[1], LIGHT_ROGUE[2], LIGHT_ROGUE[3]
+        end
         local color = ns.Colors.Class(unit)
         if color then
             return color:GetRGB()
         end
     end
     return 1, 1, 1
+end
+
+-- Dim Other Players: anyone not in your group or guild, a friend, or a recent ally, unless you
+-- have them targeted (a secret answer counts as targeted).
+local function isStranger(unit)
+    if ns.IsTrueOrSecret(UnitIsUnit(unit, "target")) then
+        return false
+    end
+    return not (Units.InGroup(unit) or Units.IsGuildmate(unit) or Units.IsFriend(unit)
+        or Units.IsRecentAlly(unit))
+end
+
+function style.Alpha(unit)
+    local db = module.db
+    if db.dimOthers and isStranger(unit) then
+        return 1 - db.dimAmount / 100
+    end
+    return 1
 end
 
 -- With the bar up, the name is plain white, as Blizzard draws it, except a colored recent ally's.
@@ -180,5 +251,12 @@ plates = ns.FriendlyPlates.New(module, {
                 self:On(event, onRecentAllies)
             end
         end
+    end,
+})
+
+-- Dim Other Players leaves your target bright, so the plates follow the target.
+module:OnWhile("dimOthers", {
+    PLAYER_TARGET_CHANGED = function()
+        plates:Refresh()
     end,
 })

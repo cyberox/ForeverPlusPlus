@@ -713,8 +713,10 @@ local function addOptionRow(view, module, option, byKey, done, gate)
     local r, g, b = NORMAL_FONT_COLOR:GetRGB()
     local highlight = ns.Frames.RowTexture(row, "BACKGROUND", "Options_List_Active", r, g, b, 0.15)
     highlight:Hide()
-    view.found[#view.found + 1] = { row = row, highlight = highlight,
+    local entry = { row = row, highlight = highlight,
         text = optionText(option) .. (pair and "\n" .. optionText(pair) or "") }
+    view.found[#view.found + 1] = entry
+    view.optionRows[option.key] = entry
     local paired = pair and pair.min
     local box
     if paired or not (option.min or option.choices) then
@@ -788,6 +790,40 @@ local function addButtonRow(view, text, on, shown, button, fn, tooltip, title)
         end
     end
     addTooltip(row, title or text, tooltip, control)
+end
+
+-- Scrolls the view to the option `key` and lights its row up for a moment, as the search does.
+local FLASH = 1.5 -- seconds
+local function goToOption(view, key)
+    local entry = view.optionRows[key]
+    if not (entry and page) then
+        return
+    end
+    scrollTo(page.pane, page.paneContent, entry.row)
+    entry.highlight:Show()
+    if C_Timer then
+        C_Timer.After(FLASH, function()
+            entry.highlight:SetShown(filter and entry.text:find(filter, 1, true) ~= nil or false)
+        end)
+    end
+end
+
+-- Under an option, a gray row for each of its `conflicts` ({ key, when = fn(db), text }) while
+-- `when` is true: it and the option `key` share something (both before the name), with a button
+-- that goes to that one.
+local function addConflictRows(view, module, option, byKey)
+    for _, conflict in ipairs(option.conflicts or {}) do
+        local other = byKey[conflict.key]
+        if other then
+            local function shown()
+                return module.db.enabled and conflict.when(module.db) and true or false
+            end
+            addButtonRow(view, format("|cff999999%s|r", conflict.text), nil, shown,
+                format(L.SETTINGS_CONFLICT_GO, other.name), function()
+                    goToOption(view, conflict.key)
+                end, nil, conflict.text)
+        end
+    end
 end
 
 -- A line of text across the view: a section's header, a smaller one inside it, or "no options".
@@ -880,6 +916,7 @@ local function addModuleRows(view, module)
         end
         if not done[option.key] then
             addOptionRow(view, module, option, byKey, done)
+            addConflictRows(view, module, option, byKey)
         end
     end
     for i, action in ipairs(module.actions or {}) do
@@ -901,7 +938,8 @@ local function buildView(name)
     local view = newStack(page.paneContent, width, 4)
     view:SetPoint("TOPLEFT")
     -- `follows`: other modules whose changes show here too (the Debug module's rows).
-    view.updates, view.found, view.follows = {}, {}, {}
+    -- `optionRows`: each option's row by key, for a conflict's button to go to.
+    view.updates, view.found, view.follows, view.optionRows = {}, {}, {}, {}
 
     local heading = view:CreateFontString(nil, "OVERLAY", "GameFontHighlightHuge")
     heading:SetPoint("TOPLEFT", 4, -4)
