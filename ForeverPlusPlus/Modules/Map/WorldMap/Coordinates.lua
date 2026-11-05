@@ -6,7 +6,7 @@
 -- its code.
 local _, ns = ...
 
-local ipairs, max, min = ipairs, math.max, math.min
+local max, min = math.max, math.min
 local CreateFrame = CreateFrame
 
 local L = ns.L
@@ -20,24 +20,20 @@ local module = ns.modules.WorldMap:NewPart({
 -- Blizzard's checkboxes for the player's and the cursor's coordinates on the map.
 local MAP_CVARS = ns.WorldMap.COORDS_CVARS
 
-local function anyShown()
-    return CVars.IsOn(MAP_CVARS[1]) or CVars.IsOn(MAP_CVARS[2])
+-- Each of Blizzard's checkboxes that's off leaves a row out of the title bar, so World Map says so,
+-- with a button for each, while this part is on.
+local function offNotice(name, text, description)
+    local notice = CVars.OffNotice(module.module, name, text, description)
+    local off = notice.shown
+    notice.shown = function()
+        return module.db.coordinates and off()
+    end
+    return notice
 end
 
--- With both of Blizzard's checkboxes off there's nothing to move, so World Map says so, with a
--- button that turns both on.
 module.module.notice = {
-    text = L.COORDS_BLIZZARD_OFF,
-    description = L.COORDS_BLIZZARD_OFF_DESC,
-    button = L.SETTINGS_TURN_ON,
-    fn = function()
-        for _, name in ipairs(MAP_CVARS) do
-            CVars.Apply(name, "1")
-        end
-    end,
-    shown = function()
-        return module.module.db.enabled and module.db.coordinates and not anyShown()
-    end,
+    offNotice(MAP_CVARS[1], L.COORDS_PLAYER_OFF, L.COORDS_PLAYER_OFF_DESC),
+    offNotice(MAP_CVARS[2], L.COORDS_CURSOR_OFF, L.COORDS_CURSOR_OFF_DESC),
 }
 
 local INSET = 8 -- from the title bar's ends

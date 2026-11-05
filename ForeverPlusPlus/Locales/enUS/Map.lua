@@ -171,9 +171,12 @@ L.COORDS_TITLE = "Coordinates"
 L.COORDS_DESC = "Show the world map's coordinates in its title bar instead of the bottom left "
     .. "corner: yours on the left, the cursor's on the right. Which ones show, and tenths, follow "
     .. "Blizzard's checkboxes under Settings > Gameplay > Interface."
-L.COORDS_BLIZZARD_OFF = "Blizzard's map coordinates are off" -- a gray row atop World Map, with a button
-L.COORDS_BLIZZARD_OFF_DESC = "Blizzard's player and cursor coordinates on the world map are both "
-    .. "off, so Coordinates has nothing to show. Turn them on here or under Settings > Gameplay > "
+L.COORDS_PLAYER_OFF = "Blizzard's player coordinates are off" -- a gray row atop World Map, with a button
+L.COORDS_PLAYER_OFF_DESC = "Blizzard's player coordinates on the world map are off, so Coordinates "
+    .. "can't show where you are. Turn them on here or under Settings > Gameplay > Interface."
+L.COORDS_CURSOR_OFF = "Blizzard's cursor coordinates are off" -- a gray row atop World Map, with a button
+L.COORDS_CURSOR_OFF_DESC = "Blizzard's cursor coordinates on the world map are off, so Coordinates "
+    .. "can't show where the cursor points. Turn them on here or under Settings > Gameplay > "
     .. "Interface."
 
 -- HideFilterReset

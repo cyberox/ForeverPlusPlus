@@ -9,6 +9,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Settings**: a setting you pick stays yours, even when it's the same as the default. If a later version changes that default, your choice is kept. Only the undo arrow, Defaults, or `/fpp reset` puts it back, and after that you get the new default.
 - **Class Colors**: while Blizzard's nameplates show players' health bars in blue or red instead of their class color, its settings say so, with a Turn On button each for Blizzard's class colors on friendly and enemy players.
 - **Class Colors**: while Blizzard's nameplates show friendly players' names in white, its settings say so, with a Turn On button for Blizzard's class colors on them. It doesn't show while Player Nameplates is on, since that draws its own names.
+- **World Map**: Blizzard's player and cursor coordinates each have their own line and Turn On button in its settings while they're off, instead of one for both that showed only when both were off.
 - **Quest Nameplates**: while Blizzard's enemy nameplates are off, its settings say so, with a Turn On button, since quest icons need them.
 - **Settings**: a "Blizzard's ... is off" line with a Turn On button no longer shows on a client that doesn't have that setting.
 
