@@ -93,6 +93,16 @@ L.MOVABLEWINDOWS_REMEMBER_DESC = "Where a window opens after you've moved it."
 L.MOVABLEWINDOWS_REMEMBER_ALWAYS = "Always" -- kept across sessions
 L.MOVABLEWINDOWS_REMEMBER_SESSION = "After Closing" -- kept until logout or /reload
 L.MOVABLEWINDOWS_REMEMBER_NEVER = "Never" -- back to Blizzard's place when it closes
+L.MOVABLEWINDOWS_RESET_CLICK = "Reset Click"
+L.MOVABLEWINDOWS_RESET_CLICK_DESC = "Click a window with this button, while holding the reset key, "
+    .. "to put it back in its usual place. A left click with the move key drags instead."
+L.MOVABLEWINDOWS_CLICK_RIGHT = "Right Click"
+L.MOVABLEWINDOWS_CLICK_MIDDLE = "Middle Click"
+L.MOVABLEWINDOWS_CLICK_LEFT = "Left Click"
+L.MOVABLEWINDOWS_CLICK_OFF = "Off"
+L.MOVABLEWINDOWS_RESET_KEY = "Reset Key"
+L.MOVABLEWINDOWS_RESET_KEY_DESC = "The key to hold while you click to reset a window. With None, "
+    .. "the click alone resets it."
 L.MOVABLEWINDOWS_RESET = "Window Positions"
 L.MOVABLEWINDOWS_RESET_BUTTON = "Reset"
 L.MOVABLEWINDOWS_RESET_DESC = "Put every moved window back where Blizzard places it."

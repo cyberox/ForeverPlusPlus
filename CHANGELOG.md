@@ -7,7 +7,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 ### Added
 
 - **Class Colors**: when Blizzard's nameplates don't show players in their class color, its settings say so, with a Turn On button for each of Blizzard's settings: friendly players' health bars, enemy players' health bars, and friendly players' names. The names line doesn't show while Player Nameplates is on, since that draws its own names.
-- **Movable Windows**: a new module that lets you hold the move key (Shift by default) and drag Blizzard's windows, like your character, spellbook, professions, friends, and bags, to put them where you want. Remember Position keeps them there always, until you log out or reload, or never, and Reset puts every window back. Off by default.
+- **Movable Windows**: a new module that lets you hold the move key (Shift by default) and drag Blizzard's windows, like your character, spellbook, professions, friends, and bags, to put them where you want. Remember Position keeps them there always, until you log out or reload, or never, and Reset puts every window back. Shift+Right-click a window to put just that one back; the click and key are options too. Off by default.
 - **Quest Nameplates**: while Blizzard's enemy nameplates are off, its settings say so, with a Turn On button, since quest icons need them.
 - **World Map**: Coordinates has Player Coordinates, Cursor Coordinates, and Tenths checkboxes. They're Blizzard's own settings, so changing one here changes it in Blizzard's Interface options too. They replace the "Blizzard's map coordinates are off" line.
 

@@ -27,6 +27,8 @@ local module = ns.NewModule("MovableWindows", L.MOVABLEWINDOWS_DESC, {
     moveKey = "shift", -- held while dragging; "none" drags with the left button alone
     remember = "always", -- "always" (saved), "session" (until logout or /reload), or "never"
     -- (back to Blizzard's place when it closes)
+    resetKey = "shift", -- held while clicking a window to put it back; "none" for the click alone
+    resetClick = "right", -- "right", "middle", "left", or "off"
     positions = {}, -- window name -> { point, relativePoint, x, y }, for "always"
 })
 module.title = L.MOVABLEWINDOWS_TITLE
@@ -43,7 +45,20 @@ module.options = {
             { "never", L.MOVABLEWINDOWS_REMEMBER_NEVER },
         },
     },
+    {
+        key = "resetClick", name = L.MOVABLEWINDOWS_RESET_CLICK, description = L.MOVABLEWINDOWS_RESET_CLICK_DESC,
+        choices = {
+            { "right", L.MOVABLEWINDOWS_CLICK_RIGHT },
+            { "middle", L.MOVABLEWINDOWS_CLICK_MIDDLE },
+            { "left", L.MOVABLEWINDOWS_CLICK_LEFT },
+            { "off", L.MOVABLEWINDOWS_CLICK_OFF },
+        },
+    },
+    Keys.Option("resetKey", L.MOVABLEWINDOWS_RESET_KEY, L.MOVABLEWINDOWS_RESET_KEY_DESC),
 }
+
+-- The Reset Click choices, as OnMouseDown names the buttons.
+local RESET_BUTTONS = { right = "RightButton", middle = "MiddleButton", left = "LeftButton" }
 
 module.notice = { text = L.MOVABLEWINDOWS_NOTICE, description = L.MOVABLEWINDOWS_NOTICE_DESC }
 
@@ -94,6 +109,9 @@ local function place(frame)
     if not (p and canMove(frame)) then
         return
     end
+    if original[frame] == nil then
+        original[frame] = ns.Frames.GetPoints(frame) -- Blizzard's, for a reset
+    end
     placing = true
     frame:ClearAllPoints()
     frame:SetPoint(p[1], UIParent, p[2], p[3], p[4])
@@ -122,12 +140,31 @@ local function putAllBack()
     end
 end
 
+local function held(key)
+    return key == "none" or Keys.IsDown(key)
+end
+
+-- Puts one window back where Blizzard places it and forgets where the player left it.
+local function resetWindow(frame)
+    local name = nameOf[frame]
+    session[name] = nil
+    module.db.positions[name] = nil
+    putBack(frame)
+end
+
 local function startDrag(frame, button)
-    if button ~= "LeftButton" or dragging or not canMove(frame) then
+    if dragging or not canMove(frame) then
         return
     end
-    local key = module.db.moveKey
-    if key ~= "none" and not Keys.IsDown(key) then
+    local db = module.db
+    -- The reset click first, so a left click with its own key resets rather than drags. One that's
+    -- the same as the drag (left with the move key) drags.
+    if button == RESET_BUTTONS[db.resetClick] and held(db.resetKey)
+        and not (button == "LeftButton" and db.resetKey == db.moveKey) then
+        resetWindow(frame)
+        return
+    end
+    if button ~= "LeftButton" or not held(db.moveKey) then
         return
     end
     if original[frame] == nil then
@@ -175,6 +212,11 @@ end
 -- back straight after. A window can get several SetPoint calls in a row; each is answered, so
 -- ours is the one left.
 local function onSetPoint(frame)
+    if placing or frame == dragging then
+        return
+    end
+    -- Blizzard's place as it sets it now, so a reset puts the window there.
+    original[frame] = ns.Frames.GetPoints(frame)
     place(frame)
 end
 
