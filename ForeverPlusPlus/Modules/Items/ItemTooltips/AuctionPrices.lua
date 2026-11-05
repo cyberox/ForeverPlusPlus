@@ -28,7 +28,7 @@ local module = itemTooltips:NewPart({
 }, {
     auction = true,
     auctionColor = "gold",
-    auctionJunk = false, -- the price on gray items too
+    hideJunk = true, -- no price on gray items
     scanAge = "right", -- "right", "inline" (like the price line's alignment), or "off"
     scanAgeColor = "age", -- "age" (green when fresh to red when old), "gray", "white", or "gold"
     scanAgeRedHours = 12, -- hours old at which "age" is fully red
@@ -63,7 +63,7 @@ module:AddOptions({
         key = "auctionColor", name = L.PRICE_COLOR, description = L.PRICE_COLOR_DESC,
         choices = itemTooltips.internal.COLORS,
     },
-    { key = "auctionJunk", name = L.AUCTIONPRICES_JUNK, description = L.AUCTIONPRICES_JUNK_DESC, added = "1.0.1" },
+    { key = "hideJunk", name = L.AUCTIONPRICES_JUNK, description = L.AUCTIONPRICES_JUNK_DESC, added = "1.0.1" },
     {
         key = "scanAge", name = L.AUCTIONPRICES_SCAN_AGE, description = L.AUCTIONPRICES_SCAN_AGE_DESC,
         choices = {
@@ -565,10 +565,10 @@ local priceSource = {
 local auctionPrice = ns.Prices.Auction
 
 -- The item whose tooltip this is, unless its price lines are off: the part is off, or it's a gray
--- item and Junk Items is off. An item the client hasn't loaded yet has no quality and counts.
+-- item and Hide on Junk is on. An item the client hasn't loaded yet has no quality and counts.
 local function tooltipItem(data)
     local itemID = module.enabled and ItemTooltip.ItemID(data)
-    if itemID and not module.db.auctionJunk and C_Item.GetItemQualityByID
+    if itemID and module.db.hideJunk and C_Item.GetItemQualityByID
         and C_Item.GetItemQualityByID(itemID) == Enum.ItemQuality.Poor then
         return nil
     end
