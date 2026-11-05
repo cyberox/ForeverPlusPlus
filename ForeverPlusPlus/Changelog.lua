@@ -19,7 +19,8 @@ ns.changelog = {
                     .. "that you get the new default." },
                 { L.CLASSCOLORS_TITLE, "While Blizzard's nameplates show players' health bars "
                     .. "in blue or red instead of their class color, its settings say so, with a "
-                    .. "Turn On button for Blizzard's class colors on friendly and enemy players." },
+                    .. "Turn On button each for Blizzard's class colors on friendly and enemy "
+                    .. "players." },
                 { L.CLASSCOLORS_TITLE, "While Blizzard's nameplates show friendly players' "
                     .. "names in white, its settings say so, with a Turn On button for "
                     .. "Blizzard's class colors on them. It doesn't show while Player Nameplates "

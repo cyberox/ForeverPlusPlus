@@ -12,9 +12,12 @@ L.CLASSCOLORS_TITLE = "Class Colors"
 L.CLASSCOLORS_DESC = "Show players' health bars and names in their class color on the player, "
     .. "target, focus, party, and target-of-target frames, NPCs' bars by reaction, and names in "
     .. "the friends and who lists."
-L.CLASSCOLORS_PLATE_BARS_OFF = "Blizzard's nameplate bars aren't in class colors" -- a gray row, with a button
-L.CLASSCOLORS_PLATE_BARS_OFF_DESC = "Blizzard's nameplates show players' health bars in blue or red, "
-    .. "not their class color. Turn on its class colors for friendly and enemy players here."
+L.CLASSCOLORS_FRIENDLY_BARS_OFF = "Friendly nameplate bars aren't in class colors" -- a gray row, with a button
+L.CLASSCOLORS_FRIENDLY_BARS_OFF_DESC = "Blizzard's nameplates show friendly players' health bars in "
+    .. "blue, not their class color. Turn on its class colors for them here."
+L.CLASSCOLORS_ENEMY_BARS_OFF = "Enemy nameplate bars aren't in class colors" -- a gray row, with a button
+L.CLASSCOLORS_ENEMY_BARS_OFF_DESC = "Blizzard's nameplates show enemy players' health bars in red or "
+    .. "blue, not their class color. Turn on its class colors for them here."
 L.CLASSCOLORS_PLATE_NAMES_OFF ="Blizzard's nameplate names aren't in class colors" -- a gray row, with a button
 L.CLASSCOLORS_PLATE_NAMES_OFF_DESC = "Blizzard's nameplates show friendly players' names in white. "
     .. "Turn on its class colors for them here. (Player Nameplates colors its own names, so this "
