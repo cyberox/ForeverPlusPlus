@@ -81,6 +81,7 @@ L.PLATES_BUFFS_ABOVE = "Above Name"
 L.PLATES_BUFFS_BEFORE = "Before Name"
 L.PLATES_BUFFS_AFTER = "After Name"
 L.PLATES_BUFFS_BLIZZARD = "Blizzard's Spot"
+L.PLATES_BUFFS_WITH_LEVEL = "The level is on this side too. The buffs go past it."
 -- When a <Guild> or <Title> line shows.
 L.PLATES_SUBTITLE_ALWAYS = "Always"
 L.PLATES_SUBTITLE_HIDDEN = "Without Health Bar"

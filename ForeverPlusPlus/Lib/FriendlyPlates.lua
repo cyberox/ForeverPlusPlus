@@ -284,6 +284,16 @@ function FriendlyPlates.Options(barDescription, options)
     table.insert(options, 3, {
         key = "buffs", name = L.PLATES_BUFFS, description = L.PLATES_BUFFS_DESC,
         choices = PlateLabel.BUFF_CHOICES, section = L.PLATES_SECTION_GENERAL,
+        -- Sharing a side works (the buffs go past the level), but say so.
+        conflicts = {
+            {
+                key = "level",
+                when = function(db)
+                    return (db.buffs == "before" or db.buffs == "after") and db.level == db.buffs
+                end,
+                text = L.PLATES_BUFFS_WITH_LEVEL,
+            },
+        },
     })
     return options
 end

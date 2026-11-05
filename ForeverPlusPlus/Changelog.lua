@@ -27,7 +27,10 @@ ns.changelog = {
             { L.CHANGELOG_CHANGED, {
                 { L.CHANGELOG_SETTINGS, "When two options put things in the same place, like "
                     .. "Class Icon and Level both before the name, a line under the option says "
-                    .. "so, with a button that goes to the other one." },
+                    .. "so, with a button that goes to the other one. Player Nameplates and NPC "
+                    .. "Nameplates say so for Buffs and Level on the same side, and Movable "
+                    .. "Windows when its Reset Key and Reset Click are the same as dragging, which "
+                    .. "can't reset." },
                 { L.CHANGELOG_SETTINGS, "A module with a page of its own (Console Variables, "
                     .. "Profiler, Upgrade Arrows) says on the Modules page that its page shows in "
                     .. "the sidebar, or goes away, once you pick another page. Blizzard's sidebar "

@@ -57,6 +57,15 @@ module.options = {
     Keys.Option("resetKey", L.MOVABLEWINDOWS_RESET_KEY, L.MOVABLEWINDOWS_RESET_KEY_DESC),
 }
 
+-- A left-click reset with the move key is a drag (see startDrag), so that reset never happens.
+module.options[#module.options].conflicts = {
+    {
+        key = "moveKey",
+        when = function(db) return db.resetClick == "left" and db.resetKey == db.moveKey end,
+        text = L.MOVABLEWINDOWS_RESET_IS_MOVE,
+    },
+}
+
 -- The Reset Click choices, as OnMouseDown names the buttons.
 local RESET_BUTTONS = { right = "RightButton", middle = "MiddleButton", left = "LeftButton" }
 
