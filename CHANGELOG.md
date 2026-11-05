@@ -4,9 +4,9 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 ## Unreleased
 
-### Changed
+### Added
 
-- **Item Tooltips**: Auction Prices no longer shows on gray (Poor) items, which can only be sold to a merchant. Turn off its new Hide on Junk option to see it on them again.
+- **Item Tooltips**: Auction Prices has a Hide on Junk option that leaves the auction price off gray (Poor) items. Off by default.
 
 ## 1.0.0 (2026-11-04)
 

@@ -28,7 +28,7 @@ local module = itemTooltips:NewPart({
 }, {
     auction = true,
     auctionColor = "gold",
-    hideJunk = true, -- no price on gray items
+    hideJunk = false, -- no price on gray items (they do sell at auction on Forever)
     scanAge = "right", -- "right", "inline" (like the price line's alignment), or "off"
     scanAgeColor = "age", -- "age" (green when fresh to red when old), "gray", "white", or "gold"
     scanAgeRedHours = 12, -- hours old at which "age" is fully red

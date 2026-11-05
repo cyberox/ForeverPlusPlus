@@ -12,10 +12,9 @@ ns.changelog = {
     {
         version = L.CHANGELOG_UNRELEASED,
         sections = {
-            { L.CHANGELOG_CHANGED, {
-                { L.ITEMTOOLTIPS_TITLE, "Auction Prices no longer shows on gray (Poor) items, "
-                    .. "which can only be sold to a merchant. Turn off its new Hide on Junk option "
-                    .. "to see it on them again." },
+            { L.CHANGELOG_ADDED, {
+                { L.ITEMTOOLTIPS_TITLE, "Auction Prices has a Hide on Junk option that leaves "
+                    .. "the auction price off gray (Poor) items. Off by default." },
             } },
         },
     },
