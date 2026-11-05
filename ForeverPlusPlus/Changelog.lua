@@ -16,6 +16,12 @@ ns.changelog = {
                 { L.ITEMTOOLTIPS_TITLE, "Auction Prices has a Hide on Junk option that leaves "
                     .. "the auction price off gray (Poor) items. Off by default." },
             } },
+            { L.CHANGELOG_CHANGED, {
+                { L.CHANGELOG_SETTINGS, "A module with a page of its own (Console Variables, "
+                    .. "Profiler, Upgrade Arrows) says on the Modules page that its page shows in "
+                    .. "the sidebar, or goes away, once you pick another page. Blizzard's sidebar "
+                    .. "can't be redrawn right away without breaking its Social options." },
+            } },
         },
     },
     {

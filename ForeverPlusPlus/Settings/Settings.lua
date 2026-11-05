@@ -817,6 +817,15 @@ local function addModuleRows(view, module)
     if notices and not notices[1] then
         notices = { notices }
     end
+    -- A module with its own page: the sidebar can't be drawn again from here (see updatePage), so
+    -- say the page comes and goes once another page is picked.
+    if pages[name] and not module.alwaysOn then
+        local list = { { text = format(L.SETTINGS_PAGE_NOTE, module.pageTitle or module.title or name) } }
+        for _, notice in ipairs(notices or {}) do
+            list[#list + 1] = notice
+        end
+        notices = list
+    end
     for _, notice in ipairs(notices or {}) do
         if not notice.button then
             local row, label = addRow(view, format("|cff999999%s|r", notice.text), 0, nil, notice.shown)

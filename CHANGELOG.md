@@ -8,6 +8,10 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 - **Item Tooltips**: Auction Prices has a Hide on Junk option that leaves the auction price off gray (Poor) items. Off by default.
 
+### Changed
+
+- **Settings**: a module with a page of its own (Console Variables, Profiler, Upgrade Arrows) says on the Modules page that its page shows in the sidebar, or goes away, once you pick another page. Blizzard's sidebar can't be redrawn right away without breaking its Social options.
+
 ## 1.0.0 (2026-11-04)
 
 Forever++'s first full release for WoW: Forever, with everything from the betas and the additions below. Thanks to everyone who tested it. [Watch the 80-second trailer](https://www.youtube.com/watch?v=D_k53X4MYo0).

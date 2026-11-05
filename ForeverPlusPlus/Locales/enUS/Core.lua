@@ -86,6 +86,8 @@ L.ABOUT = "About" -- the page with the version, links, commands, and presets
 L.SETTINGS_ENABLED = "Enabled" -- the module's own on/off checkbox, under its description
 L.SETTINGS_OPTIONS = "Options" -- the header over its options
 L.SETTINGS_NO_OPTIONS = "This module has no options."
+L.SETTINGS_PAGE_NOTE = "While it's on, its %s page is in the sidebar under Forever++. The page "
+    .. "shows or goes away once you pick another page."
 L.SETTINGS_TURN_ON = "Turn On" -- the button on a "Blizzard's ... is off" row
 L.SETTINGS_RESET = "Reset to Default" -- the arrow at the end of an option's row while it's changed
 L.SETTINGS_RESET_TO = "Default: %s" -- what the option goes back to
