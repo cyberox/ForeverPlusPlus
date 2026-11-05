@@ -355,7 +355,9 @@ end
 local function newDialog()
     local frame = ns.Frames.TemplateBox(UIParent, "DialogBorderTranslucentTemplate")
     frame:SetFrameStrata("DIALOG")
-    frame:SetSize(320, 130)
+    -- Wide enough for the slider's steppers and its value label at the right, which run past
+    -- the edge of a narrower box.
+    frame:SetSize(360, 130)
     frame:SetClampedToScreen(true)
     frame:SetMovable(true)
     frame:EnableMouse(true)
@@ -396,7 +398,7 @@ local function newDialog()
     frame.slider = newSlider(frame)
     if frame.slider then
         frame.slider:SetPoint("LEFT", frame.scaleLabel, "LEFT", 90, 0)
-        frame.slider:SetWidth(190)
+        frame.slider:SetWidth(200)
         frame.slider:RegisterCallback(MinimalSliderWithSteppersMixin.Event.OnValueChanged,
             function(_, value)
                 local info = selected and registered[selected]
