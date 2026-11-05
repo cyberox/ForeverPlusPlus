@@ -809,19 +809,34 @@ local function goToOption(view, key)
 end
 
 -- Under an option, a gray row for each of its `conflicts` ({ key, when = fn(db), text }) while
--- `when` is true: it and the option `key` share something (both before the name), with a button
--- that goes to that one.
-local function addConflictRows(view, module, option, byKey)
+-- `when` is true: it and the option `key` share something (both before the name). A button goes
+-- to that one, unless it's the row just above or below (`options` in the order they're drawn,
+-- with this one at `index`), where the line alone is enough.
+local function addConflictRows(view, module, options, index)
+    local option = options[index]
     for _, conflict in ipairs(option.conflicts or {}) do
-        local other = byKey[conflict.key]
+        local beside = false
+        local other
+        for i, each in ipairs(options) do
+            if each.key == conflict.key then
+                other, beside = each, i == index - 1 or i == index + 1
+            end
+        end
         if other then
             local function shown()
                 return module.db.enabled and conflict.when(module.db) and true or false
             end
-            addButtonRow(view, format("|cff999999%s|r", conflict.text), nil, shown,
-                format(L.SETTINGS_CONFLICT_GO, other.name), function()
-                    goToOption(view, conflict.key)
-                end, nil, conflict.text)
+            local text = format("|cff999999%s|r", conflict.text)
+            if beside then
+                local row, label = addRow(view, text, 0, nil, shown)
+                label:SetWidth(view:GetWidth() - 8)
+                row:SetHeight(max(ROW_HEIGHT, label:GetStringHeight() + 8))
+            else
+                addButtonRow(view, text, nil, shown, format(L.SETTINGS_CONFLICT_GO, other.name),
+                    function()
+                        goToOption(view, conflict.key)
+                    end, nil, conflict.text)
+            end
         end
     end
 end
@@ -902,7 +917,7 @@ local function addModuleRows(view, module)
     if not (options[1] and options[1].section) then
         addLine(view, "GameFontHighlightLarge", L.SETTINGS_OPTIONS)
     end
-    for _, option in ipairs(options) do
+    for i, option in ipairs(options) do
         if option.section and option.section ~= section then
             section, subsection = option.section, nil
             -- A part turned on by a dropdown is one row among the options, with no header.
@@ -916,7 +931,7 @@ local function addModuleRows(view, module)
         end
         if not done[option.key] then
             addOptionRow(view, module, option, byKey, done)
-            addConflictRows(view, module, option, byKey)
+            addConflictRows(view, module, options, i)
         end
     end
     for i, action in ipairs(module.actions or {}) do
