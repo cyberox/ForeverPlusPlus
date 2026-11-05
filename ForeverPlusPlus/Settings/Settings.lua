@@ -108,7 +108,12 @@ end
 
 -- Puts a module's page in the sidebar or takes it out, as the module turns on and off. Settings has
 -- no way to hide a page, so this adds it to or removes it from the Forever++ entry's subpages (its
--- own list, which Blizzard reads when it draws the sidebar), and has the sidebar drawn again.
+-- own list, which Blizzard reads when it draws the sidebar). The sidebar isn't drawn again from
+-- here: calling the category list's CreateCategories from our code built Blizzard's pooled category
+-- buttons in a tainted call, and Blizzard's Social page then failed its Discord checks
+-- (ADDON_ACTION_FORBIDDEN on C_Discord.IsUserOAuthed, 2026-11-04). Blizzard draws it again itself
+-- when a page under an expanded entry is picked (any Forever++ page), the Game and AddOns tabs
+-- switch, or an entry is expanded (Blizzard_CategoryList.lua SetCurrentCategory, `forever` branch).
 local function updatePage(name)
     local page = pages[name]
     local list = page and modulesCategory.GetSubcategories and modulesCategory:GetSubcategories()
@@ -137,10 +142,6 @@ local function updatePage(name)
         table.insert(list, at, page)
     else
         table.remove(list, index)
-    end
-    local categoryList = SettingsPanel and SettingsPanel.GetCategoryList and SettingsPanel:GetCategoryList()
-    if categoryList and categoryList.CreateCategories then
-        categoryList:CreateCategories()
     end
 end
 

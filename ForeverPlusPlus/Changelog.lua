@@ -46,6 +46,10 @@ ns.changelog = {
                     .. "says only what doesn't work, since the button turns it on." },
             } },
             { L.CHANGELOG_FIXED, {
+                { L.CHANGELOG_SETTINGS, "Turning on a module with a page of its own (Debug, "
+                    .. "Console Variables, Profiler, Upgrade Arrows) no longer makes Blizzard's "
+                    .. "Social options fail with an action blocked (C_Discord.IsUserOAuthed). Its "
+                    .. "page shows in the sidebar the next time you pick a Forever++ page." },
                 "Picking one of Forever++'s frames in Edit Mode during combat no longer gets an "
                     .. "action blocked (PlayerFrame:SetClampRectInsets()) or leaves Blizzard's Edit "
                     .. "Mode open to later errors.",
