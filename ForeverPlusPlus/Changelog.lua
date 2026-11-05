@@ -18,6 +18,11 @@ ns.changelog = {
                     .. "Blizzard's settings: friendly players' health bars, enemy players' health "
                     .. "bars, and friendly players' names. The names line doesn't show while "
                     .. "Player Nameplates is on, since that draws its own names." },
+                { L.MOVABLEWINDOWS_TITLE, "A new module that lets you hold the move key (Shift "
+                    .. "by default) and drag Blizzard's windows, like your character, spellbook, "
+                    .. "professions, friends, and bags, to put them where you want. Remember "
+                    .. "Position keeps them there always, until you log out or reload, or never, "
+                    .. "and Reset puts every window back. Off by default." },
                 { L.QUESTNAMEPLATES_TITLE, "While Blizzard's enemy nameplates are off, its "
                     .. "settings say so, with a Turn On button, since quest icons need them." },
                 { L.WORLDMAP_TITLE, "Coordinates has Player Coordinates, Cursor Coordinates, "

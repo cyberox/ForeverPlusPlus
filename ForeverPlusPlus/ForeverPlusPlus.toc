@@ -115,6 +115,7 @@ Modules\Character\Macros\Macros.lua
 Modules\Character\Macros\SmartBuff.lua
 Modules\Interface\RecipeColors.lua
 Modules\Interface\CombatAlert.lua
+Modules\Interface\MovableWindows.lua
 Modules\System\MovableFramerate.lua
 Modules\Character\XPBarText.lua
 Modules\System\AddOnsList.lua

@@ -78,6 +78,26 @@ L.COMBATALERT_SOUND = "Play Sound"
 L.COMBATALERT_SOUND_DESC = "Play a sound with each alert: the raid warning going in and a soft "
     .. "chime coming out, for when you're looking somewhere else."
 
+-- MovableWindows
+L.MOVABLEWINDOWS_TITLE = "Movable Windows"
+L.MOVABLEWINDOWS_DESC = "Hold the move key and drag Blizzard's windows, like your character, "
+    .. "spellbook, professions, friends, and bags, to put them where you want."
+L.MOVABLEWINDOWS_NOTICE = "Drag a window by its title or edges, not a button or list." -- a gray row atop the module
+L.MOVABLEWINDOWS_NOTICE_DESC = "Buttons and lists inside a window take the click themselves. A "
+    .. "window with action buttons or other protected parts in it moves only out of combat."
+L.MOVABLEWINDOWS_KEY = "Move Key"
+L.MOVABLEWINDOWS_KEY_DESC = "The key to hold while you drag a window. With None, dragging with "
+    .. "the left button alone moves it."
+L.MOVABLEWINDOWS_REMEMBER = "Remember Position"
+L.MOVABLEWINDOWS_REMEMBER_DESC = "Where a window opens after you've moved it."
+L.MOVABLEWINDOWS_REMEMBER_ALWAYS = "Always" -- kept across sessions
+L.MOVABLEWINDOWS_REMEMBER_SESSION = "After Closing" -- kept until logout or /reload
+L.MOVABLEWINDOWS_REMEMBER_NEVER = "Never" -- back to Blizzard's place when it closes
+L.MOVABLEWINDOWS_RESET = "Window Positions"
+L.MOVABLEWINDOWS_RESET_BUTTON = "Reset"
+L.MOVABLEWINDOWS_RESET_DESC = "Put every moved window back where Blizzard places it."
+L.MOVABLEWINDOWS_RESET_DONE = "Every window is back in its usual place."
+
 -- CurrencyBar
 L.CURRENCYBAR_TITLE = "Currency Bar"
 L.CURRENCYBAR_DESC = "Show your gold and the currencies you track in a small box, so they are "
