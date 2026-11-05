@@ -187,6 +187,15 @@ local function tick()
         return
     end
     local now = GetTime()
+    if flight.test then
+        -- A made-up flight (Debug's Test Flight): no taxi to watch, and nothing learned from it.
+        if now - flight.started >= flight.total then
+            cancel()
+        elseif bar:IsShown() then
+            showFlight()
+        end
+        return
+    end
     if not flight.started then
         if UnitOnTaxi("player") then
             flight.started = now
@@ -311,6 +320,26 @@ module.actions = {
     },
 }
 
+-- Debug's Test Flight: the bar counting down a made-up flight, to see it (or record it) without
+-- a flight master. Ignored while a real flight is under way.
+local TEST_LENGTH = 45
+module.debugActions = {
+    {
+        name = L.FLIGHTTIMER_TEST, button = L.FLIGHTTIMER_TEST_BUTTON,
+        description = L.FLIGHTTIMER_TEST_DESC, section = L.DEBUG_SECTION_TESTING,
+        fn = function()
+            if not (bar and watcher) or (flight and not flight.test) then
+                return
+            end
+            flight = { test = true, name = L.FLIGHTTIMER_TEST_PLACE, total = TEST_LENGTH,
+                started = GetTime() }
+            bar:Show()
+            showFlight()
+            watcher:Show()
+        end,
+    },
+}
+
 -- What the public API (API.lua) reads while the module is on.
 local provider = {
     -- Seconds the flight between two flight point IDs takes, once it has been flown.
@@ -320,7 +349,7 @@ local provider = {
     -- The flight underway: from and to node IDs, its length in seconds (nil the first time it's
     -- flown), and the seconds since it took off. Nil when not flying.
     Current = function()
-        if not (flight and flight.started) then
+        if not (flight and flight.started) or flight.test then
             return nil
         end
         return { from = flight.from, to = flight.to, total = flight.total,

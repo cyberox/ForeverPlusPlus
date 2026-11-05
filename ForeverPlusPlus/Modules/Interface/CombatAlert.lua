@@ -4,7 +4,7 @@
 -- (PLAYER_REGEN_DISABLED and PLAYER_REGEN_ENABLED), which is the same thing the log would say.
 local _, ns = ...
 
-local CreateFrame, UIParent, PlaySound = CreateFrame, UIParent, PlaySound
+local CreateFrame, UIParent, PlaySound, C_Timer = CreateFrame, UIParent, PlaySound, C_Timer
 
 local L = ns.L
 local Colors = ns.Colors
@@ -110,6 +110,25 @@ local function leaving()
         alert(L.COMBATALERT_LEAVE_TEXT, Colors.GUILD_GREEN, "TELL_MESSAGE")
     end
 end
+
+-- Debug's Test Alerts: the entering alert, then the leaving one once it has faded, out of combat.
+module.debugActions = {
+    {
+        name = L.COMBATALERT_TEST, button = L.COMBATALERT_TEST_BUTTON,
+        description = L.COMBATALERT_TEST_DESC, section = L.DEBUG_SECTION_TESTING,
+        fn = function()
+            if not frame then
+                return
+            end
+            entering()
+            C_Timer.After(module.db.duration + 0.5, function()
+                if module.enabled then
+                    leaving()
+                end
+            end)
+        end,
+    },
+}
 
 -- Edit Mode -------------------------------------------------------------------------------------
 

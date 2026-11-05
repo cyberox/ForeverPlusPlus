@@ -10,6 +10,7 @@ local ipairs, pairs, setmetatable, tonumber, unpack, floor, max = ipairs, pairs,
 local tostring = tostring
 local CreateFrame, C_TooltipInfo, C_QuestLog, UnitName = CreateFrame, C_TooltipInfo, C_QuestLog,
     UnitName
+local UnitIsPlayer = UnitIsPlayer
 
 local L = ns.L
 local Nameplates = ns.Nameplates
@@ -23,6 +24,7 @@ local module = ns.NewModule("QuestNameplates", L.QUESTNAMEPLATES_DESC, {
     completedCount = true, -- and its final count beside it
     side = "left", -- which side of the bar: "left" or "right"
     size = 100, -- a percent
+    testIcons = false, -- debug: made-up progress on every creature's plate
 })
 module.title = L.QUESTNAMEPLATES_TITLE
 module.category = "quests"
@@ -60,6 +62,10 @@ module.options = {
     {
         key = "size", name = L.QUESTNAMEPLATES_SIZE, description = L.QUESTNAMEPLATES_SIZE_DESC,
         min = 50, max = 200, step = 10, format = "%d%%",
+    },
+    {
+        key = "testIcons", name = L.QUESTNAMEPLATES_TEST, description = L.QUESTNAMEPLATES_TEST_DESC,
+        debug = true, section = L.DEBUG_SECTION_TESTING,
     },
 }
 
@@ -326,7 +332,28 @@ local Profiler = ns.Profiler
 local PART_SCAN = Profiler.Part(module, L.QUESTNAMEPLATES_PART_SCAN)
 local scanned = {}
 
+-- Debug's Test Icons: made-up progress on every creature's plate, a different kind on each, to see
+-- (or record) the icons without the quests. The plate's number picks which.
+local TEST_PROGRESS = {
+    { 3, 8, "monster" }, { 5, 10, "item" }, { 8, 8, "done" }, { 1, 4, "object" }, { 45, 100, "monster", true },
+}
+
+local function testInto(unit)
+    local player = UnitIsPlayer(unit)
+    if not readable(player) or player then
+        scanned[1], scanned[2], scanned[3], scanned[4] = false, nil, nil, nil
+        return scanned
+    end
+    local number = tonumber(tostring(unit):match("%d+")) or 1
+    local fake = TEST_PROGRESS[number % #TEST_PROGRESS + 1]
+    scanned[1], scanned[2], scanned[3], scanned[4] = fake[1], fake[2], fake[3], fake[4]
+    return scanned
+end
+
 local function scanInto(unit)
+    if module.db.testIcons then
+        return testInto(unit)
+    end
     scanned[1], scanned[2], scanned[3], scanned[4] = scan(unit)
     return scanned
 end

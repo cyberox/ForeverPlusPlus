@@ -9,6 +9,7 @@ local _, ns = ...
 
 local ipairs, pairs, tonumber, gsub, find, match = ipairs, pairs, tonumber, string.gsub, string.find, string.match
 local C_ChatInfo, GetQuestDifficultyColor = C_ChatInfo, GetQuestDifficultyColor
+local _G, format = _G, string.format
 
 local L = ns.L
 local Chat = ns.Chat
@@ -87,6 +88,42 @@ local function onMessage(frame, text)
     pending[frame] = lines
     tagSoon()
 end
+
+-- Debug's Test Chat: a few made-up trade chat lines from made-up players, in their class colors
+-- with their level, to see (or record) the look without busy chat. Only the first chat window
+-- gets them, and nothing is said to anyone.
+local TEST_LINES = {
+    { "Testy Moonwhisper", "DRUID", 60, L.CHATLEVELS_TEST_1 },
+    { "Brannoc Stonefist", "WARRIOR", 24, L.CHATLEVELS_TEST_2 },
+    { "Mirelle Dawnbrook", "PRIEST", 8, L.CHATLEVELS_TEST_3 },
+    { "Gorrik Ashpaw", "HUNTER", 41, L.CHATLEVELS_TEST_4 },
+}
+
+local function testChat()
+    local frame = _G.DEFAULT_CHAT_FRAME or _G.ChatFrame1
+    if not frame then
+        return
+    end
+    local info = _G.ChatTypeInfo and _G.ChatTypeInfo.CHANNEL2
+    local r, g, b = 1, 0.75, 0.75
+    if info then
+        r, g, b = info.r, info.g, info.b
+    end
+    for _, line in ipairs(TEST_LINES) do
+        local name, class, level, text = line[1], line[2], line[3], line[4]
+        local color = ns.Colors.ClassToken(class)
+        local shown = color and ns.Colors.Text(color, name) or name
+        frame:AddMessage(format(L.CHATLEVELS_TEST_LINE, "|Hplayer:" .. name .. "|h["
+            .. tag(level) .. shown .. "]|h", text), r, g, b)
+    end
+end
+
+module.debugActions = {
+    {
+        name = L.CHATLEVELS_TEST, button = L.CHATLEVELS_TEST_BUTTON,
+        description = L.CHATLEVELS_TEST_DESC, section = L.DEBUG_SECTION_TESTING, fn = testChat,
+    },
+}
 
 function module:IsAvailable()
     return ChatFrame1 ~= nil and ChatFrame1.TransformMessages ~= nil

@@ -133,4 +133,7 @@ L.QUESTNAMEPLATES_SIDE_LEFT = "Left of Bar"
 L.QUESTNAMEPLATES_SIDE_RIGHT = "Right of Bar"
 L.QUESTNAMEPLATES_SIZE = "Size"
 L.QUESTNAMEPLATES_SIZE_DESC = "How big the icon and its text are."
+L.QUESTNAMEPLATES_TEST = "Test Quest Icons"
+L.QUESTNAMEPLATES_TEST_DESC = "Show made-up quest progress on every creature's nameplate, a "
+    .. "different kind on each, to see how they look without the quests."
 L.QUESTNAMEPLATES_PART_SCAN = "reading unit tooltips" -- its row on the Profiler page

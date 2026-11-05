@@ -24,6 +24,15 @@ L.CHATLEVELS_TITLE = "Chat Levels"
 L.CHATLEVELS_DESC = "Show each player's level before their name in chat, colored like a quest of "
     .. "that level. Forever++ remembers the levels of players you group with, your guild and "
     .. "friends, /who results, and players you target or see nearby."
+L.CHATLEVELS_TEST = "Test Chat"
+L.CHATLEVELS_TEST_BUTTON = "Show"
+L.CHATLEVELS_TEST_DESC = "Add a few made-up trade chat lines from made-up players, with their "
+    .. "levels and class colors, to your first chat window. Nobody else sees them."
+L.CHATLEVELS_TEST_LINE = "[2. T] %s: %s" -- the channel, then the player's name link and what they said
+L.CHATLEVELS_TEST_1 = "LF healer for Scarlet Monastery, then we go"
+L.CHATLEVELS_TEST_2 = "WTB Mageweave Cloth, paying well"
+L.CHATLEVELS_TEST_3 = "anyone know where the Defias are?"
+L.CHATLEVELS_TEST_4 = "Selling Heavy Leather, 20 stacks, pst"
 
 -- ShortChannelNames
 L.SHORTCHANNELNAMES_TITLE = "Short Channel Names"

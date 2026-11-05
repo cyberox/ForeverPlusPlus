@@ -18,6 +18,11 @@ ns.changelog = {
                     .. "Blizzard's settings: friendly players' health bars, enemy players' health "
                     .. "bars, and friendly players' names. The names line doesn't show while "
                     .. "Player Nameplates is on, since that draws its own names." },
+                { L.DEBUG, "New Testing tools that show a module with made-up data, for seeing "
+                    .. "or recording it without what it waits for: Flight Timer's Test Flight (the "
+                    .. "bar counting down), Combat Alert's Test Alerts, Chat Levels' Test Chat "
+                    .. "(made-up trade chat with levels and class colors), and Quest Nameplates' "
+                    .. "Test Quest Icons (progress on every creature's nameplate)." },
                 { L.MOVABLEWINDOWS_TITLE, "A new module that lets you hold the move key (Shift "
                     .. "by default) and drag Blizzard's windows, like your character, spellbook, "
                     .. "professions, friends, and bags, to put them where you want. Remember "
