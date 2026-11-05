@@ -107,8 +107,7 @@ L.BESTQUESTREWARD_DESC = "Mark the quest reward choice that sells to a vendor fo
 L.QUESTNAMEPLATES_TITLE = "Quest Nameplates"
 L.QUESTNAMEPLATES_BLIZZARD_OFF = "Blizzard's enemy nameplates are off" -- a gray row, with a button
 L.QUESTNAMEPLATES_BLIZZARD_OFF_DESC = "Blizzard's enemy nameplates are off, so there's nothing to "
-    .. "put quest icons on. Turn them on here, in Blizzard's Nameplates options, or with their "
-    .. "keybind (V)."
+    .. "put quest icons on."
 L.QUESTNAMEPLATES_DESC ="Show a quest icon and your progress beside the health bar of creatures "
     .. "you need for a quest."
 L.QUESTNAMEPLATES_PROGRESS = "Progress"

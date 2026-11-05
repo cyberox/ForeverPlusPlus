@@ -31,7 +31,8 @@ ns.changelog = {
                 { L.QUESTNAMEPLATES_TITLE, "While Blizzard's enemy nameplates are off, its "
                     .. "settings say so, with a Turn On button, since quest icons need them." },
                 { L.CHANGELOG_SETTINGS, "A \"Blizzard's ... is off\" line with a Turn On button "
-                    .. "no longer shows on a client that doesn't have that setting." },
+                    .. "no longer shows on a client that doesn't have that setting, and its tooltip "
+                    .. "says only what doesn't work, since the button turns it on." },
             } },
         },
     },

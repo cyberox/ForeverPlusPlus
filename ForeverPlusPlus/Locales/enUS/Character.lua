@@ -188,7 +188,7 @@ L.BUFFTIMERS_NOTICE_DESC = "In combat the game may hide aura times from addons. 
     .. "rounded timer shows until it can read them again."
 L.BUFFTIMERS_BLIZZARD_OFF = "Blizzard's buff durations are off" -- a gray row atop the module, with a button
 L.BUFFTIMERS_BLIZZARD_OFF_DESC = "Blizzard's buff durations are off, so no time shows under your "
-    .. "buffs and debuffs, ours included. Turn them on here or in Blizzard's options."
+    .. "buffs and debuffs, ours included."
 L.BUFFTIMERS_LIMIT = "Show Clock"
 L.BUFFTIMERS_LIMIT_DESC = "Which auras get a clock. Longer ones keep Blizzard's timer."
 L.BUFFTIMERS_LIMIT_1M = "Under 1 Minute"

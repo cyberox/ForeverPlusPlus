@@ -12,7 +12,7 @@ L.FASTLOOT_DESC = "With auto loot on, take everything at once instead of waiting
     .. "window."
 L.FASTLOOT_BLIZZARD_OFF = "Blizzard's auto loot is off" -- a gray row under the checkbox, with a button
 L.FASTLOOT_BLIZZARD_OFF_DESC = "Blizzard's auto loot is off, so only loot you take while holding "
-    .. "the auto loot key (Shift) is fast. Turn it on here or in Blizzard's Controls options."
+    .. "the auto loot key (Shift) is fast."
 
 -- AutoRepair
 L.AUTOREPAIR_TITLE = "Auto Repair"

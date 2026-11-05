@@ -14,14 +14,14 @@ L.CLASSCOLORS_DESC = "Show players' health bars and names in their class color o
     .. "the friends and who lists."
 L.CLASSCOLORS_FRIENDLY_BARS_OFF = "Friendly nameplate bars aren't in class colors" -- a gray row, with a button
 L.CLASSCOLORS_FRIENDLY_BARS_OFF_DESC = "Blizzard's nameplates show friendly players' health bars in "
-    .. "blue, not their class color. Turn on its class colors for them here."
+    .. "blue, not their class color."
 L.CLASSCOLORS_ENEMY_BARS_OFF = "Enemy nameplate bars aren't in class colors" -- a gray row, with a button
 L.CLASSCOLORS_ENEMY_BARS_OFF_DESC = "Blizzard's nameplates show enemy players' health bars in red or "
-    .. "blue, not their class color. Turn on its class colors for them here."
+    .. "blue, not their class color."
 L.CLASSCOLORS_PLATE_NAMES_OFF ="Blizzard's nameplate names aren't in class colors" -- a gray row, with a button
-L.CLASSCOLORS_PLATE_NAMES_OFF_DESC = "Blizzard's nameplates show friendly players' names in white. "
-    .. "Turn on its class colors for them here. (Player Nameplates colors its own names, so this "
-    .. "doesn't show while it's on.)"
+L.CLASSCOLORS_PLATE_NAMES_OFF_DESC = "Blizzard's nameplates show friendly players' names in white, "
+    .. "not their class color. (Player Nameplates colors its own names, so this doesn't show "
+    .. "while it's on.)"
 L.CLASSCOLORS_SECTION_PARTS = "Color"
 L.CLASSCOLORS_SECTION_FRAMES = "Frames"
 L.CLASSCOLORS_BARS = "Health Bars"
@@ -98,8 +98,7 @@ L.PLATES_CENTER_LINE_DESC = "Draw a thin red line through the middle of each nam
 -- PlayerNameplates
 L.PLAYERNAMEPLATES_TITLE = "Player Nameplates"
 L.PLAYERNAMEPLATES_BLIZZARD_OFF_DESC = "Blizzard's friendly player nameplates are off, so there's "
-    .. "nothing to show. Turn them on here, in Blizzard's Nameplates options, or with their keybind "
-    .. "(Shift-V)."
+    .. "nothing to show."
 L.PLAYERNAMEPLATES_DESC = "Always show friendly players' names, with their guild. Their health bar "
     .. "appears only when they're hurt or in combat."
 L.PLAYERNAMEPLATES_BAR_WHEN_HURT_DESC = "Show a player's health bar while they're missing health. "
@@ -143,7 +142,7 @@ L.PLAYERNAMEPLATES_TEST_ICONS_FRIEND = "Everyone a Friend"
 -- NpcNameplates
 L.NPCNAMEPLATES_TITLE = "NPC Nameplates"
 L.NPCNAMEPLATES_BLIZZARD_OFF_DESC = "Blizzard's friendly NPC nameplates are off, so there's nothing "
-    .. "to show. Turn them on here or in Blizzard's Nameplates options."
+    .. "to show."
 L.NPCNAMEPLATES_DESC = "Always show friendly NPCs' names, with their title. Their health bar appears "
     .. "only when they're hurt or in combat."
 L.NPCNAMEPLATES_BAR_WHEN_HURT_DESC = "Show an NPC's health bar while it's missing health. When off, "
