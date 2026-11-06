@@ -19,6 +19,8 @@ local _, ns = ...
 
 local _G, pcall = _G, pcall
 local Enum, C_Item, C_TooltipComparison = Enum, C_Item, C_TooltipComparison
+local IsModifiedClick = IsModifiedClick
+local GetCVarBool = C_CVar and C_CVar.GetCVarBool or GetCVarBool
 
 local L = ns.L
 local Equipment, Professions = ns.Equipment, ns.Professions
@@ -85,6 +87,11 @@ end
 -- ran, by `/run` prints, but showed nothing: it was nested inside the comparison by GUID, which
 -- the client was still finishing (2026-11-05).
 local function onShowCompare(tooltip, anchorFrame)
+    -- Blizzard calls this on every refresh and the client decides whether to compare: with Shift
+    -- (the Compare Items modifier) or Always Compare Items on. So the same here.
+    if not (IsModifiedClick("COMPAREITEMS") or GetCVarBool("alwaysCompareItems")) then
+        return
+    end
     tooltip = tooltip or _G.GameTooltip
     local data = tooltip and tooltip.GetPrimaryTooltipData and tooltip:GetPrimaryTooltipData()
     local link = data and craftedGear(data)
