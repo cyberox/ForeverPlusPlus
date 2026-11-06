@@ -224,6 +224,24 @@ L.PROFILER_CALLS = "Calls a second"
 L.PROFILER_SHARED = "Shared code" -- time in Forever++'s libraries not traced to one module
 L.PROFILER_OWN = "everything else" -- under a module's parts: its time outside them
 L.PROFILER_EMPTY = "Nothing recorded yet."
+-- What a module's time went to, under it on the page, for paths with no name of their own (events
+-- and hooks show their own names, such as BAG_UPDATE or GameTooltip:Show).
+L.PROFILER_SOURCE_UPDATE = "Updates (OnUpdate)"
+L.PROFILER_SOURCE_DELAYED = "Delayed runs"
+L.PROFILER_SOURCE_TIMER = "Timers"
+L.PROFILER_SOURCE_TOOLTIP = "Item tooltip lines"
+L.PROFILER_SOURCE_PLATE_ADDED = "Nameplate added"
+L.PROFILER_SOURCE_PLATE_REMOVED = "Nameplate removed"
+L.PROFILER_SOURCE_PLATE_CAST = "Nameplate cast bar"
+L.PROFILER_SOURCES = "By source" -- the header over a module's sources
+L.PROFILER_SPIKES = "Spikes: frames Forever++ took over %d ms in" -- ms
+L.PROFILER_NO_SPIKES = "None yet."
+L.PROFILER_SPIKE = "%s  %.1f ms  %s" -- time into the recording, ms, who: "1:12  21.5 ms  World Map, OnShow"
+L.PROFILER_SPIKE_COMBAT = "in combat"
+L.PROFILER_MEMORY_GROWTH = "%+.1f KB a second while recording." -- KB a second, signed
+L.PROFILER_COPY = "Copy"
+L.PROFILER_COPY_PROMPT = "Press Ctrl+C to copy the results."
+L.PROFILER_COPY_LINE = "Forever++ %s profile, %s recorded" -- version, time
 L.PROFILER_COUNTED = "Counted, not timed: a stopwatch around each of thousands a second would cost "
     .. "more than the call." -- a part's tooltip on the Profiler page
 L.PROFILER_NOTE = "Only Forever++'s own code is timed, and timing it adds a little cost of its own "

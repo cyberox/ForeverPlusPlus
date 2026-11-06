@@ -2,13 +2,17 @@
 -- what needs work. Record times every call into each module's code (Lib/Profiler.lua) until Stop;
 -- the list shows the heaviest modules first, with their milliseconds a second, their worst single
 -- frame, and how often they ran, beside the game's own numbers for Forever++ as a whole. A module
--- with parts has the AddOn List's +/- and folds open to them; the heaviest module starts open.
--- Memory can only be read for the whole addon. Nothing is timed until Record, and nothing is
--- built until the page is first shown; `/fpp profile` opens it. While the module is off its page
--- and command are gone and nothing is timed.
+-- with parts or named sources has the AddOn List's +/- and folds open to them (its parts, then
+-- what its time went to by source: an event, a hook, an update); the heaviest module starts
+-- open. A faint bar behind each module shows its share against the heaviest. Under the list, the
+-- worst frames Forever++ took too long in (spikes) say when, how long, and whose call it was.
+-- Copy gives it all as one line for a bug report. Memory can only be read for the whole addon,
+-- with how fast it grew while recording. Nothing is timed until Record, and nothing is built
+-- until the page is first shown; `/fpp profile` opens it. While the module is off its page and
+-- command are gone and nothing is timed.
 local _, ns = ...
 
-local ipairs, format, concat = ipairs, string.format, table.concat
+local ipairs, format, concat, min = ipairs, string.format, table.concat, math.min
 local CreateFrame, C_Timer, GameTooltip = CreateFrame, C_Timer, GameTooltip
 local L = ns.L
 local Profiler = ns.Profiler
@@ -25,6 +29,10 @@ local TOGGLE = 14 -- the +/- button's size
 local COLUMNS = { -200, -100, -4 }
 local NAME_RIGHT = -290 -- where a name stops, clear of the first column
 local REFRESH = 1 -- seconds between updates while the page is open
+local SPIKE_LINES = 5 -- spikes listed under the list, worst first
+local SPIKES_HEIGHT = 20 + SPIKE_LINES * 14 -- their header and lines
+local COPY_MODULES, COPY_SOURCES, COPY_SPIKES = 8, 3, 3 -- what Copy's line holds
+local COPY_MAX = 2000 -- the copy box's letters
 
 local PLUS = "Interface\\Buttons\\UI-PlusButton-Up"
 local MINUS = "Interface\\Buttons\\UI-MinusButton-Up"
@@ -54,6 +62,19 @@ local function nameOf(key)
     return key.title or key.name or "?"
 end
 
+-- Whose call it was, for a spike: the module, its part after it, and the source.
+local function whoOf(key, source)
+    local name = nameOf(key)
+    local owner = key ~= Profiler.SHARED and (key.parent or key.module)
+    if owner then
+        name = nameOf(owner) .. ": " .. name
+    end
+    if source then
+        name = name .. ", " .. source
+    end
+    return name
+end
+
 -- Rows ------------------------------------------------------------------------------------------
 
 local function newNumber(row, x)
@@ -68,6 +89,13 @@ local function buildRow(row)
     row.highlight:SetAllPoints()
     row.highlight:SetColorTexture(1, 1, 1, 0.08)
     row.highlight:Hide()
+
+    -- A module's share of the time against the heaviest's, in gold like its name, faint.
+    row.bar = row:CreateTexture(nil, "BACKGROUND", nil, -1)
+    row.bar:SetPoint("TOPLEFT", 0, -2)
+    row.bar:SetPoint("BOTTOMLEFT", 0, 2)
+    row.bar:SetColorTexture(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b, 0.1)
+    row.bar:Hide()
 
     row.toggle = CreateFrame("Button", nil, row)
     row.toggle:SetSize(TOGGLE, TOGGLE)
@@ -101,7 +129,7 @@ local function buildRow(row)
     end)
     row:SetScript("OnClick", function(self)
         local entry = self.entry
-        if entry and entry.kind == "module" and entry.result.parts then
+        if entry and entry.kind == "module" and (entry.result.parts or entry.result.sources) then
             local key = entry.result.key
             open[key] = not open[key] or nil
             ui.refreshList()
@@ -109,7 +137,8 @@ local function buildRow(row)
     end)
 end
 
--- Fills a row from its entry: { kind = "module", "part" or "own", result }.
+-- Fills a row from its entry: { kind = "module", "part", "own", "header" (By source), or
+-- "source", result, share (a module's time against the heaviest's, 0 to 1) }.
 local function initRow(row, entry)
     if not row.name then
         buildRow(row)
@@ -119,7 +148,27 @@ local function initRow(row, entry)
     local isModule = entry.kind == "module"
     row:SetHeight(isModule and ROW_HEIGHT or PART_HEIGHT)
 
-    local hasParts = isModule and result.parts ~= nil
+    local share = isModule and entry.share or 0
+    row.bar:SetShown(share > 0)
+    if share > 0 then
+        -- The list's width: a row may not be laid out yet when it's filled.
+        row.bar:SetWidth(ui.scrollBox:GetWidth() * share)
+    end
+
+    if entry.kind == "header" then
+        row.toggle:Hide()
+        row.name:ClearAllPoints()
+        row.name:SetPoint("LEFT", row, "LEFT", TOGGLE + 8 + INDENT, 0)
+        row.name:SetFontObject("GameFontNormalSmall")
+        row.name:SetText(L.PROFILER_SOURCES)
+        row.name:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)
+        for _, text in ipairs(row.numbers) do
+            text:SetText("")
+        end
+        return
+    end
+
+    local hasParts = isModule and (result.parts ~= nil or result.sources ~= nil)
     row.toggle:SetShown(hasParts)
     if hasParts then
         local texture = open[result.key] and MINUS or PLUS
@@ -153,21 +202,77 @@ local function initRow(row, entry)
     end
 end
 
--- The list's entries: each module, and while it's unfolded its parts and what it did besides.
+-- The list's entries: each module, and while it's unfolded its parts, what it did besides, and
+-- what its time went to by source.
 local function entries(results)
     local list = {}
+    local heaviest = results[1] and results[1].perSecond or 0
     for _, result in ipairs(results) do
-        list[#list + 1] = { kind = "module", result = result }
-        if result.parts and open[result.key] then
-            for _, part in ipairs(result.parts) do
+        list[#list + 1] = { kind = "module", result = result,
+            share = heaviest > 0 and min(result.perSecond / heaviest, 1) or 0 }
+        if open[result.key] then
+            for _, part in ipairs(result.parts or {}) do
                 list[#list + 1] = { kind = "part", result = part }
             end
-            if result.own then
+            if result.parts and result.own then
                 list[#list + 1] = { kind = "own", result = result.own }
+            end
+            if result.sources then
+                list[#list + 1] = { kind = "header", result = result }
+                for _, source in ipairs(result.sources) do
+                    list[#list + 1] = { kind = "source", result = source }
+                end
             end
         end
     end
     return list
+end
+
+-- The worst frames, under the list.
+local function refreshSpikes()
+    local spikes = Profiler.Spikes()
+    for i, line in ipairs(ui.spikeLines) do
+        local spike = spikes[i]
+        if spike then
+            local who = whoOf(spike.key, spike.source)
+            if spike.combat then
+                who = who .. "  |cff808080" .. L.PROFILER_SPIKE_COMBAT .. "|r"
+            end
+            line:SetText(format(L.PROFILER_SPIKE, ns.Text.Clock(spike.at), spike.ms, who))
+        else
+            line:SetText(i == 1 and L.PROFILER_NO_SPIKES or "")
+        end
+    end
+end
+
+-- Everything on the page as one line, for a bug report: the version and recording, each of the
+-- heaviest modules with its worst frame and calls, the top sources of the first few, and the
+-- worst spikes.
+local function copyText()
+    local results = Profiler.Results()
+    local parts = { format(L.PROFILER_COPY_LINE, ns.version or "?", ns.Text.Clock(Profiler.Elapsed() or 0)) }
+    for i = 1, min(#results, COPY_MODULES) do
+        local result = results[i]
+        local text = format("%s %.3f ms/s (worst %.1f, %.0f/s)", nameOf(result.key), result.perSecond,
+            result.peak, result.callsPerSecond)
+        if i <= COPY_SOURCES and result.sources then
+            local named = {}
+            for j = 1, min(#result.sources, COPY_SOURCES) do
+                local source = result.sources[j]
+                named[j] = format("%s %.3f", source.key.label, source.perSecond)
+            end
+            text = text .. " [" .. concat(named, ", ") .. "]"
+        end
+        parts[#parts + 1] = text
+    end
+    local spikes = Profiler.Spikes()
+    for i = 1, min(#spikes, COPY_SPIKES) do
+        local spike = spikes[i]
+        parts[#parts + 1] = format("spike %.1f ms at %s: %s%s", spike.ms, ns.Text.Clock(spike.at),
+            whoOf(spike.key, spike.source), spike.combat and " (combat)" or "")
+    end
+    local text = concat(parts, " | ")
+    return #text > COPY_MAX and text:sub(1, COPY_MAX) or text
 end
 
 -- Page --------------------------------------------------------------------------------------------
@@ -210,9 +315,14 @@ local function refresh()
     end
     if memory then
         parts[#parts + 1] = format(L.PROFILER_ADDON_MEMORY, memory / 1024)
+        local growth = Profiler.MemoryGrowth(memory)
+        if growth then
+            parts[#parts + 1] = format(L.PROFILER_MEMORY_GROWTH, growth)
+        end
     end
     ui.addon:SetText(#parts > 0 and concat(parts, "  ") or "")
     refreshList()
+    refreshSpikes()
 end
 
 local function startTicker()
@@ -257,6 +367,11 @@ function module:BuildPage(frame)
     end)
     ui.record:SetPoint("RIGHT", ui.reset, "LEFT", -8, 0)
 
+    ui.copy = ns.Frames.Button(frame, L.PROFILER_COPY, 96, function()
+        ns.Prompt("PROFILER_COPY", L.PROFILER_COPY_PROMPT, copyText())
+    end)
+    ui.copy:SetPoint("RIGHT", ui.record, "LEFT", -8, 0)
+
     ui.status = newText(frame, "GameFontHighlight", 10, -62)
     ui.addon = newText(frame, "GameFontHighlight", 10, -82)
     ui.note = newText(frame, "GameFontDisableSmall", 10, -104)
@@ -266,7 +381,7 @@ function module:BuildPage(frame)
     -- The list: a scroll box like Console Variables', its column titles just above it.
     local scrollBox = CreateFrame("Frame", nil, frame, "WowScrollBoxList")
     scrollBox:SetPoint("TOPLEFT", 10, -158)
-    scrollBox:SetPoint("BOTTOMRIGHT", -32, 8)
+    scrollBox:SetPoint("BOTTOMRIGHT", -32, 8 + SPIKES_HEIGHT + 8)
     local scrollBar = CreateFrame("EventFrame", nil, frame, "MinimalScrollBar")
     scrollBar:SetPoint("TOPLEFT", scrollBox, "TOPRIGHT", 8, 0)
     scrollBar:SetPoint("BOTTOMLEFT", scrollBox, "BOTTOMRIGHT", 8, 0)
@@ -291,6 +406,20 @@ function module:BuildPage(frame)
     ui.empty = scrollBox:CreateFontString(nil, "OVERLAY", "GameFontDisable")
     ui.empty:SetPoint("TOPLEFT", 6, -6)
     ui.empty:SetText(L.PROFILER_EMPTY)
+
+    -- The spikes, under the list: a gold header like the columns', then a line each.
+    local spikesTitle = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    spikesTitle:SetPoint("TOPLEFT", scrollBox, "BOTTOMLEFT", TOGGLE + 8, -8)
+    spikesTitle:SetText(format(L.PROFILER_SPIKES, Profiler.SPIKE_MS))
+    ui.spikeLines = {}
+    for i = 1, SPIKE_LINES do
+        local line = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        line:SetPoint("TOPLEFT", spikesTitle, "BOTTOMLEFT", 0, -4 - (i - 1) * 14)
+        line:SetPoint("RIGHT", scrollBox, "RIGHT", 0, 0)
+        line:SetJustifyH("LEFT")
+        line:SetWordWrap(false)
+        ui.spikeLines[i] = line
+    end
 
     frame:HookScript("OnShow", function()
         refresh()

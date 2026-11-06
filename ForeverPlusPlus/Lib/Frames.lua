@@ -224,7 +224,7 @@ end
 ---@return function cancel drops a queued run
 function Frames.Coalesce(fn, delay, module)
     if module then
-        fn = ns.Profiler.Wrap(module, fn)
+        fn = ns.Profiler.Wrap(module, fn, ns.Profiler.SOURCE_DELAYED)
     end
     local timer
     local function run()
@@ -314,7 +314,7 @@ function Timer:Start(seconds, fn)
         end
         local profiler = ns.Profiler
         if owner and profiler.recording then
-            profiler.Call(owner, fn)
+            profiler.CallFrom(owner, profiler.SOURCE_TIMER, fn)
         else
             fn()
         end

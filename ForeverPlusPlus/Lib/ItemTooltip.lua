@@ -51,7 +51,7 @@ local owners = setmetatable({}, { __mode = "k" }) -- a module's fn -> the module
 local function run(fn, ...)
     local profiler = ns.Profiler
     if profiler and profiler.recording then
-        return profiler.Call(owners[fn], ns.Call, fn, ...)
+        return profiler.CallFrom(owners[fn], profiler.SOURCE_TOOLTIP, ns.Call, fn, ...)
     end
     return ns.Call(fn, ...)
 end

@@ -28,6 +28,13 @@ local hookedBars = setmetatable({}, { __mode = "k" })
 
 -- Calls each user's handler; while the Profiler records, timed and charged to the user's module
 -- (an owner that isn't a module itself carries it as `owner.module`).
+-- Each callback as the Profiler page names it.
+local SOURCES = {
+    OnAdded = ns.L.PROFILER_SOURCE_PLATE_ADDED,
+    OnRemoved = ns.L.PROFILER_SOURCE_PLATE_REMOVED,
+    OnCastBar = ns.L.PROFILER_SOURCE_PLATE_CAST,
+}
+
 local function dispatch(method, ...)
     local profiler = ns.Profiler
     local timed = profiler and profiler.recording
@@ -36,7 +43,7 @@ local function dispatch(method, ...)
         if fn then
             -- Through ns.Call: one module's error mustn't stop the other plate modules.
             if timed then
-                profiler.Call(owner, ns.Call, fn, ...)
+                profiler.CallFrom(owner, SOURCES[method] or method, ns.Call, fn, ...)
             else
                 ns.Call(fn, ...)
             end

@@ -20,6 +20,12 @@ ns.changelog = {
                     .. "Favorites group, for your account." },
                 { L.CONSOLEVARIABLES_TITLE, "When the game takes a value as something else (past "
                     .. "its range), chat says what it kept and its box flashes red." },
+                { L.PROFILER_TITLE, "A module folds open to what its time went to by source: each "
+                    .. "event, hook, and update." },
+                { L.PROFILER_TITLE, "Spikes: the worst frames Forever++ took over 16 ms in, with "
+                    .. "when, how long, whose call it was, and whether you were in combat." },
+                { L.PROFILER_TITLE, "Copy gives the results as one line for a bug report, a bar "
+                    .. "behind each module shows its share, and memory says how fast it grew." },
             } },
             { L.CHANGELOG_CHANGED, {
                 { L.CONSOLEVARIABLES_TITLE, "A note at the top says 0 is usually off and 1 on, and "

@@ -80,7 +80,7 @@ local function dispatch(list, event, ...)
     if profiler and profiler.recording then
         for i = 1, #list do
             local fn = list[i]
-            profiler.Call(owners[fn], call, fn, event, ...)
+            profiler.CallFrom(owners[fn], event, call, fn, event, ...)
         end
         return
     end
@@ -463,17 +463,42 @@ local function child(t, key)
     return value
 end
 
+-- What a hook is on, as the Profiler page names it: "GameTooltip:Show", "UnitFrame_Update", or
+-- "PlayerFrame OnEnter" for a script. Made once, when it's hooked.
+local function hookName(target, method)
+    local script = type(method) == "string" and method:match("^script:(.+)$")
+    if target == _G then
+        return method
+    end
+    -- module:TooltipPostCall: the kind of tooltip, by its Enum.TooltipDataType name.
+    if target == TooltipDataProcessor then
+        for name, value in pairs(Enum and Enum.TooltipDataType or {}) do
+            if value == method then
+                return "TooltipPostCall " .. name
+            end
+        end
+        return "TooltipPostCall " .. tostring(method)
+    end
+    local name = type(target) == "table" and type(target.GetName) == "function" and target:GetName()
+    name = type(name) == "string" and name or "?"
+    if script then
+        return name .. " " .. script
+    end
+    return name .. ":" .. tostring(method)
+end
+
 local function hookOnce(module, target, method, fn, install)
     local byFn = child(child(child(module, "hooked"), target), method)
     if not byFn[fn] then
         byFn[fn] = true
+        local source = hookName(target, method)
         install(function(...)
             if module.enabled then
                 -- Through `call`, as events are: an error in our hook is reported, and doesn't
                 -- surface inside Blizzard's own code or stop the hooks after ours.
                 local profiler = ns.Profiler
                 if profiler and profiler.recording then
-                    profiler.Call(module, call, fn, ...)
+                    profiler.CallFrom(module, source, call, fn, ...)
                 else
                     call(fn, ...)
                 end
