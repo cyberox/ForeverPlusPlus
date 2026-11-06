@@ -60,6 +60,7 @@
     "UnitPower",
     "UnitPowerMax",
     "UnitPowerPercent",
+    "C_TooltipComparison",
     "CurveConstants",
     "PlayerFrame",
     "UNIT_FRAME_SHOW_HEALTH_ONLY",

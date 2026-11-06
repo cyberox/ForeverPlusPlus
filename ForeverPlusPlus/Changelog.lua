@@ -20,6 +20,9 @@ ns.changelog = {
                     .. "Favorites group, for your account." },
                 { L.CONSOLEVARIABLES_TITLE, "When the game takes a value as something else (past "
                     .. "its range), chat says what it kept and its box flashes red." },
+                { L.ITEMTOOLTIPS_TITLE, "Compare Crafted Gear: a recipe in your bags that makes "
+                    .. "gear compares it with what you wear, as linked recipes already do. Gear "
+                    .. "you can wear at any level, or only from your professions. On by default." },
                 { L.PROFILER_TITLE, "A module folds open to what its time went to by source: each "
                     .. "event, hook, and update." },
                 { L.PROFILER_TITLE, "Spikes: the worst frames Forever++ took over 16 ms in, with "

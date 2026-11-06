@@ -9,6 +9,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Console Variables**: a Popular group: the console variables players look for, under plain names with what their values do, such as Max Camera Distance past the Options' 2.0, Screen Glow, and Nameplate Range.
 - **Console Variables**: a star on each console variable keeps it in a new Favorites group, for your account.
 - **Console Variables**: when the game takes a value as something else (past its range), chat says what it kept and its box flashes red.
+- **Item Tooltips**: Compare Crafted Gear: a recipe in your bags that makes gear compares it with what you wear, as linked recipes already do. Gear you can wear at any level, or only from your professions. On by default.
 - **Profiler**: a module folds open to what its time went to by source: each event, hook, and update.
 - **Profiler**: spikes: the worst frames Forever++ took over 16 ms in, with when, how long, whose call it was, and whether you were in combat.
 - **Profiler**: Copy gives the results as one line for a bug report, a bar behind each module shows its share, and memory says how fast it grew.
