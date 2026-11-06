@@ -44,7 +44,7 @@ Names:
 - `docs/stat-weights.md`: Upgrade Arrows' default stat weights for every talent tree, how each was worked out, and the sources.
 - `docs/description.md`: the project description on CurseForge and Wago. Nothing syncs it: CurseForge's upload API takes only files, and Wago's description is edited on its site, so paste it into both by hand after it changes. Its Modules and Commands sections are the README's tables as lists (without the developer-only commands); keep them the same, with links that work off GitHub.
 - `.luarc.json`: LuaLS settings (Lua 5.1 and the known globals).
-- `tests/run.lua`: offline tests for pure-logic `Lib/` code (see "Verification").
+- `tests/`: offline tests (see "Verification" and `tests/README.md`): `run.lua` runs every spec in `spec/`, one per area, each in a fresh copy of the addon from `lib/env.lua`, with the checks in `lib/harness.lua`.
 
 There is no build step or library folder. Plain Lua, loaded straight from the TOC; CI only zips the folder.
 
@@ -134,7 +134,7 @@ The goal is to add to Blizzard frames without tainting or breaking them.
 
 ## Verification
 
-`tests/run.lua` is a small set of offline tests for pure-logic `Lib/` code (colors, text and time formatting, instances, map helpers, talent plans, quests, flight points, disenchanting). It needs only Lua 5.1, no client: `lua5.1 tests/run.lua` from the repo root (CI runs it after the syntax check). It loads the real `Lib/` and `Locales/enUS/` files against a few stubbed WoW globals, so a Lib file that caches a global at load needs that global stubbed at the top of the file first. Add a check there when you change or add Lib logic that has no frames in it; don't test frame or UI code, and there is no other automated testing. Core's module lifecycle is tested there too, on stub frames and a stub clock: modules and parts turning on and off, `OnWhile`, dropdown parts, and owned timers; add a check when you change how Core turns modules on and off.
+`tests/` holds the offline tests: a spec in `tests/spec/` for each area of pure-logic `Lib/` code (colors, text and time formatting, instances, map helpers, talent plans, quests, flight points, disenchanting, the saved variables, players seen), Core's module lifecycle on stub frames and a stub clock (modules and parts turning on and off, `OnWhile`, dropdown parts, owned timers, `/fpp set`, presets), the public API, and checks across the addon: every `L.KEY` the code uses is defined in `Locales/enUS/` (`locales`), and the TOC's version, `Changelog.lua`, and `CHANGELOG.md` agree (`release`). They need only Lua 5.1, no client: `lua5.1 tests/run.lua` from the repo root (CI runs it after the syntax check), or `lua5.1 tests/run.lua store` for the specs with that in their name. Each spec gets a fresh copy of the addon with the real `Lib/` and `Locales/enUS/` files against stubbed WoW globals, so specs can't depend on each other; a Lib file that caches a global at load needs that global stubbed before it loads (`tests/lib/env.lua`, or `T.load` after the stub). `tests/README.md` says how to write one. Add a check when you change or add Lib logic that has no frames in it, a spec when you add a Lib file, and a check in `core` when you change how Core turns modules on and off; don't test frame or UI code, and there is no other automated testing.
 
 Before calling a change done:
 

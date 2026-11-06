@@ -1,0 +1,71 @@
+-- Text: clocks, durations, versions, "ago", plain text, format patterns, and splitting chat.
+local T = ...
+local ns, eq = T.ns, T.eq
+
+eq(ns.Text.Number(12345), "big:12345", "Number uses the client's separators")
+eq(ns.Text.Clock(0), "0:00", "Clock zero")
+eq(ns.Text.Clock(42), "0:42", "Clock seconds")
+eq(ns.Text.Clock(725), "12:05", "Clock minutes")
+eq(ns.Text.Clock(41.6), "0:42", "Clock rounds")
+eq(ns.Text.Clock(3599.6), "1:00:00", "Clock rounds up to an hour")
+eq(ns.Text.Clock(3725), "1:02:05", "Clock hours")
+eq(ns.Text.Clock(-0.6), "0:00", "Clock never goes below zero")
+eq(ns.Text.Seconds(1), "1 Second", "one second")
+eq(ns.Text.Seconds(5), "5 Seconds", "seconds")
+eq(ns.Text.Hours(1), "1 Hour", "one hour")
+eq(ns.Text.Hours(12), "12 Hours", "hours")
+eq(ns.Text.NewerVersion("0.8.0", "0.7.0"), true, "newer version")
+eq(ns.Text.NewerVersion("0.10.0", "0.9.2"), true, "newer version by number, not text")
+eq(ns.Text.NewerVersion("0.7.0", "0.7.0"), false, "same version")
+eq(ns.Text.NewerVersion("0.7", "0.7.0"), false, "missing part is zero")
+eq(ns.Text.NewerVersion("0.7.0", "0"), true, "anything after 0")
+eq(ns.Text.NewerVersion("1.0.0", "1.0.0-beta.1"), true, "release after its pre-release")
+eq(ns.Text.NewerVersion("1.0.0-beta.1", "1.0.0"), false, "pre-release before its release")
+eq(ns.Text.NewerVersion("1.0.0-beta.2", "1.0.0-beta.1"), true, "later pre-release")
+eq(ns.Text.NewerVersion("1.0.0-beta.1", "0.10.0"), true, "pre-release after the last release")
+eq(ns.Text.NewerVersion("1.0.0-beta.1", "1.0.0-beta.1"), false, "same pre-release")
+eq(ns.Text.Ago(5), "just now", "ago now")
+eq(ns.Text.Ago(60), "1m ago", "ago minute")
+eq(ns.Text.Ago(3599), "59m ago", "ago last minute")
+eq(ns.Text.Ago(3600), "1h ago", "ago hour")
+eq(ns.Text.Ago(86400 * 2 + 5), "2d ago", "ago days")
+eq(ns.Text.Plain("|cffff0000red|r text"), "red text", "plain color")
+eq(ns.Text.Plain("|cnCOLOR:named|r"), "named", "plain named color")
+eq(ns.Text.Plain("|Hplayer:Bob:1|h[Bob]|h: hi"), "[Bob]: hi", "plain link keeps its text")
+eq(ns.Text.Plain("a |TInterface\\Icon:0|t b |A:Raid:14:14|a c"), "a  b  c", "plain textures")
+eq(ns.Text.Plain("100||"), "100|", "plain escaped pipe")
+eq(ns.Text.Plain("Requires Mining (75)"), "Requires Mining (75)", "plain text without codes is kept")
+eq(ns.Text.Plain("a||rb ||cffffffffc |cff00ff00d|r"), "a|rb |cffffffffc d",
+    "plain escaped pipe before a code letter")
+
+local function matches(formatString, text, capture)
+    return text:match("^" .. ns.Text.FormatPattern(formatString, capture) .. "$")
+end
+eq(matches("Requires %s (%d)", "Requires Mining (75)", true), "Mining", "format pattern captures")
+eq(select(2, matches("Requires %s (%d)", "Requires Mining (75)", true)), "75",
+    "format pattern captures numbers")
+eq(matches("%2$s from %1$s.", "Axe from Bob.", true), "Axe", "format pattern reordered")
+eq(matches("Collected (%d/%d)", "Collected (1/3)") ~= nil, true, "format pattern without captures")
+eq(matches("Collected (%d/%d)", "Collected (a/3)"), nil, "format pattern %d needs digits")
+eq(matches("Press %s to submit", "Press [F1] to submit") ~= nil, true, "format pattern escapes")
+
+local split = ns.Text.Split("short one", 20)
+eq(#split, 1, "split leaves a short message whole")
+eq(split[1], "short one", "split short text")
+split = ns.Text.Split("aaaa bbbb cccc dddd", 10)
+eq(#split, 2, "split long text in two")
+eq(split[1], "aaaa bbbb", "split between words")
+eq(split[2], "cccc dddd", "split rest")
+split = ns.Text.Split("abcdefghijkl", 5)
+eq(split[1], "abcde", "split a long word at the limit")
+eq(#split, 3, "split a long word in pieces")
+local link = "|cff1eff00|Hitem:123|h[Sword]|h|r"
+split = ns.Text.Split("buy " .. link .. " now", 35) -- the link is 33 bytes
+eq(split[1], "buy", "split keeps a link whole")
+eq(split[2], link, "split puts the link in one piece")
+eq(split[3], "now", "split after the link")
+split = ns.Text.Split("buy " .. link, 20)
+eq(split[2], link, "split keeps a link longer than the limit whole")
+for i, piece in ipairs(ns.Text.Split(("word "):rep(200), 255)) do
+    eq(#piece <= 255, true, "split piece " .. i .. " fits")
+end

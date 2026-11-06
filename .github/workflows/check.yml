@@ -22,10 +22,10 @@ jobs:
           status=0
           while IFS= read -r -d '' file; do
             luac5.1 -p "$file" || status=1
-          done < <(find ForeverPlusPlus -name '*.lua' -print0)
+          done < <(find ForeverPlusPlus tests -name '*.lua' -print0)
           exit $status
 
-      - name: Offline tests (Lib logic)
+      - name: Offline tests
         run: lua5.1 tests/run.lua
 
       - name: ASCII only in .lua and .toc
