@@ -1,5 +1,7 @@
 -- Chat Copy: a button in the column beside the chat window that opens the selected chat tab in a
--- window, in its chat colors and already selected, so Ctrl+C copies it as plain text. The lines
+-- window, in its chat colors and already selected, so Ctrl+C copies it as plain text. Its Select
+-- All button selects it all again after a click or scroll lost the selection; it can't copy by
+-- itself, since CopyToClipboard is protected (only Blizzard's secure code may call it). The lines
 -- come from the chat frame's own buffer (GetMessageInfo); a line the game marks secret can't be
 -- read, so it shows as a placeholder instead.
 -- Its Click Timestamps option makes the timestamp Blizzard puts on each chat line a link: clicking
@@ -139,7 +141,7 @@ local function newWindow()
     local inset = f.Inset or ns.Frames.Inset(f)
     inset:ClearAllPoints()
     inset:SetPoint("TOPLEFT", 4, -60)
-    inset:SetPoint("BOTTOMRIGHT", -6, 6)
+    inset:SetPoint("BOTTOMRIGHT", -6, 28)
     local scroll = CreateFrame("ScrollFrame", nil, inset, "UIPanelScrollFrameTemplate")
     scroll:SetPoint("TOPLEFT", 6, -6)
     scroll:SetPoint("BOTTOMRIGHT", -26, 6)
@@ -166,11 +168,22 @@ local function newWindow()
     end)
     edit:SetScript("OnEditFocusLost", function()
         showPlain(false)
+        f.hint:SetText("")
     end)
     scroll:SetScrollChild(edit)
     scroll:SetScript("OnSizeChanged", function(_, width)
         edit:SetWidth(width)
     end)
+
+    -- The strip at the bottom, as Error Catcher's: the button, and what to press beside it.
+    f.selectAll = ns.Frames.Button(f, L.CHATCOPY_SELECT_ALL, 110, function()
+        edit:SetFocus()
+        edit:HighlightText()
+        f.hint:SetText(L.CHATCOPY_SELECT_HINT)
+    end)
+    f.selectAll:SetPoint("BOTTOMRIGHT", -6, 4)
+    f.hint = f:CreateFontString(nil, "OVERLAY", "GameFontGreenSmall")
+    f.hint:SetPoint("RIGHT", f.selectAll, "LEFT", -10, 0)
 
     f.edit, f.scroll = edit, scroll
     f:Hide()
@@ -182,6 +195,7 @@ local function open()
     local text = chatText()
     window.colored = text ~= "" and text or L.CHATCOPY_EMPTY
     window.plain = false
+    window.hint:SetText("")
     window.edit:SetText(window.colored)
     window:Show()
     window.edit:SetFocus()
@@ -309,6 +323,13 @@ local function updateStamps()
     end
 end
 
+-- A chat window added later. One function for every turn on, as with the hooks.
+local function onWindows()
+    if stampsOn then
+        attach()
+    end
+end
+
 function module:OnOptionChanged(key)
     if key == "stamps" then
         updateStamps()
@@ -324,12 +345,6 @@ function module:OnEnable()
     button:Show()
     Chat.AddButton(self.name, button, 20)
     updateStamps()
-    -- A chat window added later.
-    local function onWindows()
-        if stampsOn then
-            attach()
-        end
-    end
     self:On("UPDATE_CHAT_WINDOWS", onWindows)
     self:On("UPDATE_FLOATING_CHAT_WINDOWS", onWindows)
 end

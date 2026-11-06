@@ -50,6 +50,14 @@ local function unchainAlerts()
     end
 end
 
+-- Blizzard moved the button: put it back in the column. One function for every turn on, since
+-- module:Hook hooks a function once, and a new one each time would add another hook.
+local function onSetPoint()
+    if not Chat.IsLaying() then
+        Chat.Layout()
+    end
+end
+
 function module:IsAvailable()
     return QuickJoinToastButton ~= nil and Chat.Anchor() ~= nil
 end
@@ -64,11 +72,7 @@ function module:OnEnable()
         button:SetParent(host)
     end
     Chat.AddButton(self.name, button, 10)
-    self:Hook(button, "SetPoint", function()
-        if not Chat.IsLaying() then
-            Chat.Layout()
-        end
-    end)
+    self:Hook(button, "SetPoint", onSetPoint)
     -- Probe: ChatAlertFrame and its subsystem list are Mainline's (AlertFrames.lua).
     if _G.ChatAlertFrame and _G.ChatAlertFrame.UpdateAnchors then
         self:Hook(_G.ChatAlertFrame, "UpdateAnchors", unchainAlerts)

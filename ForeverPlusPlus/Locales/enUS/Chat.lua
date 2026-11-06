@@ -18,6 +18,8 @@ L.CHATCOPY_STAMPS_DESC = "Click a chat line's timestamp to copy that line. Needs
 L.CHATCOPY_STAMPS_PROMPT = "Press Ctrl+C to copy this chat line."
 L.CHATCOPY_HIDDEN = "(hidden by the game)"
 L.CHATCOPY_EMPTY = "(no chat yet)"
+L.CHATCOPY_SELECT_ALL = "Select All"
+L.CHATCOPY_SELECT_HINT = "Press Ctrl+C to copy."
 
 -- ChatLevels
 L.CHATLEVELS_TITLE = "Chat Levels"
