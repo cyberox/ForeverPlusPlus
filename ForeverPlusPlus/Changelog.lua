@@ -33,7 +33,7 @@ ns.changelog = {
                     .. "can't wear yet get a gray arrow, and their tooltip says the level they're "
                     .. "usable at." },
                 { L.CURRENCYBAR_TITLE, "Gold per Hour: what you earn or spend per hour this "
-                    .. "session, beside your gold. Off by default." },
+                    .. "session, in the tooltip under Session. On by default." },
                 { L.XPBARTEXT_TITLE, "Show XP per Hour: your XP per hour and time to level on the "
                     .. "bar itself. Off by default." },
                 { L.WAYPOINTS_TITLE, "Text after the coordinates is the waypoint's note, shown under "

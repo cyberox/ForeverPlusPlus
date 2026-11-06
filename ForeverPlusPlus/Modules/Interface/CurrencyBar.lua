@@ -15,10 +15,10 @@ local number = ns.Text.Number
 local module = ns.NewModule("CurrencyBar", L.CURRENCYBAR_DESC, {
     enabled = false,
     money = true,
-    perHour = false, -- this session's gold per hour beside the gold
     currencies = false,
     tooltip = true,
     session = true,
+    perHour = true, -- this session's gold per hour, in the tooltip
     vertical = false,
     scale = 120, -- percent
     x = 977, -- the box's offset from the center of the screen (kept on screen on smaller ones)
@@ -30,16 +30,16 @@ module.category = "interface"
 -- What the box shows and how it's laid out, then its tooltip.
 module.options = {
     { key = "money", name = L.CURRENCYBAR_MONEY, description = L.CURRENCYBAR_MONEY_DESC },
-    {
-        key = "perHour", requires = "money", added = "1.0.3",
-        name = L.CURRENCYBAR_PER_HOUR, description = L.CURRENCYBAR_PER_HOUR_DESC,
-    },
     { key = "currencies", name = L.CURRENCYBAR_CURRENCIES, description = L.CURRENCYBAR_CURRENCIES_DESC },
     { key = "vertical", name = L.CURRENCYBAR_VERTICAL, description = L.CURRENCYBAR_VERTICAL_DESC },
     { key = "tooltip", name = L.CURRENCYBAR_TOOLTIP, description = L.CURRENCYBAR_TOOLTIP_DESC },
     {
         key = "session", requires = "tooltip",
         name = L.CURRENCYBAR_SESSION, description = L.CURRENCYBAR_SESSION_DESC,
+    },
+    {
+        key = "perHour", requires = "tooltip", added = "1.0.3",
+        name = L.CURRENCYBAR_PER_HOUR, description = L.CURRENCYBAR_PER_HOUR_DESC,
     },
 }
 
@@ -51,27 +51,13 @@ local MAX_CURRENCIES = 10 -- far more than the Backpack's three, in case Forever
 local frame
 
 -- Gold, silver, and copper as Blizzard draws them, but every coin always: 0 gold still shows.
--- `short` leaves out the coins at 0 instead, for a rate beside the gold.
-local function coins(amount, short)
+local function coins(amount)
     local gold = floor(amount / 10000)
     local silver = floor(amount / 100) % 100
     local copper = amount % 100
     local icon = "|TInterface/MoneyFrame/UI-%sIcon:" .. ICON .. ":" .. ICON .. ":2:0|t"
-    if not short then
-        return number(gold) .. format(icon, "Gold")
-            .. " " .. silver .. format(icon, "Silver") .. " " .. copper .. format(icon, "Copper")
-    end
-    local list = {}
-    if gold > 0 then
-        list[#list + 1] = number(gold) .. format(icon, "Gold")
-    end
-    if silver > 0 then
-        list[#list + 1] = silver .. format(icon, "Silver")
-    end
-    if copper > 0 or #list == 0 then
-        list[#list + 1] = copper .. format(icon, "Copper")
-    end
-    return tconcat(list, " ")
+    return number(gold) .. format(icon, "Gold")
+        .. " " .. silver .. format(icon, "Silver") .. " " .. copper .. format(icon, "Copper")
 end
 
 local function backpackCurrency(index)
@@ -88,7 +74,6 @@ local startMoney, startTime
 local startCurrency = {} -- currency ID -> amount first seen
 
 local RATE_AFTER = 60 -- seconds of the session before Gold per Hour shows, so a sale isn't a fortune
-local RATE_EVERY = 30 -- seconds between redraws of Gold per Hour, which drifts with no money event
 
 -- Remembers each Backpack currency the first time it is seen, so later changes count from there.
 local function noteCurrencies()
@@ -116,6 +101,7 @@ end
 
 -- This session's gold per hour, "+3g 20s/h" in green or a loss in red, or nil in its first
 -- minute and while the gold hasn't changed. Rounded to the silver from a gold up, to stay short.
+-- Worked out when the tooltip opens, so nothing has to redraw it as time passes.
 local function perHour(money)
     local elapsed = startTime and GetTime() - startTime
     if not (elapsed and elapsed >= RATE_AFTER) then
@@ -126,19 +112,16 @@ local function perHour(money)
     if rate == 0 then
         return nil
     end
-    return signed(money - startMoney, format(L.CURRENCYBAR_PER_HOUR_VALUE, coins(rate, true)))
+    return signed(money - startMoney, format(L.CURRENCYBAR_PER_HOUR_VALUE, ns.Money(rate)))
 end
 
 -- The parts --------------------------------------------------------------------------------------
 
--- What to show, in order: the gold (with its rate this session), then each Backpack currency as
--- its icon and amount.
+-- What to show, in order: the gold, then each Backpack currency as its icon and amount.
 local function parts()
     local list = {}
     if module.db.money then
-        local money = GetMoney()
-        local rate = module.db.perHour and perHour(money)
-        list[#list + 1] = rate and coins(money) .. "  " .. rate or coins(money)
+        list[#list + 1] = coins(GetMoney())
     end
     if module.db.currencies then
         for index = 1, MAX_CURRENCIES do
@@ -189,6 +172,10 @@ local function showTooltip(owner)
         local change = money - startMoney
         GameTooltip:AddDoubleLine(L.CURRENCYBAR_SESSION, signed(change, ns.Money(abs(change))),
             0.8, 0.8, 0.8)
+    end
+    local rate = module.db.perHour and perHour(money)
+    if rate then
+        GameTooltip:AddDoubleLine(L.CURRENCYBAR_PER_HOUR_LINE, rate, 0.8, 0.8, 0.8)
     end
     local header
     for index = 1, MAX_CURRENCIES do
@@ -255,27 +242,6 @@ local function onCurrencies()
     update()
 end
 
--- Redraws Gold per Hour every RATE_EVERY seconds while it shows, since time passing changes it.
--- Core cancels it when the module turns off.
-local rateTimer = ns.Frames.Timer(module)
-
-local function rateTick()
-    update()
-    if module.db.money and module.db.perHour then
-        rateTimer:Start(RATE_EVERY, rateTick)
-    end
-end
-
-local function watchRate()
-    if module.db.money and module.db.perHour then
-        if not rateTimer:IsPending() then
-            rateTimer:Start(RATE_EVERY, rateTick)
-        end
-    else
-        rateTimer:Cancel()
-    end
-end
-
 function module:OnEnable()
     if not frame then
         frame = newFrame()
@@ -285,7 +251,6 @@ function module:OnEnable()
     noteCurrencies()
     layout()
     frame:Show()
-    watchRate()
     self:On("PLAYER_MONEY", update)
     self:On("CURRENCY_DISPLAY_UPDATE", onCurrencies)
     self:On("PLAYER_ENTERING_WORLD", onCurrencies)
@@ -300,8 +265,5 @@ function module:OnDisable()
 end
 
 function module:OnOptionChanged()
-    if self.enabled then
-        watchRate()
-    end
     update()
 end

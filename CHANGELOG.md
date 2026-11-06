@@ -14,7 +14,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Profiler**: spikes: the worst frames Forever++ took over 16 ms in, with when, how long, whose call it was, and whether you were in combat.
 - **Profiler**: Copy gives the results as one line for a bug report, a bar behind each module shows its share, and memory says how fast it grew.
 - **Upgrade Arrows**: Gear for Later: with Higher Level Gear on, upgrades you can't wear yet get a gray arrow, and their tooltip says the level they're usable at.
-- **Currency Bar**: Gold per Hour: what you earn or spend per hour this session, beside your gold. Off by default.
+- **Currency Bar**: Gold per Hour: what you earn or spend per hour this session, in the tooltip under Session. On by default.
 - **XP Bar Text**: Show XP per Hour: your XP per hour and time to level on the bar itself. Off by default.
 - **Waypoints**: text after the coordinates is the waypoint's note, shown under the arrow: `/way 45 67 Hogger`.
 - **Waypoints**: `/way share` puts your map pin's link in the chat box, ready to send to your group.
