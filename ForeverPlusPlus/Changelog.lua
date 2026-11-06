@@ -29,12 +29,48 @@ ns.changelog = {
                     .. "when, how long, whose call it was, and whether you were in combat." },
                 { L.PROFILER_TITLE, "Copy gives the results as one line for a bug report, a bar "
                     .. "behind each module shows its share, and memory says how fast it grew." },
+                { L.UPGRADEARROWS_TITLE, "Gear for Later: with Higher Level Gear on, upgrades you "
+                    .. "can't wear yet get a gray arrow, and their tooltip says the level they're "
+                    .. "usable at." },
+                { L.CURRENCYBAR_TITLE, "Gold per Hour: what you earn or spend per hour this "
+                    .. "session, beside your gold. Off by default." },
+                { L.XPBARTEXT_TITLE, "Show XP per Hour: your XP per hour and time to level on the "
+                    .. "bar itself. Off by default." },
+                { L.WAYPOINTS_TITLE, "Text after the coordinates is the waypoint's note, shown under "
+                    .. "the arrow: /way 45 67 Hogger." },
+                { L.WAYPOINTS_TITLE, "/way share puts your map pin's link in the chat box, ready to "
+                    .. "send to your group." },
+                { L.CHATCOPY_TITLE, "A Select All button, ready for Ctrl+C. The game doesn't let "
+                    .. "addons copy for you." },
             } },
             { L.CHANGELOG_CHANGED, {
                 { L.CONSOLEVARIABLES_TITLE, "A note at the top says 0 is usually off and 1 on, and "
                     .. "a CVar's tooltip says when it may take other values." },
                 { L.CONSOLEVARIABLES_TITLE, "Opens on Favorites once you've starred some, else "
                     .. "Popular, instead of Changed, and a search looks through All." },
+                { L.UPGRADEARROWS_TITLE, "The talent tree you pick is saved for each character, so "
+                    .. "an alt isn't judged by another character's tree. The first character you "
+                    .. "log in with keeps your current pick." },
+                { L.WAYPOINTS_TITLE, "You count as arrived within 10 yards instead of 5, and Clear "
+                    .. "Pin on Arrival is on by default." },
+                { L.GATHERINGTRACKING_TITLE, "Changing Track takes effect at once, and Swap Between "
+                    .. "Both shows only while Track is set to both." },
+                { L.AUTOSELLJUNK_TITLE, "Says in chat when the buyback list is full and junk was "
+                    .. "left unsold." },
+                { L.CHANGELOG_COMMANDS, "A module's /fpp command is listed only while the module "
+                    .. "is on." },
+            } },
+            { L.CHANGELOG_FIXED, {
+                { L.UPGRADEARROWS_TITLE, "After a level-up, arrows and scores follow your new stats "
+                    .. "instead of staying stale." },
+                { L.MACROS_TITLE, "Turning Smart Buff off and back on in combat no longer deletes "
+                    .. "its macro and empties its action bar slots." },
+                { L.SOCIALBUTTON_TITLE, "Turning it off and on no longer adds another hook each "
+                    .. "time." },
+                { L.CHANGELOG_SETTINGS, "A checkbox for one of the game's own settings keeps what "
+                    .. "you picked when clicked in combat, and changes once combat ends." },
+                { L.WORLDMAP_TITLE, "Points of Interest listens only to your own casts, and only "
+                    .. "while Ley Lines shows them." },
             } },
         },
     },

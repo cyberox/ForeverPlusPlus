@@ -13,11 +13,30 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Profiler**: a module folds open to what its time went to by source: each event, hook, and update.
 - **Profiler**: spikes: the worst frames Forever++ took over 16 ms in, with when, how long, whose call it was, and whether you were in combat.
 - **Profiler**: Copy gives the results as one line for a bug report, a bar behind each module shows its share, and memory says how fast it grew.
+- **Upgrade Arrows**: Gear for Later: with Higher Level Gear on, upgrades you can't wear yet get a gray arrow, and their tooltip says the level they're usable at.
+- **Currency Bar**: Gold per Hour: what you earn or spend per hour this session, beside your gold. Off by default.
+- **XP Bar Text**: Show XP per Hour: your XP per hour and time to level on the bar itself. Off by default.
+- **Waypoints**: text after the coordinates is the waypoint's note, shown under the arrow: `/way 45 67 Hogger`.
+- **Waypoints**: `/way share` puts your map pin's link in the chat box, ready to send to your group.
+- **Chat Copy**: a Select All button, ready for Ctrl+C. The game doesn't let addons copy for you.
 
 ### Changed
 
 - **Console Variables**: a note at the top says 0 is usually off and 1 on, and a CVar's tooltip says when it may take other values.
 - **Console Variables**: opens on Favorites once you've starred some, else Popular, instead of Changed, and a search looks through All.
+- **Upgrade Arrows**: the talent tree you pick is saved for each character, so an alt isn't judged by another character's tree. The first character you log in with keeps your current pick.
+- **Waypoints**: you count as arrived within 10 yards instead of 5, and Clear Pin on Arrival is on by default.
+- **Gathering Tracking**: changing Track takes effect at once, and Swap Between Both shows only while Track is set to both.
+- **Auto Sell Junk**: says in chat when the buyback list is full and junk was left unsold.
+- **Commands**: a module's `/fpp` command is listed only while the module is on.
+
+### Fixed
+
+- **Upgrade Arrows**: after a level-up, arrows and scores follow your new stats instead of staying stale.
+- **Macros**: turning Smart Buff off and back on in combat no longer deletes its macro and empties its action bar slots.
+- **Social Button**: turning it off and on no longer adds another hook each time.
+- **Settings**: a checkbox for one of the game's own settings keeps what you picked when clicked in combat, and changes once combat ends.
+- **World Map**: Points of Interest listens only to your own casts, and only while Ley Lines shows them.
 
 ## 1.0.2 (2026-11-05)
 

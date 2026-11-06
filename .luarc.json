@@ -61,6 +61,7 @@
     "UnitPowerMax",
     "UnitPowerPercent",
     "C_TooltipComparison",
+    "ChatFrame_OpenChat",
     "CurveConstants",
     "PlayerFrame",
     "UNIT_FRAME_SHOW_HEALTH_ONLY",
