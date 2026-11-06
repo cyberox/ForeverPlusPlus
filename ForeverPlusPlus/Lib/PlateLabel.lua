@@ -50,7 +50,6 @@ PlateLabel.LEVEL_CHOICES = {
 -- What the level sits in (placeLevel draws them).
 PlateLabel.LEVEL_FRAME_CHOICES = {
     { "none", L.PLATES_LEVEL_FRAME_NONE },
-    { "classic", L.PLATES_LEVEL_FRAME_CLASSIC },
     { "badge", L.PLATES_LEVEL_FRAME_BADGE },
     { "round", L.PLATES_LEVEL_FRAME_ROUND },
 }
@@ -451,44 +450,30 @@ end
 -- Level Frame: what the number sits in, each sized against the number's font size: `height`
 -- tall and `wide` times that across, growing for a wide number to its width plus `pad`, and
 -- the number moved by `nudge` (x, y) to sit in the art's middle (digits sit low in their line
--- and their shadow falls right).
---   classic: the box at the end of the health bar, so the level looks the same with the bar up
---            and without it. It's the right end of the classic nameplate border, texels 105-136
---            of 256 across and the lower half, which the bar draws squeezed to half its width:
---            about 15 by 16 around a 10 font (the border is 128 by 16 at nameplate scale 1).
---   badge, round: Forever's own nameplate level badges (the c60 art first, then Retail's), the
---            rounded box its player level badge uses and the round one, which stays round.
--- (The border from the `forever` UI source, Blizzard_NamePlateUnitFrame.lua, and its texture;
--- atlas names from wago.tools' UiTextureAtlasMember for 1.60.1.70790.)
+-- and their shadow falls right). Forever's own nameplate level badges (the c60 art first, then
+-- Retail's): the rounded box its player level badge uses, and the round one, which stays round.
+-- (The health bar's own level box, the end of the classic nameplate border, has no fill of its
+-- own, so it's not one of these.) (Atlas names from wago.tools' UiTextureAtlasMember for
+-- 1.60.1.70790.)
 local LEVEL_FRAMES = {
-    classic = { file = "Interface\\Tooltips\\Nameplate-Border", coords = { 105 / 256, 136 / 256, 0.5, 1 },
-        height = 1.6, wide = 0.97, pad = 0.45, nudge = { 0, 0.06 } },
     badge = { atlases = { "ui-hud-nameplates-levelindicator-rectangle-c60",
-        "ui-hud-nameplates-levelindicator-rectangle" }, height = 1.8, wide = 1.3, pad = 0.9,
+        "ui-hud-nameplates-levelindicator-rectangle" }, height = 2, wide = 1.3, pad = 1.2,
         nudge = { 0.06, 0.12 } },
     round = { atlases = { "ui-hud-nameplates-levelindicator-c60",
-        "ui-hud-nameplates-levelindicator" }, height = 1.8, wide = 1, pad = 0.6, round = true,
+        "ui-hud-nameplates-levelindicator" }, height = 2, wide = 1, pad = 0.9, round = true,
         nudge = { 0.06, 0.12 } },
 }
 
 -- Sets the badge's frame art; false when this client has none of it.
 local function setLevelArt(badge, frame)
-    if frame.file then
-        if badge.frameArt ~= frame then
-            badge.frame:SetTexture(frame.file)
-            badge.frame:SetTexCoord(unpack(frame.coords))
-        end
-    else
-        local atlas = findAtlas(frame)
-        if not atlas then
-            return false
-        end
-        if badge.frameArt ~= frame then
-            badge.frame:SetAtlas(atlas, false)
-            badge.frame:SetTexCoord(0, 1, 0, 1)
-        end
+    local atlas = findAtlas(frame)
+    if not atlas then
+        return false
     end
-    badge.frameArt = frame
+    if badge.frameArt ~= frame then
+        badge.frameArt = frame
+        badge.frame:SetAtlas(atlas, false)
+    end
     return true
 end
 
