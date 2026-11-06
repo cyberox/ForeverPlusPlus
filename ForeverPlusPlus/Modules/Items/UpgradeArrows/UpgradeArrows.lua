@@ -596,8 +596,22 @@ end
 
 -- Tooltips --------------------------------------------------------------------------------------
 
-local function round(number)
-    return floor(number + 0.5)
+-- A score as text: two decimals, without trailing zeros (4.6, 4.17, 5), since low level gear
+-- scores in single digits and rounding hid the difference.
+local function scoreText(number)
+    local text = format("%.2f", number):gsub("0+$", ""):gsub("%.$", "")
+    return text
+end
+
+-- The link of a worn item a tooltip shows (the character sheet's, or the Equipped one), or nil.
+local function wornLink(data)
+    local guid = ns.IsText(data.guid, true) and data.guid
+    if guid and Equipment.IsWornGUID(guid) and C_Item.GetItemLinkByGUID then
+        local ok, link = pcall(C_Item.GetItemLinkByGUID, guid)
+        return ok and ns.IsText(link, true) and link or nil
+    end
+    local link = ns.IsText(data.hyperlink, true) and data.hyperlink
+    return link and Equipment.IsWorn(link) and link or nil
 end
 
 -- The item a tooltip shows, by its full link (suffix and enchant included): the data's link, or
@@ -679,17 +693,17 @@ local function onTooltip(tooltip, data)
     if not (module.enabled and profile and (shown or module.db.scores)) then
         return
     end
-    local link = tooltipLink(data)
-    local result = evaluate(link)
-    if result == false and module.db.scores and link and Equipment.IsWorn(link) then
-        -- What you wear is no upgrade candidate, but its score is what others are measured by.
-        local info = ItemStats.Get(link)
+    -- What you wear is no upgrade candidate, but its score is what others are measured by.
+    local worn = module.db.scores and wornLink(data)
+    if worn then
+        local info = ItemStats.Get(worn)
         if info then
             ItemTooltip.AddInfo(tooltip, L.UPGRADEARROWS_SCORE_LINE,
-                format(L.UPGRADEARROWS_SCORE_WORN, round(scoreOf(info))), "right", "gray")
+                format(L.UPGRADEARROWS_SCORE_WORN, scoreText(scoreOf(info))), "right", "gray")
         end
         return
     end
+    local result = evaluate(tooltipLink(data))
     if not result then
         return
     end
@@ -712,9 +726,9 @@ local function onTooltip(tooltip, data)
     end
     local text
     if result.rival > 0 then
-        text = format(L.UPGRADEARROWS_SCORE_VALUE, round(result.score), round(result.rival))
+        text = format(L.UPGRADEARROWS_SCORE_VALUE, scoreText(result.score), scoreText(result.rival))
     else
-        text = format(L.UPGRADEARROWS_SCORE_NONE, round(result.score))
+        text = format(L.UPGRADEARROWS_SCORE_NONE, scoreText(result.score))
     end
     ItemTooltip.AddInfo(tooltip, L.UPGRADEARROWS_SCORE_LINE, text, "right", "gray")
 end

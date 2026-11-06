@@ -398,9 +398,9 @@ L.UPGRADEARROWS_AUCTION_DESC = "Mark upgrades in the auction house's search resu
     .. "random suffix is judged without the suffix's stats there."
 L.UPGRADEARROWS_PERCENT = "%+.0f%%" -- the upgrade, such as +12%
 L.UPGRADEARROWS_SCORE_LINE = "Score"
-L.UPGRADEARROWS_SCORE_VALUE = "%d (worn %d)" -- the item's score, the score of what it would replace
-L.UPGRADEARROWS_SCORE_NONE = "%d (nothing worn)"
-L.UPGRADEARROWS_SCORE_WORN = "%d (worn)" -- the score of an item you're wearing
+L.UPGRADEARROWS_SCORE_VALUE = "%s (worn %s)" -- the item's score, the score of what it would replace (4.6)
+L.UPGRADEARROWS_SCORE_NONE = "%s (nothing worn)"
+L.UPGRADEARROWS_SCORE_WORN = "%s (worn)" -- the score of an item you're wearing
 L.UPGRADEARROWS_OTHER_ADDON = "The UpgradeArrow addon is on too, so upgrades get two arrows."
 L.UPGRADEARROWS_OTHER_ADDON_DESC = "Turn one of the two off to see one arrow on each upgrade."
 L.UPGRADEARROWS_COMMAND = "open the Stat Weights page, with a weight slider per stat for any class and tree"

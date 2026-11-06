@@ -22,7 +22,8 @@ ns.changelog = {
                     .. "of it; now only another red line in the tooltip, like an armor type you can't "
                     .. "wear, does." },
                 { L.UPGRADEARROWS_TITLE, "With Show Scores on, gear you wear shows its own score "
-                    .. "too, in its tooltip and the Equipped one." },
+                    .. "too, in its tooltip and the Equipped one, and scores show up to two decimals "
+                    .. "instead of whole numbers." },
             } },
         },
     },
