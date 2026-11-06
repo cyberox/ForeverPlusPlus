@@ -10,15 +10,16 @@ local L = ns.L
 
 ns.changelog = {
     {
-        version = L.CHANGELOG_UNRELEASED,
+        version = "1.0.2",
+        date = "2026-11-05",
         sections = {
             { L.CHANGELOG_ADDED, {
-                { L.DRUIDMANABAR_TITLE, "A new module for druids: your mana under the energy or "
-                    .. "rage bar on the player frame while in Cat or Bear Form, or in every form "
-                    .. "with Show in Every Form, in a lighter blue. On by default." },
-                { L.TOOLTIPS_TITLE, "Friends List colors a friend's tooltip in the friends list: "
-                    .. "their character's name and class by class, the level by difficulty, and "
-                    .. "the side red or blue. On by default." },
+                { L.DRUIDMANABAR_TITLE, "A new module for druids: your mana in a light blue bar "
+                    .. "on the player frame, under your energy or rage, while in Cat or Bear Form. "
+                    .. "Show in Every Form keeps it there in caster form too. On by default." },
+                { L.TOOLTIPS_TITLE, "Friends List colors friends' tooltips in the friends list: "
+                    .. "name and class by class, level by difficulty, and side red or blue. On by "
+                    .. "default." },
             } },
         },
     },

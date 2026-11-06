@@ -2,12 +2,12 @@
 
 What changed in each release of Forever++. The same notes show in game under Settings > AddOns > Forever++ > Changelog, from [`ForeverPlusPlus/Changelog.lua`](ForeverPlusPlus/Changelog.lua); change both together.
 
-## Unreleased
+## 1.0.2 (2026-11-05)
 
 ### Added
 
-- **Druid Mana Bar**: a new module for druids: your mana under the energy or rage bar on the player frame while in Cat or Bear Form, or in every form with Show in Every Form, in a lighter blue. On by default.
-- **Tooltips**: Friends List colors a friend's tooltip in the friends list: their character's name and class by class, the level by difficulty, and the side red or blue. On by default.
+- **Druid Mana Bar**: a new module for druids: your mana in a light blue bar on the player frame, under your energy or rage, while in Cat or Bear Form. Show in Every Form keeps it there in caster form too. On by default.
+- **Tooltips**: Friends List colors friends' tooltips in the friends list: name and class by class, level by difficulty, and side red or blue. On by default.
 
 ## 1.0.1 (2026-11-05)
 
