@@ -6,14 +6,14 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 ### Added
 
-- **Console Variables**: a Popular group: 40 console variables players look for, under plain names with what their values do, such as Max Camera Distance past the Options' 2.0, Screen Glow, and Nameplate Range.
+- **Console Variables**: a Popular group: the console variables players look for, under plain names with what their values do, such as Max Camera Distance past the Options' 2.0, Screen Glow, and Nameplate Range.
 - **Console Variables**: a star on each console variable keeps it in a new Favorites group, for your account.
 - **Console Variables**: when the game takes a value as something else (past its range), chat says what it kept and its box flashes red.
 
 ### Changed
 
 - **Console Variables**: a note at the top says 0 is usually off and 1 on, and a CVar's tooltip says when it may take other values.
-- **Console Variables**: opens on All, ready to search, instead of Changed.
+- **Console Variables**: opens on Favorites once you've starred some, else Popular, instead of Changed, and a search looks through All.
 
 ## 1.0.2 (2026-11-05)
 

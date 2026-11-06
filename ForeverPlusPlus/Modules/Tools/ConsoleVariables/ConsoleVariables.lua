@@ -557,8 +557,15 @@ function module:BuildPage(frame)
     -- In the title row at the top right. No Defaults button here: it resets Forever++'s settings,
     -- not console variables, so on this page it reads as the wrong thing.
     ui.search = ns.SettingsKit.AddSearchBox(frame, nil, L.CONSOLEVARIABLES_SEARCH, function(text)
+        -- A new search looks through everything, not only the group the page opened on; the
+        -- other groups' counts still say what they'd show.
+        local starting = search == "" and text ~= ""
         search = text
-        refresh()
+        if starting and selected ~= "all" then
+            choose("all")
+        else
+            refresh()
+        end
     end)
     if ui.search then
         ui.search:SetText(search)
@@ -599,9 +606,12 @@ function module:BuildPage(frame)
     view:SetElementInitializer("Frame", initRow)
     ScrollUtil.InitScrollBoxListWithScrollBar(scrollBox, split.scrollBar, view)
 
-    -- Opens on All: most come here looking for one CVar to search for. Popular, Favorites, and
-    -- Changed are a click away.
-    selected = selected or "all"
+    -- Opens on Favorites once the player has starred something, else on Popular (All on a client
+    -- with none of Popular's CVars). Starting a search moves to All (see the search box).
+    if not selected then
+        selected = next(module.db.favorites) and "favorites" or (popularCount > 0 and "popular")
+            or "all"
+    end
 
     -- The listener stops by itself when the module turns off, and its queued refresh with it.
     self:HookScript(frame, "OnShow", function()
