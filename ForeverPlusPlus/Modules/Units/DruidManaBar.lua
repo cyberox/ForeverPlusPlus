@@ -22,6 +22,7 @@ local L = ns.L
 local module = ns.NewModule("DruidManaBar", L.DRUIDMANABAR_DESC, {
     enabled = true,
     everyForm = false, -- caster, Travel, and Aquatic Form too, where the frame's own bar is mana
+    formColor = true, -- a lighter blue while in Cat or Bear Form
 })
 module.title = L.DRUIDMANABAR_TITLE
 module.category = "units"
@@ -29,6 +30,7 @@ module.added = "1.0.2"
 
 module.options = {
     { key = "everyForm", name = L.DRUIDMANABAR_EVERY_FORM, description = L.DRUIDMANABAR_EVERY_FORM_DESC },
+    { key = "formColor", name = L.DRUIDMANABAR_FORM_COLOR, description = L.DRUIDMANABAR_FORM_COLOR_DESC },
 }
 
 -- Your mana, which may be secret, and its max.
@@ -47,6 +49,13 @@ local FRAME_ART = { "ui-hud-unitframe-player-portraiton-classresource-c60",
     "UI-HUD-UnitFrame-Player-PortraitOn-ClassResource" }
 local FILL = { "ui-hud-unitframe-player-portraiton-bar-mana-c60", "UI-HUD-UnitFrame-Player-PortraitOn-Bar-Mana" }
 local MASK = "UI-HUD-UnitFrame-Player-PortraitOn-Bar-Mana-Mask"
+-- Form Color: the white fill Blizzard tints for a power without art of its own
+-- (PlayerFrameAlternatePowerBarBaseMixin:UpdateArt's Mana-Status), in a sky blue that reads as
+-- mana but stands apart from the frame's own dark blue mana bar in caster form.
+local TINTED = { "ui-hud-unitframe-player-portraiton-bar-mana-status-c60",
+    "UI-HUD-UnitFrame-Player-PortraitOn-Bar-Mana-Status" }
+local FORM_BLUE = { 0.3, 0.65, 1 }
+local fillAtlas, tintedAtlas -- this client's, found when the bar is made
 
 local bar, art -- ours, made the first time the module turns on
 local hovered = false -- the mouse is over our bar or the player frame: the text shows, as Blizzard's
@@ -63,7 +72,8 @@ local function playerFrame()
 end
 
 -- Whether the bar should show: a form without mana, on the player's own frame (not a vehicle's),
--- with no bar of Blizzard's in the slot. A value that can't be read counts as no.
+-- with no bar of Blizzard's in the slot. A value that can't be read counts as no. Then whether
+-- it's for a form without mana (else Show in Every Form has it up in caster form).
 local function wanted()
     local frame = playerFrame()
     if not (module.enabled and frame) or UNIT_FRAME_SHOW_HEALTH_ONLY then
@@ -77,7 +87,8 @@ local function wanted()
         return false
     end
     local power = UnitPowerType("player")
-    return module.db.everyForm or (ns.IsNumber(power) and power ~= Enum.PowerType.Mana)
+    local inForm = ns.IsNumber(power) and power ~= Enum.PowerType.Mana
+    return module.db.everyForm or inForm, inForm
 end
 
 -- The player's mana is secret on Forever even out of combat, while its max reads fine (`/dump`
@@ -174,16 +185,29 @@ end
 
 local onUpdate = ns.Profiler.Wrap(module, ns.Frames.Throttled(0.1, updatePower))
 
+-- Mana's own fill, or Form Color's lighter blue while in a form.
+local function updateFill(inForm)
+    local fill = bar:GetStatusBarTexture()
+    if inForm and module.db.formColor and tintedAtlas then
+        fill:SetAtlas(tintedAtlas)
+        bar:SetStatusBarColor(FORM_BLUE[1], FORM_BLUE[2], FORM_BLUE[3])
+    else
+        fill:SetAtlas(fillAtlas)
+        bar:SetStatusBarColor(1, 1, 1)
+    end
+end
+
 local function update()
     local _, container = playerFrame()
     if not bar then
         return
     end
-    local show = wanted()
+    local show, inForm = wanted()
     bar:SetShown(show)
     art:SetShown(show)
     container.FrameTexture:SetAlpha(show and 0 or 1)
     if show then
+        updateFill(inForm)
         updateAlive()
         updatePower()
     end
@@ -229,6 +253,7 @@ local function build()
     bar = CreateFrame("StatusBar", nil, main)
     bar:SetSize(124, 9)
     bar:SetPoint("TOPLEFT", main, "TOPLEFT", 87, -73)
+    fillAtlas, tintedAtlas = fillArt, ns.Frames.FirstAtlas(TINTED[1], TINTED[2])
     bar:SetStatusBarTexture(fillArt)
     local fill = bar:GetStatusBarTexture()
     fill:SetTexelSnappingBias(0)
