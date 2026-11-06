@@ -2,6 +2,12 @@
 
 What changed in each release of Forever++. The same notes show in game under Settings > AddOns > Forever++ > Changelog, from [`ForeverPlusPlus/Changelog.lua`](ForeverPlusPlus/Changelog.lua); change both together.
 
+## Unreleased
+
+### Added
+
+- **Tooltips**: Friends List colors a friend's tooltip in the friends list: their character's name and class by class, the level by difficulty, and the side red or blue. On by default.
+
 ## 1.0.1 (2026-11-05)
 
 ### Added

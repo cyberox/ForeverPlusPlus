@@ -8,8 +8,8 @@
 -- to read is left alone then, and colors that come back secret go straight to the setters.
 local _, ns = ...
 
-local type, setmetatable = type, setmetatable
-local find, sub, byte = string.find, string.sub, string.byte
+local _G, type, setmetatable = _G, type, setmetatable
+local find, sub, byte, format = string.find, string.sub, string.byte, string.format
 local Enum, C_Item = Enum, C_Item
 local UnitExists, UnitClass, UnitLevel, UnitName = UnitExists, UnitClass, UnitLevel, UnitName
 local UnitPVPName, UnitIsUnit, UnitReaction, UnitSelectionColor = UnitPVPName, UnitIsUnit, UnitReaction, UnitSelectionColor
@@ -33,6 +33,7 @@ local module = ns.NewModule("Tooltips", L.TOOLTIPS_DESC, {
     levelColor = true,
     classColor = true,
     factionColor = true,
+    friends = true,
     title = true,
     target = true,
     hideInCombat = false, -- hide unit tooltips while in combat
@@ -70,6 +71,8 @@ module.options = {
         section = L.TOOLTIPS_SECTION_TEXT },
     { key = "factionColor", name = L.TOOLTIPS_FACTION_COLOR,
         description = L.TOOLTIPS_FACTION_COLOR_DESC, section = L.TOOLTIPS_SECTION_TEXT },
+    { key = "friends", name = L.TOOLTIPS_FRIENDS, description = L.TOOLTIPS_FRIENDS_DESC,
+        section = L.TOOLTIPS_SECTION_TEXT, added = "1.0.2" },
     { key = "title", name = L.TOOLTIPS_PLAYER_TITLE, description = L.TOOLTIPS_PLAYER_TITLE_DESC,
         section = L.TOOLTIPS_SECTION_LINES },
     { key = "target", name = L.TOOLTIPS_TARGET, description = L.TOOLTIPS_TARGET_DESC,
@@ -388,6 +391,78 @@ local function onUnit(tooltip, data)
     end
 end
 
+-- Friends list tooltips ----------------------------------------------------------------------
+
+-- Forever's friends list is the Social window's (docs/forever-api.md), whose cards build a plain
+-- GameTooltip with no tooltip data: the account name, then for a WoW character its name, "Level 17
+-- Shaman", race, zone, and side (FriendsListSocialCardMixin:BuildTooltip, Gethe `forever` branch,
+-- checked 2026-11-05). So it's recolored after it shows, finding Blizzard's lines by the text it
+-- built from the card's own friend info. Battle.net friend info isn't secret.
+
+-- The friend info of the Social window card that owns the tooltip, or nil for any other owner.
+local function friendCardInfo(tooltip)
+    local mixin = _G.FriendsListSocialCardMixin
+    local owner = mixin and tooltip:GetOwner()
+    if not (owner and owner.BuildTooltip == mixin.BuildTooltip) then
+        return nil
+    end
+    local data = owner.elementData
+    local info = data and data.accountInfo
+    local game = info and info.gameAccountInfo
+    if game and game.isOnline and ns.IsText(game.characterName, true) and ns.IsText(game.className, true)
+        and ns.IsNumber(game.characterLevel) then
+        return game
+    end
+end
+
+-- The tooltip's line `i` and its text, when it's readable.
+local function shownLine(tooltip, i)
+    local line = leftLine(tooltip, i)
+    local text = line and line:GetText()
+    if ns.IsText(text) then
+        return line, text
+    end
+end
+
+local function onFriendTooltip(tooltip)
+    local db = module.db
+    local game = db.friends and friendCardInfo(tooltip)
+    if not (game and FRIENDS_LEVEL_TEMPLATE) then
+        return
+    end
+    local levelText = format(FRIENDS_LEVEL_TEMPLATE, game.characterLevel, game.className)
+    for i = 2, tooltip:NumLines() do
+        local line, text = shownLine(tooltip, i)
+        if text == levelText then
+            local class = ns.Colors.ClassToken(game.classFilename)
+                or ns.Colors.ClassToken(ns.Players.ClassToken(game.className))
+            local nameLine, nameText = shownLine(tooltip, i - 1)
+            if class and db.nameColor ~= "off" and nameText and find(nameText, game.characterName, 1, true) then
+                nameLine:SetTextColor(class:GetRGB())
+            end
+            -- A level against the player's means something only in this game.
+            local color = db.levelColor and game.wowProjectID == WOW_PROJECT_ID and levelColor(game.characterLevel)
+            local levelPattern = "%f[%d]" .. game.characterLevel .. "%f[%D]"
+            if color then
+                text = colorMatch(text, levelPattern, color.r, color.g, color.b)
+            end
+            if class and db.classColor then
+                local r, g, b = class:GetRGB()
+                text = colorMatch(text, nil, r, g, b, game.className)
+            end
+            line:SetText(text)
+            -- Race and zone, then the side.
+            local sideLine, side = shownLine(tooltip, i + 3)
+            side = side and (side == FACTION_HORDE and "H" or side == FACTION_ALLIANCE and "A")
+            if side and db.factionColor then
+                local faction = ns.Colors.Faction(side)
+                sideLine:SetTextColor(faction.r, faction.g, faction.b)
+            end
+            return
+        end
+    end
+end
+
 -- Item tooltips ------------------------------------------------------------------------------
 
 local function onItem(tooltip, data)
@@ -429,6 +504,8 @@ end
 function module:OnEnable()
     self:TooltipPostCall(Enum.TooltipDataType.Unit, onUnit)
     self:TooltipPostCall(Enum.TooltipDataType.Item, onItem)
+    -- The friends list's tooltip has no tooltip data for a post call, so after it shows.
+    self:Hook(GameTooltip, "Show", onFriendTooltip)
     -- GameTooltip_SetDefaultAnchor is Blizzard's for every default-placed tooltip.
     self:Hook("GameTooltip_SetDefaultAnchor", onDefaultAnchor)
     self:HookScript(GameTooltip, "OnTooltipCleared", unfade)

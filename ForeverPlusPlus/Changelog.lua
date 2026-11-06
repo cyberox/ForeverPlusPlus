@@ -10,6 +10,16 @@ local L = ns.L
 
 ns.changelog = {
     {
+        version = L.CHANGELOG_UNRELEASED,
+        sections = {
+            { L.CHANGELOG_ADDED, {
+                { L.TOOLTIPS_TITLE, "Friends List colors a friend's tooltip in the friends list: "
+                    .. "their character's name and class by class, the level by difficulty, and "
+                    .. "the side red or blue. On by default." },
+            } },
+        },
+    },
+    {
         version = "1.0.1",
         date = "2026-11-05",
         sections = {
