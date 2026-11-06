@@ -17,7 +17,7 @@ On Windows: `"C:\Program Files (x86)\Lua\5.1\lua.exe" tests/run.lua`. CI runs `l
 | `run.lua` | The runner. It finds every file in `spec/`, runs them in name order, and prints a line per spec and the totals. |
 | `lib/env.lua` | A fresh copy of the addon for each spec: stubbed WoW globals, an `ns`, the enUS Core and Map strings, and the pure-logic `Lib/` files. |
 | `lib/harness.lua` | The checks: `eq`, `same`, `near`, `ok`, `raises`. |
-| `spec/*.lua` | One spec per area: a Lib file (`text`, `store`, `prices`, ...), Core's module lifecycle (`core`), the public API (`api`), and checks across the addon (`locales`, `release`). |
+| `spec/*.lua` | One spec per area: a Lib file (`text`, `store`, `prices`, `cvars`, `units`, ...), Core's module lifecycle (`core`), the public API (`api`), and checks across the addon (`locales`, `modules`, `release`). |
 
 ## A spec
 
@@ -47,4 +47,10 @@ What `T` holds:
 
 ## What to test
 
-Test pure logic: anything in `Lib/` with no frames, and Core's module lifecycle on the stub frames in `spec/core.lua`. Add a check when you change or add that logic, and a spec when you add a Lib file. Don't test frame or UI code; it needs the client. `locales` and `release` check the whole addon: every `L.KEY` the code uses is defined, and the TOC's version and both changelogs agree.
+Test pure logic: anything in `Lib/` with no frames, and Core's module lifecycle on the stub frames in `spec/core.lua`. Add a check when you change or add that logic, and a spec when you add a Lib file. Don't test frame or UI code; it needs the client.
+
+Three specs check the whole addon:
+
+- `locales`: every `L.KEY` the code uses is defined, and none twice.
+- `modules`: every file in the TOC loads offline, against a stand-in for any WoW global it reads. Every module's settings are well formed: a title, a category, and options with a name, a description, and a default that fits them. A dropdown's default must be one of its choices, and a slider's must be in its range. Every `requires`, `slider`, and `conflicts` must name an option the module has. When a file fails to load here, it's usually a new global the stand-in can't fake (a color, a string, a function whose answer the file uses at load). Stub that one in `spec/modules.lua`.
+- `release`: the TOC's version and both changelogs agree, and every file the TOC loads is there.
