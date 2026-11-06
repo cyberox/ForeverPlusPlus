@@ -13,9 +13,9 @@
 -- percentage under it; nothing is written onto Blizzard's frames.
 local _, ns = ...
 
-local _G, ipairs, pairs, type, wipe, tonumber = _G, ipairs, pairs, type, wipe, tonumber
+local _G, ipairs, pairs, type, wipe, tonumber, tostring = _G, ipairs, pairs, type, wipe, tonumber, tostring
 local format, floor, huge = string.format, math.floor, math.huge
-local C_Container, C_AddOns, C_Item, UnitClass = C_Container, C_AddOns, C_Item, UnitClass
+local C_Container, C_AddOns, C_Item, UnitClass, UnitLevel = C_Container, C_AddOns, C_Item, UnitClass, UnitLevel
 
 local L = ns.L
 local ItemButtons, ItemStats, Equipment, Talents = ns.ItemButtons, ns.ItemStats, ns.Equipment, ns.Talents
@@ -23,7 +23,6 @@ local ItemTooltip = ns.ItemTooltip
 
 local module = ns.NewModule("UpgradeArrows", L.UPGRADEARROWS_DESC, {
     enabled = false,
-    profile = "auto", -- "auto" (the tab with the most points), "1" to "3" (a tab), or "bear"
     threshold = 0, -- percent an item must beat what you wear by
     corner = "TOPLEFT", -- where the arrow sits on an icon (Blizzard's own UpgradeIcon's corner)
     downCorner = "TOPLEFT", -- where a downgrade's arrow sits
@@ -35,6 +34,7 @@ local module = ns.NewModule("UpgradeArrows", L.UPGRADEARROWS_DESC, {
     downgrades = true, -- a red arrow down on gear worse than what you wear
     higher = true, -- judge gear you're up to `ahead` levels too low for, to grow into
     ahead = 5,
+    later = "gray", -- gear you can't wear yet: a "gray" arrow, or the "same" as an upgrade's
     tools = true, -- leave profession tools (fishing poles, the Mining Pick) unmarked
     bags = true,
     reagentBag = true, -- leave the reagent bag unmarked: it holds profession tools, not gear to wear
@@ -44,13 +44,49 @@ local module = ns.NewModule("UpgradeArrows", L.UPGRADEARROWS_DESC, {
     quests = true,
     auction = true,
     weights = {}, -- data: profile key -> { stat -> weight }, what the player changed
+    -- data, per character: class -> the tree picked ("1" to "3", or "bear"); none is Auto (the
+    -- tab with the most points). By class too, so a choice can only count for the class it was
+    -- made for.
+    trees = {},
 })
 module.title = L.UPGRADEARROWS_TITLE
 module.pageTitle = L.UPGRADEARROWS_PAGE_TITLE
 module.category = "items"
 module.added = "1.0.0-beta.1"
+module.perCharacter = { trees = true }
 module.internal = {}
 local internal = module.internal
+
+-- Whether a tree choice fits a class: Auto, a tab, or Bear for a Druid only.
+local function fitsClass(class, choice)
+    if type(choice) ~= "string" then
+        return false
+    elseif choice == "bear" then
+        return class == "DRUID"
+    end
+    local index = tonumber(choice)
+    return choice == "auto" or (index == 1 or index == 2 or index == 3) and choice == tostring(index)
+end
+
+-- Up to 1.0.2 the tree choice was one setting for the whole account (`profile`), so every alt was
+-- judged by the last character's pick. It's each character's own now: the first character to log
+-- in keeps it, when it fits that character's class; the others start at Auto.
+ns.MigrateCharacter(5, function(char, db)
+    local saved = db.settings and db.settings.UpgradeArrows
+    local choice = saved and saved.profile
+    if saved then
+        saved.profile = nil
+    end
+    local class = internal.PlayerClass()
+    if type(choice) ~= "string" or choice == "auto" or not fitsClass(class, choice) then
+        return
+    end
+    char.data = type(char.data) == "table" and char.data or {}
+    local own = type(char.data.UpgradeArrows) == "table" and char.data.UpgradeArrows or {}
+    char.data.UpgradeArrows = own
+    own.trees = type(own.trees) == "table" and own.trees or {}
+    own.trees[class] = choice
+end)
 
 -- The corners the arrow can sit in, for both arrows.
 local CORNERS = {
@@ -60,7 +96,8 @@ local CORNERS = {
     { "BOTTOMRIGHT", L.UPGRADEARROWS_CORNER_BOTTOMRIGHT },
 }
 
--- The profile (Auto, a tab, or Bear) is picked on the module's own page (Page.lua), not here.
+-- The profile (Auto, a tab, or Bear) is picked on the module's own page (Page.lua), not here,
+-- and saved for each character.
 module.options = {
     {
         key = "threshold", name = L.UPGRADEARROWS_THRESHOLD, description = L.UPGRADEARROWS_THRESHOLD_DESC,
@@ -91,6 +128,14 @@ module.options = {
         key = "ahead", name = L.UPGRADEARROWS_AHEAD, description = L.UPGRADEARROWS_AHEAD_DESC,
         section = L.UPGRADEARROWS_SECTION_GENERAL, requires = "higher",
         min = 1, max = 20, step = 1, format = L.UPGRADEARROWS_AHEAD_FORMAT,
+    },
+    {
+        key = "later", name = L.UPGRADEARROWS_LATER, description = L.UPGRADEARROWS_LATER_DESC,
+        section = L.UPGRADEARROWS_SECTION_GENERAL, requires = "higher", added = "1.0.3",
+        choices = {
+            { "gray", L.UPGRADEARROWS_LATER_GRAY },
+            { "same", L.UPGRADEARROWS_LATER_SAME },
+        },
     },
     {
         key = "tools", name = L.UPGRADEARROWS_TOOLS, description = L.UPGRADEARROWS_TOOLS_DESC,
@@ -152,6 +197,7 @@ local DOWN_ATLAS = "UI-HUD-MicroMenu-StreamDLRed-Up"
 local TEXT_ARROW = 14 -- the arrows' size in a tooltip's name line, about the name's height
 local GREEN = { 0.1, 1, 0.1 } -- Blizzard's green font color
 local RED = { 1, 0.125, 0.125 } -- Blizzard's red font color, for downgrades
+local GRAY = { 0.5, 0.5, 0.5 } -- Blizzard's gray font color, for gear you can't wear yet
 local PI = math.pi
 
 -- The profile ---------------------------------------------------------------------------------
@@ -185,11 +231,19 @@ function internal.ResolveProfile(class, choice)
     return internal.Profile(class, 1), true
 end
 
--- Reads the profile the Profile option and the talents give. Guessed (the first tab) while
+---The character's tree choice: "auto", "1" to "3", or "bear" (a Druid's only).
+---@return string
+function internal.ProfileChoice()
+    local class = internal.PlayerClass()
+    local choice = module.db.trees[class]
+    return fitsClass(class, choice) and choice or "auto"
+end
+
+-- Reads the profile the tree choice and the talents give. Guessed (the first tab) while
 -- there's no talent data or no points spent, so it's read again when talents change.
 local function updateProfile()
     local guess
-    profile, guess = internal.ResolveProfile(internal.PlayerClass(), module.db.profile)
+    profile, guess = internal.ResolveProfile(internal.PlayerClass(), internal.ProfileChoice())
     profile.guess = guess
 end
 
@@ -253,7 +307,17 @@ local function compute(link)
     -- A downgrade is worse by more than the threshold too; nothing is a downgrade against an
     -- empty slot.
     local downgrade = not upgrade and percent ~= nil and percent < -threshold
-    return { upgrade = upgrade, downgrade = downgrade, percent = percent, score = score, rival = rival }
+    -- The level it's usable at, for gear judged ahead (Higher Level Gear) that the character
+    -- can't wear yet. Scores are forgotten at a level-up, so this never goes stale.
+    local level = UnitLevel("player")
+    local later = ns.IsNumber(level) and info.minLevel > level and info.minLevel or nil
+    return { upgrade = upgrade, downgrade = downgrade, percent = percent, score = score, rival = rival,
+        later = later }
+end
+
+-- Whether a result is gear for later that gets the gray arrow (Gear for Later).
+local function grayed(result)
+    return type(result) == "table" and result.upgrade and result.later and module.db.later == "gray"
 end
 
 -- An item's result, kept per link until something it depends on changes.
@@ -365,9 +429,10 @@ local function setArrow(set, key, result, size)
         return
     end
     -- A downgrade's arrow is the same art turned over and made red (desaturated first, since a
-    -- tint multiplies the green), in its own corner.
+    -- tint multiplies the green), in its own corner. Gear for later gets it desaturated, gray.
     local down = type(result) == "table" and not result.upgrade
-    local color = down and RED or GREEN
+    local gray = grayed(result)
+    local color = down and RED or gray and GRAY or GREEN
     local corner = down and module.db.downCorner or module.db.corner
     corner = TEXT_ANCHORS[corner] and corner or "TOPRIGHT"
     local arrow, text = mark.arrow, mark.text
@@ -377,7 +442,7 @@ local function setArrow(set, key, result, size)
     arrow:ClearAllPoints()
     arrow:SetPoint(corner, mark.icon, corner, anchor[3] * padding, -anchor[4] * padding)
     arrow:SetSize(size, size)
-    arrow:SetDesaturated(down)
+    arrow:SetDesaturated(down or gray and true or false)
     arrow:SetRotation(down and PI or 0)
     if down then
         arrow:SetVertexColor(color[1], color[2], color[3])
@@ -546,13 +611,15 @@ local function upgradeText(result)
         end
         return arrow .. format(L.UPGRADEARROWS_PERCENT, result.percent), RED
     end
+    -- Gear for later keeps the arrow (atlas markup can tint but not desaturate it) with its
+    -- percentage in gray.
     local text = hasArt and format("|A:%s:%d:%d|a", ATLAS, TEXT_ARROW, TEXT_ARROW) or ""
     if result.percent then
         text = text .. " " .. format(L.UPGRADEARROWS_PERCENT, result.percent)
     elseif text == "" then
         text = L.UPGRADEARROWS_EMPTY_SLOT
     end
-    return text, GREEN
+    return text, grayed(result) and GRAY or GREEN
 end
 
 -- Draws the name line again with the arrow and the percentage at its right, in green, and
@@ -583,11 +650,11 @@ local function onNameLine(tooltip, data, lineData)
     return true
 end
 
--- The Upgrade line (when the arrow goes on a line of its own) and the Score line, among our
--- other lines about the item.
+-- The Upgrade line (when the arrow goes on a line of its own), the level an upgrade for later is
+-- usable at, and the Score line, among our other lines about the item.
 local function onTooltip(tooltip, data)
-    local ownLine = module.db.tooltip == "line"
-    if not (module.enabled and profile and (ownLine or module.db.scores)) then
+    local ownLine, shown = module.db.tooltip == "line", module.db.tooltip ~= "off"
+    if not (module.enabled and profile and (shown or module.db.scores)) then
         return
     end
     local result = evaluate(tooltipLink(data))
@@ -597,6 +664,10 @@ local function onTooltip(tooltip, data)
     if ownLine and (result.upgrade or (result.downgrade and module.db.downgrades)) then
         local text, tint = upgradeText(result)
         ItemTooltip.AddInfo(tooltip, L.UPGRADEARROWS_LINE, text, "right", tint)
+    end
+    if shown and result.upgrade and result.later then
+        ItemTooltip.AddInfo(tooltip, L.UPGRADEARROWS_LATER_LINE, format(L.UPGRADEARROWS_LATER_LEVEL, result.later),
+            "right", "gray")
     end
     if not module.db.scores then
         return
@@ -654,8 +725,16 @@ local function onGearChanged()
     refreshSoon()
 end
 
--- Leveling and training only make gear usable that wasn't: only the "can't be an upgrade"
--- answers can change; a score against what you wear stays right.
+-- A level-up changes what a point of Strength, Agility, and Intellect gives (Weights.lua takes
+-- them from the client when it builds the profile), which gear is usable, and which is for
+-- later, so the profile is built again and every score forgotten. A moment after the event,
+-- since the client may still give the old level's rates during it.
+local onLevelUp = ns.Frames.Coalesce(function()
+    internal.WeightsChanged()
+end, 1, module)
+
+-- Training only makes gear usable that wasn't: only the "can't be an upgrade" answers can
+-- change; a score against what you wear stays right.
 local function onPlayerChanged()
     for link, result in pairs(results) do
         if result == false then
@@ -697,7 +776,7 @@ function module:OnEnable()
     ItemTooltip.OnInfo(onTooltip, self)
     self:On("GET_ITEM_INFO_RECEIVED", onItemInfo)
     self:On("PLAYER_EQUIPMENT_CHANGED", onGearChanged)
-    self:On("PLAYER_LEVEL_UP", onPlayerChanged)
+    self:On("PLAYER_LEVEL_UP", onLevelUp)
     self:On("SKILL_LINES_CHANGED", onPlayerChanged)
     self:On("PLAYER_ENTERING_WORLD", onTalentsChanged)
     for _, event in ipairs({ "TRAIT_CONFIG_UPDATED", "ACTIVE_TALENT_GROUP_CHANGED", "PLAYER_TALENT_UPDATE" }) do
@@ -722,7 +801,8 @@ function module:OnOptionChanged(key)
     if not self.enabled then
         return
     end
-    -- The profile isn't an option: it changes through internal.SetProfile.
+    -- The profile isn't an option: it changes through internal.SetProfile. Gear for Later only
+    -- changes how a mark looks.
     if key == "threshold" or key == "higher" or key == "ahead" or key == "tools" then
         forgetScores()
     end
@@ -738,10 +818,12 @@ function internal.WeightsChanged()
     end
 end
 
----Picks the profile ("auto", "1" to "3", or "bear"), from the weights page.
+---Picks the character's profile ("auto", "1" to "3", or "bear"), from the weights page. Auto,
+---or a choice that doesn't fit the class, saves nothing.
 ---@param value string
 function internal.SetProfile(value)
-    module.db.profile = value
+    local class = internal.PlayerClass()
+    module.db.trees[class] = value ~= "auto" and fitsClass(class, value) and value or nil
     internal.WeightsChanged()
 end
 

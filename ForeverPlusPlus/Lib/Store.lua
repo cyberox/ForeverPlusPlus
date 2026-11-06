@@ -2,7 +2,7 @@
 -- and the table each module reads its settings and data through (`module.db`).
 --
 --   ForeverPlusPlusDB = {
---       version = 4,            -- the layout, so each step below runs once
+--       version = 5,            -- the layout, so each step below runs once
 --       settings = { [module] = { [key] = value } },  -- only what the player changed
 --       data = { [module] = { [key] = table } },      -- what modules collect: prices, flight times
 --       unclaimed = { [module] = { [key] = table } }, -- per-character data from version 1, until
@@ -11,7 +11,7 @@
 --       seenVersion, seenModules, welcome, changelogByModule, selfTest, ...
 --                                                     -- the core's own
 --   }
---   ForeverPlusPlusCharDB = { version = 4, data = { [module] = { [key] = table } } }
+--   ForeverPlusPlusCharDB = { version = 5, data = { [module] = { [key] = table } } }
 --   ForeverPlusPlusPlayersDB: players seen, kept by Lib/Players.lua apart from all this
 --
 -- A module's settings are its scalar defaults. What the player sets is saved, even when it's the
@@ -27,7 +27,7 @@ local pairs, ipairs, type, next, setmetatable, sort = pairs, ipairs, type, next,
 local Store = {}
 ns.Store = Store
 
-Store.VERSION = 4
+Store.VERSION = 5
 
 -- `t[key]`, made a table first when it isn't one.
 local function child(t, key)

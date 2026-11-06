@@ -326,6 +326,13 @@ L.UPGRADEARROWS_HIGHER_DESC = "Also mark gear you're not high enough level to we
 L.UPGRADEARROWS_AHEAD = "Levels Ahead"
 L.UPGRADEARROWS_AHEAD_DESC = "How many levels above yours an item may need and still be marked."
 L.UPGRADEARROWS_AHEAD_FORMAT = "+%d" -- levels above the player's
+L.UPGRADEARROWS_LATER = "Gear for Later"
+L.UPGRADEARROWS_LATER_DESC = "How to mark an upgrade you're not high enough level to wear yet. Its "
+    .. "tooltip says the level it's usable at."
+L.UPGRADEARROWS_LATER_GRAY = "Gray Arrow"
+L.UPGRADEARROWS_LATER_SAME = "Same as Upgrades"
+L.UPGRADEARROWS_LATER_LINE = "Usable At" -- the tooltip line's label for an upgrade you can't wear yet
+L.UPGRADEARROWS_LATER_LEVEL = "Level %d" -- the level an upgrade for later is usable at
 L.UPGRADEARROWS_TOOLS = "Ignore Profession Tools"
 L.UPGRADEARROWS_TOOLS_DESC = "Leave fishing poles and tools like the Mining Pick, Blacksmith "
     .. "Hammer, and Skinning Knife unmarked, since you carry them for a profession, not to fight with."

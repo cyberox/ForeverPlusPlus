@@ -123,6 +123,10 @@ L.CURRENCYBAR_DESC = "Show your gold and the currencies you track in a small box
 L.CURRENCYBAR_HINT = "Track currencies by ticking Show on Backpack in the Currency tab."
 L.CURRENCYBAR_MONEY = "Gold"
 L.CURRENCYBAR_MONEY_DESC = "Show how much gold, silver, and copper you carry."
+L.CURRENCYBAR_PER_HOUR = "Gold per Hour"
+L.CURRENCYBAR_PER_HOUR_DESC = "Show beside your gold how much you've earned per hour this session, "
+    .. "in green, or lost, in red. It shows after the first minute."
+L.CURRENCYBAR_PER_HOUR_VALUE = "%s/h" -- a session's gold per hour, such as 3g 20s/h
 L.CURRENCYBAR_CURRENCIES = "Currencies"
 L.CURRENCYBAR_TOOLTIP = "Tooltip"
 L.CURRENCYBAR_TOOLTIP_DESC = "Show your gold and tracked currencies when you hover the box."

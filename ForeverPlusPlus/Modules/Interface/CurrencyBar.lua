@@ -4,7 +4,7 @@
 -- spent. Which currencies show is Blizzard's own choice, not ours. Move it in Edit Mode.
 local _, ns = ...
 
-local GetMoney, C_CurrencyInfo, GameTooltip = GetMoney, C_CurrencyInfo, GameTooltip
+local GetMoney, GetTime, C_CurrencyInfo, GameTooltip = GetMoney, GetTime, C_CurrencyInfo, GameTooltip
 local CreateFrame, UIParent = CreateFrame, UIParent
 local format, max, floor, abs, tconcat = string.format, math.max, math.floor, math.abs, table.concat
 
@@ -15,6 +15,7 @@ local number = ns.Text.Number
 local module = ns.NewModule("CurrencyBar", L.CURRENCYBAR_DESC, {
     enabled = false,
     money = true,
+    perHour = false, -- this session's gold per hour beside the gold
     currencies = false,
     tooltip = true,
     session = true,
@@ -29,6 +30,10 @@ module.category = "interface"
 -- What the box shows and how it's laid out, then its tooltip.
 module.options = {
     { key = "money", name = L.CURRENCYBAR_MONEY, description = L.CURRENCYBAR_MONEY_DESC },
+    {
+        key = "perHour", requires = "money", added = "1.0.3",
+        name = L.CURRENCYBAR_PER_HOUR, description = L.CURRENCYBAR_PER_HOUR_DESC,
+    },
     { key = "currencies", name = L.CURRENCYBAR_CURRENCIES, description = L.CURRENCYBAR_CURRENCIES_DESC },
     { key = "vertical", name = L.CURRENCYBAR_VERTICAL, description = L.CURRENCYBAR_VERTICAL_DESC },
     { key = "tooltip", name = L.CURRENCYBAR_TOOLTIP, description = L.CURRENCYBAR_TOOLTIP_DESC },
@@ -46,13 +51,27 @@ local MAX_CURRENCIES = 10 -- far more than the Backpack's three, in case Forever
 local frame
 
 -- Gold, silver, and copper as Blizzard draws them, but every coin always: 0 gold still shows.
-local function coins(amount)
+-- `short` leaves out the coins at 0 instead, for a rate beside the gold.
+local function coins(amount, short)
     local gold = floor(amount / 10000)
     local silver = floor(amount / 100) % 100
     local copper = amount % 100
     local icon = "|TInterface/MoneyFrame/UI-%sIcon:" .. ICON .. ":" .. ICON .. ":2:0|t"
-    return number(gold) .. format(icon, "Gold")
-        .. " " .. silver .. format(icon, "Silver") .. " " .. copper .. format(icon, "Copper")
+    if not short then
+        return number(gold) .. format(icon, "Gold")
+            .. " " .. silver .. format(icon, "Silver") .. " " .. copper .. format(icon, "Copper")
+    end
+    local list = {}
+    if gold > 0 then
+        list[#list + 1] = number(gold) .. format(icon, "Gold")
+    end
+    if silver > 0 then
+        list[#list + 1] = silver .. format(icon, "Silver")
+    end
+    if copper > 0 or #list == 0 then
+        list[#list + 1] = copper .. format(icon, "Copper")
+    end
+    return tconcat(list, " ")
 end
 
 local function backpackCurrency(index)
@@ -61,13 +80,65 @@ local function backpackCurrency(index)
         and C_CurrencyInfo.GetBackpackCurrencyInfo(index)
 end
 
+-- The session ----------------------------------------------------------------------------------
+
+-- What you had when the box turned on, and when, to say what this session gained or spent and
+-- at what rate. Not saved.
+local startMoney, startTime
+local startCurrency = {} -- currency ID -> amount first seen
+
+local RATE_AFTER = 60 -- seconds of the session before Gold per Hour shows, so a sale isn't a fortune
+local RATE_EVERY = 30 -- seconds between redraws of Gold per Hour, which drifts with no money event
+
+-- Remembers each Backpack currency the first time it is seen, so later changes count from there.
+local function noteCurrencies()
+    for index = 1, MAX_CURRENCIES do
+        local info = backpackCurrency(index)
+        if not info then
+            return
+        end
+        local id = info.currencyTypesID
+        if id and startCurrency[id] == nil then
+            startCurrency[id] = info.quantity or 0
+        end
+    end
+end
+
+-- "+12" in green or "-12" in red, or plain 0.
+local function signed(change, text)
+    if change > 0 then
+        return Colors.Code(0.1, 1, 0.1) .. "+" .. text .. "|r"
+    elseif change < 0 then
+        return Colors.Code(1, 0.2, 0.2) .. "-" .. text .. "|r"
+    end
+    return "0"
+end
+
+-- This session's gold per hour, "+3g 20s/h" in green or a loss in red, or nil in its first
+-- minute and while the gold hasn't changed. Rounded to the silver from a gold up, to stay short.
+local function perHour(money)
+    local elapsed = startTime and GetTime() - startTime
+    if not (elapsed and elapsed >= RATE_AFTER) then
+        return nil
+    end
+    local rate = abs(money - startMoney) * 3600 / elapsed
+    rate = rate >= 10000 and floor(rate / 100 + 0.5) * 100 or floor(rate + 0.5)
+    if rate == 0 then
+        return nil
+    end
+    return signed(money - startMoney, format(L.CURRENCYBAR_PER_HOUR_VALUE, coins(rate, true)))
+end
+
 -- The parts --------------------------------------------------------------------------------------
 
--- What to show, in order: the gold, then each Backpack currency as its icon and amount.
+-- What to show, in order: the gold (with its rate this session), then each Backpack currency as
+-- its icon and amount.
 local function parts()
     local list = {}
     if module.db.money then
-        list[#list + 1] = coins(GetMoney())
+        local money = GetMoney()
+        local rate = module.db.perHour and perHour(money)
+        list[#list + 1] = rate and coins(money) .. "  " .. rate or coins(money)
     end
     if module.db.currencies then
         for index = 1, MAX_CURRENCIES do
@@ -107,35 +178,7 @@ local function place()
     frame:SetPoint("CENTER", UIParent, "CENTER", module.db.x, module.db.y)
 end
 
--- The session ----------------------------------------------------------------------------------
-
--- What you had when the box turned on, to say what this session gained or spent. Not saved.
-local startMoney
-local startCurrency = {} -- currency ID -> amount first seen
-
--- Remembers each Backpack currency the first time it is seen, so later changes count from there.
-local function noteCurrencies()
-    for index = 1, MAX_CURRENCIES do
-        local info = backpackCurrency(index)
-        if not info then
-            return
-        end
-        local id = info.currencyTypesID
-        if id and startCurrency[id] == nil then
-            startCurrency[id] = info.quantity or 0
-        end
-    end
-end
-
--- "+12" in green or "-12" in red, or plain 0.
-local function signed(change, text)
-    if change > 0 then
-        return Colors.Code(0.1, 1, 0.1) .. "+" .. text .. "|r"
-    elseif change < 0 then
-        return Colors.Code(1, 0.2, 0.2) .. "-" .. text .. "|r"
-    end
-    return "0"
-end
+-- The tooltip ----------------------------------------------------------------------------------
 
 local function showTooltip(owner)
     GameTooltip:SetOwner(owner, "ANCHOR_TOP")
@@ -212,14 +255,37 @@ local function onCurrencies()
     update()
 end
 
+-- Redraws Gold per Hour every RATE_EVERY seconds while it shows, since time passing changes it.
+-- Core cancels it when the module turns off.
+local rateTimer = ns.Frames.Timer(module)
+
+local function rateTick()
+    update()
+    if module.db.money and module.db.perHour then
+        rateTimer:Start(RATE_EVERY, rateTick)
+    end
+end
+
+local function watchRate()
+    if module.db.money and module.db.perHour then
+        if not rateTimer:IsPending() then
+            rateTimer:Start(RATE_EVERY, rateTick)
+        end
+    else
+        rateTimer:Cancel()
+    end
+end
+
 function module:OnEnable()
     if not frame then
         frame = newFrame()
     end
     startMoney = startMoney or GetMoney()
+    startTime = startTime or GetTime()
     noteCurrencies()
     layout()
     frame:Show()
+    watchRate()
     self:On("PLAYER_MONEY", update)
     self:On("CURRENCY_DISPLAY_UPDATE", onCurrencies)
     self:On("PLAYER_ENTERING_WORLD", onCurrencies)
@@ -234,5 +300,8 @@ function module:OnDisable()
 end
 
 function module:OnOptionChanged()
+    if self.enabled then
+        watchRate()
+    end
     update()
 end

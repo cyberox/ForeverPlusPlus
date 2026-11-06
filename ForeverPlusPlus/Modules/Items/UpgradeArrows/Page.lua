@@ -1,8 +1,8 @@
 -- Upgrade Arrows' own page in Settings (`/fpp weights`): a Class dropdown and a Tree dropdown,
 -- then a slider row per stat of that profile under small headers, with its value and an undo
 -- arrow while it isn't the default. For the character's own class the Tree dropdown (Auto, each
--- talent tab, and Feral Bear for Druids) is also the module's Profile setting, what gear is
--- judged by; another class's trees can be edited ahead of playing it. Only the stats the profile
+-- talent tab, and Feral Bear for Druids) is also the character's own Profile choice, what gear
+-- is judged by; another class's trees can be edited ahead of playing it. Only the stats the profile
 -- weighs are listed unless Show All is ticked. Drawn with ns.SettingsKit so it looks like the
 -- Modules page, which uses the same slider and dropdown templates.
 local _, ns = ...
@@ -107,7 +107,7 @@ end
 -- what was picked here.
 local function treeValue(class)
     if class == playerClass() then
-        return module.db.profile
+        return internal.ProfileChoice()
     end
     return treeChoice[class] or "1"
 end
@@ -141,7 +141,7 @@ local function usedText(guess)
         return format(L.UPGRADEARROWS_PAGE_OTHER_CLASS, className(editingClass))
     end
     local name = profileName(editing)
-    if module.db.profile == "auto" then
+    if internal.ProfileChoice() == "auto" then
         local best = Talents.Dominant()
         if guess or not best then
             return format(L.UPGRADEARROWS_PAGE_USED_GUESS, name)
