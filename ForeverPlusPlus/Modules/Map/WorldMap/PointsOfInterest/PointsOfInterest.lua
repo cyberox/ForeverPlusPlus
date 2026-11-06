@@ -514,6 +514,19 @@ internal.refresh = function()
     layer:Refresh()
 end
 
+-- The player's casts, while ley lines are shown and the character is Skyborne, the only ones who
+-- can find them. Not `OnWhile`, which can't listen to one unit; this does the same from OnEnable
+-- and OnOptionChanged.
+local CASTER = { "player" }
+
+local function listenForLeyLines(self)
+    if self.db.leyLines ~= "off" and internal.ownKind(true) then
+        self:OnUnit("UNIT_SPELLCAST_SUCCEEDED", CASTER, internal.onCast)
+    else
+        self:Off("UNIT_SPELLCAST_SUCCEEDED", internal.onCast)
+    end
+end
+
 function module:OnEnable()
     layer = layer or ns.MapPins.New(fill)
     layer:Enable()
@@ -525,10 +538,7 @@ function module:OnEnable()
         internal.learnFlights()
     end)
     self:On("TAXIMAP_CLOSED", function() layer:Refresh() end)
-    -- Only Skyborne can find ley lines.
-    if internal.ownKind(true) then
-        self:On("UNIT_SPELLCAST_SUCCEEDED", internal.onCast)
-    end
+    listenForLeyLines(self)
 end
 
 function module:OnDisable()
@@ -537,6 +547,9 @@ function module:OnDisable()
 end
 
 function module:OnOptionChanged(key)
+    if key == "leyLines" then
+        listenForLeyLines(self)
+    end
     if key:find("^capital") or key:find("^dungeon") or key:find("^raid") then
         ns.MapPins.RefreshMap() -- ours and Blizzard's, both redrawn
     else

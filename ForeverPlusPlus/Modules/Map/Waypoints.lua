@@ -5,14 +5,15 @@
 -- by clicking the map, or with Follow Selected Quest, for the quest selected on the map, or with
 -- Point to Corpse, for the player's corpse while they're a ghost. It reads only the player's own
 -- position and facing, never another unit's. Clear Pin on Arrival takes the pin away once the
--- arrow says the player has reached it.
+-- arrow says the player has reached it. Text after /way's coordinates is the pin's note, shown
+-- under the arrow, and /way share puts the pin's link in the chat box.
 local _, ns = ...
 
-local ipairs, tonumber, format, floor = ipairs, tonumber, string.format, math.floor
+local ipairs, tonumber, format, floor, abs = ipairs, tonumber, string.format, math.floor, math.abs
 local tconcat = table.concat
 local CreateFrame, UIParent, C_Map, C_QuestLog = CreateFrame, UIParent, C_Map, C_QuestLog
 local GetPlayerFacing, GetTime, UnitIsGhost = GetPlayerFacing, GetTime, UnitIsGhost
-local C_DeathInfo = C_DeathInfo
+local C_DeathInfo, C_Timer = C_DeathInfo, C_Timer
 
 local L = ns.L
 local WorldMap = ns.WorldMap
@@ -24,7 +25,7 @@ local module = ns.NewModule("Waypoints", L.WAYPOINTS_DESC, {
     quest = true,
     questName = true,
     corpse = true,
-    clearOnArrival = false,
+    clearOnArrival = true,
     scale = 100, -- percent
     x = 0, -- the arrow's offset from the center of the screen
     y = 340, -- near the top, clear of a windowed game's title bar
@@ -52,7 +53,8 @@ module.options = {
     { key = "corpse", name = L.WAYPOINTS_CORPSE, description = L.WAYPOINTS_CORPSE_DESC,
         requires = "arrow", added = "0.9.0" },
     { key = "clearOnArrival", name = L.WAYPOINTS_CLEAR_ON_ARRIVAL,
-        description = L.WAYPOINTS_CLEAR_ON_ARRIVAL_DESC, requires = "arrow", added = "0.9.0" },
+        description = L.WAYPOINTS_CLEAR_ON_ARRIVAL_DESC, requires = "arrow", added = "0.9.0",
+        changed = "1.0.3" }, -- on by default
 }
 
 -- /way ----------------------------------------------------------------------------------------
@@ -61,16 +63,68 @@ local function mapName(mapID)
     return WorldMap.MapName(mapID, "#" .. mapID)
 end
 
--- The words typed, with commas as spaces so "45.2, 67.8" reads like "45.2 67.8".
+-- The words typed, with commas as spaces so "45.2, 67.8" reads like "45.2 67.8", and where each
+-- ends in `text`, so the note after the coordinates keeps its own commas.
 local function words(text)
-    local list = {}
-    for word in text:gsub(",", " "):gmatch("%S+") do
+    local list, ends = {}, {}
+    for word, last in text:gsub(",", " "):gmatch("(%S+)()") do
         list[#list + 1] = word
+        ends[#ends + 1] = last
     end
-    return list
+    return list, ends
 end
 
 local CLEAR = { clear = true, reset = true, off = true, remove = true }
+
+-- The note typed after /way's coordinates, and the pin it was typed for: { mapID, x, y, text }.
+-- Blizzard's pin has no label, so the note is ours, shown with the arrow while that pin stays.
+local note
+
+-- How far apart (0 to 1) the pin and the note's spot may be and still be the same pin, for the
+-- rounding the game's pin may do.
+local SAME_PIN = 0.0001
+
+-- The note of this map pin, or nil when it isn't the pin the note was typed for.
+local function noteOf(pin)
+    if not (note and pin and pin.uiMapID == note[1] and pin.position) then
+        return nil
+    end
+    local x, y = pin.position.x, pin.position.y
+    if ns.IsNumber(x) and ns.IsNumber(y) and abs(x - note[2]) < SAME_PIN
+        and abs(y - note[3]) < SAME_PIN then
+        return note[4]
+    end
+    return nil
+end
+
+-- Blizzard's link for the map pin, put in the chat edit box the way a shift-click on the pin does
+-- (WaypointLocationPinMixin, wow-ui-source `forever`), or the box opened with it when none is.
+-- After a frame: the box /way was typed in closes once the command returns. Unverified on Forever.
+local function share()
+    if not C_Map.GetUserWaypointHyperlink then
+        ns.Print(L.WAYPOINTS_SHARE_UNAVAILABLE)
+        return
+    end
+    local link = not (C_Map.HasUserWaypoint and not C_Map.HasUserWaypoint())
+        and C_Map.GetUserWaypointHyperlink()
+    if not link or link == "" then
+        ns.Print(L.WAYPOINTS_SHARE_NONE)
+        return
+    end
+    C_Timer.After(0, function()
+        local util = ChatFrameUtil
+        local insert = util and util.InsertLink or ChatEdit_InsertLink
+        if insert and insert(link) then
+            return
+        end
+        local open = util and util.OpenChat or ChatFrame_OpenChat
+        if open then
+            open(link)
+        else
+            ns.Print(L.WAYPOINTS_SHARE_UNAVAILABLE)
+        end
+    end)
+end
 
 local function way(message)
     if not (module.enabled and module.db.way) then
@@ -80,13 +134,19 @@ local function way(message)
         ns.Print(L.WAYPOINTS_UNAVAILABLE)
         return
     end
-    local list = words(message or "")
+    message = message or ""
+    local list, ends = words(message)
     if #list == 1 and CLEAR[list[1]:lower()] then
+        note = nil
         C_Map.ClearUserWaypoint()
         ns.Print(L.WAYPOINTS_CLEARED)
         return
     end
-    -- [zone] x y [anything else, ignored: Blizzard's pin has no label]
+    if #list == 1 and list[1]:lower() == "share" then
+        share()
+        return
+    end
+    -- [zone] x y [note]
     local at
     for i = 1, #list - 1 do
         if tonumber(list[i]) and tonumber(list[i + 1]) then
@@ -118,11 +178,20 @@ local function way(message)
             return
         end
     end
+    -- Set before the pin, whose USER_WAYPOINT_UPDATED redraws the arrow with it.
+    local text = message:sub(ends[at + 1]):match("^[%s,]*(.-)%s*$")
+    local previous = note
+    note = text ~= "" and { mapID, x / 100, y / 100, text } or nil
     if not WorldMap.SetWaypoint(mapID, x / 100, y / 100) then
+        note = previous
         ns.Print(format(L.WAYPOINTS_NOT_HERE, mapName(mapID)))
         return
     end
-    ns.Print(format(L.WAYPOINTS_SET, mapName(mapID), x, y))
+    if note then
+        ns.Print(format(L.WAYPOINTS_SET_NOTE, text, mapName(mapID), x, y))
+    else
+        ns.Print(format(L.WAYPOINTS_SET, mapName(mapID), x, y))
+    end
 end
 
 local WAY_KEY, WAY_SLASH = "FOREVERPLUSPLUS_WAY", "/way"
@@ -137,7 +206,7 @@ end
 
 -- Where the waypoint is ----------------------------------------------------------------------
 
-local ARRIVED = 5 -- yards; closer than this the arrow goes away
+local ARRIVED = 10 -- yards; closer than this the arrow goes away. 5 was easy to ride past.
 local QUEST_INTERVAL = 1 -- seconds between looking up where the selected quest is
 
 local continentType = Enum and Enum.UIMapType and Enum.UIMapType.Continent or 2
@@ -202,11 +271,11 @@ end
 -- arrow, and the map pin once each time it changes (refresh).
 local cachedQuest, cachedPoint, cachedTitle, checkedAt = nil, nil, nil, 0
 local cachedCorpse, corpseCheckedAt = nil, nil
-local cachedWaypoint, waypointRead = nil, false
+local cachedWaypoint, cachedNote, waypointRead = nil, nil, false
 
 -- What the arrow points at: the corpse while following it, then the selected quest when it has a
--- spot, otherwise the map pin. The second value is the line to show under the distance, if any,
--- and the third whether it's the map pin.
+-- spot, otherwise the map pin. The second value is the line to show under the distance, if any
+-- (the quest's name, or the pin's note from /way), and the third whether it's the map pin.
 local function destination()
     if followCorpse() then
         local now = GetTime()
@@ -239,8 +308,9 @@ local function destination()
     if not waypointRead then
         waypointRead = true
         cachedWaypoint = C_Map.GetUserWaypoint and C_Map.GetUserWaypoint()
+        cachedNote = noteOf(cachedWaypoint)
     end
-    return cachedWaypoint, nil, cachedWaypoint ~= nil
+    return cachedWaypoint, cachedNote, cachedWaypoint ~= nil
 end
 
 -- The maps a point can be pointed at on, from its own up to its continent, each with the point's
@@ -362,6 +432,7 @@ local function update()
             headedToPin = true
         elseif headedToPin and module.db.clearOnArrival then
             headedToPin = false
+            note = nil
             C_Map.ClearUserWaypoint() -- USER_WAYPOINT_UPDATED refreshes the arrow
         end
     end
