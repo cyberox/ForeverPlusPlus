@@ -1172,6 +1172,52 @@ local function addNewOnly(frame, anchor)
     end)
 end
 
+-- While the Modules page is shown, the modules with a `cvar` option follow that CVar when it changes
+-- somewhere else (Blizzard's own panel, a console command), once however many change at a time.
+-- CVAR_UPDATE is heard only then; OnShow's refreshAll covers changes made while it was hidden.
+local function followCVars(frame)
+    if not ns.HasEvent("CVAR_UPDATE") then
+        return
+    end
+    local byCVar = {} -- lowercase CVar name -> { module name = true }
+    for _, name in ipairs(ns.order) do
+        for _, option in ipairs(ns.modules[name].options or {}) do
+            if option.cvar then
+                local cvar = strlower(option.cvar)
+                byCVar[cvar] = byCVar[cvar] or {}
+                byCVar[cvar][name] = true
+            end
+        end
+    end
+    if not next(byCVar) then
+        return
+    end
+    local changed = {}
+    local redraw = ns.Frames.Coalesce(function()
+        for name in pairs(changed) do
+            refreshModule(name)
+        end
+        wipe(changed)
+    end)
+    local function onCVar(_, cvar)
+        local names = type(cvar) == "string" and byCVar[strlower(cvar)]
+        if names then
+            for name in pairs(names) do
+                changed[name] = true
+            end
+            redraw()
+        end
+    end
+    local function listen()
+        ns.On("CVAR_UPDATE", onCVar)
+    end
+    listen() -- built from its first OnShow, so shown now
+    frame:HookScript("OnShow", listen)
+    frame:HookScript("OnHide", function()
+        ns.Off("CVAR_UPDATE", onCVar)
+    end)
+end
+
 local function buildModules(frame)
     Kit.AddPageTitle(frame, L.MODULES)
     page = newSplit(frame, LIST_WIDTH)
@@ -1211,6 +1257,7 @@ local function buildModules(frame)
     relayout()
     -- After /fpp or a preset changed things while the page was closed, and for notices.
     frame:HookScript("OnShow", refreshAll)
+    followCVars(frame)
 end
 
 -- Puts the version last seen back to the release before this one, so the Modules page marks what a

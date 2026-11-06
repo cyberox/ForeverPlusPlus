@@ -720,6 +720,10 @@ end
 
 local changeListeners = {} -- fn(name, key) for each module turned on or off, or option changed
 local started = false -- ns.Start has run: modules turning on at login aren't changes
+-- A `cvar` option set in combat waits for it to end to change the CVar (ns.CVars.Apply). Until
+-- then it reads what the player chose, and the module hears about it once the CVar has changed:
+-- module name -> option key -> true or false.
+local pendingCVars = {}
 
 ---Calls `fn(name, key)` after the player turns a module on or off (`key` nil) or changes one of
 ---its options (`key` the option's), from Settings, a command, or a preset; not for the modules
@@ -742,6 +746,10 @@ end
 -- while they're on (OnEnable reads them anyway), and a part's checkbox turns it on or off. A part
 -- that stays on while its dropdown moves between choices hears about that too.
 local function optionChanged(module, key)
+    local waiting = pendingCVars[module.name]
+    if waiting and waiting[key] ~= nil then
+        return -- told once the CVar changes, after combat
+    end
     if module.enabled and module.OnOptionChanged then
         call(module.OnOptionChanged, module, key) -- as a part's: one error mustn't stop a preset
     end
@@ -862,26 +870,57 @@ end
 -- Checkbox options with `cvar` are one of Blizzard's own settings shown among the module's: they
 -- read and set the CVar, not saved settings, and their default is the client's. Store.Load links
 -- them. Not on a client without the CVar, where the option reads its declared default.
+-- In combat the choice waits in pendingCVars; once the CVar is set after it, the module and the
+-- page hear about it, if it now reads differently from before the click or from the choice (the
+-- client refused it).
 local function cvarOptions(module)
     local linked
     local C_CVar = _G.C_CVar
     for _, option in ipairs(module.options or {}) do
-        local name = option.cvar
+        local name, key = option.cvar, option.key
         if name and C_CVar and C_CVar.GetCVar(name) ~= nil then
             local default = C_CVar.GetCVarDefault and C_CVar.GetCVarDefault(name)
             if default ~= nil then
-                module.defaults[option.key] = default == "1"
+                module.defaults[key] = default == "1"
             end
             linked = linked or {}
-            linked[option.key] = {
+            linked[key] = {
                 get = function()
+                    local waiting = pendingCVars[module.name]
+                    local value = waiting and waiting[key]
+                    if value ~= nil then
+                        return value
+                    end
                     return ns.CVars.IsOn(name)
                 end,
                 set = function(value)
                     if value == nil then
-                        value = module.defaults[option.key]
+                        value = module.defaults[key]
                     end
-                    ns.CVars.Apply(name, value and "1" or "0")
+                    value = value and true or false
+                    if not InCombatLockdown() then
+                        ns.CVars.Apply(name, value and "1" or "0")
+                        return
+                    end
+                    local waiting = pendingCVars[module.name] or {}
+                    pendingCVars[module.name] = waiting
+                    local first = waiting[key] == nil
+                    waiting[key] = value
+                    if not first then
+                        return -- the change already waiting takes the latest choice
+                    end
+                    local was = ns.CVars.IsOn(name)
+                    ns.AfterCombat(function()
+                        local want = waiting[key]
+                        waiting[key] = nil
+                        ns.CVars.Apply(name, want and "1" or "0", function()
+                            local now = ns.CVars.IsOn(name)
+                            if now ~= was or now ~= want then
+                                optionChanged(module, key)
+                            end
+                            ns.RefreshSetting(module.name)
+                        end)
+                    end)
                 end,
             }
         end

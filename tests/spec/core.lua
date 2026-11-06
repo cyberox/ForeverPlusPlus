@@ -72,7 +72,21 @@ do
 
     securecallfunction = function(fn, ...) return fn(...) end -- errors fail the run
     hooksecurefunc = function() end
-    InCombatLockdown = function() return false end
+    local inCombat = false
+    InCombatLockdown = function() return inCombat end
+    -- The client's CVars, for an option that is one of Blizzard's settings (`cvar`).
+    local cvars, refuse = { coords = "0" }, {}
+    C_CVar = {
+        GetCVar = function(name) return cvars[name] end,
+        GetCVarDefault = function() return "0" end,
+        SetCVar = function(name, value)
+            if refuse[name] then
+                return false
+            end
+            cvars[name] = value
+            return true
+        end,
+    }
     GetLocale = function() return "enUS" end
     C_AddOns = { GetAddOnMetadata = function() return "0.9.0" end }
     SlashCmdList = {}
@@ -92,12 +106,15 @@ do
     end
 
     local core = {}
-    for _, path in ipairs({ "Core", "Commands", "Locales/enUS/Core", "Lib/Store", "Lib/Frames", "Lib/Players" }) do
+    local files = { "Core", "Commands", "Locales/enUS/Core", "Lib/Store", "Lib/Frames", "Lib/Players",
+        "Lib/CVars" }
+    for _, path in ipairs(files) do
         T.load(path, core)
     end
     core.GameData = { Prune = function() end }
     core.Profiler = { recording = false, Wrap = function(_, fn) return fn end }
-    core.RefreshSetting = function() end -- Settings/Settings.lua's
+    local refreshed = {}
+    core.RefreshSetting = function(name) refreshed[#refreshed + 1] = name end -- Settings.lua's
     core.OpenSettings = function() return true end
     local Frames = core.Frames
 
@@ -135,6 +152,12 @@ do
     drop:OnWhile("where", { MAIL_SHOW = count("mail") })
     local dropTimer = Frames.Timer(drop)
     local side = host:NewPart({ key = "side", name = "Side", section = "S3", choices = WHERE })
+
+    -- A module with a checkbox that is one of Blizzard's settings.
+    local coords = core.NewModule("Coords", "test", { enabled = true, player = true })
+    coords.options = { { key = "player", name = "Player", cvar = "coords" } }
+    local coordsHeard = {}
+    coords.OnOptionChanged = function(_, key) coordsHeard[#coordsHeard + 1] = key end
 
     eq(host.defaults.extra, true, "lifecycle: a checkbox part defaults to on")
     eq(host.defaults.where, "bottom", "lifecycle: a dropdown part keeps its default")
@@ -291,4 +314,56 @@ do
     core.ApplyPreset({ "Plain" }, { Plain = { mode = "b" } })
     eq(saved.Plain and saved.Plain.mode, "b", "choices: and saves what it sets otherwise")
     core.ApplyPreset()
+
+    -- A `cvar` checkbox reads and sets the CVar; in combat it reads the choice until combat ends,
+    -- and the module, the API's listeners and the page hear about it then.
+    local told = {}
+    core.OnModuleChanged(function(name, key)
+        if name == "Coords" then told[#told + 1] = key end
+    end)
+    local function news() -- what the module and the listeners heard since last asked
+        local text = table.concat(coordsHeard, ",") .. "|" .. table.concat(told, ",")
+        coordsHeard, told = {}, {}
+        return text
+    end
+    eq(coords.defaults.player, false, "cvar: the default is the client's")
+    core.SetOption("Coords", "player", true)
+    eq(cvars.coords == "1" and coords.db.player == true, true, "cvar: out of combat it's set at once")
+    eq(news(), "player|player", "cvar: and the module hears it at once")
+    inCombat = true
+    core.SetOption("Coords", "player", false)
+    eq(cvars.coords, "1", "cvar: in combat the CVar waits")
+    eq(coords.db.player, false, "cvar: but the option reads the choice")
+    eq(news(), "|", "cvar: and nobody is told yet")
+    core.SetOption("Coords", "player", true)
+    core.SetOption("Coords", "player", false)
+    refreshed = {}
+    inCombat = false
+    fire("PLAYER_REGEN_ENABLED")
+    eq(cvars.coords == "0" and coords.db.player == false, true, "cvar: after combat it's the last choice")
+    eq(news(), "player|player", "cvar: told once, when it lands")
+    eq(table.concat(refreshed, ","), "Coords", "cvar: and the page redraws")
+    inCombat = true
+    core.SetOption("Coords", "player", true)
+    core.SetOption("Coords", "player", false)
+    inCombat = false
+    fire("PLAYER_REGEN_ENABLED")
+    eq(news(), "|", "cvar: a choice taken back in combat tells nobody")
+    inCombat = true
+    core.SetOption("Coords", "player", true)
+    core.ResetOption("Coords", "player")
+    eq(coords.db.player, false, "cvar: the undo arrow in combat reads the default")
+    core.SetOption("Coords", "player", true)
+    refuse.coords = true
+    inCombat = false
+    fire("PLAYER_REGEN_ENABLED")
+    eq(coords.db.player, false, "cvar: refused, it reads the CVar again")
+    eq(news(), "player|player", "cvar: and the module and page hear it, having shown the choice")
+    refuse.coords = nil
+    inCombat = true
+    core.ResetOption("Coords", "player")
+    eq(news(), "|", "cvar: a reset in combat waits too")
+    inCombat = false
+    fire("PLAYER_REGEN_ENABLED")
+    eq(news(), "|", "cvar: and tells nobody when nothing changed")
 end
