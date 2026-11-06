@@ -13,17 +13,6 @@ Forever++ isn't a UI replacement: no new unit frames, action bars, or skins. It 
 
 **[Watch the 80-second trailer](https://www.youtube.com/watch?v=D_k53X4MYo0)**
 
-## New in 1.1
-
-- **Console Variables**: a Popular group of the settings players look for, under plain names (max camera distance, screen glow, nameplate range), and a star to keep yours in Favorites.
-- **Nameplates**: put the level in a square or round badge, size the level and icons on their own, and hide the health bar even in combat.
-- **Compare Crafted Gear**: a recipe in your bags that makes gear compares it with what you wear.
-- **Gold and XP per Hour**: Currency Bar's tooltip shows your gold per hour, and XP Bar Text can show XP per hour and time to level on the bar.
-- **Waypoints**: add a note after the coordinates (`/way 45 67 Hogger`), and `/way share` sends your map pin to your group.
-- **Upgrade Arrows**: a gray arrow on upgrades you can't wear yet, and the talent tree you pick is saved for each character.
-
-Every change in this release is in the changelog, and in game under Forever++ > Changelog.
-
 ## Settings
 
 Open Game Menu > Options > AddOns > Forever++, or type `/fpp`. The Modules page lists every module by category with a checkbox each. Click one to see what it does and its options beside the list. A search box finds a module by its name, description, or options, and the New checkbox shows only what's new since you last looked. A setting you change stays changed, even if a later update changes its default; its undo arrow, or the Defaults button for everything, puts it back. When a module needs one of Blizzard's own settings on, its options say so with a Turn On button.
