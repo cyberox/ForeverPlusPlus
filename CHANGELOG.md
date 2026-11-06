@@ -18,7 +18,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 ### Fixed
 
-- **Movable Windows**: the Settings window moves too, and so do the currency window, the group finder, flight maps, chat channels and chat settings, guild ranks, quest details, and Help.
+- **Movable Windows**: the Settings window moves too, and so do the currency window, the group finder, flight maps, chat channels and chat settings, guild ranks, quest details, and Help, and the world map while it isn't maximized.
 - **Quest Nameplates**: on the left side, quest icons no longer overlap the gold dragon on elite and rare creatures' nameplates. They sit past it.
 
 ## 1.0.0 (2026-11-04)

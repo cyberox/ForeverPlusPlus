@@ -90,6 +90,16 @@ local NAMES = {
     -- channels and settings, the guild's rank settings, a quest's details, and Help.
     "TokenFrame", "LFGParentFrame", "TaxiFrame", "FlightMapFrame", "ChannelFrame",
     "ChatConfigFrame", "GuildControlUI", "QuestLogPopupDetailFrame", "HelpFrame",
+    -- The world map, only while it's the small window: Blizzard sizes and places it again each
+    -- time it's maximized or minimized (WorldMapMixin:Maximize, Minimize), and maximized it fills
+    -- the screen, so then it's left to Blizzard (see FULL_SCREEN).
+    "WorldMapFrame",
+}
+
+-- Windows that can fill the screen, by name: while one does, it isn't dragged or placed.
+-- IsMaximized only reads WorldMapMixin's own flag.
+local FULL_SCREEN = {
+    WorldMapFrame = function(frame) return frame.IsMaximized and frame:IsMaximized() end,
 }
 local MAX_BAGS = 13 -- ContainerFrame1 to 13: the backpack, bags, and bank bags
 for i = 1, MAX_BAGS do
@@ -114,7 +124,11 @@ local function positionOf(name)
 end
 
 local function canMove(frame)
-    return not (InCombatLockdown() and frame:IsProtected())
+    if InCombatLockdown() and frame:IsProtected() then
+        return false
+    end
+    local fullScreen = FULL_SCREEN[nameOf[frame]]
+    return not (fullScreen and fullScreen(frame))
 end
 
 -- Puts a window where the player left it, if they moved it.
