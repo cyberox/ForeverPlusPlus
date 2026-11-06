@@ -94,6 +94,14 @@ local NAMES = {
     -- time it's maximized or minimized (WorldMapMixin:Maximize, Minimize), and maximized it fills
     -- the screen, so then it's left to Blizzard (see FULL_SCREEN).
     "WorldMapFrame",
+    -- The Escape menu: a panel the panel manager doesn't anchor (centerFrameSkipAnchoring).
+    "GameMenuFrame",
+    -- The small zone map (Shift+M) hangs from its tab, which Blizzard drags only once it's
+    -- unlocked from the tab's menu (Blizzard_BattlefieldMap.lua); the rest is map canvas, which
+    -- keeps its clicks. So the tab is what moves, locked or not.
+    "BattlefieldMapTab",
+    -- Not the shop: CatalogShopFrame and StoreFrame load in Blizzard's secure environment
+    -- (UseSecureEnvironment), out of addons' reach.
 }
 
 -- Windows that can fill the screen, by name: while one does, it isn't dragged or placed.
