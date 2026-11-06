@@ -23,7 +23,8 @@ ns.changelog = {
                     .. "wear, does." },
                 { L.UPGRADEARROWS_TITLE, "With Show Scores on, gear you wear shows its own score "
                     .. "too, in its tooltip and the Equipped one, and scores show up to two decimals "
-                    .. "instead of whole numbers." },
+                    .. "instead of whole numbers. The tooltip's percentage shows one decimal "
+                    .. "(-9.3%)." },
             } },
         },
     },

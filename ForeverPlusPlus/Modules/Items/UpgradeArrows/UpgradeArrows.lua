@@ -645,13 +645,13 @@ local function upgradeText(result)
         elseif hasDownArt then
             arrow = format("|A:%s:%d:%d|a ", DOWN_ATLAS, TEXT_ARROW, TEXT_ARROW)
         end
-        return arrow .. format(L.UPGRADEARROWS_PERCENT, result.percent), RED
+        return arrow .. format(L.UPGRADEARROWS_PERCENT_TOOLTIP, result.percent), RED
     end
     -- Gear for later keeps the arrow (atlas markup can tint but not desaturate it) with its
     -- percentage in gray.
     local text = hasArt and format("|A:%s:%d:%d|a", ATLAS, TEXT_ARROW, TEXT_ARROW) or ""
     if result.percent then
-        text = text .. " " .. format(L.UPGRADEARROWS_PERCENT, result.percent)
+        text = text .. " " .. format(L.UPGRADEARROWS_PERCENT_TOOLTIP, result.percent)
     elseif text == "" then
         text = L.UPGRADEARROWS_EMPTY_SLOT
     end
