@@ -68,7 +68,8 @@ Modules\Units\PlayerNameplates.lua
 Modules\Units\NpcNameplates.lua
 Modules\Quests\QuestNameplates.lua
 Modules\Tools\Debug.lua
-Modules\Tools\ConsoleVariables.lua
+Modules\Tools\ConsoleVariables\ConsoleVariables.lua
+Modules\Tools\ConsoleVariables\Popular.lua
 Modules\Tools\SelfTest.lua
 Modules\Tools\GearProbe.lua
 Modules\Tools\Profiler.lua

@@ -237,3 +237,25 @@ end
 
 -- So a load that made no options can't pass by itself.
 eq(checked > 300 and linked > 20, true, ("modules: options checked (%d, %d linked)"):format(checked, linked))
+
+-- Console Variables' Popular list: each section has a header and items, each item a CVar name, a
+-- plain name, and help, and no CVar is listed twice (the page would count it once).
+local popular = ns.modules.ConsoleVariables and ns.modules.ConsoleVariables.internal.POPULAR
+local seen, items, popularProblems = {}, 0, {}
+for i, section in ipairs(popular or {}) do
+    if not text(section.header) or #section == 0 then
+        popularProblems[#popularProblems + 1] = ("section %d needs a header and items"):format(i)
+    end
+    for _, item in ipairs(section) do
+        items = items + 1
+        local name = item[1]
+        if not (type(name) == "string" and name:match("^[%w_]+$") and text(item[2]) and text(item[3])) then
+            popularProblems[#popularProblems + 1] = ("%s needs a CVar name, a name, and help"):format(tostring(name))
+        elseif seen[name:lower()] then
+            popularProblems[#popularProblems + 1] = name .. " is listed twice"
+        end
+        seen[type(name) == "string" and name:lower() or i] = true
+    end
+end
+eq(table.concat(popularProblems, "; "), "", "modules: Console Variables' Popular list")
+eq(items >= 30, true, ("modules: Popular has its CVars (%d)"):format(items))

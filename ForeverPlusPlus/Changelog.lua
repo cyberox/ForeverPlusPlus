@@ -12,6 +12,15 @@ ns.changelog = {
     {
         version = L.CHANGELOG_UNRELEASED,
         sections = {
+            { L.CHANGELOG_ADDED, {
+                { L.CONSOLEVARIABLES_TITLE, "A Popular group: 40 console variables players look for, "
+                    .. "under plain names with what their values do, such as Max Camera Distance "
+                    .. "past the Options' 2.0, Screen Glow, and Nameplate Range." },
+                { L.CONSOLEVARIABLES_TITLE, "A star on each console variable keeps it in a new "
+                    .. "Favorites group, for your account." },
+                { L.CONSOLEVARIABLES_TITLE, "When the game takes a value as something else (past "
+                    .. "its range), chat says what it kept and its box flashes red." },
+            } },
             { L.CHANGELOG_CHANGED, {
                 { L.CONSOLEVARIABLES_TITLE, "A note at the top says 0 is usually off and 1 on, and "
                     .. "a CVar's tooltip says when it may take other values." },

@@ -122,7 +122,7 @@ Everything is on by default except where noted. Each module can be turned off, a
 
 ### Tools
 
-- **Console Variables**: A page in Settings to browse and change the game's console variables (CVars). Off by default; off, the page and `/fpp cvar` are gone.
+- **Console Variables**: A page in Settings to browse and change the game's console variables (CVars), with a Popular group of 40 that players look for under plain names (camera distance, screen glow, nameplate range, and more), and a star to keep the ones you use in Favorites. Off by default; off, the page and `/fpp cvar` are gone.
 - **Debug**: Every module's debug options and the testing tools (Self Test, Gear Probe, Screenshots), in its own settings on the Modules page. Off by default; off, they're greyed out, those tools' commands are gone, and every debug option is back at its default.
 - **Profiler**: A page in Settings that records how much CPU each module takes, heaviest first, beside Forever++'s total CPU and memory. A module made of parts folds open to show what each part takes. Nothing is timed until you press Record. Off by default; off, the page and `/fpp profile` are gone and nothing is timed.
 
