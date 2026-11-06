@@ -17,13 +17,14 @@
 --   style.icons            true to show the group, friend, and recent ally icons
 --   style.ShowAllyIcon(unit)  whether this unit gets the recent ally icon (optional)
 --   style.classIcons       true to show the class icon where db.classIcon says ("off"/"before"/
---                          "after"): next to the name, inside the level and the other icons
+--                          "after"): next to the name, inside the level and the other icons, in
+--                          db.classIconStyle's look ("square"/"round"/"ring")
 --   style.Alpha(unit)      how opaque the name and what's beside it are, 0 to 1 (optional; 1)
 -- Labels are kept per Blizzard unit frame and shared by every module, since plates are pooled.
 local _, ns = ...
 
 local pairs, ipairs, setmetatable, unpack, floor = pairs, ipairs, setmetatable, unpack, math.floor
-local type, lower = type, string.lower
+local type, lower, format = type, string.lower, string.format
 local CreateFrame, UnitLevel, UnitClass = CreateFrame, UnitLevel, UnitClass
 local UnitGroupRolesAssigned, GetTexCoordsForRoleSmallCircle =
     UnitGroupRolesAssigned, GetTexCoordsForRoleSmallCircle
@@ -200,20 +201,36 @@ local function placeIcons(icons, anchor, left, fontSize, unit, style)
     return width
 end
 
--- The class icon: Blizzard's round class art, the same size as the other icons. Probe: atlas
--- names change between builds; the first this client has, or none.
-local classAtlases = {} -- class token -> atlas, or false without one
+-- The class icon, the same size as the other icons, in one of Blizzard's looks: the square class
+-- art, the round art of Retail's class portraits, or the group finder's icon in a ring (Forever's
+-- own -c60 one first). Each falls back to the others, since atlas names change between builds.
+-- (Names from wago.tools' UiTextureAtlasMember for 1.60.1.70790, all nine classes.)
+local CLASS_ATLASES = {
+    square = { "classicon-%s" },
+    round = { "ui-hud-unitframe-player-portrait-classicon-%s-2x" },
+    ring = { "groupfinder-icon-class-%s-c60", "groupfinder-icon-class-%s" },
+}
+local CLASS_FALLBACK = { "classicon-%s", "groupfinder-icon-class-%s" }
+local classAtlases = {} -- "style:TOKEN" -> atlas, or false without one
 
-local function classAtlas(unit)
+local function classAtlas(unit, look)
     local _, token = UnitClass(unit)
     if not (readable(token) and token) then
         return nil
     end
-    local atlas = classAtlases[token]
+    look = CLASS_ATLASES[look] and look or "square"
+    local key = look .. ":" .. token
+    local atlas = classAtlases[key]
     if atlas == nil then
         local name = lower(token)
-        atlas = ns.Frames.FirstAtlas("classicon-" .. name, "groupfinder-icon-class-" .. name) or false
-        classAtlases[token] = atlas
+        local names = {}
+        for _, list in ipairs({ CLASS_ATLASES[look], CLASS_FALLBACK }) do
+            for _, pattern in ipairs(list) do
+                names[#names + 1] = format(pattern, name)
+            end
+        end
+        atlas = ns.Frames.FirstAtlas(unpack(names)) or false
+        classAtlases[key] = atlas
     end
     return atlas or nil
 end
@@ -508,7 +525,7 @@ function PlateLabel.Layout(label, record, unit, style)
     local db = style.db
     local fontSize = label.nameSize or 12
     local classWhere = style.classIcons and db.classIcon or "off"
-    local atlas = classWhere ~= "off" and classAtlas(unit) or nil
+    local atlas = classWhere ~= "off" and classAtlas(unit, db.classIconStyle) or nil
     local classLeft = classWhere == "before"
     local where = db.level
     local levelLeft = where ~= "after"

@@ -16,6 +16,7 @@ local module = ns.NewModule("PlayerNameplates", L.PLAYERNAMEPLATES_DESC, ns.Frie
     dimOthers = true, -- players not in your group or guild, or your friends, a little faded
     dimAmount = 30, -- percent dimmer
     classIcon = "off", -- "off", "before", or "after" the name
+    classIconStyle = "square", -- "square", "round", or "ring"
     recentAllies = "icon", -- "off", "color" (light blue name), or "icon"
     guildNames = "always", -- "always", "hidden" (only without the bar), or "off"
     guildColor = "gray", -- "gray" or "green"
@@ -80,6 +81,16 @@ module.options = ns.FriendlyPlates.Options(L.PLAYERNAMEPLATES_BAR_WHEN_HURT_DESC
         -- Sharing a side with the level or the other icons is fine: the class icon sits next to
         -- the name and they move out past it (PlateLabel.Layout).
         section = L.PLAYERNAMEPLATES_SECTION_ICONS, added = "1.0.1",
+    },
+    {
+        key = "classIconStyle", name = L.PLAYERNAMEPLATES_CLASS_ICON_STYLE,
+        description = L.PLAYERNAMEPLATES_CLASS_ICON_STYLE_DESC,
+        choices = {
+            { "square", L.PLAYERNAMEPLATES_CLASS_ICON_SQUARE },
+            { "round", L.PLAYERNAMEPLATES_CLASS_ICON_ROUND },
+            { "ring", L.PLAYERNAMEPLATES_CLASS_ICON_RING },
+        },
+        requires = "classIcon", section = L.PLAYERNAMEPLATES_SECTION_ICONS, added = "1.0.1",
     },
     {
         key = "socialIcons", name = L.PLAYERNAMEPLATES_SOCIAL_ICONS, description = L.PLAYERNAMEPLATES_SOCIAL_ICONS_DESC,

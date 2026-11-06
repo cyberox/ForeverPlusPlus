@@ -9,7 +9,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Item Tooltips**: Auction Prices has a Hide on Junk option that leaves the auction price off gray (Poor) items. Off by default.
 - **Player Nameplates**: Dim Other Players fades the names of players who aren't in your group or guild, your friends, or recent allies (30% by default, with a slider), so NPCs stand out in a busy starting zone. Your target stays bright. On by default.
 - **Player Nameplates**: Lighter Rogue Yellow shows rogues in a pale yellow, so they don't look like neutral NPCs. Off by default.
-- **Player Nameplates**: Class Icon shows a player's class icon before or after their name. Off by default.
+- **Player Nameplates**: Class Icon shows a player's class icon before or after their name, as Blizzard's square class art, a round icon, or the group finder's ringed icon. Off by default.
 
 ### Changed
 
@@ -18,6 +18,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 ### Fixed
 
+- **Movable Windows**: the Settings window moves too, and so do the currency window, the group finder, flight maps, chat channels and chat settings, guild ranks, quest details, and Help.
 - **Quest Nameplates**: on the left side, quest icons no longer overlap the gold dragon on elite and rare creatures' nameplates. They sit past it.
 
 ## 1.0.0 (2026-11-04)

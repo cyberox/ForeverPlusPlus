@@ -1,5 +1,5 @@
 -- Movable Windows: hold the move key and drag one of Blizzard's windows (character, spellbook,
--- professions, friends, bags, and the rest below) to put it somewhere else. It stays there until
+-- professions, friends, bags, Settings, and the rest below) to put it somewhere else. It stays there until
 -- it closes, for the session, or for good, as the player picks. Ideas from BlizzMove and Leatrix
 -- Plus's frame dragging; none of their code.
 --
@@ -82,6 +82,14 @@ local NAMES = {
     "AuctionHouseFrame", "GossipFrame", "QuestFrame", "TradeFrame", "TabardFrame",
     "PetitionFrame", "GuildRegistrarFrame", "ItemTextFrame", "ItemSocketingFrame",
     "TimeManagerFrame", "CalendarFrame", "AddonList", "LootFrame", "ContainerFrameCombinedBags",
+    -- Not a UI panel (Blizzard_SettingsPanel.xml: centered once, movable, never placed again),
+    -- but players want it out of the way while they change settings.
+    "SettingsPanel",
+    -- More of Blizzard's panels that load on Forever (UIPanelWindows in the `forever` branch,
+    -- 1.60.1.70790): the currency window, the Classic-style group finder, flight maps, chat
+    -- channels and settings, the guild's rank settings, a quest's details, and Help.
+    "TokenFrame", "LFGParentFrame", "TaxiFrame", "FlightMapFrame", "ChannelFrame",
+    "ChatConfigFrame", "GuildControlUI", "QuestLogPopupDetailFrame", "HelpFrame",
 }
 local MAX_BAGS = 13 -- ContainerFrame1 to 13: the backpack, bags, and bank bags
 for i = 1, MAX_BAGS do

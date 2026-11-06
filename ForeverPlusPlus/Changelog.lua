@@ -22,7 +22,8 @@ ns.changelog = {
                 { L.PLAYERNAMEPLATES_TITLE, "Lighter Rogue Yellow shows rogues in a pale yellow, "
                     .. "so they don't look like neutral NPCs. Off by default." },
                 { L.PLAYERNAMEPLATES_TITLE, "Class Icon shows a player's class icon before or "
-                    .. "after their name. Off by default." },
+                    .. "after their name, as Blizzard's square class art, a round icon, or the "
+                    .. "group finder's ringed icon. Off by default." },
             } },
             { L.CHANGELOG_CHANGED, {
                 { L.CHANGELOG_SETTINGS, "When two options can't both work, a line under one says "
@@ -34,6 +35,9 @@ ns.changelog = {
                     .. "can't be redrawn right away without breaking its Social options." },
             } },
             { L.CHANGELOG_FIXED, {
+                { L.MOVABLEWINDOWS_TITLE, "The Settings window moves too, and so do the currency "
+                    .. "window, the group finder, flight maps, chat channels and chat settings, "
+                    .. "guild ranks, quest details, and Help." },
                 { L.QUESTNAMEPLATES_TITLE, "On the left side, quest icons no longer overlap the "
                     .. "gold dragon on elite and rare creatures' nameplates. They sit past it." },
             } },
