@@ -2,6 +2,12 @@
 
 What changed in each release of Forever++. The same notes show in game under Settings > AddOns > Forever++ > Changelog, from [`ForeverPlusPlus/Changelog.lua`](ForeverPlusPlus/Changelog.lua); change both together.
 
+## Unreleased
+
+### Changed
+
+- **Console Variables**: a note at the top says 0 is usually off and 1 on, and a CVar's tooltip says when it may take other values.
+
 ## 1.0.2 (2026-11-05)
 
 ### Added

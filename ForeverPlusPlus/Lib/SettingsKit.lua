@@ -18,6 +18,7 @@ local LIST_LEFT, LIST_ROW = 7, 20 -- a split page's list, and its rows
 ---Settings pages.
 ---@param frame table the page
 ---@param text string
+---@return table title the title's font string, for a note beside it
 function Kit.AddPageTitle(frame, text)
     local title = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightHuge")
     title:SetPoint("TOPLEFT", 7, -22)
@@ -25,6 +26,7 @@ function Kit.AddPageTitle(frame, text)
     local divider = frame:CreateTexture(nil, "ARTWORK")
     divider:SetAtlas("Options_HorizontalDivider", true)
     divider:SetPoint("TOP", 0, -50)
+    return title
 end
 
 ---A scrolling area for a drawn page. Probe: falls back to the older template if Mainline's (the

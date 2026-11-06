@@ -10,6 +10,15 @@ local L = ns.L
 
 ns.changelog = {
     {
+        version = L.CHANGELOG_UNRELEASED,
+        sections = {
+            { L.CHANGELOG_CHANGED, {
+                { L.CONSOLEVARIABLES_TITLE, "A note at the top says 0 is usually off and 1 on, and "
+                    .. "a CVar's tooltip says when it may take other values." },
+            } },
+        },
+    },
+    {
         version = "1.0.2",
         date = "2026-11-05",
         sections = {

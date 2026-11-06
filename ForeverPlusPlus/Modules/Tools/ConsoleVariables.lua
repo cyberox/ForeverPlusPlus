@@ -263,6 +263,11 @@ local function showTooltip(row)
     if default ~= nil then
         GameTooltip:AddLine(format(L.CONSOLEVARIABLES_DEFAULT_IS, default), unpack(ns.Colors.GRAY))
     end
+    -- The client doesn't say which CVars are on/off (no type in the command list or
+    -- GetCVarInfo), and any takes any value, so a box for all and this hint where it may help.
+    if value == "0" or value == "1" or default == "0" or default == "1" then
+        GameTooltip:AddLine(L.CONSOLEVARIABLES_ON_OFF_HINT, unpack(ns.Colors.GRAY))
+    end
     if flags.account then
         GameTooltip:AddLine(L.CONSOLEVARIABLES_ACCOUNT, unpack(ns.Colors.GRAY))
     elseif flags.character then
@@ -385,7 +390,7 @@ function module:BuildPage(frame)
     loadAll()
     ui = { groupRows = {} }
 
-    ns.SettingsKit.AddPageTitle(frame, module.title)
+    local title = ns.SettingsKit.AddPageTitle(frame, module.title)
     local split = ns.SettingsKit.NewSplit(frame, LIST_WIDTH, true)
 
     -- In the title row at the top right. No Defaults button here: it resets Forever++'s settings,
@@ -397,6 +402,17 @@ function module:BuildPage(frame)
     if ui.search then
         ui.search:SetText(search)
     end
+
+    -- Between the title and the search box: what a CVar's 0 and 1 usually mean, for players who
+    -- haven't set one before. Each CVar's tooltip says the rest.
+    local note = frame:CreateFontString(nil, "OVERLAY", "GameFontDisable")
+    note:SetPoint("LEFT", title, "RIGHT", 14, -1)
+    if ui.search then
+        note:SetPoint("RIGHT", ui.search, "LEFT", -14, 0)
+    end
+    note:SetJustifyH("LEFT")
+    note:SetWordWrap(false)
+    note:SetText(L.CONSOLEVARIABLES_ON_OFF)
 
     for _, group in ipairs(groups) do
         local row = newGroupRow(split.list, group)
