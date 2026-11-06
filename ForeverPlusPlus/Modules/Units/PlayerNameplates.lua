@@ -33,15 +33,17 @@ module.category = "units"
 
 -- Layout version 5: the icons had no size of their own and grew with Name Size. A player who set
 -- Name Size keeps their icons that size under the new Icon Size.
+-- Health Bar When Hurt (a checkbox) became Health Bar, with Never: off meant only in combat.
 ns.Migrate(5, function(db)
     local saved = db.settings and db.settings.PlayerNameplates
     if saved and saved.nameSize ~= nil and saved.iconSize == nil then
         saved.iconSize = saved.nameSize
     end
+    ns.FriendlyPlates.MigrateHealthBar(saved)
 end)
 
 -- General first, then the name, the guild line, and the icons beside the name.
-module.options = ns.FriendlyPlates.Options(L.PLAYERNAMEPLATES_BAR_WHEN_HURT_DESC, {
+module.options = ns.FriendlyPlates.Options(L.PLAYERNAMEPLATES_HEALTH_BAR_DESC, {
     {
         key = "nameColor", name = L.PLATES_NAME_COLOR, description = L.PLAYERNAMEPLATES_NAME_COLOR_DESC,
         choices = { { "class", L.PLAYERNAMEPLATES_NAME_COLOR_CLASS }, { "white", L.PLATES_COLOR_WHITE } },

@@ -48,6 +48,12 @@ ns.changelog = {
                 { L.NPCNAMEPLATES_TITLE, "Level Frame puts the level in one of Forever's nameplate "
                     .. "level badges, square or round, and Level Size sets how big it is. Off by "
                     .. "default." },
+                { L.PLAYERNAMEPLATES_TITLE, "Health Bar When Hurt is now Health Bar, with Never to "
+                    .. "hide the bar even in combat, beside When Hurt or in Combat and Only in Combat. "
+                    .. "Your choice carries over." },
+                { L.NPCNAMEPLATES_TITLE, "Health Bar When Hurt is now Health Bar, with Never to hide "
+                    .. "the bar even in combat, beside When Hurt or in Combat and Only in Combat. Your "
+                    .. "choice carries over." },
                 { L.PLAYERNAMEPLATES_TITLE, "Icon Size sets how big the class, group, friend, and "
                     .. "recent ally icons are, apart from the name. If you changed Name Size, the "
                     .. "icons stay the size they were." },

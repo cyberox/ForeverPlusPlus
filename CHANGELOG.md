@@ -20,6 +20,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Waypoints**: `/way share` puts your map pin's link in the chat box, ready to send to your group.
 - **Chat Copy**: a Select All button, ready for Ctrl+C. The game doesn't let addons copy for you.
 - **Player Nameplates**, **NPC Nameplates**: Level Frame puts the level in one of Forever's nameplate level badges, square or round, and Level Size sets how big it is. Off by default.
+- **Player Nameplates**, **NPC Nameplates**: Health Bar When Hurt is now Health Bar, with Never to hide the bar even in combat, beside When Hurt or in Combat and Only in Combat. Your choice carries over.
 - **Player Nameplates**: Icon Size sets how big the class, group, friend, and recent ally icons are, apart from the name. If you changed Name Size, the icons stay the size they were.
 
 ### Changed

@@ -19,8 +19,13 @@ local module = ns.NewModule("NpcNameplates", L.NPCNAMEPLATES_DESC, ns.FriendlyPl
 module.title = L.NPCNAMEPLATES_TITLE
 module.category = "units"
 
+-- Health Bar When Hurt (a checkbox) became Health Bar, with Never: off meant only in combat.
+ns.Migrate(5, function(db)
+    ns.FriendlyPlates.MigrateHealthBar(db.settings and db.settings.NpcNameplates)
+end)
+
 -- Laid out like Player Nameplates: general, the name, then the title line, then summons.
-module.options = ns.FriendlyPlates.Options(L.NPCNAMEPLATES_BAR_WHEN_HURT_DESC, {
+module.options = ns.FriendlyPlates.Options(L.NPCNAMEPLATES_HEALTH_BAR_DESC, {
     {
         key = "nameColor", name = L.PLATES_NAME_COLOR, description = L.NPCNAMEPLATES_NAME_COLOR_DESC,
         choices = { { "green", L.PLATES_COLOR_GREEN }, { "white", L.PLATES_COLOR_WHITE } },

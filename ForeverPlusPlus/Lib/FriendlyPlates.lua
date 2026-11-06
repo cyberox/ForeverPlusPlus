@@ -15,8 +15,8 @@
 --
 -- New gives the module its OnEnable, OnDisable and OnOptionChanged (unless it has its own
 -- OnDisable or OnOptionChanged). The module's settings come from FriendlyPlates.Defaults: they
--- need barWhenHurt, level, buffs, nameSize, centerLine, and `saved = {}` for the CVars.
--- FriendlyPlates.Options puts the options for the first three at the top of the module's list.
+-- need healthBar, level, levelFrame, levelSize, buffs, nameSize, centerLine, and `saved = {}` for
+-- the CVars. FriendlyPlates.Options puts the General options at the top of the module's list.
 local _, ns = ...
 
 local pairs, ipairs, setmetatable, hooksecurefunc = pairs, ipairs, setmetatable, hooksecurefunc
@@ -258,7 +258,7 @@ end
 ---@return table defaults
 function FriendlyPlates.Defaults(extra)
     extra.enabled = true
-    extra.barWhenHurt = true
+    extra.healthBar = "hurt" -- when the bar shows: "hurt" (or in combat), "combat", or "never"
     extra.nameSize = 80 -- percent of Blizzard's name size
     extra.level = "before" -- "before", "after", or "off"
     extra.levelFrame = "none" -- what the level sits in: see PlateLabel.LEVEL_FRAME_CHOICES
@@ -269,15 +269,29 @@ function FriendlyPlates.Defaults(extra)
     return extra
 end
 
+---For a module's migration step: its saved Health Bar When Hurt checkbox (`barWhenHurt`, through
+---1.0.2) as the Health Bar setting it became. Off meant the bar showed only in combat.
+---@param saved table|nil the module's saved settings
+function FriendlyPlates.MigrateHealthBar(saved)
+    if saved and saved.barWhenHurt ~= nil and saved.healthBar == nil then
+        saved.healthBar = saved.barWhenHurt and "hurt" or "combat"
+    end
+end
+
 ---A module's options with the General ones for the settings in Defaults put first.
----@param barDescription string the Bar When Hurt description, which names the kind of unit
+---@param barDescription string the Health Bar description, which names the kind of unit
 ---@param options table the module's own options, after General
 ---@return table options
 function FriendlyPlates.Options(barDescription, options)
     local L = ns.L
     table.insert(options, 1, {
-        key = "barWhenHurt", name = L.PLATES_BAR_WHEN_HURT, description = barDescription,
-        section = L.PLATES_SECTION_GENERAL,
+        key = "healthBar", name = L.PLATES_HEALTH_BAR, description = barDescription,
+        choices = {
+            { "hurt", L.PLATES_HEALTH_BAR_HURT },
+            { "combat", L.PLATES_HEALTH_BAR_COMBAT },
+            { "never", L.PLATES_HEALTH_BAR_NEVER },
+        },
+        section = L.PLATES_SECTION_GENERAL, changed = "1.0.3",
     })
     table.insert(options, 2, {
         key = "level", name = L.PLATES_LEVEL, description = L.PLATES_LEVEL_DESC,
@@ -341,8 +355,8 @@ function Plates:Layout(unit)
     end
 end
 
--- Fades the bar (and Blizzard's level with it) in when the unit is hurt or in combat,
--- and our label in when it isn't.
+-- Fades the bar (and Blizzard's level with it) in when the unit is hurt or in combat (as the
+-- module's Health Bar setting says), and our label in when it isn't.
 function Plates:Fade(unit)
     local record = self.records[unit]
     if not record then
@@ -352,10 +366,13 @@ function Plates:Fade(unit)
     if not readable(inCombat) then
         inCombat = UnitAffectingCombat("player")
     end
+    local mode = self.module.db.healthBar
     local shown, hidden
-    if inCombat then
+    if mode == "never" then
+        shown, hidden = 0, 1
+    elseif inCombat then
         shown, hidden = 1, 0
-    elseif not self.module.db.barWhenHurt then
+    elseif mode ~= "hurt" then
         shown, hidden = 0, 1
     elseif not curve then
         shown, hidden = 1, 0
@@ -384,10 +401,13 @@ function Plates:PlaceBuffs(unit, inCombat)
         return
     end
     local db = self.module.db
+    local mode = db.healthBar
     local state
-    if inCombat or not curve and db.barWhenHurt then
+    if mode == "never" then
+        state = "name"
+    elseif inCombat or not curve and mode == "hurt" then
         state = "bar"
-    elseif not db.barWhenHurt then
+    elseif mode ~= "hurt" then
         state = "name"
     else
         local health, maxHealth = UnitHealth(unit), UnitHealthMax(unit)

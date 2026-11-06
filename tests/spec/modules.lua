@@ -259,3 +259,17 @@ for i, section in ipairs(popular or {}) do
 end
 eq(table.concat(popularProblems, "; "), "", "modules: Console Variables' Popular list")
 eq(items >= 30, true, ("modules: Popular has its CVars (%d)"):format(items))
+
+-- Friendly plates' Health Bar When Hurt checkbox (through 1.0.2) becomes the Health Bar dropdown.
+local migrate = ns.FriendlyPlates.MigrateHealthBar
+local on, off, chosen, none = { barWhenHurt = true }, { barWhenHurt = false },
+    { barWhenHurt = false, healthBar = "never" }, {}
+migrate(on)
+migrate(off)
+migrate(chosen)
+migrate(none)
+migrate(nil)
+eq(on.healthBar, "hurt", "modules: Health Bar When Hurt on stays When Hurt")
+eq(off.healthBar, "combat", "modules: Health Bar When Hurt off becomes Only in Combat")
+eq(chosen.healthBar, "never", "modules: a Health Bar already chosen is kept")
+eq(none.healthBar, nil, "modules: no saved checkbox leaves Health Bar at its default")
