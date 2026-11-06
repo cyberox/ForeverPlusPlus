@@ -809,7 +809,7 @@ local function goToOption(view, key)
 end
 
 -- Under an option, a gray row for each of its `conflicts` ({ key, when = fn(db), text }) while
--- `when` is true: it and the option `key` share something (both before the name). A button goes
+-- `when` is true: it and the option `key` can't both work as set. A button goes
 -- to that one, unless it's the row just above or below (`options` in the order they're drawn,
 -- with this one at `index`), where the line alone is enough.
 local function addConflictRows(view, module, options, index)

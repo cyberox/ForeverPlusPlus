@@ -13,7 +13,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 ### Changed
 
-- **Settings**: when two options put things in the same place, like Class Icon and Level both before the name, a line under the option says so, with a button that goes to the other one. Player Nameplates and NPC Nameplates say so for Buffs and Level on the same side, and Movable Windows when its Reset Key and Reset Click are the same as dragging, which can't reset.
+- **Settings**: when two options can't both work, a line under one says so, with a button that goes to the other. Movable Windows says so when its Reset Key and Reset Click are the same as dragging, which can't reset.
 - **Settings**: a module with a page of its own (Console Variables, Profiler, Upgrade Arrows) says on the Modules page that its page shows in the sidebar, or goes away, once you pick another page. Blizzard's sidebar can't be redrawn right away without breaking its Social options.
 
 ### Fixed

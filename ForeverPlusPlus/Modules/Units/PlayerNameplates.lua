@@ -77,23 +77,9 @@ module.options = ns.FriendlyPlates.Options(L.PLAYERNAMEPLATES_BAR_WHEN_HURT_DESC
             { "before", L.PLAYERNAMEPLATES_ICON_SIDE_BEFORE },
             { "after", L.PLAYERNAMEPLATES_ICON_SIDE_AFTER },
         },
+        -- Sharing a side with the level or the other icons is fine: the class icon sits next to
+        -- the name and they move out past it (PlateLabel.Layout).
         section = L.PLAYERNAMEPLATES_SECTION_ICONS, added = "1.0.1",
-        -- Sharing a side works (the class icon sits next to the name), but say so, with the way
-        -- to the other setting.
-        conflicts = {
-            {
-                key = "level",
-                when = function(db) return db.classIcon ~= "off" and db.level == db.classIcon end,
-                text = L.PLAYERNAMEPLATES_CLASS_ICON_WITH_LEVEL,
-            },
-            {
-                key = "iconSide",
-                when = function(db)
-                    return db.classIcon ~= "off" and db.socialIcons and db.iconSide == db.classIcon
-                end,
-                text = L.PLAYERNAMEPLATES_CLASS_ICON_WITH_ICONS,
-            },
-        },
     },
     {
         key = "socialIcons", name = L.PLAYERNAMEPLATES_SOCIAL_ICONS, description = L.PLAYERNAMEPLATES_SOCIAL_ICONS_DESC,
