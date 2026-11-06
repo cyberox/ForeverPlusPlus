@@ -13,6 +13,8 @@ ns.changelog = {
         version = L.CHANGELOG_UNRELEASED,
         sections = {
             { L.CHANGELOG_ADDED, {
+                { L.DRUIDMANABAR_TITLE, "A new module for druids: your mana under the energy or "
+                    .. "rage bar on the player frame while in Cat or Bear Form. On by default." },
                 { L.TOOLTIPS_TITLE, "Friends List colors a friend's tooltip in the friends list: "
                     .. "their character's name and class by class, the level by difficulty, and "
                     .. "the side red or blue. On by default." },

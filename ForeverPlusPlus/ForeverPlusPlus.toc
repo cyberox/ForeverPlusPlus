@@ -143,6 +143,7 @@ Modules\Chat\SocialButton.lua
 Modules\Chat\WhisperWindow\WhisperWindow.lua
 Modules\Chat\WhisperWindow\Window.lua
 Modules\Units\ClassColors.lua
+Modules\Units\DruidManaBar.lua
 Modules\Map\WorldMap\WorldMap.lua
 Modules\Map\WorldMap\Coordinates.lua
 Modules\Map\WorldMap\ZoneInfo\ZoneInfo.lua

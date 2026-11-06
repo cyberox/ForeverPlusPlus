@@ -7,6 +7,12 @@ if not L then
     return
 end
 
+-- DruidManaBar
+L.DRUIDMANABAR_TITLE = "Druid Mana Bar"
+L.DRUIDMANABAR_DESC = "Show your mana under the energy or rage bar on the player frame while in "
+    .. "Cat or Bear Form, in the frame's own slot for a third bar. Its text follows the game's "
+    .. "Status Text setting, like the other bars."
+
 -- ClassColors
 L.CLASSCOLORS_TITLE = "Class Colors"
 L.CLASSCOLORS_DESC = "Show players' health bars and names in their class color on the player, "
