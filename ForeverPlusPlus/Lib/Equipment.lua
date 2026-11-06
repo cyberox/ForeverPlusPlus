@@ -184,6 +184,10 @@ end
 
 -- The client's own answer: the item it would show under "Equipped" and the others it cycles
 -- through, or, for a two-hander, the pair it would replace. Nil when the client doesn't answer.
+-- For a one-hander or an off hand against a worn two-hander, the client pairs it with a hand
+-- item from the bags (WithBagMainHandItem, WithBagOffHandItem): then `additionalItems` are those
+-- bag items, worn together with it, not rivals (Blizzard's TooltipComparisonManager, forever
+-- branch), and come back as the second value.
 local function clientRivals(link)
     local api = _G.C_TooltipComparison
     if not (api and api.GetItemComparisonInfo) then
@@ -205,6 +209,18 @@ local function clientRivals(link)
             pair[#pair + 1] = comparedLink(entry)
         end
         return { pair }
+    end
+    local methods = Enum and Enum.TooltipComparisonMethod
+    local bagMain = methods and methods.WithBagMainHandItem or 2
+    local bagOff = methods and methods.WithBagOffHandItem or 3
+    if method == bagMain or method == bagOff then
+        local partners = {}
+        for _, entry in ipairs(extra) do
+            local partner = type(entry) == "table" and ns.IsReadable(entry)
+                and (linkOf(entry.guid) or ns.IsText(entry.hyperlink, true) and entry.hyperlink) or nil
+            partners[#partners + 1] = partner
+        end
+        return { { first } }, partners
     end
     local alternatives = { { first } }
     for _, entry in ipairs(extra) do
@@ -259,13 +275,19 @@ end
 
 ---The worn items an item would replace, as alternatives (lists of links whose scores add up; an
 ---empty list is an empty slot). From the client's own comparison when it answers, else the rules.
+---Second, for a hand item against a worn two-hander, the bag items the client would wear with it
+---in the other hand (any one of them), or nil.
 ---@param link string
 ---@param invType string the item's INVTYPE_*
 ---@return table alternatives
+---@return string[]? partners
 function Equipment.Rivals(link, invType)
-    local alternatives = clientRivals(link)
+    local alternatives, partners = clientRivals(link)
     if not alternatives then
         return Equipment.RuleRivals(invType, Equipment.Worn)
+    end
+    if partners then
+        return alternatives, partners
     end
     -- An empty slot the item could take (the second ring, a free off hand) beats any rival; the
     -- client compares with what's worn, so offer it too.

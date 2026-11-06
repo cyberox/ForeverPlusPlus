@@ -10,6 +10,17 @@ local L = ns.L
 
 ns.changelog = {
     {
+        version = L.CHANGELOG_UNRELEASED,
+        sections = {
+            { L.CHANGELOG_FIXED, {
+                { L.UPGRADEARROWS_TITLE, "With a two-hander on, a one-hander or off hand is judged "
+                    .. "together with the best hand item in your bags for the other hand, as the "
+                    .. "game's own comparison pairs them, instead of against that bag item (a "
+                    .. "cutlass showed +1898%). The tooltip says which item it was paired with." },
+            } },
+        },
+    },
+    {
         version = "1.1.0",
         date = "2026-11-06",
         sections = {

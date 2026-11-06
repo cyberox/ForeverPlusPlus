@@ -333,6 +333,8 @@ L.UPGRADEARROWS_LATER_GRAY = "Gray Arrow"
 L.UPGRADEARROWS_LATER_SAME = "Same as Upgrades"
 L.UPGRADEARROWS_LATER_LINE = "Usable At" -- the tooltip line's label for an upgrade you can't wear yet
 L.UPGRADEARROWS_LATER_LEVEL = "Level %d" -- the level an upgrade for later is usable at
+-- the tooltip line's label for the bag item a hand item is judged with, against a worn two-hander
+L.UPGRADEARROWS_PAIRED_LINE = "Paired With"
 L.UPGRADEARROWS_TOOLS = "Ignore Profession Tools"
 L.UPGRADEARROWS_TOOLS_DESC = "Leave fishing poles and tools like the Mining Pick, Blacksmith "
     .. "Hammer, and Skinning Knife unmarked, since you carry them for a profession, not to fight with."

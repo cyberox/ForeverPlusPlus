@@ -262,6 +262,10 @@ local waiting = {} -- itemID -> true while the game has no data for it yet
 local Profiler = ns.Profiler
 local PART_SCORE = Profiler.Part(module, L.UPGRADEARROWS_PART_SCORE)
 
+-- Hand items, whose score can depend on what's in the bags (a partner for the other hand).
+local HAND_SLOTS = { INVTYPE_WEAPON = true, INVTYPE_WEAPONMAINHAND = true, INVTYPE_WEAPONOFFHAND = true,
+    INVTYPE_SHIELD = true, INVTYPE_HOLDABLE = true }
+
 local function scoreOf(info)
     return ItemStats.Score(ItemStats.Slotted(info.stats, info.slot), profile.weights)
 end
@@ -284,8 +288,26 @@ local function compute(link)
         return false
     end
     local score = scoreOf(info)
+    local alternatives, partners = Equipment.Rivals(link, info.slot)
+    -- Against a worn two-hander, a one-hander or an off hand is judged with the best hand item in
+    -- your bags for the other hand, as the client's own comparison pairs them.
+    local partner, partnerScore
+    for _, partnerLink in ipairs(partners or {}) do
+        local partnerInfo, partnerID = ItemStats.Get(partnerLink)
+        if not partnerInfo then
+            if partnerID then
+                waiting[partnerID] = true
+            end
+            return nil
+        end
+        local value = scoreOf(partnerInfo)
+        if not partnerScore or value > partnerScore then
+            partner, partnerScore = partnerLink, value
+        end
+    end
+    score = score + (partnerScore or 0)
     local rival
-    for _, alternative in ipairs(Equipment.Rivals(link, info.slot)) do
+    for _, alternative in ipairs(alternatives) do
         local sum = 0
         for _, wornLink in ipairs(alternative) do
             local wornInfo, wornID = ItemStats.Get(wornLink)
@@ -312,7 +334,7 @@ local function compute(link)
     local level = UnitLevel("player")
     local later = ns.IsNumber(level) and info.minLevel > level and info.minLevel or nil
     return { upgrade = upgrade, downgrade = downgrade, percent = percent, score = score, rival = rival,
-        later = later }
+        later = later, partner = partner, hand = HAND_SLOTS[info.slot] }
 end
 
 -- Whether a result is gear for later that gets the gray arrow (Gear for Later).
@@ -665,6 +687,12 @@ local function onTooltip(tooltip, data)
         local text, tint = upgradeText(result)
         ItemTooltip.AddInfo(tooltip, L.UPGRADEARROWS_LINE, text, "right", tint)
     end
+    -- The bag item it was judged with, by name, so the percentage makes sense.
+    local partnerName = result.partner and result.partner:match("%[(.-)%]")
+    local marked = result.upgrade or (result.downgrade and module.db.downgrades)
+    if partnerName and (module.db.scores or shown and marked) then
+        ItemTooltip.AddInfo(tooltip, L.UPGRADEARROWS_PAIRED_LINE, partnerName, "right", "gray")
+    end
     if shown and result.upgrade and result.later then
         ItemTooltip.AddInfo(tooltip, L.UPGRADEARROWS_LATER_LINE, format(L.UPGRADEARROWS_LATER_LEVEL, result.later),
             "right", "gray")
@@ -725,6 +753,25 @@ local function onGearChanged()
     refreshSoon()
 end
 
+-- While a two-hander is worn, a hand item is judged with a partner from the bags, so the bags
+-- changing can change its score: those are forgotten (only those).
+local function onBagsChanged()
+    if Equipment.WornType(16) ~= "INVTYPE_2HWEAPON" then
+        return
+    end
+    local any = false
+    for link, result in pairs(results) do
+        if type(result) == "table" and result.hand then
+            results[link] = nil
+            any = true
+        end
+    end
+    if any then
+        ns.Providers.Changed("upgrades")
+        refreshSoon()
+    end
+end
+
 -- A level-up changes what a point of Strength, Agility, and Intellect gives (Weights.lua takes
 -- them from the client when it builds the profile), which gear is usable, and which is for
 -- later, so the profile is built again and every score forgotten. A moment after the event,
@@ -776,6 +823,7 @@ function module:OnEnable()
     ItemTooltip.OnInfo(onTooltip, self)
     self:On("GET_ITEM_INFO_RECEIVED", onItemInfo)
     self:On("PLAYER_EQUIPMENT_CHANGED", onGearChanged)
+    self:On("BAG_UPDATE_DELAYED", onBagsChanged)
     self:On("PLAYER_LEVEL_UP", onLevelUp)
     self:On("SKILL_LINES_CHANGED", onPlayerChanged)
     self:On("PLAYER_ENTERING_WORLD", onTalentsChanged)
