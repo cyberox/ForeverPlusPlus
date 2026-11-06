@@ -18,7 +18,9 @@
 --   style.ShowAllyIcon(unit)  whether this unit gets the recent ally icon (optional)
 --   style.classIcons       true to show the class icon where db.classIcon says ("off"/"before"/
 --                          "after"): next to the name, inside the level and the other icons, in
---                          db.classIconStyle's look ("square"/"round"/"ring")
+--                          db.classIconStyle's look ("ring"/"round"/"square"), and past the
+--                          level instead when it's on the same side and db.classIconOrder is
+--                          "outside"
 --   style.Alpha(unit)      how opaque the name and what's beside it are, 0 to 1 (optional; 1)
 -- Labels are kept per Blizzard unit frame and shared by every module, since plates are pooled.
 local _, ns = ...
@@ -235,9 +237,20 @@ local function classAtlas(unit, look)
     return atlas or nil
 end
 
--- Shows the class icon beside `anchor` (left of it when `left`), or hides it without an atlas;
--- returns the width it takes.
-local function placeClass(icon, anchor, left, size, atlas)
+-- A class icon texture on `parent`, with the round mask the "round" look cuts it with: that atlas
+-- is drawn square, and Blizzard's portraits mask it themselves.
+local function newClassIcon(parent)
+    local icon = parent:CreateTexture(nil, "OVERLAY")
+    icon.mask = parent:CreateMaskTexture()
+    icon.mask:SetTexture(ROUND_MASK, "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+    icon.mask:SetAllPoints(icon)
+    icon:Hide()
+    return icon
+end
+
+-- Shows the class icon beside `anchor` (left of it when `left`), cut round when `round`, or hides
+-- it without an atlas; returns the width it takes.
+local function placeClass(icon, anchor, left, size, atlas, round)
     icon:ClearAllPoints()
     if not atlas then
         icon:Hide()
@@ -246,6 +259,13 @@ local function placeClass(icon, anchor, left, size, atlas)
     if icon.atlas ~= atlas then
         icon.atlas = atlas
         icon:SetAtlas(atlas, false)
+    end
+    if round and not icon.masked then
+        icon:AddMaskTexture(icon.mask)
+        icon.masked = true
+    elseif not round and icon.masked then
+        icon:RemoveMaskTexture(icon.mask)
+        icon.masked = false
     end
     icon:SetSize(size, size)
     if left then
@@ -300,10 +320,8 @@ local function createLabel(frame)
     -- One set of icons for each view: beside our name, and beside our bar-view name.
     label.icons = createIcons(label)
     label.barIcons = createIcons(label.barFrame)
-    label.classIcon = label:CreateTexture(nil, "OVERLAY")
-    label.classIcon:Hide()
-    label.barClassIcon = label.barFrame:CreateTexture(nil, "OVERLAY")
-    label.barClassIcon:Hide()
+    label.classIcon = newClassIcon(label)
+    label.barClassIcon = newClassIcon(label.barFrame)
     return label
 end
 
@@ -422,12 +440,12 @@ local function matchFont(label, name, scale)
 end
 
 -- Puts the level beside `anchor` (the name, or the class icon on its side); returns the width it
--- takes.
+-- takes (0 when it can't be read) and whether it shows.
 local function placeLevel(label, record, unit, where, anchor)
     local badge = label.level
     if not record.levelFrame or where == "off" then
         badge:Hide()
-        return 0
+        return 0, false
     end
     copyBadge(label, record.levelFrame)
     local level = UnitLevel(unit)
@@ -450,7 +468,7 @@ local function placeLevel(label, record, unit, where, anchor)
         badge:SetPoint("RIGHT", anchor, "LEFT", -GAP, 0)
     end
     badge:Show()
-    return width
+    return width, true
 end
 
 -- Sets a row frame to `target`'s height and the label's width.
@@ -519,25 +537,41 @@ function PlateLabel.Layout(label, record, unit, style)
     label.name:SetText(record.name:GetText())
     matchFont(label, record.name, (style.db.nameSize or 100) / 100)
     label.name:SetTextColor(style.NameColor(unit))
-    -- Out from the name on each side: the class icon, then the level, then the other icons, on
-    -- whichever side each one's setting puts it. The name then shifts by half the difference, so
-    -- the whole row is centered over the bar. The subtitle stays centered.
+    -- Out from the name on each side: the class icon, then the level (or the other way round, with
+    -- Class Icon Order on Past the Level), then the other icons, on whichever side each one's
+    -- setting puts it. The name then shifts by half the difference, so the whole row is centered
+    -- over the bar. The subtitle stays centered.
     local db = style.db
     local fontSize = label.nameSize or 12
     local classWhere = style.classIcons and db.classIcon or "off"
     local atlas = classWhere ~= "off" and classAtlas(unit, db.classIconStyle) or nil
+    local round = db.classIconStyle == "round"
     local classLeft = classWhere == "before"
     local where = db.level
     local levelLeft = where ~= "after"
     local iconsLeft = db.iconSide == "before"
     local size = fontSize * ICON_SCALE
-    local classWidth = placeClass(label.classIcon, label.name, classLeft, size, atlas)
-    local levelAnchor = atlas and classLeft == levelLeft and label.classIcon or label.name
-    local levelWidth = placeLevel(label, record, unit, where, levelAnchor)
+    local sameSide = atlas and classLeft == levelLeft
+    local outside = sameSide and db.classIconOrder == "outside"
+    local classWidth, levelWidth, levelShown
+    if outside then
+        levelWidth, levelShown = placeLevel(label, record, unit, where, label.name)
+        classWidth = placeClass(label.classIcon, levelShown and label.level or label.name, classLeft,
+            size, atlas, round)
+    else
+        classWidth = placeClass(label.classIcon, label.name, classLeft, size, atlas, round)
+        levelWidth, levelShown = placeLevel(label, record, unit, where,
+            sameSide and label.classIcon or label.name)
+    end
+    -- The other icons go past whichever of the two is outermost on their side.
+    local classHere = atlas and classLeft == iconsLeft
+    local levelHere = levelShown and levelLeft == iconsLeft
     local anchor = label.name
-    if levelWidth > 0 and levelLeft == iconsLeft then
+    if classHere and levelHere then
+        anchor = outside and label.classIcon or label.level
+    elseif levelHere then
         anchor = label.level
-    elseif atlas and classLeft == iconsLeft then
+    elseif classHere then
         anchor = label.classIcon
     end
     local iconsWidth = placeIcons(label.icons, anchor, iconsLeft, fontSize, unit, style)
@@ -557,7 +591,7 @@ function PlateLabel.Layout(label, record, unit, style)
     -- stays on the bar.
     label.barName:SetText(record.name:GetText())
     label.barName:SetTextColor((style.BarNameColor or style.NameColor)(unit))
-    local barClassWidth = placeClass(label.barClassIcon, label.barName, classLeft, size, atlas)
+    local barClassWidth = placeClass(label.barClassIcon, label.barName, classLeft, size, atlas, round)
     local barAnchor = atlas and classLeft == iconsLeft and label.barClassIcon or label.barName
     local barIconsWidth = placeIcons(label.barIcons, barAnchor, iconsLeft, fontSize, unit, style)
     local barLeft = (classLeft and barClassWidth or 0) + (iconsLeft and barIconsWidth or 0)

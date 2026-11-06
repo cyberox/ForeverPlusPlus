@@ -706,7 +706,9 @@ local function addOptionRow(view, module, option, byKey, done, gate)
     -- A part's checkbox (`toggle`) is right under its section's header, which names it. A part's
     -- dropdown (a toggle with `choices`) is an ordinary option row with its own name.
     local name = option.toggle and not option.choices and L.SETTINGS_ENABLED or option.name
-    local row, label = addRow(view, name, indent, on)
+    -- `shown`: an option that only matters with others set a certain way is only there then.
+    local shown = option.shown and function() return option.shown(module.db) and true or false end
+    local row, label = addRow(view, name, indent, on, shown)
     local updates = view.updates
     local pair = option.slider and byKey[option.slider]
     -- Highlighted like a selected sidebar entry while the search finds it (or the slider in it).

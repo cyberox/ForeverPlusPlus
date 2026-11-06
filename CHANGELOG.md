@@ -9,7 +9,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Item Tooltips**: Auction Prices has a Hide on Junk option that leaves the auction price off gray (Poor) items. Off by default.
 - **Player Nameplates**: Dim Other Players fades the names of players who aren't in your group or guild, your friends, or recent allies (30% by default, with a slider), so NPCs stand out in a busy starting zone. Your target stays bright. On by default.
 - **Player Nameplates**: Lighter Rogue Yellow shows rogues in a pale yellow, so they don't look like neutral NPCs. Off by default.
-- **Player Nameplates**: Class Icon shows a player's class icon before or after their name, as Blizzard's square class art, a round icon, or the group finder's ringed icon. Off by default.
+- **Player Nameplates**: Class Icon shows a player's class icon before or after their name, as the group finder's ringed icon, or Blizzard's class art round or square. With the level on the same side, it can sit next to the name or past the level. Off by default.
 
 ### Changed
 

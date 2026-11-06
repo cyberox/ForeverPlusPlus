@@ -16,7 +16,8 @@ local module = ns.NewModule("PlayerNameplates", L.PLAYERNAMEPLATES_DESC, ns.Frie
     dimOthers = true, -- players not in your group or guild, or your friends, a little faded
     dimAmount = 30, -- percent dimmer
     classIcon = "off", -- "off", "before", or "after" the name
-    classIconStyle = "square", -- "square", "round", or "ring"
+    classIconStyle = "ring", -- "ring", "round", or "square"
+    classIconOrder = "inside", -- with the level on the same side: "inside" it, or "outside" past it
     recentAllies = "icon", -- "off", "color" (light blue name), or "icon"
     guildNames = "always", -- "always", "hidden" (only without the bar), or "off"
     guildColor = "gray", -- "gray" or "green"
@@ -86,10 +87,21 @@ module.options = ns.FriendlyPlates.Options(L.PLAYERNAMEPLATES_BAR_WHEN_HURT_DESC
         key = "classIconStyle", name = L.PLAYERNAMEPLATES_CLASS_ICON_STYLE,
         description = L.PLAYERNAMEPLATES_CLASS_ICON_STYLE_DESC,
         choices = {
-            { "square", L.PLAYERNAMEPLATES_CLASS_ICON_SQUARE },
-            { "round", L.PLAYERNAMEPLATES_CLASS_ICON_ROUND },
             { "ring", L.PLAYERNAMEPLATES_CLASS_ICON_RING },
+            { "round", L.PLAYERNAMEPLATES_CLASS_ICON_ROUND },
+            { "square", L.PLAYERNAMEPLATES_CLASS_ICON_SQUARE },
         },
+        requires = "classIcon", section = L.PLAYERNAMEPLATES_SECTION_ICONS, added = "1.0.1",
+    },
+    {
+        -- Only matters with the level on the class icon's side, so only shown then.
+        key = "classIconOrder", name = L.PLAYERNAMEPLATES_CLASS_ICON_ORDER,
+        description = L.PLAYERNAMEPLATES_CLASS_ICON_ORDER_DESC,
+        choices = {
+            { "inside", L.PLAYERNAMEPLATES_CLASS_ICON_INSIDE },
+            { "outside", L.PLAYERNAMEPLATES_CLASS_ICON_OUTSIDE },
+        },
+        shown = function(db) return db.classIcon ~= "off" and db.level == db.classIcon end,
         requires = "classIcon", section = L.PLAYERNAMEPLATES_SECTION_ICONS, added = "1.0.1",
     },
     {

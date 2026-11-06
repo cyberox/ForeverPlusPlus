@@ -22,8 +22,9 @@ ns.changelog = {
                 { L.PLAYERNAMEPLATES_TITLE, "Lighter Rogue Yellow shows rogues in a pale yellow, "
                     .. "so they don't look like neutral NPCs. Off by default." },
                 { L.PLAYERNAMEPLATES_TITLE, "Class Icon shows a player's class icon before or "
-                    .. "after their name, as Blizzard's square class art, a round icon, or the "
-                    .. "group finder's ringed icon. Off by default." },
+                    .. "after their name, as the group finder's ringed icon, or Blizzard's class "
+                    .. "art round or square. With the level on the same side, it can sit next to "
+                    .. "the name or past the level. Off by default." },
             } },
             { L.CHANGELOG_CHANGED, {
                 { L.CHANGELOG_SETTINGS, "When two options can't both work, a line under one says "
