@@ -679,7 +679,17 @@ local function onTooltip(tooltip, data)
     if not (module.enabled and profile and (shown or module.db.scores)) then
         return
     end
-    local result = evaluate(tooltipLink(data))
+    local link = tooltipLink(data)
+    local result = evaluate(link)
+    if result == false and module.db.scores and link and Equipment.IsWorn(link) then
+        -- What you wear is no upgrade candidate, but its score is what others are measured by.
+        local info = ItemStats.Get(link)
+        if info then
+            ItemTooltip.AddInfo(tooltip, L.UPGRADEARROWS_SCORE_LINE,
+                format(L.UPGRADEARROWS_SCORE_WORN, round(scoreOf(info))), "right", "gray")
+        end
+        return
+    end
     if not result then
         return
     end

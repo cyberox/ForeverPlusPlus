@@ -21,6 +21,8 @@ ns.changelog = {
                     .. "for again. The game's \"can use\" check counts the level too, so it skipped all "
                     .. "of it; now only another red line in the tooltip, like an armor type you can't "
                     .. "wear, does." },
+                { L.UPGRADEARROWS_TITLE, "With Show Scores on, gear you wear shows its own score "
+                    .. "too, in its tooltip and the Equipped one." },
             } },
         },
     },
