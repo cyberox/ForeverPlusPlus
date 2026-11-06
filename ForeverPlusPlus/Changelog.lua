@@ -10,41 +10,36 @@ local L = ns.L
 
 ns.changelog = {
     {
-        version = L.CHANGELOG_UNRELEASED,
+        version = "1.0.1",
+        date = "2026-11-05",
         sections = {
             { L.CHANGELOG_ADDED, {
-                { L.ITEMTOOLTIPS_TITLE, "Auction Prices has a Hide on Junk option that leaves "
-                    .. "the auction price off gray (Poor) items. Off by default." },
-                { L.PLAYERNAMEPLATES_TITLE, "Dim Other Players fades the names of players who "
-                    .. "aren't in your group or guild, your friends, or recent allies (30% by "
-                    .. "default, with a slider), so NPCs stand out in a busy starting zone. Your "
-                    .. "target stays bright. On by default." },
-                { L.PLAYERNAMEPLATES_TITLE, "Lighter Rogue Yellow shows rogues in a pale yellow, "
-                    .. "so they don't look like neutral NPCs. Off by default." },
-                { L.PLAYERNAMEPLATES_TITLE, "Class Icon shows a player's class icon before or "
-                    .. "after their name, as the group finder's ringed icon, or Blizzard's class "
-                    .. "art round or square. With the level on the same side, it can sit next to "
-                    .. "the name or past the level. Off by default." },
+                { L.ITEMTOOLTIPS_TITLE, "Hide on Junk leaves auction prices off gray items. Off "
+                    .. "by default." },
+                { L.PLAYERNAMEPLATES_TITLE, "Dim Other Players fades players outside your group, "
+                    .. "guild, friends, and recent allies, so NPCs stand out. Your target stays "
+                    .. "bright. On by default, at 30%." },
+                { L.PLAYERNAMEPLATES_TITLE, "Lighter Rogue Yellow, so rogues don't look like "
+                    .. "neutral NPCs. Off by default." },
+                { L.PLAYERNAMEPLATES_TITLE, "Class Icon before or after a player's name: ringed, "
+                    .. "round, or square, next to the name or past the level. Off by default." },
             } },
             { L.CHANGELOG_CHANGED, {
-                { L.CHANGELOG_SETTINGS, "When two options can't both work, a line under one says "
-                    .. "so, with a button that goes to the other. Movable Windows says so when its "
-                    .. "Reset Key and Reset Click are the same as dragging, which can't reset." },
-                { L.CHANGELOG_SETTINGS, "A module with a page of its own (Console Variables, "
-                    .. "Profiler, Upgrade Arrows) says on the Modules page that its page shows in "
-                    .. "the sidebar, or goes away, once you pick another page. Blizzard's sidebar "
-                    .. "can't be redrawn right away without breaking its Social options." },
+                { L.CHANGELOG_SETTINGS, "An option that can't work with another says so, with a "
+                    .. "button to the other one, such as Movable Windows' Reset Key matching its "
+                    .. "Move Key." },
+                { L.CHANGELOG_SETTINGS, "A module with its own page (Console Variables, "
+                    .. "Profiler, Upgrade Arrows) notes that the page shows or goes away once you "
+                    .. "pick another page." },
             } },
             { L.CHANGELOG_FIXED, {
-                { L.MOVABLEWINDOWS_TITLE, "The Settings window moves too, and so do the currency "
-                    .. "window, the group finder, flight maps, chat channels and chat settings, "
-                    .. "guild ranks, quest details, Help, the Escape menu, the small zone map "
-                    .. "(by its tab), and the world map while it isn't maximized. Friends moves "
-                    .. "too: it's the new Social window, not the old Friends frame. A window can "
-                    .. "be grabbed anywhere that isn't a button or a list, so ones like the group "
-                    .. "finder, whose pages cover it, drag too." },
-                { L.QUESTNAMEPLATES_TITLE, "On the left side, quest icons no longer overlap the "
-                    .. "gold dragon on elite and rare creatures' nameplates. They sit past it." },
+                { L.MOVABLEWINDOWS_TITLE, "More windows move: Settings, Friends, the group "
+                    .. "finder, currencies, flight maps, chat channels and settings, guild ranks, "
+                    .. "quest details, Help, the Escape menu, the zone map (by its tab), and the "
+                    .. "world map when it isn't maximized. Grab a window anywhere that isn't a "
+                    .. "button or a list." },
+                { L.QUESTNAMEPLATES_TITLE, "Quest icons no longer overlap the gold elite dragon "
+                    .. "on the left side of a nameplate." },
             } },
         },
     },

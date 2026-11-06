@@ -2,24 +2,24 @@
 
 What changed in each release of Forever++. The same notes show in game under Settings > AddOns > Forever++ > Changelog, from [`ForeverPlusPlus/Changelog.lua`](ForeverPlusPlus/Changelog.lua); change both together.
 
-## Unreleased
+## 1.0.1 (2026-11-05)
 
 ### Added
 
-- **Item Tooltips**: Auction Prices has a Hide on Junk option that leaves the auction price off gray (Poor) items. Off by default.
-- **Player Nameplates**: Dim Other Players fades the names of players who aren't in your group or guild, your friends, or recent allies (30% by default, with a slider), so NPCs stand out in a busy starting zone. Your target stays bright. On by default.
-- **Player Nameplates**: Lighter Rogue Yellow shows rogues in a pale yellow, so they don't look like neutral NPCs. Off by default.
-- **Player Nameplates**: Class Icon shows a player's class icon before or after their name, as the group finder's ringed icon, or Blizzard's class art round or square. With the level on the same side, it can sit next to the name or past the level. Off by default.
+- **Item Tooltips**: Hide on Junk leaves auction prices off gray items. Off by default.
+- **Player Nameplates**: Dim Other Players fades players outside your group, guild, friends, and recent allies, so NPCs stand out. Your target stays bright. On by default, at 30%.
+- **Player Nameplates**: Lighter Rogue Yellow, so rogues don't look like neutral NPCs. Off by default.
+- **Player Nameplates**: Class Icon before or after a player's name: ringed, round, or square, next to the name or past the level. Off by default.
 
 ### Changed
 
-- **Settings**: when two options can't both work, a line under one says so, with a button that goes to the other. Movable Windows says so when its Reset Key and Reset Click are the same as dragging, which can't reset.
-- **Settings**: a module with a page of its own (Console Variables, Profiler, Upgrade Arrows) says on the Modules page that its page shows in the sidebar, or goes away, once you pick another page. Blizzard's sidebar can't be redrawn right away without breaking its Social options.
+- **Settings**: an option that can't work with another says so, with a button to the other one, such as Movable Windows' Reset Key matching its Move Key.
+- **Settings**: a module with its own page (Console Variables, Profiler, Upgrade Arrows) notes that the page shows or goes away once you pick another page.
 
 ### Fixed
 
-- **Movable Windows**: the Settings window moves too, and so do the currency window, the group finder, flight maps, chat channels and chat settings, guild ranks, quest details, Help, the Escape menu, the small zone map (by its tab), and the world map while it isn't maximized. Friends moves too: it's the new Social window, not the old Friends frame. A window can be grabbed anywhere that isn't a button or a list, so ones like the group finder, whose pages cover it, drag too.
-- **Quest Nameplates**: on the left side, quest icons no longer overlap the gold dragon on elite and rare creatures' nameplates. They sit past it.
+- **Movable Windows**: more windows move: Settings, Friends, the group finder, currencies, flight maps, chat channels and settings, guild ranks, quest details, Help, the Escape menu, the zone map (by its tab), and the world map when it isn't maximized. Grab a window anywhere that isn't a button or a list.
+- **Quest Nameplates**: quest icons no longer overlap the gold elite dragon on the left side of a nameplate.
 
 ## 1.0.0 (2026-11-04)
 
