@@ -436,18 +436,8 @@ function module:BuildPage(frame)
     view:SetElementInitializer("Frame", initRow)
     ScrollUtil.InitScrollBoxListWithScrollBar(scrollBox, split.scrollBar, view)
 
-    -- Opens on Changed while something is, otherwise All (or All for `/fpp cvar <search>`).
-    if not selected then
-        selected = "all"
-        if search == "" then
-            for _, entry in ipairs(all) do
-                if isChanged(entry.name) then
-                    selected = "changed"
-                    break
-                end
-            end
-        end
-    end
+    -- Opens on All: most come here looking for one CVar to search for. Changed is a click away.
+    selected = selected or "all"
 
     -- The listener stops by itself when the module turns off, and its queued refresh with it.
     self:HookScript(frame, "OnShow", function()

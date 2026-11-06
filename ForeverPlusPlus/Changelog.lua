@@ -15,6 +15,7 @@ ns.changelog = {
             { L.CHANGELOG_CHANGED, {
                 { L.CONSOLEVARIABLES_TITLE, "A note at the top says 0 is usually off and 1 on, and "
                     .. "a CVar's tooltip says when it may take other values." },
+                { L.CONSOLEVARIABLES_TITLE, "Opens on All, ready to search, instead of Changed." },
             } },
         },
     },

@@ -7,6 +7,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 ### Changed
 
 - **Console Variables**: a note at the top says 0 is usually off and 1 on, and a CVar's tooltip says when it may take other values.
+- **Console Variables**: opens on All, ready to search, instead of Changed.
 
 ## 1.0.2 (2026-11-05)
 
