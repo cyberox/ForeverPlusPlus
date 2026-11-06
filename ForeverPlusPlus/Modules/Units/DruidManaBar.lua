@@ -12,10 +12,10 @@
 -- isn't touched, in combat or out.
 local _, ns = ...
 
-local select = select
+local select, pcall = select, pcall
 local CreateFrame, C_CVar = CreateFrame, C_CVar
 local UnitClass, UnitPower, UnitPowerMax, UnitPowerType = UnitClass, UnitPower, UnitPowerMax, UnitPowerType
-local UnitIsDeadOrGhost = UnitIsDeadOrGhost
+local UnitIsDeadOrGhost, UnitPowerPercent = UnitIsDeadOrGhost, UnitPowerPercent
 
 local L = ns.L
 
@@ -77,6 +77,55 @@ local function wanted()
     return module.db.preview or (ns.IsNumber(power) and power ~= Enum.PowerType.Mana)
 end
 
+-- The player's mana is secret on Forever even out of combat, while its max reads fine (`/dump`
+-- 2026-11-05, a level 1 druid). Blizzard's own code may do math on a secret; ours may not, but
+-- SetFormattedText takes one, and so may AbbreviateLargeNumbers (Mainline made the number
+-- helpers take secrets; a pcall falls back to the plain number if this client's doesn't). The
+-- percent comes from the game, scaled to 0-100, where it has UnitPowerPercent.
+local function setNumber(text, format, value, max)
+    local short = AbbreviateLargeNumbers
+    if not (short and pcall(function()
+        if max then
+            text:SetFormattedText(format, short(value), short(max))
+        else
+            text:SetFormattedText(format, short(value))
+        end
+    end)) then
+        if max then
+            text:SetFormattedText(format, value, max)
+        else
+            text:SetFormattedText(format, value)
+        end
+    end
+end
+
+-- Whether there's a percent, then the percent, which may be secret: never test it, only show it.
+local function secretPercent()
+    local scale = CurveConstants and CurveConstants.ScaleTo100
+    if not (UnitPowerPercent and scale) then
+        return false
+    end
+    return pcall(UnitPowerPercent, "player", Enum.PowerType.Mana, false, scale)
+end
+
+-- As ns.Text.StatusText lays it out, for a secret value.
+local function secretText(value, max, mode)
+    local hasPercent, percent = false, nil
+    if mode == "BOTH" or mode == "PERCENT" then
+        hasPercent, percent = secretPercent()
+    end
+    if mode == "BOTH" then
+        if hasPercent then
+            bar.LeftText:SetFormattedText("%d%%", percent)
+        end
+        setNumber(bar.RightText, "%s", value)
+    elseif mode == "PERCENT" and hasPercent then
+        bar.Text:SetFormattedText("%d%%", percent)
+    else
+        setNumber(bar.Text, "%s / %s", value, max)
+    end
+end
+
 -- Blizzard's status text (TextStatusBarMixin:UpdateTextStringWithValues, for a mana bar): always
 -- with Status Text on (the statusText CVar), else under the mouse; numbers by statusTextDisplay.
 local function updateText()
@@ -84,14 +133,21 @@ local function updateText()
         return -- the player frame's hover comes in caster form too
     end
     local value, max = UnitPower("player", Enum.PowerType.Mana), UnitPowerMax("player", Enum.PowerType.Mana)
-    local middle, left, right = "", "", ""
-    if (hovered or C_CVar.GetCVar("statusText") == "1") and ns.IsNumber(value) and ns.IsNumber(max)
-        and max > 0 then
-        middle, left, right = ns.Text.StatusText(value, max, C_CVar.GetCVar("statusTextDisplay"))
+    bar.Text:SetText("")
+    bar.LeftText:SetText("")
+    bar.RightText:SetText("")
+    if not ((hovered or C_CVar.GetCVar("statusText") == "1") and ns.IsNumber(max) and max > 0) then
+        return
     end
-    bar.Text:SetText(middle)
-    bar.LeftText:SetText(left)
-    bar.RightText:SetText(right)
+    local mode = C_CVar.GetCVar("statusTextDisplay")
+    if ns.IsNumber(value) then
+        local middle, left, right = ns.Text.StatusText(value, max, mode)
+        bar.Text:SetText(middle)
+        bar.LeftText:SetText(left)
+        bar.RightText:SetText(right)
+    else
+        secretText(value, max, mode)
+    end
 end
 
 -- The mana goes straight to the bar, which takes a secret value too.

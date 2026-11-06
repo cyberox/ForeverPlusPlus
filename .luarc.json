@@ -59,6 +59,8 @@
     "UnitPowerType",
     "UnitPower",
     "UnitPowerMax",
+    "UnitPowerPercent",
+    "CurveConstants",
     "PlayerFrame",
     "UNIT_FRAME_SHOW_HEALTH_ONLY",
     "AbbreviateLargeNumbers",
