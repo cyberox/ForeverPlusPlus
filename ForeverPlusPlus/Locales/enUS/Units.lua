@@ -13,8 +13,12 @@ L.DRUIDMANABAR_DESC = "Show your mana under the energy or rage bar on the player
     .. "Cat or Bear Form, in the frame's own slot for a third bar. Its text follows the game's "
     .. "Status Text setting, like the other bars."
 L.DRUIDMANABAR_PREVIEW = "Test Druid Mana Bar"
-L.DRUIDMANABAR_PREVIEW_DESC = "Show the mana bar in caster form too, to see how it sits on the "
-    .. "player frame without Cat Form (level 20) or Bear Form (level 10)."
+L.DRUIDMANABAR_PREVIEW_DESC = "Show the mana bar in caster form too, without Cat Form (level 20) "
+    .. "or Bear Form (level 10). Your Mana shows your own, so casting a spell moves it. Sweep shows "
+    .. "made-up mana emptying and filling, to watch the bar and each Status Text setting."
+L.DRUIDMANABAR_PREVIEW_OFF = "Off"
+L.DRUIDMANABAR_PREVIEW_REAL = "Your Mana"
+L.DRUIDMANABAR_PREVIEW_SWEEP = "Sweep"
 
 -- ClassColors
 L.CLASSCOLORS_TITLE = "Class Colors"
