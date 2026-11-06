@@ -44,10 +44,10 @@ ns.changelog = {
                     .. "addons copy for you." },
                 { L.PLAYERNAMEPLATES_TITLE, "Level Frame puts the level in one of Forever's "
                     .. "nameplate level badges, square or round, and Level Size sets how big it is. "
-                    .. "The square Badge is the default; None brings back the plain number." },
+                    .. "Off by default." },
                 { L.NPCNAMEPLATES_TITLE, "Level Frame puts the level in one of Forever's nameplate "
-                    .. "level badges, square or round, and Level Size sets how big it is. The square "
-                    .. "Badge is the default; None brings back the plain number." },
+                    .. "level badges, square or round, and Level Size sets how big it is. Off by "
+                    .. "default." },
                 { L.PLAYERNAMEPLATES_TITLE, "Icon Size sets how big the class, group, friend, and "
                     .. "recent ally icons are, apart from the name. If you changed Name Size, the "
                     .. "icons stay the size they were." },

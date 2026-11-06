@@ -19,7 +19,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Waypoints**: text after the coordinates is the waypoint's note, shown under the arrow: `/way 45 67 Hogger`.
 - **Waypoints**: `/way share` puts your map pin's link in the chat box, ready to send to your group.
 - **Chat Copy**: a Select All button, ready for Ctrl+C. The game doesn't let addons copy for you.
-- **Player Nameplates**, **NPC Nameplates**: Level Frame puts the level in one of Forever's nameplate level badges, square or round, and Level Size sets how big it is. The square Badge is the default; None brings back the plain number.
+- **Player Nameplates**, **NPC Nameplates**: Level Frame puts the level in one of Forever's nameplate level badges, square or round, and Level Size sets how big it is. Off by default.
 - **Player Nameplates**: Icon Size sets how big the class, group, friend, and recent ally icons are, apart from the name. If you changed Name Size, the icons stay the size they were.
 
 ### Changed
