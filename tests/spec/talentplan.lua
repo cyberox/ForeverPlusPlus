@@ -99,6 +99,21 @@ eq(gated.nudged.req, 0, "row gates: a 1 gap isn't a row")
 eq(gated.second.req, 5, "row gates: second row needs 5")
 eq(gated.fourth.req, 15, "row gates: rows counted by the smallest gap")
 eq(gated.given.req, 7, "row gates: a gate condition is kept")
+
+-- Gate conditions: only a talent-point gate a character can meet is a row's.
+eq(Plan.GateAmount({}, 3820), nil, "gate: no conditions")
+eq(Plan.GateAmount({ { isGate = true, spentAmountRequired = 5, traitCurrencyID = 3820 } }, 3820), 5,
+    "gate: a talent point gate")
+eq(Plan.GateAmount({ { isGate = true, spentAmountRequired = 300, traitCurrencyID = 3820 } }, 3820), nil,
+    "gate: more points than a character has (a hunter's Survival row 2)")
+eq(Plan.GateAmount({ { isGate = true, spentAmountRequired = 5, traitCurrencyID = 4225 } }, 3820), nil,
+    "gate: another currency")
+eq(Plan.GateAmount({ { isGate = false, spentAmountRequired = 5 } }, 3820), nil, "gate: not a gate")
+eq(Plan.GateAmount({ { isGate = true, spentAmountRequired = 10 } }), 10, "gate: no currency to check")
+eq(Plan.GateAmount({ { isGate = true, spentAmountRequired = 300, traitCurrencyID = 4225 },
+    { isGate = true, spentAmountRequired = 5, traitCurrencyID = 3820 },
+    { isGate = true, spentAmountRequired = 10, traitCurrencyID = 3820 } }, 3820), 10,
+    "gate: the largest talent point gate")
 local single = { only = { y = 40 } }
 Plan.RowGates(single, 3)
 eq(single.only.req, 0, "row gates: one node is the top row")

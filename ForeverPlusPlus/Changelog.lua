@@ -71,6 +71,9 @@ ns.changelog = {
                     .. "you picked when clicked in combat, and changes once combat ends." },
                 { L.WORLDMAP_TITLE, "Points of Interest listens only to your own casts, and only "
                     .. "while Ley Lines shows them." },
+                { L.TALENTPLANNER_TITLE, "A row no longer asks for an impossible number of points "
+                    .. "(a hunter's Survival row 2 asked for 300): only talent point gates count, "
+                    .. "and the rest need 5 points a row." },
             } },
         },
     },

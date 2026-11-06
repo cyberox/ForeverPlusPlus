@@ -10,7 +10,7 @@ local _, ns = ...
 
 local ipairs, max, min, remove, concat = ipairs, math.max, math.min, table.remove, table.concat
 local pairs, floor, sort = pairs, math.floor, table.sort
-local tostring, tonumber = tostring, tonumber
+local tostring, tonumber, type = tostring, tonumber, type
 local gsub, strmatch, gmatch = string.gsub, string.match, string.gmatch
 
 local TalentPlan = {}
@@ -21,6 +21,26 @@ ns.TalentPlan = TalentPlan
 TalentPlan.FIRST_LEVEL = 10
 TalentPlan.MAX_POINTS = 51
 TalentPlan.POINTS_PER_ROW = 5 -- each row opens after 5 more points in its tab
+
+---The points a node's row needs from its gate conditions (C_Traits.GetConditionInfo), or nil
+---when none is a talent-point gate. A gate counted in another currency, or asking for more
+---points than a character ever has, isn't a row gate: a hunter's Survival row 2 came back as
+---300, so it's left to RowGates' 5 a row.
+---@param conds table condition infos, { isGate, spentAmountRequired, traitCurrencyID }
+---@param currencyID? number the tree's talent point currency, when known
+---@return number?
+function TalentPlan.GateAmount(conds, currencyID)
+    local req
+    for _, cond in ipairs(conds) do
+        local amount = cond.isGate and cond.spentAmountRequired
+        local currency = cond.traitCurrencyID
+        if type(amount) == "number" and amount >= 0 and amount <= TalentPlan.MAX_POINTS
+            and not (currencyID and currency and currency ~= currencyID) then
+            req = max(req or 0, amount)
+        end
+    end
+    return req
+end
 
 ---Fills in the points each node's row needs in its tab, for the nodes the game gave no gate
 ---condition (no `req`), from their height: rows count down from the top node, and the gap

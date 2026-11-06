@@ -4,7 +4,7 @@
 local _, ns = ...
 
 local ipairs, pairs, format, concat, sort = ipairs, pairs, string.format, table.concat, table.sort
-local max, min, tostring = math.max, math.min, tostring
+local min, tostring = math.min, tostring
 local C_Traits, C_Spell, UnitLevel = C_Traits, C_Spell, UnitLevel
 
 local L = ns.L
@@ -57,8 +57,8 @@ function internal.firstLevel(t)
 end
 
 -- Reads a tree from C_Traits. A node's tab is whichever of its groups is a tab
--- (docs/forever-api.md). The points a row needs come from the node's gate condition, or else
--- from its row, counted from the tree's top.
+-- (docs/forever-api.md). The points a row needs come from the node's gate condition when it's a
+-- talent-point one (Plan.GateAmount), or else from its row, counted from the tree's top.
 function internal.buildTree(configID, treeID)
     if not (configID and treeID) then
         return nil
@@ -75,6 +75,9 @@ function internal.buildTree(configID, treeID)
     local built = { nodes = {}, order = {}, ranks = {}, tabs = tabs, tabList = tabList,
         configID = configID, treeID = treeID,
         hideSingle = treeInfo and treeInfo.hideSingleRankNumbers }
+    -- The talent point currency (3820 on a warrior), so a gate counted in another isn't a row's.
+    local currencies = C_Traits.GetTreeCurrencyInfo(configID, treeID, false)
+    local currencyID = currencies and currencies[1] and currencies[1].traitCurrencyID
     local incoming = {}
     for _, id in ipairs(C_Traits.GetTreeNodes(treeID) or {}) do
         local info = C_Traits.GetNodeInfo(configID, id)
@@ -84,13 +87,11 @@ function internal.buildTree(configID, treeID)
         end
         -- Choice nodes (more than one entry) aren't in Classic trees, so they aren't planned.
         if tab and info.isVisible and (info.maxRanks or 0) > 0 and #info.entryIDs == 1 then
-            local req
+            local conds = {}
             for _, condID in ipairs(info.conditionIDs or {}) do
-                local cond = C_Traits.GetConditionInfo(configID, condID)
-                if cond and cond.isGate and cond.spentAmountRequired then
-                    req = max(req or 0, cond.spentAmountRequired)
-                end
+                conds[#conds + 1] = C_Traits.GetConditionInfo(configID, condID)
             end
+            local req = Plan.GateAmount(conds, currencyID)
             built.nodes[id] = { id = id, max = info.maxRanks, tab = tab, req = req, prereqs = {},
                 x = info.posX or 0, y = info.posY or 0, entryID = info.entryIDs[1] }
             built.order[#built.order + 1] = id

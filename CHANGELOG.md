@@ -37,6 +37,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Social Button**: turning it off and on no longer adds another hook each time.
 - **Settings**: a checkbox for one of the game's own settings keeps what you picked when clicked in combat, and changes once combat ends.
 - **World Map**: Points of Interest listens only to your own casts, and only while Ley Lines shows them.
+- **Talent Planner**: a row no longer asks for an impossible number of points (a hunter's Survival row 2 asked for 300): only talent point gates count, and the rest need 5 points a row.
 
 ## 1.0.2 (2026-11-05)
 
