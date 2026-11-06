@@ -27,7 +27,6 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 - **Player Nameplates**, **NPC Nameplates**: the space between the name, level, and icons grows with a bigger name.
 - **Player Nameplates**: the three Class Icon styles are drawn about the same size; Square was much bigger than Ring.
-
 - **Console Variables**: a note at the top says 0 is usually off and 1 on, and a CVar's tooltip says when it may take other values.
 - **Console Variables**: opens on Favorites once you've starred some, else Popular, instead of Changed, and a search looks through All.
 - **Upgrade Arrows**: the talent tree you pick is saved for each character, so an alt isn't judged by another character's tree. The first character you log in with keeps your current pick.
