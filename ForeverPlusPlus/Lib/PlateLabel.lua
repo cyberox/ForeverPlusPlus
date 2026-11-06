@@ -460,7 +460,7 @@ local LEVEL_FRAMES = {
         "ui-hud-nameplates-levelindicator-rectangle" }, height = 2, wide = 1.3, pad = 1.2,
         nudge = { 0.06, 0.12 } },
     round = { atlases = { "ui-hud-nameplates-levelindicator-c60",
-        "ui-hud-nameplates-levelindicator" }, height = 2, wide = 1, pad = 0.9, round = true,
+        "ui-hud-nameplates-levelindicator" }, height = 1.7, wide = 1, pad = 0.6, round = true,
         nudge = { 0.06, 0.12 } },
 }
 
