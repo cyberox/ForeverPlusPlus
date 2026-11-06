@@ -50,6 +50,7 @@ PlateLabel.LEVEL_CHOICES = {
 -- What the level sits in (placeLevel draws them).
 PlateLabel.LEVEL_FRAME_CHOICES = {
     { "none", L.PLATES_LEVEL_FRAME_NONE },
+    { "classic", L.PLATES_LEVEL_FRAME_CLASSIC },
     { "badge", L.PLATES_LEVEL_FRAME_BADGE },
     { "round", L.PLATES_LEVEL_FRAME_ROUND },
 }
@@ -447,18 +448,49 @@ local function matchLevelFont(label, levelFrame, scale)
     return label.levelSize or size
 end
 
--- Level Frame: what the number sits in. Forever's own nameplate level badges (the c60 art first,
--- then Retail's): the rounded box its player level badge uses, and the round one. The box is
--- drawn a little wider than tall, as Blizzard draws it, and either grows for a wide number.
--- (Names from wago.tools' UiTextureAtlasMember for 1.60.1.70790.)
+-- Level Frame: what the number sits in, each sized against the number's font size: `height`
+-- tall and `wide` times that across, growing for a wide number to its width plus `pad`, and
+-- the number moved by `nudge` (x, y) to sit in the art's middle (digits sit low in their line
+-- and their shadow falls right).
+--   classic: the box at the end of the health bar, so the level looks the same with the bar up
+--            and without it. It's the right end of the classic nameplate border, texels 105-136
+--            of 256 across and the lower half, which the bar draws squeezed to half its width:
+--            about 15 by 16 around a 10 font (the border is 128 by 16 at nameplate scale 1).
+--   badge, round: Forever's own nameplate level badges (the c60 art first, then Retail's), the
+--            rounded box its player level badge uses and the round one, which stays round.
+-- (The border from the `forever` UI source, Blizzard_NamePlateUnitFrame.lua, and its texture;
+-- atlas names from wago.tools' UiTextureAtlasMember for 1.60.1.70790.)
 local LEVEL_FRAMES = {
+    classic = { file = "Interface\\Tooltips\\Nameplate-Border", coords = { 105 / 256, 136 / 256, 0.5, 1 },
+        height = 1.6, wide = 0.97, pad = 0.45, nudge = { 0, 0.06 } },
     badge = { atlases = { "ui-hud-nameplates-levelindicator-rectangle-c60",
-        "ui-hud-nameplates-levelindicator-rectangle" }, wide = 1.3, pad = 0.9 },
+        "ui-hud-nameplates-levelindicator-rectangle" }, height = 1.8, wide = 1.3, pad = 0.9,
+        nudge = { 0.06, 0.12 } },
     round = { atlases = { "ui-hud-nameplates-levelindicator-c60",
-        "ui-hud-nameplates-levelindicator" }, wide = 1, pad = 0.6 },
+        "ui-hud-nameplates-levelindicator" }, height = 1.8, wide = 1, pad = 0.6, round = true,
+        nudge = { 0.06, 0.12 } },
 }
-local LEVEL_FRAME_HEIGHT = 1.8 -- the frame's height against the number's font size
-local LEVEL_NUDGE_X, LEVEL_NUDGE_Y = 0.06, 0.12 -- the number's move inside a frame, by font size
+
+-- Sets the badge's frame art; false when this client has none of it.
+local function setLevelArt(badge, frame)
+    if frame.file then
+        if badge.frameArt ~= frame then
+            badge.frame:SetTexture(frame.file)
+            badge.frame:SetTexCoord(unpack(frame.coords))
+        end
+    else
+        local atlas = findAtlas(frame)
+        if not atlas then
+            return false
+        end
+        if badge.frameArt ~= frame then
+            badge.frame:SetAtlas(atlas, false)
+            badge.frame:SetTexCoord(0, 1, 0, 1)
+        end
+    end
+    badge.frameArt = frame
+    return true
+end
 
 -- Puts the level beside `anchor` (the name, or the class icon on its side); returns the width it
 -- takes (0 when it can't be read) and whether it shows.
@@ -480,26 +512,18 @@ local function placeLevel(label, record, unit, db, where, anchor, gap)
         textWidth = fontSize * 1.2
     end
     local frame = LEVEL_FRAMES[db.levelFrame]
-    local atlas = frame and findAtlas(frame)
-    if atlas then
-        if badge.frameAtlas ~= atlas then
-            badge.frameAtlas = atlas
-            badge.frame:SetAtlas(atlas, false)
-        end
+    if frame and setLevelArt(badge, frame) then
         badge.frame:Show()
-        local height = fontSize * LEVEL_FRAME_HEIGHT
+        local height = fontSize * frame.height
         local width = height * frame.wide
         if textWidth + fontSize * frame.pad > width then
             width = textWidth + fontSize * frame.pad
         end
-        -- The round one stays round: it grows both ways for a wide number.
-        if frame.wide == 1 then
+        if frame.round then
             height = width
         end
         badge:SetSize(width, height)
-        -- Digits sit low in their line and the shadow falls right, so in a frame the number
-        -- looked low and left: nudge it to the frame's middle.
-        badge.text:SetPoint("CENTER", badge, "CENTER", fontSize * LEVEL_NUDGE_X, fontSize * LEVEL_NUDGE_Y)
+        badge.text:SetPoint("CENTER", badge, "CENTER", fontSize * frame.nudge[1], fontSize * frame.nudge[2])
     else
         -- Just the number, so it's as wide as the number.
         badge.frame:Hide()

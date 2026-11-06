@@ -42,12 +42,12 @@ ns.changelog = {
                     .. "send to your group." },
                 { L.CHATCOPY_TITLE, "A Select All button, ready for Ctrl+C. The game doesn't let "
                     .. "addons copy for you." },
-                { L.PLAYERNAMEPLATES_TITLE, "Level Frame puts the level in one of Forever's "
-                    .. "nameplate level badges, square or round, and Level Size sets how big it is. "
-                    .. "Off by default." },
-                { L.NPCNAMEPLATES_TITLE, "Level Frame puts the level in one of Forever's nameplate "
-                    .. "level badges, square or round, and Level Size sets how big it is. Off by "
-                    .. "default." },
+                { L.PLAYERNAMEPLATES_TITLE, "Level Frame puts the level in the box at the end of "
+                    .. "the health bar, so it looks the same with the bar up, or in one of Forever's "
+                    .. "level badges, and Level Size sets how big it is. Off by default." },
+                { L.NPCNAMEPLATES_TITLE, "Level Frame puts the level in the box at the end of the "
+                    .. "health bar, so it looks the same with the bar up, or in one of Forever's "
+                    .. "level badges, and Level Size sets how big it is. Off by default." },
                 { L.PLAYERNAMEPLATES_TITLE, "Icon Size sets how big the class, group, friend, and "
                     .. "recent ally icons are, apart from the name. If you changed Name Size, the "
                     .. "icons stay the size they were." },
