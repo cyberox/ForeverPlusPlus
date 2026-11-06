@@ -461,7 +461,7 @@ module.debugActions = {
         button = L.SCREENSHOTS_BUTTON,
         description = L.SCREENSHOTS_BUTTON_DESC,
         fn = function() module.Run() end,
-        section = L.DEBUG_SECTION_TESTING,
+        section = L.DEBUG_SECTION_TOOLS,
     },
 }
 

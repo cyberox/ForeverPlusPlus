@@ -115,7 +115,7 @@ end
 module.debugActions = {
     {
         name = L.COMBATALERT_TEST, button = L.COMBATALERT_TEST_BUTTON,
-        description = L.COMBATALERT_TEST_DESC, section = L.DEBUG_SECTION_TESTING,
+        description = L.COMBATALERT_TEST_DESC, section = L.DEBUG_SECTION_PREVIEWS,
         fn = function()
             if not frame then
                 return

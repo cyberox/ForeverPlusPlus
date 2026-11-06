@@ -326,7 +326,7 @@ local TEST_LENGTH = 45
 module.debugActions = {
     {
         name = L.FLIGHTTIMER_TEST, button = L.FLIGHTTIMER_TEST_BUTTON,
-        description = L.FLIGHTTIMER_TEST_DESC, section = L.DEBUG_SECTION_TESTING,
+        description = L.FLIGHTTIMER_TEST_DESC, section = L.DEBUG_SECTION_PREVIEWS,
         fn = function()
             if not (bar and watcher) or (flight and not flight.test) then
                 return

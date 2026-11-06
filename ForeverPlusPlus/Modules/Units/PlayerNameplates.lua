@@ -132,11 +132,11 @@ module.options = ns.FriendlyPlates.Options(L.PLAYERNAMEPLATES_BAR_WHEN_HURT_DESC
             { "group", L.PLAYERNAMEPLATES_TEST_ICONS_GROUP },
             { "friend", L.PLAYERNAMEPLATES_TEST_ICONS_FRIEND },
         },
-        debug = true, section = L.DEBUG_SECTION_TESTING,
+        debug = true, section = L.DEBUG_SECTION_PREVIEWS,
     },
     {
         key = "centerLine", name = L.PLATES_CENTER_LINE_PLAYER, description = L.PLATES_CENTER_LINE_DESC,
-        debug = true, section = L.DEBUG_SECTION_TESTING,
+        debug = true, section = L.DEBUG_SECTION_LAYOUT,
     },
 })
 

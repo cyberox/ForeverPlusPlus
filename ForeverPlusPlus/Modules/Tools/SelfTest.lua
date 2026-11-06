@@ -736,7 +736,7 @@ module.debugActions = {
         button = L.SELFTEST_BUTTON,
         description = L.SELFTEST_BUTTON_DESC,
         fn = module.Run,
-        section = L.DEBUG_SECTION_TESTING,
+        section = L.DEBUG_SECTION_TOOLS,
     },
     {
         name = L.SELFTEST_GAMEDATA,
@@ -748,7 +748,7 @@ module.debugActions = {
                 ns.Print(L.SELFTEST_GAMEDATA_DONE)
             end)
         end,
-        section = L.DEBUG_SECTION_TESTING,
+        section = L.DEBUG_SECTION_TOOLS,
     },
 }
 

@@ -1,5 +1,5 @@
 -- The Debug module's rows on the Modules page, under its Enabled checkbox: a header for each
--- section (What's New, Diagnostics, Testing, Logging), with Forever++'s own buttons and then each
+-- section (What's New, Diagnostics, Tools, Previews, Layout, Logging), with Forever++'s own buttons and then each
 -- module's options marked `debug = true` and buttons from `module.debugActions` that name it; after
 -- them a header for each module with rows in no section. Drawn with the Modules page's own rows
 -- (Settings.lua), and greyed out while Debug is off.
@@ -11,10 +11,18 @@ local GetBuildInfo = GetBuildInfo
 local L = ns.L
 local S = ns.SettingsUI
 
--- The sections, in order. Forever++'s own rows and modules' debug options and buttons name one with
--- `section`; a module's rows that name none of these go under its title, after them.
+-- The sections, in order, by what a row is for. Forever++'s own rows and modules' debug options
+-- and buttons name one with `section`; a module's rows that name none of these go under its title,
+-- after them.
+-- - What's New: putting back what a new install or update sees.
+-- - Diagnostics: a look at the addon's state, in chat or to copy.
+-- - Tools: runs a check or a capture of its own (Self Test, Gear Probe, Screenshots).
+-- - Previews: made-up content so a module shows without the game giving it a reason.
+-- - Layout: guides drawn over the game to line things up.
+-- - Logging: options that print what a module does while it does it.
 local DEBUG_SECTIONS = {
-    L.DEBUG_SECTION_NEW, L.DEBUG_SECTION_DIAGNOSTICS, L.DEBUG_SECTION_TESTING, L.DEBUG_SECTION_LOGGING,
+    L.DEBUG_SECTION_NEW, L.DEBUG_SECTION_DIAGNOSTICS, L.DEBUG_SECTION_TOOLS, L.DEBUG_SECTION_PREVIEWS,
+    L.DEBUG_SECTION_LAYOUT, L.DEBUG_SECTION_LOGGING,
 }
 
 local function debugSection(row)
@@ -114,7 +122,7 @@ local DEBUG_TOOLS = {
     { name = L.DEBUG_EVENTS, button = L.DEBUG_EVENTS_BUTTON, description = L.DEBUG_EVENTS_DESC,
         fn = printEvents, section = L.DEBUG_SECTION_DIAGNOSTICS },
     { name = L.DEBUG_RELOAD, button = L.DEBUG_RELOAD_BUTTON, description = L.DEBUG_RELOAD_DESC,
-        fn = function() ReloadUI() end, section = L.DEBUG_SECTION_DIAGNOSTICS },
+        fn = function() ReloadUI() end, section = L.DEBUG_SECTION_TOOLS },
 }
 
 -- The rows -------------------------------------------------------------------------------------

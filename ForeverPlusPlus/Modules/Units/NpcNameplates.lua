@@ -56,7 +56,7 @@ module.options = ns.FriendlyPlates.Options(L.NPCNAMEPLATES_BAR_WHEN_HURT_DESC, {
     },
     {
         key = "centerLine", name = L.PLATES_CENTER_LINE_NPC, description = L.PLATES_CENTER_LINE_DESC,
-        debug = true, section = L.DEBUG_SECTION_TESTING,
+        debug = true, section = L.DEBUG_SECTION_LAYOUT,
     },
 })
 

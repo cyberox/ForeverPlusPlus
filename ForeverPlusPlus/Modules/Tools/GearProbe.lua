@@ -546,7 +546,7 @@ module.debugActions = {
         button = L.GEARPROBE_BUTTON,
         description = L.GEARPROBE_BUTTON_DESC,
         fn = module.Run,
-        section = L.DEBUG_SECTION_TESTING,
+        section = L.DEBUG_SECTION_TOOLS,
     },
 }
 

@@ -65,7 +65,7 @@ module.options = {
     },
     {
         key = "testIcons", name = L.QUESTNAMEPLATES_TEST, description = L.QUESTNAMEPLATES_TEST_DESC,
-        debug = true, section = L.DEBUG_SECTION_TESTING,
+        debug = true, section = L.DEBUG_SECTION_PREVIEWS,
     },
 }
 

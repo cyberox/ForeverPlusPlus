@@ -103,7 +103,9 @@ L.SETTINGS_NOTHING_NEW = "Nothing new." -- the Modules list while that checkbox 
 -- their debug options and buttons in one with `section`.
 L.DEBUG_SECTION_NEW = "What's New"
 L.DEBUG_SECTION_DIAGNOSTICS = "Diagnostics"
-L.DEBUG_SECTION_TESTING = "Testing"
+L.DEBUG_SECTION_TOOLS = "Tools"
+L.DEBUG_SECTION_PREVIEWS = "Previews"
+L.DEBUG_SECTION_LAYOUT = "Layout"
 L.DEBUG_SECTION_LOGGING = "Logging"
 -- The Debug module's own buttons: Reset Seen Version and Reset Welcome in What's New, the rest in
 -- Diagnostics

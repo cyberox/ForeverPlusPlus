@@ -121,7 +121,7 @@ end
 module.debugActions = {
     {
         name = L.CHATLEVELS_TEST, button = L.CHATLEVELS_TEST_BUTTON,
-        description = L.CHATLEVELS_TEST_DESC, section = L.DEBUG_SECTION_TESTING, fn = testChat,
+        description = L.CHATLEVELS_TEST_DESC, section = L.DEBUG_SECTION_PREVIEWS, fn = testChat,
     },
 }
 

@@ -789,7 +789,7 @@ module.debugActions = {
         description = L.ERRORCATCHER_TEST_DESC,
         fn = testError,
         whileOff = true,
-        section = L.DEBUG_SECTION_TESTING,
+        section = L.DEBUG_SECTION_PREVIEWS,
     },
 }
 

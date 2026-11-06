@@ -560,7 +560,7 @@ module.debugActions = {
         button = L.WHISPERWINDOW_TEST_BUTTON,
         description = L.WHISPERWINDOW_TEST_DESC,
         fn = testConversation,
-        section = L.DEBUG_SECTION_TESTING,
+        section = L.DEBUG_SECTION_PREVIEWS,
     },
 }
 
