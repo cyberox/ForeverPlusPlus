@@ -17,6 +17,10 @@ ns.changelog = {
                     .. "together with the best hand item in your bags for the other hand, as the "
                     .. "game's own comparison pairs them, instead of against that bag item (a "
                     .. "cutlass showed +1898%). The tooltip says which item it was paired with." },
+                { L.UPGRADEARROWS_TITLE, "Higher Level Gear marks gear you're a few levels too low "
+                    .. "for again. The game's \"can use\" check counts the level too, so it skipped all "
+                    .. "of it; now only another red line in the tooltip, like an armor type you can't "
+                    .. "wear, does." },
             } },
         },
     },
