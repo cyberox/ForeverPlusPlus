@@ -7,16 +7,19 @@
 -- Blizzard compares a tooltip's item by its GUID when it has one, else by its link
 -- (TooltipComparisonManager:CreateComparisonItem, `forever` UI source), so a linked recipe already
 -- compares its crafted item while one in your bags compares the recipe, which has nothing to
--- compare. For a bag recipe this asks the same comparison by the crafted item's link, only where
--- Blizzard would compare anyway (Always Compare Items, or Shift).
+-- compare. The client asks for that comparison itself whenever it compares (Always Compare Items,
+-- or Shift, and again on every tooltip refresh while Shift is held), through
+-- TooltipComparisonManager:CompareItem, which then clears the empty comparison. So right after it
+-- asks for a bag recipe, this asks again by the crafted item's link, in the same frame: asking
+-- from the tooltip's own redraws instead lost to the client's next ask, and the comparison
+-- flashed on and off (2026-11-05).
 --
 -- Which recipes: gear you can use (your class, armor, and weapon skills, whatever its level, so a
 -- recipe you'll craft later still compares), and optionally only recipes of professions you have.
 local _, ns = ...
 
-local pcall = pcall
-local Enum, C_Item, C_CVar, C_TooltipComparison = Enum, C_Item, C_CVar, C_TooltipComparison
-local IsModifiedClick = IsModifiedClick
+local _G, pcall = _G, pcall
+local Enum, C_Item, C_TooltipComparison = Enum, C_Item, C_TooltipComparison
 
 local L = ns.L
 local Equipment, Professions = ns.Equipment, ns.Professions
@@ -45,12 +48,6 @@ local CRAFTS_GEAR = {
     [4] = Professions.BLACKSMITHING,
     [10] = 755, -- should a later build add it
 }
-
--- Whether Blizzard compares the item under the mouse now: Always Compare Items, or Shift.
-local function comparing()
-    local always = C_CVar and C_CVar.GetCVar and C_CVar.GetCVar("alwaysCompareItems")
-    return always == "1" or (IsModifiedClick and IsModifiedClick("COMPAREITEMS")) or false
-end
 
 -- The crafted item's link when the tooltip is a recipe in a slot (it has a GUID) that makes gear
 -- this setting compares, else nil.
@@ -82,17 +79,25 @@ local function craftedGear(data)
     return link
 end
 
-local function onItem(tooltip, data)
-    if not (tooltip.shoppingTooltips and C_TooltipComparison and C_TooltipComparison.CompareItem) then
+-- After the client asks to compare a tooltip's item by its GUID: when that's a bag recipe for gear
+-- this setting compares, the same comparison by the crafted item's link. That ask comes back
+-- here by link, not GUID, so it doesn't ask again.
+local function onCompare(_, item, tooltip, anchorFrame)
+    if not (item and ns.IsText(item.guid, true) and tooltip and tooltip.GetPrimaryTooltipData) then
         return
     end
-    local link = data and comparing() and craftedGear(data)
+    local data = tooltip:GetPrimaryTooltipData()
+    if not (data and data.guid == item.guid) then
+        return
+    end
+    local link = craftedGear(data)
     if link then
-        -- The game's own comparison, by link, as for a linked item.
-        pcall(C_TooltipComparison.CompareItem, { hyperlink = link }, tooltip)
+        pcall(C_TooltipComparison.CompareItem, { hyperlink = link }, tooltip, anchorFrame)
     end
 end
 
 function module:OnEnable()
-    self:TooltipPostCall(Enum.TooltipDataType.Item, onItem)
+    if C_TooltipComparison and C_TooltipComparison.CompareItem then
+        self:Hook(_G.TooltipComparisonManager, "CompareItem", onCompare)
+    end
 end

@@ -149,7 +149,7 @@ L.STATCOLORS_DESC = "Show each stat on gear in its own color, such as Strength, 
     .. "Intellect, Spirit, and Equip: bonuses like hit and spell power."
 L.CRAFTEDCOMPARE_TITLE = "Compare Crafted Gear"
 L.CRAFTEDCOMPARE_DESC = "Compare the gear a recipe in your bags makes with what you wear, as the "
-    .. "game compares gear itself: always with Always Compare Items on, or while you hold Shift. "
+    .. "game compares gear itself: whenever it would compare, such as while you hold Shift. "
     .. "Only gear your class can wear, at any level, so you can see a recipe you'll make later."
 L.CRAFTEDCOMPARE_USABLE = "Gear You Can Wear"
 L.CRAFTEDCOMPARE_PROFESSIONS = "Gear You Can Wear, Your Professions"
