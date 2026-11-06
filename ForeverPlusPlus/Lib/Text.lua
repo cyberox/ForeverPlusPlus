@@ -52,6 +52,28 @@ function Text.Number(n)
     return BreakUpLargeNumbers and BreakUpLargeNumbers(n) or n
 end
 
+---A bar's text as Blizzard's unit frame bars write it for mana (TextStatusBarMixin's
+---UpdateTextStringWithValues, with capNumericDisplay), by the statusTextDisplay CVar: "BOTH" is
+---the percent at the left and the value at the right, "PERCENT" the percent in the middle, and
+---anything else (NUMERIC, NONE) "value / max" in the middle. Returns the middle, left, and right
+---texts, "" where there's none. Probe: AbbreviateLargeNumbers ("12.3K") where the client has it.
+---@param value number
+---@param maxValue number above 0
+---@param mode string?
+---@return string middle
+---@return string left
+---@return string right
+function Text.StatusText(value, maxValue, mode)
+    local short = _G.AbbreviateLargeNumbers or Text.Number
+    local percent = math.ceil(value / maxValue * 100) .. "%"
+    if mode == "BOTH" then
+        return "", percent, tostring(short(value))
+    elseif mode == "PERCENT" then
+        return percent, "", ""
+    end
+    return short(value) .. " / " .. short(maxValue), "", ""
+end
+
 ---A number of seconds for a slider label: "1 Second", "5 Seconds".
 ---@param seconds number
 ---@return string

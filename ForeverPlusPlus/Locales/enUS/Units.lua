@@ -12,6 +12,9 @@ L.DRUIDMANABAR_TITLE = "Druid Mana Bar"
 L.DRUIDMANABAR_DESC = "Show your mana under the energy or rage bar on the player frame while in "
     .. "Cat or Bear Form, in the frame's own slot for a third bar. Its text follows the game's "
     .. "Status Text setting, like the other bars."
+L.DRUIDMANABAR_PREVIEW = "Test Druid Mana Bar"
+L.DRUIDMANABAR_PREVIEW_DESC = "Show the mana bar in caster form too, to see how it sits on the "
+    .. "player frame without Cat Form (level 20) or Bear Form (level 10)."
 
 -- ClassColors
 L.CLASSCOLORS_TITLE = "Class Colors"

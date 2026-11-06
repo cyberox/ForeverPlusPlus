@@ -12,7 +12,7 @@
 -- isn't touched, in combat or out.
 local _, ns = ...
 
-local ceil, select = math.ceil, select
+local select = select
 local CreateFrame, C_CVar = CreateFrame, C_CVar
 local UnitClass, UnitPower, UnitPowerMax, UnitPowerType = UnitClass, UnitPower, UnitPowerMax, UnitPowerType
 local UnitIsDeadOrGhost = UnitIsDeadOrGhost
@@ -21,10 +21,16 @@ local L = ns.L
 
 local module = ns.NewModule("DruidManaBar", L.DRUIDMANABAR_DESC, {
     enabled = true,
+    preview = false,
 })
 module.title = L.DRUIDMANABAR_TITLE
 module.category = "units"
 module.added = "1.0.2"
+
+module.options = {
+    { key = "preview", name = L.DRUIDMANABAR_PREVIEW, description = L.DRUIDMANABAR_PREVIEW_DESC,
+        debug = true, section = L.DEBUG_SECTION_TESTING },
+}
 
 -- Only druids change forms; everyone else keeps it out of Settings.
 function module:IsAvailable()
@@ -62,9 +68,13 @@ local function wanted()
     if frame.activeAlternatePowerBar or (frame.state ~= nil and frame.state ~= "player") then
         return false
     end
-    local power = UnitPowerType("player")
     local max = UnitPowerMax("player", Enum.PowerType.Mana)
-    return ns.IsNumber(power) and power ~= Enum.PowerType.Mana and ns.IsNumber(max) and max > 0
+    if not (ns.IsNumber(max) and max > 0) then
+        return false
+    end
+    -- Preview (Debug): in every form, to see it without Cat Form (level 20) or Bear Form (10).
+    local power = UnitPowerType("player")
+    return module.db.preview or (ns.IsNumber(power) and power ~= Enum.PowerType.Mana)
 end
 
 -- Blizzard's status text (TextStatusBarMixin:UpdateTextStringWithValues, for a mana bar): always
@@ -74,24 +84,14 @@ local function updateText()
         return -- the player frame's hover comes in caster form too
     end
     local value, max = UnitPower("player", Enum.PowerType.Mana), UnitPowerMax("player", Enum.PowerType.Mana)
-    local text, left, right = bar.Text, bar.LeftText, bar.RightText
-    text:SetText("")
-    left:SetText("")
-    right:SetText("")
-    if not ((hovered or C_CVar.GetCVar("statusText") == "1") and ns.IsNumber(value) and ns.IsNumber(max)
-        and max > 0) then
-        return
+    local middle, left, right = "", "", ""
+    if (hovered or C_CVar.GetCVar("statusText") == "1") and ns.IsNumber(value) and ns.IsNumber(max)
+        and max > 0 then
+        middle, left, right = ns.Text.StatusText(value, max, C_CVar.GetCVar("statusTextDisplay"))
     end
-    local mode = C_CVar.GetCVar("statusTextDisplay")
-    local percent = ceil(value / max * 100) .. "%"
-    if mode == "BOTH" then
-        left:SetText(percent)
-        right:SetText(AbbreviateLargeNumbers(value))
-    elseif mode == "PERCENT" then
-        text:SetText(percent)
-    else
-        text:SetText(AbbreviateLargeNumbers(value) .. " / " .. AbbreviateLargeNumbers(max))
-    end
+    bar.Text:SetText(middle)
+    bar.LeftText:SetText(left)
+    bar.RightText:SetText(right)
 end
 
 -- The mana goes straight to the bar, which takes a secret value too.
@@ -214,6 +214,10 @@ function module:OnEnable()
     -- Hovering the player frame shows every bar's text, so ours too.
     self:HookScript(PlayerFrame, "OnEnter", onEnter)
     self:HookScript(PlayerFrame, "OnLeave", onLeave)
+    update()
+end
+
+function module:OnOptionChanged()
     update()
 end
 

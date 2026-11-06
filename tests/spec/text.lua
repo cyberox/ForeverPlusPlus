@@ -69,3 +69,15 @@ eq(split[2], link, "split keeps a link longer than the limit whole")
 for i, piece in ipairs(ns.Text.Split(("word "):rep(200), 255)) do
     eq(#piece <= 255, true, "split piece " .. i .. " fits")
 end
+
+-- A bar's status text, as Blizzard's mana bar writes it for each statusTextDisplay.
+local function status(...)
+    return table.concat({ ns.Text.StatusText(...) }, "|")
+end
+eq(status(1234, 2000, "NUMERIC"), "big:1234 / big:2000||", "status text: numeric in the middle")
+eq(status(1234, 2000, "NONE"), "big:1234 / big:2000||", "status text: None is numeric too, as Blizzard's")
+eq(status(1234, 2000, "PERCENT"), "62%||", "status text: percent rounds up")
+eq(status(1234, 2000, "BOTH"), "|62%|big:1234", "status text: both is percent left, value right")
+eq(status(0, 2000, "PERCENT"), "0%||", "status text: empty")
+AbbreviateLargeNumbers = function(n) return "short:" .. n end
+eq(status(1234, 2000, "NUMERIC"), "short:1234 / short:2000||", "status text: abbreviated where the client can")
