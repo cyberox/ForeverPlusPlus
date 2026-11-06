@@ -590,7 +590,7 @@ local function look()
     end
 end
 
-local onUpdate = ns.Profiler.Wrap(module, ns.Frames.Throttled(THROTTLE, look))
+local onUpdate = ns.Frames.Throttled(THROTTLE, ns.Profiler.Wrap(module, look))
 
 -- Draws the panel again on the next update, after something it shows changed.
 local function redraw()

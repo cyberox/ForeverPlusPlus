@@ -479,12 +479,29 @@ local function hookName(target, method)
         end
         return "TooltipPostCall " .. tostring(method)
     end
-    local name = type(target) == "table" and type(target.GetName) == "function" and target:GetName()
-    name = type(name) == "string" and name or "?"
-    if script then
-        return name .. " " .. script
+    -- A frame without a name of its own (an aura button) goes by its nearest named parent's, as
+    -- "UpdateDuration in BuffFrame"; a table that isn't a frame by the method alone.
+    local function nameOf(object)
+        local name = type(object.GetName) == "function" and object:GetName()
+        return type(name) == "string" and name ~= "" and name or nil
     end
-    return name .. ":" .. tostring(method)
+    local name = type(target) == "table" and nameOf(target)
+    local label = script or tostring(method)
+    if name then
+        return script and (name .. " " .. label) or (name .. ":" .. label)
+    end
+    local parent = type(target) == "table" and type(target.GetParent) == "function" and target:GetParent()
+    for _ = 1, 5 do
+        if type(parent) ~= "table" then
+            break
+        end
+        local parentName = nameOf(parent)
+        if parentName then
+            return label .. " in " .. parentName
+        end
+        parent = type(parent.GetParent) == "function" and parent:GetParent()
+    end
+    return label
 end
 
 local function hookOnce(module, target, method, fn, install)

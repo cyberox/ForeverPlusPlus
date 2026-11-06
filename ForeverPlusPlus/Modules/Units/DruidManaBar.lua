@@ -185,7 +185,7 @@ local function updateAlive()
     fill:SetAlpha(dead and 0.5 or 1)
 end
 
-local onUpdate = ns.Profiler.Wrap(module, ns.Frames.Throttled(0.1, updatePower))
+local onUpdate = ns.Frames.Throttled(0.1, ns.Profiler.Wrap(module, updatePower))
 
 -- Mana's own fill, or Lighter Blue's, so it never matches the frame's own mana bar above it.
 local function updateFill()

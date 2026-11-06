@@ -274,7 +274,7 @@ end
 function Frames.Watcher(module, interval, fn)
     local frame = CreateFrame("Frame", nil, UIParent)
     frame:Hide()
-    frame:SetScript("OnUpdate", ns.Profiler.Wrap(module, Frames.Throttled(interval, fn)))
+    frame:SetScript("OnUpdate", Frames.Throttled(interval, ns.Profiler.Wrap(module, fn)))
     return frame
 end
 

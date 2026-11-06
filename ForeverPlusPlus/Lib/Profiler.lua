@@ -186,7 +186,9 @@ end
 
 ---A function that calls `fn` and, while recording, charges it to `key`: for a module's OnUpdate
 ---script, timers, and other code that doesn't come through Core. `source` names it on the page
----(Profiler.SOURCE_UPDATE by default).
+---(Profiler.SOURCE_UPDATE by default). Wrap the work inside a throttle, not the throttle:
+---`Frames.Throttled(0.5, Profiler.Wrap(module, fn))`, so only the runs that do something are
+---timed and counted, not every frame the throttle skips.
 ---@param key table the module
 ---@param fn function
 ---@param source? string

@@ -107,7 +107,7 @@ local function update()
     copy(bar.cursor, coords.CursorCoords, half - (button and button:GetWidth() or 0))
 end
 
-local onUpdate = ns.Profiler.Wrap(module, ns.Frames.Throttled(THROTTLE, update))
+local onUpdate = ns.Frames.Throttled(THROTTLE, ns.Profiler.Wrap(module, update))
 
 -- Ours in the title bar, or Blizzard's panel as it comes. Blizzard's text is only faded out, so
 -- it keeps updating for ours to copy. Ours is the border frame's child, so it stops with the map.
