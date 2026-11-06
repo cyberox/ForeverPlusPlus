@@ -16,7 +16,7 @@
 local _, ns = ...
 
 local ipairs, pairs, type, setmetatable = ipairs, pairs, type, setmetatable
-local InCombatLockdown, UIParent = InCombatLockdown, UIParent
+local InCombatLockdown, UIParent, GetMouseFoci = InCombatLockdown, UIParent, GetMouseFoci
 local _G = _G
 
 local L = ns.L
@@ -274,6 +274,55 @@ local function hook(name)
     end
 end
 
+-- Many windows are covered by frames of their own that take the click first, so the window never
+-- hears it: the group finder's Browse and Listing pages fill it (Blizzard_LFGVanilla_Browse.xml),
+-- and tabs, headers, and bars sit over others. So a click anywhere in one, with the move key or
+-- the reset key held, finds the window it's in and drags or resets that, unless it's on something
+-- the player uses (a button, a checkbox, a text box, a slider, or a scrolling area such as the
+-- world map's canvas, which pans), which keeps the click.
+local USED = { Button = true, CheckButton = true, EditBox = true, Slider = true, ScrollFrame = true }
+local MAX_DEPTH = 20 -- frames to walk up from the one clicked
+
+local function windowAt()
+    local focus = GetMouseFoci and GetMouseFoci()[1]
+    if type(focus) ~= "table" or not focus.GetParent then
+        return nil
+    end
+    if focus.IsForbidden and focus:IsForbidden() or focus.GetObjectType and USED[focus:GetObjectType()] then
+        return nil
+    end
+    local frame = focus
+    for _ = 1, MAX_DEPTH do
+        if nameOf[frame] then
+            return frame
+        end
+        frame = frame:GetParent()
+        if not frame or frame.IsForbidden and frame:IsForbidden() then
+            return nil
+        end
+    end
+    return nil
+end
+
+local function onGlobalMouseDown(_, button)
+    local db = module.db
+    local resetting = button == RESET_BUTTONS[db.resetClick] and held(db.resetKey)
+    if dragging or not (resetting or button == "LeftButton" and held(db.moveKey)) then
+        return
+    end
+    local frame = windowAt()
+    if frame then
+        startDrag(frame, button)
+    end
+end
+
+-- The drag may have started on a frame inside the window, which gets the mouse up instead.
+local function onGlobalMouseUp()
+    if dragging then
+        stopDrag(dragging)
+    end
+end
+
 local function hookAll()
     for _, name in ipairs(NAMES) do
         hook(name)
@@ -299,6 +348,8 @@ module.actions = {
 function module:OnEnable()
     hookAll()
     self:On("ADDON_LOADED", hookAll)
+    self:On("GLOBAL_MOUSE_DOWN", onGlobalMouseDown)
+    self:On("GLOBAL_MOUSE_UP", onGlobalMouseUp)
     -- Moves that waited out combat (a window holding protected frames).
     self:On("PLAYER_REGEN_ENABLED", placeAll)
 end

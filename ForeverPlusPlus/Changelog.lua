@@ -39,7 +39,9 @@ ns.changelog = {
                 { L.MOVABLEWINDOWS_TITLE, "The Settings window moves too, and so do the currency "
                     .. "window, the group finder, flight maps, chat channels and chat settings, "
                     .. "guild ranks, quest details, and Help, and the world map while it isn't "
-                    .. "maximized." },
+                    .. "maximized. A window can be grabbed anywhere that isn't a button or a "
+                    .. "list, so ones like the group finder and Friends, whose pages cover them, "
+                    .. "drag too." },
                 { L.QUESTNAMEPLATES_TITLE, "On the left side, quest icons no longer overlap the "
                     .. "gold dragon on elite and rare creatures' nameplates. They sit past it." },
             } },
