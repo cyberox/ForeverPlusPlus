@@ -12,8 +12,8 @@
 -- isn't touched, in combat or out.
 local _, ns = ...
 
-local select, pcall, floor = select, pcall, math.floor
-local CreateFrame, C_CVar, GetTime = CreateFrame, C_CVar, GetTime
+local select, pcall = select, pcall
+local CreateFrame, C_CVar = CreateFrame, C_CVar
 local UnitClass, UnitPower, UnitPowerMax, UnitPowerType = UnitClass, UnitPower, UnitPowerMax, UnitPowerType
 local UnitIsDeadOrGhost, UnitPowerPercent = UnitIsDeadOrGhost, UnitPowerPercent
 
@@ -21,35 +21,19 @@ local L = ns.L
 
 local module = ns.NewModule("DruidManaBar", L.DRUIDMANABAR_DESC, {
     enabled = true,
-    preview = "off", -- Debug: "real" (your mana, in every form), "sweep" (made-up mana going down and up)
+    everyForm = false, -- caster, Travel, and Aquatic Form too, where the frame's own bar is mana
 })
 module.title = L.DRUIDMANABAR_TITLE
 module.category = "units"
 module.added = "1.0.2"
 
 module.options = {
-    {
-        key = "preview", name = L.DRUIDMANABAR_PREVIEW, description = L.DRUIDMANABAR_PREVIEW_DESC,
-        choices = {
-            { "off", L.DRUIDMANABAR_PREVIEW_OFF },
-            { "real", L.DRUIDMANABAR_PREVIEW_REAL },
-            { "sweep", L.DRUIDMANABAR_PREVIEW_SWEEP },
-        },
-        debug = true, section = L.DEBUG_SECTION_TESTING,
-    },
+    { key = "everyForm", name = L.DRUIDMANABAR_EVERY_FORM, description = L.DRUIDMANABAR_EVERY_FORM_DESC },
 }
 
-local SWEEP_SECONDS = 8 -- Sweep: full to empty and back
-
--- Your mana and its max, or with Sweep a made-up amount that empties and fills again, to watch
--- the fill and every Status Text setting change. Made up, it's readable; your own may be secret.
+-- Your mana, which may be secret, and its max.
 local function mana()
-    local max = UnitPowerMax("player", Enum.PowerType.Mana)
-    if module.db.preview == "sweep" and ns.IsNumber(max) then
-        local phase = (GetTime() % SWEEP_SECONDS) / SWEEP_SECONDS * 2
-        return floor(max *(phase < 1 and 1 - phase or phase - 1)), max
-    end
-    return UnitPower("player", Enum.PowerType.Mana), max
+    return UnitPower("player", Enum.PowerType.Mana), UnitPowerMax("player", Enum.PowerType.Mana)
 end
 
 -- Only druids change forms; everyone else keeps it out of Settings.
@@ -92,9 +76,8 @@ local function wanted()
     if not (ns.IsNumber(max) and max > 0) then
         return false
     end
-    -- Preview (Debug): in every form, to see it without Cat Form (level 20) or Bear Form (10).
     local power = UnitPowerType("player")
-    return module.db.preview ~= "off" or (ns.IsNumber(power) and power ~= Enum.PowerType.Mana)
+    return module.db.everyForm or (ns.IsNumber(power) and power ~= Enum.PowerType.Mana)
 end
 
 -- The player's mana is secret on Forever even out of combat, while its max reads fine (`/dump`
