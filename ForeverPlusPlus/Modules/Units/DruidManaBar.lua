@@ -23,6 +23,7 @@ local module = ns.NewModule("DruidManaBar", L.DRUIDMANABAR_DESC, {
     enabled = true,
     everyForm = false, -- caster, Travel, and Aquatic Form too, where the frame's own bar is mana
     formColor = true, -- a lighter blue while in Cat or Bear Form
+    text = true, -- off: no text on our bar, whatever Status Text says
 })
 module.title = L.DRUIDMANABAR_TITLE
 module.category = "units"
@@ -31,6 +32,7 @@ module.added = "1.0.2"
 module.options = {
     { key = "everyForm", name = L.DRUIDMANABAR_EVERY_FORM, description = L.DRUIDMANABAR_EVERY_FORM_DESC },
     { key = "formColor", name = L.DRUIDMANABAR_FORM_COLOR, description = L.DRUIDMANABAR_FORM_COLOR_DESC },
+    { key = "text", name = L.DRUIDMANABAR_TEXT, description = L.DRUIDMANABAR_TEXT_DESC },
 }
 
 -- Your mana, which may be secret, and its max.
@@ -150,7 +152,8 @@ local function updateText()
     bar.Text:SetText("")
     bar.LeftText:SetText("")
     bar.RightText:SetText("")
-    if not ((hovered or C_CVar.GetCVar("statusText") == "1") and ns.IsNumber(max) and max > 0) then
+    if not (module.db.text and (hovered or C_CVar.GetCVar("statusText") == "1") and ns.IsNumber(max)
+        and max > 0) then
         return
     end
     local mode = C_CVar.GetCVar("statusTextDisplay")
