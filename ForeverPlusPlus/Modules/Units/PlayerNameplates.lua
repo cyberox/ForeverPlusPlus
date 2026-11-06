@@ -15,6 +15,7 @@ local module = ns.NewModule("PlayerNameplates", L.PLAYERNAMEPLATES_DESC, ns.Frie
     lightRogue = false, -- rogues in a pale yellow, apart from neutral NPCs' yellow
     dimOthers = true, -- players not in your group or guild, or your friends, a little faded
     dimAmount = 30, -- percent dimmer
+    iconSize = 80, -- percent of Blizzard's name size, like nameSize
     classIcon = "off", -- "off", "before", or "after" the name
     classIconStyle = "ring", -- "ring", "round", or "square"
     classIconOrder = "inside", -- with the level on the same side: "inside" it, or "outside" past it
@@ -29,6 +30,15 @@ local module = ns.NewModule("PlayerNameplates", L.PLAYERNAMEPLATES_DESC, ns.Frie
 }))
 module.title = L.PLAYERNAMEPLATES_TITLE
 module.category = "units"
+
+-- Layout version 5: the icons had no size of their own and grew with Name Size. A player who set
+-- Name Size keeps their icons that size under the new Icon Size.
+ns.Migrate(5, function(db)
+    local saved = db.settings and db.settings.PlayerNameplates
+    if saved and saved.nameSize ~= nil and saved.iconSize == nil then
+        saved.iconSize = saved.nameSize
+    end
+end)
 
 -- General first, then the name, the guild line, and the icons beside the name.
 module.options = ns.FriendlyPlates.Options(L.PLAYERNAMEPLATES_BAR_WHEN_HURT_DESC, {
@@ -71,6 +81,11 @@ module.options = ns.FriendlyPlates.Options(L.PLAYERNAMEPLATES_BAR_WHEN_HURT_DESC
     {
         key = "guildHighlight", name = L.PLAYERNAMEPLATES_GUILD_HIGHLIGHT, description = L.PLAYERNAMEPLATES_GUILD_HIGHLIGHT_DESC,
         requires = "guildNames", section = L.PLAYERNAMEPLATES_SECTION_GUILD,
+    },
+    {
+        key = "iconSize", name = L.PLAYERNAMEPLATES_ICON_SIZE, description = L.PLAYERNAMEPLATES_ICON_SIZE_DESC,
+        min = 50, max = 200, step = 10, format = "%d%%", section = L.PLAYERNAMEPLATES_SECTION_ICONS,
+        added = "1.0.3",
     },
     {
         key = "classIcon", name = L.PLAYERNAMEPLATES_CLASS_ICON, description = L.PLAYERNAMEPLATES_CLASS_ICON_DESC,

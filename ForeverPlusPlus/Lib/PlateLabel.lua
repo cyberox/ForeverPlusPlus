@@ -5,8 +5,10 @@
 -- the bar's left), with the icons after it and the subtitle under the bar.
 --
 -- A plate module decides what goes in the label through a `style` (see ns.FriendlyPlates):
---   style.db               its settings: level ("before"/"after"/"off"), nameSize (a percent of
---                          Blizzard's name size), centerLine, and for the icons
+--   style.db               its settings: level ("before"/"after"/"off"), levelFrame
+--                          ("none"/"badge"/"round"), nameSize and levelSize (percents of
+--                          Blizzard's name and level sizes), centerLine, and for the icons
+--                          iconSize (a percent like nameSize; nameSize without it),
 --                          socialIcons, groupIcon ("role"/"looking"), iconSide
 --                          ("after"/"before" the name) and testIcons
 --   style.NameColor(unit)  r, g, b for the name
@@ -25,7 +27,7 @@
 -- Labels are kept per Blizzard unit frame and shared by every module, since plates are pooled.
 local _, ns = ...
 
-local pairs, ipairs, setmetatable, unpack, floor = pairs, ipairs, setmetatable, unpack, math.floor
+local ipairs, setmetatable, unpack, floor = ipairs, setmetatable, unpack, math.floor
 local type, lower, format = type, string.lower, string.format
 local CreateFrame, UnitLevel, UnitClass = CreateFrame, UnitLevel, UnitClass
 local UnitGroupRolesAssigned, GetTexCoordsForRoleSmallCircle =
@@ -44,6 +46,12 @@ PlateLabel.LEVEL_CHOICES = {
     { "before", L.PLATES_LEVEL_BEFORE },
     { "after", L.PLATES_LEVEL_AFTER },
     { "off", L.PLATES_LEVEL_OFF },
+}
+-- What the level sits in (placeLevel draws them).
+PlateLabel.LEVEL_FRAME_CHOICES = {
+    { "none", L.PLATES_LEVEL_FRAME_NONE },
+    { "badge", L.PLATES_LEVEL_FRAME_BADGE },
+    { "round", L.PLATES_LEVEL_FRAME_ROUND },
 }
 -- Where Blizzard's buff row sits while the bar is hidden (FriendlyPlates places it).
 PlateLabel.BUFF_CHOICES = {
@@ -69,7 +77,8 @@ function PlateLabel.NameSizeOption(section)
     }
 end
 
-local GAP = 3 -- pixels between the name, the level, and the icons
+local GAP = 3 -- the least pixels between the name, the level, and the icons
+local GAP_SCALE = 0.3 -- and the gap against the name's font size, so it grows with a bigger name
 local SUBTITLE_SCALE = 0.9 -- the subtitle is a touch smaller than the name
 
 -- Icons ---------------------------------------------------------------------------------------
@@ -180,8 +189,7 @@ end
 
 -- Shows the icons this unit gets, in a row going away from `anchor` (leftward when `left`), and
 -- returns the width they take.
-local function placeIcons(icons, anchor, left, fontSize, unit, style)
-    local size = fontSize * ICON_SCALE
+local function placeIcons(icons, anchor, left, size, gap, unit, style)
     local previous, width = anchor, 0
     for _, kind in ipairs(ORDER) do
         local icon = icons[kind]
@@ -191,12 +199,12 @@ local function placeIcons(icons, anchor, left, fontSize, unit, style)
             setArt(icon, artFor(kind, unit, style.db))
             icon:SetSize(size, size)
             if left then
-                icon:SetPoint("RIGHT", previous, "LEFT", -GAP, 0)
+                icon:SetPoint("RIGHT", previous, "LEFT", -gap, 0)
             else
-                icon:SetPoint("LEFT", previous, "RIGHT", GAP, 0)
+                icon:SetPoint("LEFT", previous, "RIGHT", gap, 0)
             end
             previous = icon
-            width = width + size + GAP
+            width = width + size + gap
         end
         icon:SetShown(show)
     end
@@ -213,6 +221,10 @@ local CLASS_ATLASES = {
     ring = { "groupfinder-icon-class-%s-c60", "groupfinder-icon-class-%s" },
 }
 local CLASS_FALLBACK = { "classicon-%s", "groupfinder-icon-class-%s" }
+-- How big each look is drawn against the other icons, so the three read about the same size: the
+-- square art fills its corners (it looked much bigger than the others), and the ring's class art
+-- sits inside the ring, at about two thirds of it. (Measured from the 70790 textures.)
+local CLASS_SCALE = { ring = 1.1, round = 1, square = 0.88 }
 local classAtlases = {} -- "style:TOKEN" -> atlas, or false without one
 
 local function classAtlas(unit, look)
@@ -250,7 +262,7 @@ end
 
 -- Shows the class icon beside `anchor` (left of it when `left`), cut round when `round`, or hides
 -- it without an atlas; returns the width it takes.
-local function placeClass(icon, anchor, left, size, atlas, round)
+local function placeClass(icon, anchor, left, size, gap, atlas, round)
     icon:ClearAllPoints()
     if not atlas then
         icon:Hide()
@@ -269,12 +281,12 @@ local function placeClass(icon, anchor, left, size, atlas, round)
     end
     icon:SetSize(size, size)
     if left then
-        icon:SetPoint("RIGHT", anchor, "LEFT", -GAP, 0)
+        icon:SetPoint("RIGHT", anchor, "LEFT", -gap, 0)
     else
-        icon:SetPoint("LEFT", anchor, "RIGHT", GAP, 0)
+        icon:SetPoint("LEFT", anchor, "RIGHT", gap, 0)
     end
     icon:Show()
-    return size + GAP
+    return size + gap
 end
 
 -- Label ---------------------------------------------------------------------------------------
@@ -317,6 +329,10 @@ local function createLabel(frame)
     label.level = CreateFrame("Frame", nil, label)
     label.level.text = label.level:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     label.level.text:SetPoint("CENTER")
+    -- Its Level Frame art, behind the number (placeLevel).
+    label.level.frame = label.level:CreateTexture(nil, "BACKGROUND")
+    label.level.frame:SetAllPoints(label.level)
+    label.level.frame:Hide()
     -- One set of icons for each view: beside our name, and beside our bar-view name.
     label.icons = createIcons(label)
     label.barIcons = createIcons(label.barFrame)
@@ -349,54 +365,19 @@ function PlateLabel.Hide(label)
     label.debugFrame:Hide()
 end
 
--- Copies the look of Forever's level badge (UnitFrame.LevelFrame): its atlas art and its
--- number's font. The art is copied once per label, since the badge is the same on every plate;
--- the size is retried until Blizzard has laid its badge out.
-local function copyBadge(label, levelFrame)
-    local badge = label.level
-    local width, height = levelFrame:GetSize()
-    if readable(width) and readable(height) and width and width > 0 then
-        badge:SetSize(width, height)
-    elseif not badge.sized then
-        badge:SetSize(24, 14)
-    end
-    badge.sized = true
-    if badge.copied then
-        return
-    end
-    badge.copied = true
-    local sources = { levelFrame }
-    for _, child in pairs({ levelFrame:GetChildren() }) do
-        sources[#sources + 1] = child
-    end
-    for _, source in pairs(sources) do
-        for _, region in pairs({ source:GetRegions() }) do
-            local kind = region:GetObjectType()
-            if kind == "Texture" and region:GetAtlas() then
-                local texture = badge:CreateTexture(nil, region:GetDrawLayer())
-                texture:SetAtlas(region:GetAtlas())
-                texture:SetAllPoints(badge)
-                badge.hasArt = true
-            elseif kind == "FontString" then
-                local file, size, flags = region:GetFont()
-                if file and size then
-                    badge.text:SetFont(file, size, flags)
-                end
-            end
-        end
-    end
-end
-
 -- Use the size Blizzard's name is drawn at, not its font object's (nameplates set the size on the
 -- string). Blizzard shrinks a long name's font to fit its plate, so every label uses the largest
 -- size seen: the normal one. A nameplate CVar change (plate size among them) measures it again,
 -- so a smaller size takes effect too.
 local fullSize = 0
 local watchingSize = false
+-- The size Blizzard draws the level at (UnitFrame.LevelFrame.LevelText), which ours scales from
+-- like the name, so a bigger Name Size makes the level bigger too. Measured again with the name.
+local levelSize = 0
 
 local function onCVarUpdate(_, name)
     if type(name) == "string" and lower(name):find("^nameplate") then
-        fullSize = 0
+        fullSize, levelSize = 0, 0
     end
 end
 
@@ -439,33 +420,90 @@ local function matchFont(label, name, scale)
     setFont(label.barName, base, size)
 end
 
+-- The level's number in Blizzard's level font (UnitFrame.LevelFrame.LevelText, which has no art
+-- of its own on Forever) at `scale` of the size Blizzard draws it; returns that size.
+local function matchLevelFont(label, levelFrame, scale)
+    local text = label.level.text
+    local blizzard = levelFrame.LevelText
+    local base = blizzard and blizzard:GetFontObject() or _G.SystemFont_NamePlateLevel
+    if blizzard then
+        local _, blizzardSize = blizzard:GetFont()
+        if readable(blizzardSize) and blizzardSize and blizzardSize > levelSize then
+            levelSize = blizzardSize
+        end
+    end
+    local size = floor((levelSize > 0 and levelSize or 10) * scale * 10 + 0.5) / 10
+    if base and (label.levelSize ~= size or label.levelBase ~= base) then
+        label.levelSize, label.levelBase = size, base
+        setFont(text, base, size)
+        -- The font object brings its own color; the level stays gold, as it always was here.
+        local color = _G.NORMAL_FONT_COLOR
+        if color then
+            text:SetTextColor(color:GetRGB())
+        else
+            text:SetTextColor(1, 0.82, 0)
+        end
+    end
+    return label.levelSize or size
+end
+
+-- Level Frame: what the number sits in. Forever's own nameplate level badges (the c60 art first,
+-- then Retail's): the rounded box its player level badge uses, and the round one. The box is
+-- drawn a little wider than tall, as Blizzard draws it, and either grows for a wide number.
+-- (Names from wago.tools' UiTextureAtlasMember for 1.60.1.70790.)
+local LEVEL_FRAMES = {
+    badge = { atlases = { "ui-hud-nameplates-levelindicator-rectangle-c60",
+        "ui-hud-nameplates-levelindicator-rectangle" }, wide = 1.3, pad = 0.9 },
+    round = { atlases = { "ui-hud-nameplates-levelindicator-c60",
+        "ui-hud-nameplates-levelindicator" }, wide = 1, pad = 0.6 },
+}
+local LEVEL_FRAME_HEIGHT = 1.6 -- the frame's height against the number's font size
+
 -- Puts the level beside `anchor` (the name, or the class icon on its side); returns the width it
 -- takes (0 when it can't be read) and whether it shows.
-local function placeLevel(label, record, unit, where, anchor)
+local function placeLevel(label, record, unit, db, where, anchor, gap)
     local badge = label.level
     if not record.levelFrame or where == "off" then
         badge:Hide()
         return 0, false
     end
-    copyBadge(label, record.levelFrame)
+    local fontSize = matchLevelFont(label, record.levelFrame, (db.levelSize or 100) / 100)
     local level = UnitLevel(unit)
     if readable(level) and level <= 0 then
         badge.text:SetText("??")
     else
         badge.text:SetText(level)
     end
-    -- Without copied art the badge is just the number, so it's as wide as the number.
     local textWidth = badge.text:GetStringWidth()
-    if not badge.hasArt and readable(textWidth) and textWidth > 0 then
-        badge:SetWidth(textWidth)
+    if not (readable(textWidth) and textWidth > 0) then
+        textWidth = fontSize * 1.2
+    end
+    local frame = LEVEL_FRAMES[db.levelFrame]
+    local atlas = frame and findAtlas(frame)
+    if atlas then
+        if badge.frameAtlas ~= atlas then
+            badge.frameAtlas = atlas
+            badge.frame:SetAtlas(atlas, false)
+        end
+        badge.frame:Show()
+        local height = fontSize * LEVEL_FRAME_HEIGHT
+        local width = height * frame.wide
+        if textWidth + fontSize * frame.pad > width then
+            width = textWidth + fontSize * frame.pad
+        end
+        badge:SetSize(width, height)
+    else
+        -- Just the number, so it's as wide as the number.
+        badge.frame:Hide()
+        badge:SetSize(textWidth, fontSize * 1.4)
     end
     local width = badge:GetWidth()
-    width = readable(width) and width + GAP or 0
+    width = readable(width) and width + gap or 0
     badge:ClearAllPoints()
     if where == "after" then
-        badge:SetPoint("LEFT", anchor, "RIGHT", GAP, 0)
+        badge:SetPoint("LEFT", anchor, "RIGHT", gap, 0)
     else
-        badge:SetPoint("RIGHT", anchor, "LEFT", -GAP, 0)
+        badge:SetPoint("RIGHT", anchor, "LEFT", -gap, 0)
     end
     badge:Show()
     return width, true
@@ -543,6 +581,9 @@ function PlateLabel.Layout(label, record, unit, style)
     -- over the bar. The subtitle stays centered.
     local db = style.db
     local fontSize = label.nameSize or 12
+    -- The space between the parts grows with the name, so a big name isn't crowded.
+    local gap = fontSize * GAP_SCALE
+    gap = floor((gap > GAP and gap or GAP) + 0.5)
     local classWhere = style.classIcons and db.classIcon or "off"
     local atlas = classWhere ~= "off" and classAtlas(unit, db.classIconStyle) or nil
     local round = db.classIconStyle == "round"
@@ -550,18 +591,20 @@ function PlateLabel.Layout(label, record, unit, style)
     local where = db.level
     local levelLeft = where ~= "after"
     local iconsLeft = db.iconSide == "before"
-    local size = fontSize * ICON_SCALE
+    -- Icon Size, against Blizzard's name size like Name Size (a module without it follows the name).
+    local size = (fullSize > 0 and fullSize or 12) * ICON_SCALE * (db.iconSize or db.nameSize or 100) / 100
+    local classSize = size * (CLASS_SCALE[db.classIconStyle] or 1)
     local sameSide = atlas and classLeft == levelLeft
     local outside = sameSide and db.classIconOrder == "outside"
     local classWidth, levelWidth, levelShown
     if outside then
-        levelWidth, levelShown = placeLevel(label, record, unit, where, label.name)
+        levelWidth, levelShown = placeLevel(label, record, unit, db, where, label.name, gap)
         classWidth = placeClass(label.classIcon, levelShown and label.level or label.name, classLeft,
-            size, atlas, round)
+            classSize, gap, atlas, round)
     else
-        classWidth = placeClass(label.classIcon, label.name, classLeft, size, atlas, round)
-        levelWidth, levelShown = placeLevel(label, record, unit, where,
-            sameSide and label.classIcon or label.name)
+        classWidth = placeClass(label.classIcon, label.name, classLeft, classSize, gap, atlas, round)
+        levelWidth, levelShown = placeLevel(label, record, unit, db, where,
+            sameSide and label.classIcon or label.name, gap)
     end
     -- The other icons go past whichever of the two is outermost on their side.
     local classHere = atlas and classLeft == iconsLeft
@@ -574,7 +617,7 @@ function PlateLabel.Layout(label, record, unit, style)
     elseif classHere then
         anchor = label.classIcon
     end
-    local iconsWidth = placeIcons(label.icons, anchor, iconsLeft, fontSize, unit, style)
+    local iconsWidth = placeIcons(label.icons, anchor, iconsLeft, size, gap, unit, style)
     local leftWidth, rightWidth = 0, 0
     local function add(left, width)
         if left then
@@ -591,9 +634,10 @@ function PlateLabel.Layout(label, record, unit, style)
     -- stays on the bar.
     label.barName:SetText(record.name:GetText())
     label.barName:SetTextColor((style.BarNameColor or style.NameColor)(unit))
-    local barClassWidth = placeClass(label.barClassIcon, label.barName, classLeft, size, atlas, round)
+    local barClassWidth = placeClass(label.barClassIcon, label.barName, classLeft, classSize, gap,
+        atlas, round)
     local barAnchor = atlas and classLeft == iconsLeft and label.barClassIcon or label.barName
-    local barIconsWidth = placeIcons(label.barIcons, barAnchor, iconsLeft, fontSize, unit, style)
+    local barIconsWidth = placeIcons(label.barIcons, barAnchor, iconsLeft, size, gap, unit, style)
     local barLeft = (classLeft and barClassWidth or 0) + (iconsLeft and barIconsWidth or 0)
     local barRight = (classLeft and 0 or barClassWidth) + (iconsLeft and 0 or barIconsWidth)
     local barRow = label.barRow

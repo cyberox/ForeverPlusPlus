@@ -42,8 +42,23 @@ ns.changelog = {
                     .. "send to your group." },
                 { L.CHATCOPY_TITLE, "A Select All button, ready for Ctrl+C. The game doesn't let "
                     .. "addons copy for you." },
+                { L.PLAYERNAMEPLATES_TITLE, "Level Frame puts the level in one of Forever's "
+                    .. "nameplate level badges, square or round, and Level Size sets how big it is. "
+                    .. "Off by default." },
+                { L.NPCNAMEPLATES_TITLE, "Level Frame puts the level in one of Forever's nameplate "
+                    .. "level badges, square or round, and Level Size sets how big it is. Off by "
+                    .. "default." },
+                { L.PLAYERNAMEPLATES_TITLE, "Icon Size sets how big the class, group, friend, and "
+                    .. "recent ally icons are, apart from the name. If you changed Name Size, the "
+                    .. "icons stay the size they were." },
             } },
             { L.CHANGELOG_CHANGED, {
+                { L.PLAYERNAMEPLATES_TITLE, "The space between the name, level, and icons grows "
+                    .. "with a bigger name." },
+                { L.NPCNAMEPLATES_TITLE, "The space between the name, level, and icons grows with "
+                    .. "a bigger name." },
+                { L.PLAYERNAMEPLATES_TITLE, "The three Class Icon styles are drawn about the same "
+                    .. "size; Square was much bigger than Ring." },
                 { L.CONSOLEVARIABLES_TITLE, "A note at the top says 0 is usually off and 1 on, and "
                     .. "a CVar's tooltip says when it may take other values." },
                 { L.CONSOLEVARIABLES_TITLE, "Opens on Favorites once you've starred some, else "

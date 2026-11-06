@@ -261,6 +261,8 @@ function FriendlyPlates.Defaults(extra)
     extra.barWhenHurt = true
     extra.nameSize = 80 -- percent of Blizzard's name size
     extra.level = "before" -- "before", "after", or "off"
+    extra.levelFrame = "none" -- what the level sits in: see PlateLabel.LEVEL_FRAME_CHOICES
+    extra.levelSize = 100 -- percent of Blizzard's level size
     extra.buffs = "above" -- where the buff row sits without the bar: see PlateLabel.BUFF_CHOICES
     extra.centerLine = false -- debug: a line through each plate's center
     extra.saved = {} -- CVar -> the player's own value, put back when the module turns off
@@ -282,6 +284,16 @@ function FriendlyPlates.Options(barDescription, options)
         choices = PlateLabel.LEVEL_CHOICES, section = L.PLATES_SECTION_GENERAL,
     })
     table.insert(options, 3, {
+        key = "levelFrame", name = L.PLATES_LEVEL_FRAME, description = L.PLATES_LEVEL_FRAME_DESC,
+        choices = PlateLabel.LEVEL_FRAME_CHOICES, requires = "level", section = L.PLATES_SECTION_GENERAL,
+        added = "1.0.3",
+    })
+    table.insert(options, 4, {
+        key = "levelSize", name = L.PLATES_LEVEL_SIZE, description = L.PLATES_LEVEL_SIZE_DESC,
+        min = 50, max = 200, step = 10, format = "%d%%", requires = "level",
+        section = L.PLATES_SECTION_GENERAL, added = "1.0.3",
+    })
+    table.insert(options, 5, {
         key = "buffs", name = L.PLATES_BUFFS, description = L.PLATES_BUFFS_DESC,
         -- Sharing a side with the level is fine: the buffs go past it (placeBuffs).
         choices = PlateLabel.BUFF_CHOICES, section = L.PLATES_SECTION_GENERAL,
