@@ -1,4 +1,4 @@
-![Forever++](https://media.forgecdn.net/attachments/2056/644/1-hero-png.png)
+![Forever++](https://media.forgecdn.net/attachments/2150/393/01-hero-jpg.jpg)
 
 # Forever++
 
