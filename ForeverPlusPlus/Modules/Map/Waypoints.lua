@@ -54,7 +54,7 @@ module.options = {
         requires = "arrow", added = "0.9.0" },
     { key = "clearOnArrival", name = L.WAYPOINTS_CLEAR_ON_ARRIVAL,
         description = L.WAYPOINTS_CLEAR_ON_ARRIVAL_DESC, requires = "arrow", added = "0.9.0",
-        changed = "1.0.3" }, -- on by default
+        changed = "1.1.0" }, -- on by default
 }
 
 -- /way ----------------------------------------------------------------------------------------

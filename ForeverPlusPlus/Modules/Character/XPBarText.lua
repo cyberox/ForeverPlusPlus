@@ -60,7 +60,7 @@ module.options = {
     },
     {
         key = "rate", name = L.XPBARTEXT_RATE, description = L.XPBARTEXT_RATE_DESC,
-        added = "1.0.3", section = L.XPBARTEXT_SECTION_TEXT,
+        added = "1.1.0", section = L.XPBARTEXT_SECTION_TEXT,
     },
     {
         key = "questBar", name = L.XPBARTEXT_QUEST_BAR, description = L.XPBARTEXT_QUEST_BAR_DESC,

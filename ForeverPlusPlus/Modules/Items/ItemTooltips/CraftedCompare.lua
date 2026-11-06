@@ -27,7 +27,7 @@ local Equipment, Professions = ns.Equipment, ns.Professions
 
 local module = ns.modules.ItemTooltips:NewPart({
     key = "craftedCompare", name = L.CRAFTEDCOMPARE_TITLE, description = L.CRAFTEDCOMPARE_DESC,
-    section = L.CRAFTEDCOMPARE_TITLE, added = "1.0.3",
+    section = L.CRAFTEDCOMPARE_TITLE, added = "1.1.0",
     choices = {
         { "usable", L.CRAFTEDCOMPARE_USABLE },
         { "professions", L.CRAFTEDCOMPARE_PROFESSIONS },

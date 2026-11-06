@@ -87,7 +87,7 @@ module.options = ns.FriendlyPlates.Options(L.PLAYERNAMEPLATES_HEALTH_BAR_DESC, {
     {
         key = "iconSize", name = L.PLAYERNAMEPLATES_ICON_SIZE, description = L.PLAYERNAMEPLATES_ICON_SIZE_DESC,
         min = 50, max = 200, step = 10, format = "%d%%", section = L.PLAYERNAMEPLATES_SECTION_ICONS,
-        added = "1.0.3",
+        added = "1.1.0",
     },
     {
         key = "classIcon", name = L.PLAYERNAMEPLATES_CLASS_ICON, description = L.PLAYERNAMEPLATES_CLASS_ICON_DESC,

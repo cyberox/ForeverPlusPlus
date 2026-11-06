@@ -10,91 +10,79 @@ local L = ns.L
 
 ns.changelog = {
     {
-        version = L.CHANGELOG_UNRELEASED,
+        version = "1.1.0",
+        date = "2026-11-06",
         sections = {
             { L.CHANGELOG_ADDED, {
-                { L.CONSOLEVARIABLES_TITLE, "A Popular group: the console variables players look for, "
-                    .. "under plain names with what their values do, such as Max Camera Distance "
-                    .. "past the Options' 2.0, Screen Glow, and Nameplate Range." },
-                { L.CONSOLEVARIABLES_TITLE, "A star on each console variable keeps it in a new "
-                    .. "Favorites group, for your account." },
-                { L.CONSOLEVARIABLES_TITLE, "When the game takes a value as something else (past "
-                    .. "its range), chat says what it kept and its box flashes red." },
-                { L.ITEMTOOLTIPS_TITLE, "Compare Crafted Gear: a recipe in your bags that makes "
-                    .. "gear compares it with what you wear, as linked recipes already do. Gear "
-                    .. "you can wear at any level, or only from your professions. On by default." },
-                { L.PROFILER_TITLE, "A module folds open to what its time went to by source: each "
-                    .. "event, hook, and update." },
-                { L.PROFILER_TITLE, "Spikes: the worst frames Forever++ took over 16 ms in, with "
-                    .. "when, how long, whose call it was, and whether you were in combat." },
-                { L.PROFILER_TITLE, "Copy gives the results as one line for a bug report, a bar "
-                    .. "behind each module shows its share, and memory says how fast it grew." },
+                { L.CONSOLEVARIABLES_TITLE, "A Popular group of the console variables players look "
+                    .. "for, under plain names, such as Max Camera Distance, Screen Glow, and "
+                    .. "Nameplate Range." },
+                { L.CONSOLEVARIABLES_TITLE, "Star a console variable to keep it in Favorites." },
+                { L.CONSOLEVARIABLES_TITLE, "When the game won't take a value (past its range), chat "
+                    .. "says what it kept and the box flashes red." },
+                { L.ITEMTOOLTIPS_TITLE, "Compare Crafted Gear: a recipe in your bags that makes gear "
+                    .. "compares it with what you wear. On by default." },
+                { L.PROFILER_TITLE, "A module folds open to show its time by source: each event, "
+                    .. "hook, and update." },
+                { L.PROFILER_TITLE, "Spikes: the worst frames over 16 ms, with whose call it was and "
+                    .. "whether you were in combat." },
+                { L.PROFILER_TITLE, "Copy gives the results as one line for a bug report. A bar "
+                    .. "shows each module's share, and memory shows how fast it grew." },
                 { L.UPGRADEARROWS_TITLE, "Gear for Later: with Higher Level Gear on, upgrades you "
-                    .. "can't wear yet get a gray arrow, and their tooltip says the level they're "
-                    .. "usable at." },
-                { L.CURRENCYBAR_TITLE, "Gold per Hour: what you earn or spend per hour this "
-                    .. "session, in the tooltip under Session. On by default." },
-                { L.XPBARTEXT_TITLE, "Show XP per Hour: your XP per hour and time to level on the "
-                    .. "bar itself. Off by default." },
-                { L.WAYPOINTS_TITLE, "Text after the coordinates is the waypoint's note, shown under "
-                    .. "the arrow: /way 45 67 Hogger." },
-                { L.WAYPOINTS_TITLE, "/way share puts your map pin's link in the chat box, ready to "
-                    .. "send to your group." },
-                { L.CHATCOPY_TITLE, "A Select All button, ready for Ctrl+C. The game doesn't let "
-                    .. "addons copy for you." },
-                { L.PLAYERNAMEPLATES_TITLE, "Level Frame puts the level in one of Forever's "
-                    .. "nameplate level badges, square or round, and Level Size sets how big it is. "
-                    .. "Off by default." },
-                { L.NPCNAMEPLATES_TITLE, "Level Frame puts the level in one of Forever's nameplate "
-                    .. "level badges, square or round, and Level Size sets how big it is. Off by "
-                    .. "default." },
-                { L.PLAYERNAMEPLATES_TITLE, "Health Bar When Hurt is now Health Bar, with Never to "
-                    .. "hide the bar even in combat, beside When Hurt or in Combat and Only in Combat. "
-                    .. "Your choice carries over." },
-                { L.NPCNAMEPLATES_TITLE, "Health Bar When Hurt is now Health Bar, with Never to hide "
-                    .. "the bar even in combat, beside When Hurt or in Combat and Only in Combat. Your "
-                    .. "choice carries over." },
-                { L.PLAYERNAMEPLATES_TITLE, "Icon Size sets how big the class, group, friend, and "
-                    .. "recent ally icons are, apart from the name. If you changed Name Size, the "
-                    .. "icons stay the size they were." },
+                    .. "can't wear yet get a gray arrow, and the tooltip says at what level." },
+                { L.CURRENCYBAR_TITLE, "Gold per Hour, in the tooltip under Session. On by default." },
+                { L.XPBARTEXT_TITLE, "Show XP per Hour puts XP per hour and time to level on the "
+                    .. "bar. Off by default." },
+                { L.WAYPOINTS_TITLE, "Text after the coordinates is a note shown under the arrow: "
+                    .. "/way 45 67 Hogger." },
+                { L.WAYPOINTS_TITLE, "/way share puts your map pin's link in the chat box." },
+                { L.CHATCOPY_TITLE, "A Select All button, ready for Ctrl+C." },
+                { L.PLAYERNAMEPLATES_TITLE, "Level Frame puts the level in a square or round badge, "
+                    .. "and Level Size sets its size. Off by default." },
+                { L.NPCNAMEPLATES_TITLE, "Level Frame puts the level in a square or round badge, and "
+                    .. "Level Size sets its size. Off by default." },
+                { L.PLAYERNAMEPLATES_TITLE, "Health Bar replaces Health Bar When Hurt and adds Never, "
+                    .. "to hide the bar even in combat. Your choice carries over." },
+                { L.NPCNAMEPLATES_TITLE, "Health Bar replaces Health Bar When Hurt and adds Never, to "
+                    .. "hide the bar even in combat. Your choice carries over." },
+                { L.PLAYERNAMEPLATES_TITLE, "Icon Size sizes the class, group, friend, and recent ally "
+                    .. "icons apart from the name. If you changed Name Size, the icons stay as they "
+                    .. "were." },
             } },
             { L.CHANGELOG_CHANGED, {
-                { L.PLAYERNAMEPLATES_TITLE, "The space between the name, level, and icons grows "
-                    .. "with a bigger name." },
-                { L.NPCNAMEPLATES_TITLE, "The space between the name, level, and icons grows with "
-                    .. "a bigger name." },
-                { L.PLAYERNAMEPLATES_TITLE, "The three Class Icon styles are drawn about the same "
-                    .. "size; Square was much bigger than Ring." },
+                { L.PLAYERNAMEPLATES_TITLE, "The gap between the name, level, and icons grows with "
+                    .. "the name." },
+                { L.NPCNAMEPLATES_TITLE, "The gap between the name, level, and icons grows with the "
+                    .. "name." },
+                { L.PLAYERNAMEPLATES_TITLE, "The three Class Icon styles are now about the same size." },
                 { L.CONSOLEVARIABLES_TITLE, "A note at the top says 0 is usually off and 1 on, and "
-                    .. "a CVar's tooltip says when it may take other values." },
-                { L.CONSOLEVARIABLES_TITLE, "Opens on Favorites once you've starred some, else "
-                    .. "Popular, instead of Changed, and a search looks through All." },
-                { L.UPGRADEARROWS_TITLE, "The talent tree you pick is saved for each character, so "
-                    .. "an alt isn't judged by another character's tree. The first character you "
-                    .. "log in with keeps your current pick." },
-                { L.WAYPOINTS_TITLE, "You count as arrived within 10 yards instead of 5, and Clear "
-                    .. "Pin on Arrival is on by default." },
-                { L.GATHERINGTRACKING_TITLE, "Changing Track takes effect at once, and Swap Between "
-                    .. "Both shows only while Track is set to both." },
+                    .. "tooltips say when a value can be something else." },
+                { L.CONSOLEVARIABLES_TITLE, "Opens on Favorites, or Popular until you star one, and "
+                    .. "search looks through All." },
+                { L.UPGRADEARROWS_TITLE, "The talent tree you pick is saved per character, so alts "
+                    .. "aren't judged by another character's tree. The first character you log in "
+                    .. "with keeps your current pick." },
+                { L.WAYPOINTS_TITLE, "You arrive within 10 yards instead of 5, and Clear Pin on "
+                    .. "Arrival is on by default." },
+                { L.GATHERINGTRACKING_TITLE, "Changing Track applies at once, and Swap Between Both "
+                    .. "shows only when Track is set to both." },
                 { L.AUTOSELLJUNK_TITLE, "Says in chat when the buyback list is full and junk was "
                     .. "left unsold." },
                 { L.CHANGELOG_COMMANDS, "A module's /fpp command is listed only while the module "
                     .. "is on." },
             } },
             { L.CHANGELOG_FIXED, {
-                { L.UPGRADEARROWS_TITLE, "After a level-up, arrows and scores follow your new stats "
-                    .. "instead of staying stale." },
-                { L.MACROS_TITLE, "Turning Smart Buff off and back on in combat no longer deletes "
-                    .. "its macro and empties its action bar slots." },
-                { L.SOCIALBUTTON_TITLE, "Turning it off and on no longer adds another hook each "
+                { L.UPGRADEARROWS_TITLE, "Arrows and scores now update after a level-up." },
+                { L.MACROS_TITLE, "Turning Smart Buff off and on in combat no longer deletes its "
+                    .. "macro or empties its action bar slots." },
+                { L.SOCIALBUTTON_TITLE, "Turning it off and on no longer adds an extra hook each "
                     .. "time." },
-                { L.CHANGELOG_SETTINGS, "A checkbox for one of the game's own settings keeps what "
-                    .. "you picked when clicked in combat, and changes once combat ends." },
+                { L.CHANGELOG_SETTINGS, "A checkbox for one of the game's settings, clicked in "
+                    .. "combat, keeps your pick and applies it once combat ends." },
                 { L.WORLDMAP_TITLE, "Points of Interest listens only to your own casts, and only "
-                    .. "while Ley Lines shows them." },
-                { L.TALENTPLANNER_TITLE, "A row no longer asks for an impossible number of points "
-                    .. "(a hunter's Survival row 2 asked for 300): only talent point gates count, "
-                    .. "and the rest need 5 points a row." },
+                    .. "while ley lines are shown." },
+                { L.TALENTPLANNER_TITLE, "Rows no longer ask for impossible point totals (a hunter's "
+                    .. "Survival row 2 asked for 300)." },
             } },
         },
     },

@@ -291,7 +291,7 @@ function FriendlyPlates.Options(barDescription, options)
             { "combat", L.PLATES_HEALTH_BAR_COMBAT },
             { "never", L.PLATES_HEALTH_BAR_NEVER },
         },
-        section = L.PLATES_SECTION_GENERAL, changed = "1.0.3",
+        section = L.PLATES_SECTION_GENERAL, changed = "1.1.0",
     })
     table.insert(options, 2, {
         key = "level", name = L.PLATES_LEVEL, description = L.PLATES_LEVEL_DESC,
@@ -300,12 +300,12 @@ function FriendlyPlates.Options(barDescription, options)
     table.insert(options, 3, {
         key = "levelFrame", name = L.PLATES_LEVEL_FRAME, description = L.PLATES_LEVEL_FRAME_DESC,
         choices = PlateLabel.LEVEL_FRAME_CHOICES, requires = "level", section = L.PLATES_SECTION_GENERAL,
-        added = "1.0.3",
+        added = "1.1.0",
     })
     table.insert(options, 4, {
         key = "levelSize", name = L.PLATES_LEVEL_SIZE, description = L.PLATES_LEVEL_SIZE_DESC,
         min = 50, max = 200, step = 10, format = "%d%%", requires = "level",
-        section = L.PLATES_SECTION_GENERAL, added = "1.0.3",
+        section = L.PLATES_SECTION_GENERAL, added = "1.1.0",
     })
     table.insert(options, 5, {
         key = "buffs", name = L.PLATES_BUFFS, description = L.PLATES_BUFFS_DESC,

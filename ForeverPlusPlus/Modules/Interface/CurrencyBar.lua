@@ -38,7 +38,7 @@ module.options = {
         name = L.CURRENCYBAR_SESSION, description = L.CURRENCYBAR_SESSION_DESC,
     },
     {
-        key = "perHour", requires = "tooltip", added = "1.0.3",
+        key = "perHour", requires = "tooltip", added = "1.1.0",
         name = L.CURRENCYBAR_PER_HOUR, description = L.CURRENCYBAR_PER_HOUR_DESC,
     },
 }

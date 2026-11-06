@@ -131,7 +131,7 @@ module.options = {
     },
     {
         key = "later", name = L.UPGRADEARROWS_LATER, description = L.UPGRADEARROWS_LATER_DESC,
-        section = L.UPGRADEARROWS_SECTION_GENERAL, requires = "higher", added = "1.0.3",
+        section = L.UPGRADEARROWS_SECTION_GENERAL, requires = "higher", added = "1.1.0",
         choices = {
             { "gray", L.UPGRADEARROWS_LATER_GRAY },
             { "same", L.UPGRADEARROWS_LATER_SAME },

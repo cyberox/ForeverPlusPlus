@@ -2,47 +2,47 @@
 
 What changed in each release of Forever++. The same notes show in game under Settings > AddOns > Forever++ > Changelog, from [`ForeverPlusPlus/Changelog.lua`](ForeverPlusPlus/Changelog.lua); change both together.
 
-## Unreleased
+## 1.1.0 (2026-11-06)
 
 ### Added
 
-- **Console Variables**: a Popular group: the console variables players look for, under plain names with what their values do, such as Max Camera Distance past the Options' 2.0, Screen Glow, and Nameplate Range.
-- **Console Variables**: a star on each console variable keeps it in a new Favorites group, for your account.
-- **Console Variables**: when the game takes a value as something else (past its range), chat says what it kept and its box flashes red.
-- **Item Tooltips**: Compare Crafted Gear: a recipe in your bags that makes gear compares it with what you wear, as linked recipes already do. Gear you can wear at any level, or only from your professions. On by default.
-- **Profiler**: a module folds open to what its time went to by source: each event, hook, and update.
-- **Profiler**: spikes: the worst frames Forever++ took over 16 ms in, with when, how long, whose call it was, and whether you were in combat.
-- **Profiler**: Copy gives the results as one line for a bug report, a bar behind each module shows its share, and memory says how fast it grew.
-- **Upgrade Arrows**: Gear for Later: with Higher Level Gear on, upgrades you can't wear yet get a gray arrow, and their tooltip says the level they're usable at.
-- **Currency Bar**: Gold per Hour: what you earn or spend per hour this session, in the tooltip under Session. On by default.
-- **XP Bar Text**: Show XP per Hour: your XP per hour and time to level on the bar itself. Off by default.
-- **Waypoints**: text after the coordinates is the waypoint's note, shown under the arrow: `/way 45 67 Hogger`.
-- **Waypoints**: `/way share` puts your map pin's link in the chat box, ready to send to your group.
-- **Chat Copy**: a Select All button, ready for Ctrl+C. The game doesn't let addons copy for you.
-- **Player Nameplates**, **NPC Nameplates**: Level Frame puts the level in one of Forever's nameplate level badges, square or round, and Level Size sets how big it is. Off by default.
-- **Player Nameplates**, **NPC Nameplates**: Health Bar When Hurt is now Health Bar, with Never to hide the bar even in combat, beside When Hurt or in Combat and Only in Combat. Your choice carries over.
-- **Player Nameplates**: Icon Size sets how big the class, group, friend, and recent ally icons are, apart from the name. If you changed Name Size, the icons stay the size they were.
+- **Console Variables**: a Popular group of the console variables players look for, under plain names, such as Max Camera Distance, Screen Glow, and Nameplate Range.
+- **Console Variables**: star a console variable to keep it in Favorites.
+- **Console Variables**: when the game won't take a value (past its range), chat says what it kept and the box flashes red.
+- **Item Tooltips**: Compare Crafted Gear: a recipe in your bags that makes gear compares it with what you wear. On by default.
+- **Profiler**: a module folds open to show its time by source: each event, hook, and update.
+- **Profiler**: spikes: the worst frames over 16 ms, with whose call it was and whether you were in combat.
+- **Profiler**: Copy gives the results as one line for a bug report. A bar shows each module's share, and memory shows how fast it grew.
+- **Upgrade Arrows**: Gear for Later: with Higher Level Gear on, upgrades you can't wear yet get a gray arrow, and the tooltip says at what level.
+- **Currency Bar**: Gold per Hour, in the tooltip under Session. On by default.
+- **XP Bar Text**: Show XP per Hour puts XP per hour and time to level on the bar. Off by default.
+- **Waypoints**: text after the coordinates is a note shown under the arrow: `/way 45 67 Hogger`.
+- **Waypoints**: `/way share` puts your map pin's link in the chat box.
+- **Chat Copy**: a Select All button, ready for Ctrl+C.
+- **Player Nameplates**, **NPC Nameplates**: Level Frame puts the level in a square or round badge, and Level Size sets its size. Off by default.
+- **Player Nameplates**, **NPC Nameplates**: Health Bar replaces Health Bar When Hurt and adds Never, to hide the bar even in combat. Your choice carries over.
+- **Player Nameplates**: Icon Size sizes the class, group, friend, and recent ally icons apart from the name. If you changed Name Size, the icons stay as they were.
 
 ### Changed
 
-- **Player Nameplates**, **NPC Nameplates**: the space between the name, level, and icons grows with a bigger name.
-- **Player Nameplates**: the three Class Icon styles are drawn about the same size; Square was much bigger than Ring.
-- **Console Variables**: a note at the top says 0 is usually off and 1 on, and a CVar's tooltip says when it may take other values.
-- **Console Variables**: opens on Favorites once you've starred some, else Popular, instead of Changed, and a search looks through All.
-- **Upgrade Arrows**: the talent tree you pick is saved for each character, so an alt isn't judged by another character's tree. The first character you log in with keeps your current pick.
-- **Waypoints**: you count as arrived within 10 yards instead of 5, and Clear Pin on Arrival is on by default.
-- **Gathering Tracking**: changing Track takes effect at once, and Swap Between Both shows only while Track is set to both.
+- **Player Nameplates**, **NPC Nameplates**: the gap between the name, level, and icons grows with the name.
+- **Player Nameplates**: the three Class Icon styles are now about the same size.
+- **Console Variables**: a note at the top says 0 is usually off and 1 on, and tooltips say when a value can be something else.
+- **Console Variables**: opens on Favorites, or Popular until you star one, and search looks through All.
+- **Upgrade Arrows**: the talent tree you pick is saved per character, so alts aren't judged by another character's tree. The first character you log in with keeps your current pick.
+- **Waypoints**: you arrive within 10 yards instead of 5, and Clear Pin on Arrival is on by default.
+- **Gathering Tracking**: changing Track applies at once, and Swap Between Both shows only when Track is set to both.
 - **Auto Sell Junk**: says in chat when the buyback list is full and junk was left unsold.
 - **Commands**: a module's `/fpp` command is listed only while the module is on.
 
 ### Fixed
 
-- **Upgrade Arrows**: after a level-up, arrows and scores follow your new stats instead of staying stale.
-- **Macros**: turning Smart Buff off and back on in combat no longer deletes its macro and empties its action bar slots.
-- **Social Button**: turning it off and on no longer adds another hook each time.
-- **Settings**: a checkbox for one of the game's own settings keeps what you picked when clicked in combat, and changes once combat ends.
-- **World Map**: Points of Interest listens only to your own casts, and only while Ley Lines shows them.
-- **Talent Planner**: a row no longer asks for an impossible number of points (a hunter's Survival row 2 asked for 300): only talent point gates count, and the rest need 5 points a row.
+- **Upgrade Arrows**: arrows and scores now update after a level-up.
+- **Macros**: turning Smart Buff off and on in combat no longer deletes its macro or empties its action bar slots.
+- **Social Button**: turning it off and on no longer adds an extra hook each time.
+- **Settings**: a checkbox for one of the game's settings, clicked in combat, keeps your pick and applies it once combat ends.
+- **World Map**: Points of Interest listens only to your own casts, and only while ley lines are shown.
+- **Talent Planner**: rows no longer ask for impossible point totals (a hunter's Survival row 2 asked for 300).
 
 ## 1.0.2 (2026-11-05)
 
