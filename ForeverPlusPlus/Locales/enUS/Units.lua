@@ -18,9 +18,10 @@ L.DRUIDMANABAR_EVERY_FORM_DESC = "Show the mana bar in caster, Travel, and Aquat
 L.DRUIDMANABAR_TEXT = "Show Text"
 L.DRUIDMANABAR_TEXT_DESC = "Show your mana on the bar as the game's Status Text setting does on "
     .. "the other bars, and under the mouse. Off, the bar never shows text."
-L.DRUIDMANABAR_FORM_COLOR = "Lighter Blue in Forms"
-L.DRUIDMANABAR_FORM_COLOR_DESC = "Fill the mana bar a lighter blue while in Cat or Bear Form, so it "
-    .. "stands apart from the dark blue mana bar you have in caster form."
+L.DRUIDMANABAR_FORM_COLOR = "Lighter Blue"
+L.DRUIDMANABAR_FORM_COLOR_DESC = "Fill the mana bar a lighter blue, so it never looks like the "
+    .. "player frame's own dark blue mana bar, which sits right above it in caster form with Show "
+    .. "in Every Form on."
 -- ClassColors
 L.CLASSCOLORS_TITLE = "Class Colors"
 L.CLASSCOLORS_DESC = "Show players' health bars and names in their class color on the player, "
