@@ -57,30 +57,30 @@ local function onMerchantShow()
         return
     end
     local limit = module.db.buybackOnly and buybackRoom() or nil
-    if limit and limit <= 0 then
-        return
-    end
-    local sold, total = 0, 0
+    -- Past the limit, junk is counted instead of sold, so the player hears what was left.
+    local sold, left, total = 0, 0, 0
     for bag = 0, LAST_BAG do -- backpack, four bags, and the reagent bag
         for slot = 1, C_Container.GetContainerNumSlots(bag) do
             local info = C_Container.GetContainerItemInfo(bag, slot)
             if info and info.quality == Enum.ItemQuality.Poor and not info.hasNoValue
                 and not info.isLocked then
                 if limit and sold >= limit then
-                    break
+                    left = left + 1
+                else
+                    local price = select(11, C_Item.GetItemInfo(info.hyperlink)) or 0
+                    total = total + price * (info.stackCount or 1)
+                    sold = sold + 1
+                    C_Container.UseContainerItem(bag, slot)
                 end
-                local price = select(11, C_Item.GetItemInfo(info.hyperlink)) or 0
-                total = total + price * (info.stackCount or 1)
-                sold = sold + 1
-                C_Container.UseContainerItem(bag, slot)
             end
         end
-        if limit and sold >= limit then
-            break
-        end
     end
-    if sold > 0 then
+    if sold > 0 and left > 0 then
+        module:Print(format(L.AUTOSELLJUNK_SOLD_FULL, sold, money(total), left))
+    elseif sold > 0 then
         module:Print(format(L.AUTOSELLJUNK_SOLD, sold, money(total)))
+    elseif left > 0 then
+        module:Print(format(L.AUTOSELLJUNK_FULL, left))
     end
 end
 

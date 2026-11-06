@@ -42,8 +42,12 @@ L.AUTOSELLJUNK_BUYBACK = "Keep Everything Buyable Back"
 L.AUTOSELLJUNK_BUYBACK_DESC = "Sell only as much junk as the merchant's buyback list has room for "
     .. "beside what you sold yourself, so you can still buy back anything sold by mistake."
 L.AUTOSELLJUNK_KEY_DESC = "Hold this key as you talk to the merchant to leave your junk unsold."
-L.AUTOSELLJUNK_CHAT_DESC = "Say in chat how many items were sold and what they sold for."
+L.AUTOSELLJUNK_CHAT_DESC = "Say in chat how many items were sold and what they sold for, and how "
+    .. "many were left unsold because the buyback list was full."
 L.AUTOSELLJUNK_SOLD = "Sold %d junk items for %s." -- count, money
+-- count, money, how many were left
+L.AUTOSELLJUNK_SOLD_FULL = "Sold %d junk items for %s. Buyback is full: %d left unsold."
+L.AUTOSELLJUNK_FULL = "Buyback is full: %d junk items left unsold." -- count
 
 -- GatheringTracking
 L.GATHERINGTRACKING_TITLE = "Gathering Tracking"
@@ -58,7 +62,7 @@ L.GATHERINGTRACKING_TRACK_HERBS = "Herbs Only"
 L.GATHERINGTRACKING_REAPPLY = "Turn Back On"
 L.GATHERINGTRACKING_REAPPLY_DESC = "After logging in, zoning, or coming back to life, turn tracking "
     .. "back on if nothing is being tracked. Turning it off yourself lasts until then."
-L.GATHERINGTRACKING_SWAP = "Swap"
+L.GATHERINGTRACKING_SWAP = "Swap Between Both"
 L.GATHERINGTRACKING_SWAP_DESC = "With both chosen, swap between Find Minerals and Find Herbs while "
     .. "one of them is on, as often as the slider beside it says. Waits during combat, casting, "
     .. "and flights."

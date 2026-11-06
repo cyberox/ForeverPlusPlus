@@ -217,6 +217,9 @@ L.XPBARTEXT_QUESTS_OFF = "Off"
 L.XPBARTEXT_QUEST_COLOR = "Green When Quests Level You"
 L.XPBARTEXT_QUEST_COLOR_DESC = "Show the quest XP text in green once turning those quests in "
     .. "would level you."
+L.XPBARTEXT_RATE = "Show XP per Hour"
+L.XPBARTEXT_RATE_DESC = "Show your XP per hour since you logged in and the time to level at that "
+    .. "pace, once you've played a minute and gained some XP."
 L.XPBARTEXT_QUEST_BAR ="Fill Bar with Ready Quests"
 L.XPBARTEXT_QUEST_BAR_DESC = "Fill the bar on from your XP in green with the XP of the quests "
     .. "ready to turn in, like rested XP."
@@ -236,3 +239,4 @@ L.XPBARTEXT_WITH_PERCENT = "%s (%d%%)" -- the XP text, its percent
 L.XPBARTEXT_AMOUNT = "%s (%d%%)" -- an amount of XP, as a percent of the level
 L.XPBARTEXT_RESTED_TEXT = "Rested: %s"
 L.XPBARTEXT_QUESTS_TEXT = "Quests: %s"
+L.XPBARTEXT_RATE_TEXT = "%s/hr (%s to level)" -- XP per hour, time to level as a clock

@@ -24,6 +24,7 @@ local module = ns.NewModule("XPBarText", L.XPBARTEXT_DESC, {
     rested = true,
     quests = "complete", -- "off", "complete" (ready to turn in), or "all"
     questColor = true,
+    rate = false,
     questBar = true,
     tooltip = true,
 })
@@ -56,6 +57,10 @@ module.options = {
     {
         key = "questColor", name = L.XPBARTEXT_QUEST_COLOR, description = L.XPBARTEXT_QUEST_COLOR_DESC,
         added = "0.9.0", section = L.XPBARTEXT_SECTION_TEXT, requires = "quests",
+    },
+    {
+        key = "rate", name = L.XPBARTEXT_RATE, description = L.XPBARTEXT_RATE_DESC,
+        added = "1.0.3", section = L.XPBARTEXT_SECTION_TEXT,
     },
     {
         key = "questBar", name = L.XPBARTEXT_QUEST_BAR, description = L.XPBARTEXT_QUEST_BAR_DESC,
@@ -223,6 +228,11 @@ local function barText(current, max)
         end
         text = text .. "    " .. quests
     end
+    local rate = module.db.rate and xpPerHour()
+    if rate then
+        text = text .. "    " .. format(L.XPBARTEXT_RATE_TEXT, number(floor(rate)),
+            ns.Text.Clock((max - current) / rate * 3600))
+    end
     return text
 end
 
@@ -280,6 +290,18 @@ end
 -- QUEST_LOG_UPDATE often comes several times in one frame (a kill, a turn-in): count once, a
 -- frame later.
 local refreshSoon = ns.Frames.Coalesce(refreshQuests, nil, module)
+
+-- XP per hour on the bar drifts down while no XP comes in, and first shows a minute in: redrawn
+-- each minute while it's on, not only on XP updates.
+local rateTimer = ns.Frames.Timer(module)
+local function tickRate()
+    if module.db.rate then
+        updateAll()
+        rateTimer:Start(60, tickRate)
+    else
+        rateTimer:Cancel()
+    end
+end
 
 -- The bar's width changes with Edit Mode and the action bars.
 local function onResized(statusBar)
@@ -358,6 +380,7 @@ function module:OnEnable()
     self:On("PLAYER_LEVEL_UP", updateAll)
     self:On("PLAYER_ENTERING_WORLD", refreshQuests)
     self:On("QUEST_LOG_UPDATE", refreshSoon)
+    tickRate()
 end
 
 function module:OnDisable()
@@ -369,6 +392,9 @@ function module:OnDisable()
     end
 end
 
-function module:OnOptionChanged()
+function module:OnOptionChanged(key)
+    if key == "rate" then
+        tickRate()
+    end
     refreshQuests()
 end

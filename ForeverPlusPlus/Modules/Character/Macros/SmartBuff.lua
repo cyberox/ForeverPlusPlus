@@ -546,6 +546,9 @@ function module:OnEnable()
     if not (Spellbook.Available() and C_Spell.GetSpellName) then
         return
     end
+    -- Now, not once it's written: turned off and on in combat, the delete waiting for combat to end
+    -- would otherwise empty the macro's action bar slots.
+    internal.Want(NAME)
     playerClass = classOf("player")
     ranks, written, lastBody = nil, nil, nil
     -- A plain button, not a secure one: it only shows text, so a click in combat is fine, and the

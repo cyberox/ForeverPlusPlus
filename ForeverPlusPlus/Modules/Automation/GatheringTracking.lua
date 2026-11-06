@@ -70,6 +70,10 @@ module.options = {
         description = L.GATHERINGTRACKING_SWAP_DESC,
         slider = "swapEvery",
         changed = "0.9.0", -- a checkbox and its slider
+        -- Swapping is between the two, so only with both chosen.
+        shown = function(db)
+            return db.track == "both"
+        end,
     },
     {
         key = "swapEvery",
@@ -141,9 +145,22 @@ local deadline = 0 -- GetTime() until which to keep checking
 -- for a moment, or a cast right then can fail, so one look isn't enough.
 local WATCH = 12
 
+-- The Track choice just changed: turn the chosen spell on in place of ours that isn't chosen any
+-- more, even with Reapply off, since the player just picked it.
+local switch = false
+
+local function chosen(spells, spellID)
+    for _, id in ipairs(spells) do
+        if id == spellID then
+            return true
+        end
+    end
+    return false
+end
+
 local function reapply()
-    if not (want and module.db.reapply) or blocked then
-        want = false
+    if not (want and (module.db.reapply or switch)) or blocked then
+        want, switch = false, false
         return
     end
     if busy() then
@@ -151,9 +168,9 @@ local function reapply()
         timer:Start(RETRY, reapply)
         return
     end
-    local index, _, any = scan()
-    if not any then
-        local spells = SPELLS[module.db.track]
+    local index, ours, any = scan()
+    local spells = SPELLS[module.db.track]
+    if (not any and module.db.reapply) or (switch and ours and not chosen(spells, ours)) then
         local first
         for _, spellID in ipairs(spells) do
             if index[spellID] then
@@ -168,8 +185,9 @@ local function reapply()
             track(index[first])
         end
     end
+    switch = false
     -- Look again until the time is up, whether something was on or we just turned it on.
-    if GetTime() < deadline then
+    if module.db.reapply and GetTime() < deadline then
         timer:Start(RETRY, reapply)
     else
         want = false
@@ -257,6 +275,9 @@ function module:OnOptionChanged(key)
     if key == "swap" or key == "swapEvery" then
         startSwapping()
     elseif key == "reapply" and self.db.reapply then
+        request()
+    elseif key == "track" then
+        switch = true
         request()
     end
 end

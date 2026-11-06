@@ -131,6 +131,13 @@ function internal.Holds(name, body)
     return index ~= nil and index > 0 and GetMacroBody(index) == body
 end
 
+---Says the part writing macro `name` is on, as soon as it turns on: a delete still waiting for
+---combat to end then leaves the macro alone, so its action bar slots keep it.
+---@param name string
+function internal.Want(name)
+    wanted[name] = true
+end
+
 ---Deletes the general macro `name`, now or once combat ends, unless its part is back on by then.
 ---@param name string
 function internal.Delete(name)
