@@ -94,6 +94,9 @@ local NAMES = {
     -- time it's maximized or minimized (WorldMapMixin:Maximize, Minimize), and maximized it fills
     -- the screen, so then it's left to Blizzard (see FULL_SCREEN).
     "WorldMapFrame",
+    -- Midnight's Social window, which takes FriendsFrame's place while C_SocialUI.IsSystemEnabled()
+    -- (Blizzard_SocialUI, SocialUIControl.lua): Forever's Friends window. In game it's a UI panel.
+    "SocialUIFrame",
     -- The Escape menu: a panel the panel manager doesn't anchor (centerFrameSkipAnchoring).
     "GameMenuFrame",
     -- The small zone map (Shift+M) hangs from its tab, which Blizzard drags only once it's
