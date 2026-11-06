@@ -7,12 +7,11 @@
 -- Blizzard compares a tooltip's item by its GUID when it has one, else by its link
 -- (TooltipComparisonManager:CreateComparisonItem, `forever` UI source), so a linked recipe already
 -- compares its crafted item while one in your bags compares the recipe, which has nothing to
--- compare. The client asks for that comparison itself whenever it compares (Always Compare Items,
--- or Shift, and again on every tooltip refresh while Shift is held), through
--- TooltipComparisonManager:CompareItem, which then clears the empty comparison. So right after it
--- asks for a bag recipe, this asks again by the crafted item's link, in the same frame: asking
--- from the tooltip's own redraws instead lost to the client's next ask, and the comparison
--- flashed on and off (2026-11-05).
+-- compare. Blizzard compares a bag item on every refresh of its tooltip (about five a second, and
+-- each refresh clears the comparison), through GameTooltip_ShowCompareItem. So right after that,
+-- this asks again by the crafted item's link, in the same frame: asking from the tooltip's own
+-- post call instead came before Blizzard's ask, which then emptied it, and the comparison flashed
+-- on and off (2026-11-05).
 --
 -- Which recipes: gear you can use (your class, armor, and weapon skills, whatever its level, so a
 -- recipe you'll craft later still compares), and optionally only recipes of professions you have.
@@ -79,18 +78,16 @@ local function craftedGear(data)
     return link
 end
 
--- After the client asks to compare a tooltip's item by its GUID: when that's a bag recipe for gear
--- this setting compares, the same comparison by the crafted item's link. That ask comes back
--- here by link, not GUID, so it doesn't ask again.
-local function onCompare(_, item, tooltip, anchorFrame)
-    if not (item and ns.IsText(item.guid, true) and tooltip and tooltip.GetPrimaryTooltipData) then
-        return
-    end
-    local data = tooltip:GetPrimaryTooltipData()
-    if not (data and data.guid == item.guid) then
-        return
-    end
-    local link = craftedGear(data)
+-- After Blizzard has compared a tooltip's item (GameTooltip_ShowCompareItem, once per refresh,
+-- after its comparison by the item's GUID is done): when that's a bag recipe for gear this setting
+-- compares, the same comparison by the crafted item's link, so it's the last word that frame.
+-- Asking from inside Blizzard's own comparison (a hook on TooltipComparisonManager:CompareItem)
+-- ran, by `/run` prints, but showed nothing: it was nested inside the comparison by GUID, which
+-- the client was still finishing (2026-11-05).
+local function onShowCompare(tooltip, anchorFrame)
+    tooltip = tooltip or _G.GameTooltip
+    local data = tooltip and tooltip.GetPrimaryTooltipData and tooltip:GetPrimaryTooltipData()
+    local link = data and craftedGear(data)
     if link then
         pcall(C_TooltipComparison.CompareItem, { hyperlink = link }, tooltip, anchorFrame)
     end
@@ -98,6 +95,6 @@ end
 
 function module:OnEnable()
     if C_TooltipComparison and C_TooltipComparison.CompareItem then
-        self:Hook(_G.TooltipComparisonManager, "CompareItem", onCompare)
+        self:Hook("GameTooltip_ShowCompareItem", onShowCompare)
     end
 end
