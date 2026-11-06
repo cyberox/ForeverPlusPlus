@@ -133,4 +133,4 @@ ns.AddCommand("nodes", "[here]", L.MINIMAPNODEICONS_COMMAND, function(rest)
         return
     end
     report()
-end)
+end, "MinimapNodeIcons")

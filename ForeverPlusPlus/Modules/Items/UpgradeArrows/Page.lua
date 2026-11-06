@@ -490,4 +490,4 @@ end
 
 ns.AddCommand("weights", "", L.UPGRADEARROWS_COMMAND, function()
     ns.OpenSettings(module.name)
-end)
+end, "UpgradeArrows")

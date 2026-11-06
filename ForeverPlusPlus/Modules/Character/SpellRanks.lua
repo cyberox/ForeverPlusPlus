@@ -253,4 +253,4 @@ ns.AddCommand("ranks", "", L.SPELLRANKS_COMMAND, function()
         local link = C_Spell.GetSpellLink(entry.spellID) or C_Spell.GetSpellName(entry.spellID)
         ns.Print(format(L.SPELLRANKS_LINE, entry.bar, entry.slot, link, entry.rank, entry.best))
     end
-end)
+end, "SpellRanks")

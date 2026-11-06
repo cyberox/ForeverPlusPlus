@@ -650,4 +650,4 @@ ns.AddCommand("whispers", L.WHISPERWINDOW_COMMAND_USAGE, L.WHISPERWINDOW_COMMAND
     else
         internal.Toggle()
     end
-end)
+end, "WhisperWindow")

@@ -453,7 +453,7 @@ local function scanCommand()
         startScan()
     end
 end
-ns.AddCommand("scan", "", L.AUCTIONPRICES_COMMAND, scanCommand)
+ns.AddCommand("scan", "", L.AUCTIONPRICES_COMMAND, scanCommand, "ItemTooltips")
 
 -- Reset: forgets this auction house's prices, after the player confirms in a popup.
 local function resetPrices()
@@ -469,7 +469,7 @@ local RESET_POPUP = "AUCTIONPRICES_RESET"
 local function confirmReset()
     ns.Confirm(RESET_POPUP, L.AUCTIONPRICES_RESET_CONFIRM, resetPrices)
 end
-ns.AddCommand("resetprices", "", L.AUCTIONPRICES_RESET_COMMAND, confirmReset)
+ns.AddCommand("resetprices", "", L.AUCTIONPRICES_RESET_COMMAND, confirmReset, "ItemTooltips")
 
 -- The reset button sits on the module's page, after every part's options.
 itemTooltips.actions = {

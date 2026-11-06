@@ -872,4 +872,4 @@ ns.AddCommand("errors", "", L.ERRORCATCHER_COMMAND, function()
     else
         ns.Print(L.ERRORCATCHER_OFF)
     end
-end)
+end, "ErrorCatcher")
