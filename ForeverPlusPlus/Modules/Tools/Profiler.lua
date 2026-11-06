@@ -314,11 +314,12 @@ local function refresh()
         parts[#parts + 1] = format(L.PROFILER_ADDON_CPU, average, peak or 0)
     end
     if memory then
-        parts[#parts + 1] = format(L.PROFILER_ADDON_MEMORY, memory / 1024)
+        local text = format(L.PROFILER_ADDON_MEMORY, memory / 1024)
         local growth = Profiler.MemoryGrowth(memory)
         if growth then
-            parts[#parts + 1] = format(L.PROFILER_MEMORY_GROWTH, growth)
+            text = text .. " " .. format(L.PROFILER_MEMORY_GROWTH, growth)
         end
+        parts[#parts + 1] = text
     end
     ui.addon:SetText(#parts > 0 and concat(parts, "  ") or "")
     refreshList()
@@ -374,6 +375,9 @@ function module:BuildPage(frame)
 
     ui.status = newText(frame, "GameFontHighlight", 10, -62)
     ui.addon = newText(frame, "GameFontHighlight", 10, -82)
+    -- One line that stops at the page's edge, cut short rather than running past it.
+    ui.addon:SetPoint("RIGHT", -40, 0)
+    ui.addon:SetWordWrap(false)
     ui.note = newText(frame, "GameFontDisableSmall", 10, -104)
     ui.note:SetPoint("RIGHT", -40, 0)
     ui.note:SetText(L.PROFILER_NOTE)
