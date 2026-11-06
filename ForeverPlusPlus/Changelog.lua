@@ -17,10 +17,6 @@ ns.changelog = {
                     .. "their character's name and class by class, the level by difficulty, and "
                     .. "the side red or blue. On by default." },
             } },
-            { L.CHANGELOG_CHANGED, {
-                { L.CHANGELOG_SETTINGS, "Developer's Defaults turns on the Whisper Window's Hide "
-                    .. "Whispers in Chat." },
-            } },
         },
     },
     {
