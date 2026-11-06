@@ -22,6 +22,7 @@ local developerOptions = {
     QuestTracker = { sort = "low" },
     AutoGossip = { other = true },
     MinimapButton = { menuSide = "left" },
+    WhisperWindow = { hideInChat = true },
 }
 
 ---Puts every module's options (`module.options`) back to their defaults, then turns on the
