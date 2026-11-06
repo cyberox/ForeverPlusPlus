@@ -457,7 +457,8 @@ local LEVEL_FRAMES = {
     round = { atlases = { "ui-hud-nameplates-levelindicator-c60",
         "ui-hud-nameplates-levelindicator" }, wide = 1, pad = 0.6 },
 }
-local LEVEL_FRAME_HEIGHT = 1.6 -- the frame's height against the number's font size
+local LEVEL_FRAME_HEIGHT = 1.8 -- the frame's height against the number's font size
+local LEVEL_NUDGE_X, LEVEL_NUDGE_Y = 0.06, 0.12 -- the number's move inside a frame, by font size
 
 -- Puts the level beside `anchor` (the name, or the class icon on its side); returns the width it
 -- takes (0 when it can't be read) and whether it shows.
@@ -491,11 +492,19 @@ local function placeLevel(label, record, unit, db, where, anchor, gap)
         if textWidth + fontSize * frame.pad > width then
             width = textWidth + fontSize * frame.pad
         end
+        -- The round one stays round: it grows both ways for a wide number.
+        if frame.wide == 1 then
+            height = width
+        end
         badge:SetSize(width, height)
+        -- Digits sit low in their line and the shadow falls right, so in a frame the number
+        -- looked low and left: nudge it to the frame's middle.
+        badge.text:SetPoint("CENTER", badge, "CENTER", fontSize * LEVEL_NUDGE_X, fontSize * LEVEL_NUDGE_Y)
     else
         -- Just the number, so it's as wide as the number.
         badge.frame:Hide()
         badge:SetSize(textWidth, fontSize * 1.4)
+        badge.text:SetPoint("CENTER", badge, "CENTER", 0, 0)
     end
     local width = badge:GetWidth()
     width = readable(width) and width + gap or 0
