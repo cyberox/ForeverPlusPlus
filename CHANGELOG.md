@@ -8,6 +8,10 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 - **Tooltips**: Friends List colors a friend's tooltip in the friends list: their character's name and class by class, the level by difficulty, and the side red or blue. On by default.
 
+### Changed
+
+- **Settings**: Developer's Defaults turns on the Whisper Window's Hide Whispers in Chat.
+
 ## 1.0.1 (2026-11-05)
 
 ### Added
