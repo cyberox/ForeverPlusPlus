@@ -70,6 +70,25 @@ module.added = "1.2.0"
 module.internal = {}
 local internal = module.internal
 
+-- Other gathering map addons draw their own icons for the same nodes, so both sets show.
+local OTHERS = { "GatherMate2", "GatherLite", "Gatherer" }
+
+local function otherAddon()
+    for _, name in ipairs(OTHERS) do
+        if C_AddOns and C_AddOns.IsAddOnLoaded and C_AddOns.IsAddOnLoaded(name) then
+            return name
+        end
+    end
+end
+
+module.notice = {
+    text = L.GATHERINGMAP_OTHER,
+    description = L.GATHERINGMAP_OTHER_DESC,
+    shown = function()
+        return otherAddon() ~= nil
+    end,
+}
+
 local LOOK, MINIMAP, WORLD = L.GATHERINGMAP_SECTION_LOOK, L.GATHERINGMAP_SECTION_MINIMAP,
     L.GATHERINGMAP_SECTION_WORLDMAP
 local TIPS = L.GATHERINGMAP_SECTION_TOOLTIPS
