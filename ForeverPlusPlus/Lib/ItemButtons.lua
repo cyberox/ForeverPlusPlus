@@ -15,6 +15,46 @@ local function weak()
     return setmetatable({}, { __mode = "k" })
 end
 
+-- Marks on icons --------------------------------------------------------------------------------
+-- Every module that puts a mark on an item or action button icon (Upgrade Arrows, Appearance
+-- Icons, Already Known, Spell Ranks) offers the same options for it, in this order: its style if
+-- it has one, Corner, a size in pixels (step 2, up to 32), and Padding (0 to 10 pixels, 1 by
+-- default).
+
+local L = ns.L
+
+---The corners a mark can sit in, as a dropdown's choices.
+ItemButtons.CORNERS = {
+    { "TOPLEFT", L.ICONMARK_CORNER_TOPLEFT },
+    { "TOPRIGHT", L.ICONMARK_CORNER_TOPRIGHT },
+    { "BOTTOMLEFT", L.ICONMARK_CORNER_BOTTOMLEFT },
+    { "BOTTOMRIGHT", L.ICONMARK_CORNER_BOTTOMRIGHT },
+}
+
+---The Padding option's slider, the same for every mark: `section` is the module's.
+---@param section string
+---@return table option
+function ItemButtons.PaddingOption(section)
+    return {
+        key = "padding", name = L.ICONMARK_PADDING, description = L.ICONMARK_PADDING_DESC,
+        section = section, min = 0, max = 10, step = 1, format = L.ICONMARK_PIXELS,
+    }
+end
+
+---Puts a mark in a corner of an icon (or any region), `padding` pixels in from it: right and down
+---from the top left, left and up from the bottom right.
+---@param mark table a Texture
+---@param icon table the region it sits on
+---@param corner string TOPLEFT, TOPRIGHT, BOTTOMLEFT, or BOTTOMRIGHT
+---@param padding? number
+function ItemButtons.PlaceInCorner(mark, icon, corner, padding)
+    padding = padding or 0
+    local x = corner:find("LEFT") and padding or -padding
+    local y = corner:find("TOP") and -padding or padding
+    mark:ClearAllPoints()
+    mark:SetPoint(corner, icon, corner, x, y)
+end
+
 local bagFrames
 
 ---Blizzard's bag windows that are there: the combined bags, then one per bag. FrameXML makes

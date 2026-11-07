@@ -19,6 +19,9 @@ ns.changelog = {
                     .. "and in loot, and so does a recipe that makes it, after its name in the "
                     .. "professions window. A corner Upgrade Arrows or Already Known also uses gets a "
                     .. "warning. Off by default." },
+                { L.ALREADYKNOWN_TITLE, "Corner, Check Size, and Padding for the green check, like "
+                    .. "Upgrade Arrows' arrow. A corner Upgrade Arrows also uses gets a warning." },
+                { L.SPELLRANKS_TITLE, "Corner, Badge Size, and Padding for the warning badge." },
             } },
             { L.CHANGELOG_FIXED, {
                 { L.UPGRADEARROWS_TITLE, "With a two-hander on, a one-hander or off hand is judged "

@@ -13,16 +13,24 @@ local Enum, GameTooltip = Enum, GameTooltip
 local L = ns.L
 local readable = ns.IsReadable
 local Frames = ns.Frames
-local ActionButtons, Spellbook = ns.ActionButtons, ns.Spellbook
+local ActionButtons, Spellbook, ItemButtons = ns.ActionButtons, ns.Spellbook, ns.ItemButtons
 
 local module = ns.NewModule("SpellRanks", L.SPELLRANKS_DESC, {
     enabled = true,
     style = "badge", -- "badge" or "tint"
+    corner = "TOPRIGHT", -- where the badge sits on the button
+    size = 16, -- the badge's size, in pixels
+    padding = 1, -- how far the badge sits in from its corner, in pixels
     tooltip = true, -- say the best known rank in spell tooltips
     chat = true,
 })
 module.title = L.SPELLRANKS_TITLE
 module.category = "character"
+
+-- The badge's corner, size, and padding matter only while the mark is the badge.
+local function hasBadge(db)
+    return db.style == "badge"
+end
 
 module.options = {
     {
@@ -32,6 +40,18 @@ module.options = {
             { "tint", L.SPELLRANKS_STYLE_TINT },
         },
     },
+    {
+        key = "corner", name = L.ICONMARK_CORNER, description = L.SPELLRANKS_CORNER_DESC,
+        choices = ItemButtons.CORNERS, shown = hasBadge, added = "1.2.0",
+    },
+    {
+        key = "size", name = L.SPELLRANKS_SIZE, description = L.SPELLRANKS_SIZE_DESC,
+        min = 8, max = 32, step = 2, format = L.ICONMARK_PIXELS, shown = hasBadge, added = "1.2.0",
+    },
+    {
+        key = "padding", name = L.ICONMARK_PADDING, description = L.ICONMARK_PADDING_DESC,
+        min = 0, max = 10, step = 1, format = L.ICONMARK_PIXELS, shown = hasBadge, added = "1.2.0",
+    },
     { key = "tooltip", name = L.SPELLRANKS_TOOLTIP, description = L.SPELLRANKS_TOOLTIP_DESC },
     ns.ChatOption(L.SPELLRANKS_CHAT_DESC),
 }
@@ -40,7 +60,6 @@ local DELAY = 0.2 -- seconds to wait for a burst of changes to settle
 
 local ALERT_ATLAS = "services-icon-warning" -- Blizzard's yellow warning triangle, when it exists
 local ALERT_FILE = "Interface\\DialogFrame\\DialogAlertIcon" -- and its older art
-local BADGE_SIZE = 16
 
 local known -- spell name -> the highest rank known, or nil until scanned
 local lowSlots = {} -- { bar, slot, spellID, rank, best } for every marked button, in bar order
@@ -103,9 +122,6 @@ local marks = ActionButtons.Marks(function(frame)
     frame.tint:SetPoint("BOTTOMRIGHT", -2, 2)
     frame.tint:SetColorTexture(1, 0.1, 0.1, 0.4)
     frame.badge = frame:CreateTexture(nil, "OVERLAY", nil, 2)
-    frame.badge:SetSize(BADGE_SIZE, BADGE_SIZE)
-    -- Inside the button's corner: past its edge, the next button over draws on top of it.
-    frame.badge:SetPoint("TOPRIGHT", -1, -1)
     if Frames.HasAtlas(ALERT_ATLAS) then
         frame.badge:SetAtlas(ALERT_ATLAS)
     else
@@ -119,9 +135,13 @@ local function mark(button, on)
         return
     end
     frame:SetShown(on)
-    local tint = module.db.style == "tint"
+    local db = module.db
+    local tint = db.style == "tint"
     frame.tint:SetShown(tint)
     frame.badge:SetShown(not tint)
+    -- Inside the button's corner: past its edge, the next button over draws on top of it.
+    frame.badge:SetSize(db.size, db.size)
+    ItemButtons.PlaceInCorner(frame.badge, frame, db.corner, db.padding)
 end
 
 -- The spellbook scan's own row on the Profiler page. Profiler.Call keeps one result, so the
@@ -235,7 +255,7 @@ function module:OnDisable()
 end
 
 function module:OnOptionChanged(key)
-    if key == "style" and self.enabled then
+    if (key == "style" or key == "corner" or key == "size" or key == "padding") and self.enabled then
         queue()
     end
 end

@@ -88,13 +88,8 @@ ns.MigrateCharacter(5, function(char, db)
     own.trees[class] = choice
 end)
 
--- The corners the arrow can sit in, for both arrows.
-local CORNERS = {
-    { "TOPLEFT", L.UPGRADEARROWS_CORNER_TOPLEFT },
-    { "TOPRIGHT", L.UPGRADEARROWS_CORNER_TOPRIGHT },
-    { "BOTTOMLEFT", L.UPGRADEARROWS_CORNER_BOTTOMLEFT },
-    { "BOTTOMRIGHT", L.UPGRADEARROWS_CORNER_BOTTOMRIGHT },
-}
+-- The corners the arrow can sit in, for both arrows: the same as every mark's.
+local CORNERS = ItemButtons.CORNERS
 
 -- The profile (Auto, a tab, or Bear) is picked on the module's own page (Page.lua), not here,
 -- and saved for each character.
@@ -146,7 +141,7 @@ module.options = {
         section = L.UPGRADEARROWS_SECTION_GENERAL,
     },
     {
-        key = "corner", name = L.UPGRADEARROWS_CORNER, description = L.UPGRADEARROWS_CORNER_DESC,
+        key = "corner", name = L.ICONMARK_CORNER, description = L.UPGRADEARROWS_CORNER_DESC,
         section = L.UPGRADEARROWS_SECTION_ARROW, choices = CORNERS,
     },
     {
@@ -155,12 +150,9 @@ module.options = {
     },
     {
         key = "size", name = L.UPGRADEARROWS_SIZE, description = L.UPGRADEARROWS_SIZE_DESC,
-        section = L.UPGRADEARROWS_SECTION_ARROW, min = 12, max = 32, step = 2, format = "%d px",
+        section = L.UPGRADEARROWS_SECTION_ARROW, min = 12, max = 32, step = 2, format = L.ICONMARK_PIXELS,
     },
-    {
-        key = "padding", name = L.UPGRADEARROWS_PADDING, description = L.UPGRADEARROWS_PADDING_DESC,
-        section = L.UPGRADEARROWS_SECTION_ARROW, min = 0, max = 10, step = 1, format = "%d px",
-    },
+    ItemButtons.PaddingOption(L.UPGRADEARROWS_SECTION_ARROW),
     {
         key = "percent", name = L.UPGRADEARROWS_PERCENT_ICON, description = L.UPGRADEARROWS_PERCENT_ICON_DESC,
         section = L.UPGRADEARROWS_SECTION_ARROW,

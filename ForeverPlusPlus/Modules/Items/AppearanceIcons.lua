@@ -36,17 +36,10 @@ module.added = "1.2.0"
 
 local ATLAS = "poi-transmogrifier" -- the transmogrifier on the map (29x36), drawn square
 
-local CORNERS = {
-    { "TOPLEFT", L.APPEARANCEICONS_CORNER_TOPLEFT },
-    { "TOPRIGHT", L.APPEARANCEICONS_CORNER_TOPRIGHT },
-    { "BOTTOMLEFT", L.APPEARANCEICONS_CORNER_BOTTOMLEFT },
-    { "BOTTOMRIGHT", L.APPEARANCEICONS_CORNER_BOTTOMRIGHT },
-}
-
 module.options = {
     {
-        key = "corner", name = L.APPEARANCEICONS_CORNER, description = L.APPEARANCEICONS_CORNER_DESC,
-        section = L.APPEARANCEICONS_SECTION_LOOK, choices = CORNERS,
+        key = "corner", name = L.ICONMARK_CORNER, description = L.APPEARANCEICONS_CORNER_DESC,
+        section = L.APPEARANCEICONS_SECTION_ICON, choices = ItemButtons.CORNERS,
         -- Other modules' marks in the same corner. Settings reads their settings and shows these
         -- only while that module is on.
         conflicts = {
@@ -63,23 +56,18 @@ module.options = {
                 end,
             },
             {
-                module = "AlreadyKnown", key = "style", text = L.APPEARANCEICONS_CONFLICT_KNOWN,
+                module = "AlreadyKnown", key = "corner", text = L.APPEARANCEICONS_CONFLICT_KNOWN,
                 when = function(db, other)
-                    return db.corner == "BOTTOMLEFT" and other.style ~= "tint"
+                    return db.corner == other.corner and other.style ~= "tint"
                 end,
             },
         },
     },
     {
         key = "size", name = L.APPEARANCEICONS_SIZE, description = L.APPEARANCEICONS_SIZE_DESC,
-        section = L.APPEARANCEICONS_SECTION_LOOK, min = 8, max = 28, step = 1,
-        format = L.APPEARANCEICONS_SIZE_FORMAT,
+        section = L.APPEARANCEICONS_SECTION_ICON, min = 8, max = 32, step = 2, format = L.ICONMARK_PIXELS,
     },
-    {
-        key = "padding", name = L.APPEARANCEICONS_PADDING, description = L.APPEARANCEICONS_PADDING_DESC,
-        section = L.APPEARANCEICONS_SECTION_LOOK, min = 0, max = 10, step = 1,
-        format = L.APPEARANCEICONS_SIZE_FORMAT,
-    },
+    ItemButtons.PaddingOption(L.APPEARANCEICONS_SECTION_ICON),
     { key = "bags", name = L.APPEARANCEICONS_BAGS, description = L.APPEARANCEICONS_BAGS_DESC,
         section = L.APPEARANCEICONS_SECTION_SHOW },
     { key = "bank", name = L.APPEARANCEICONS_BANK, description = L.APPEARANCEICONS_BANK_DESC,
@@ -170,15 +158,9 @@ local function setMark(icon, on, scale)
         return
     end
     local size = module.db.size * (scale or 1)
-    local corner = module.db.corner
-    local padding = module.db.padding or 0
     mark:SetAtlas(ATLAS)
     mark:SetSize(size, size)
-    mark:ClearAllPoints()
-    -- In from the corner: right and down from the top left, left and up from the bottom right.
-    local x = corner:find("LEFT") and padding or -padding
-    local y = corner:find("TOP") and -padding or padding
-    mark:SetPoint(corner, icon, corner, x, y)
+    ItemButtons.PlaceInCorner(mark, icon, module.db.corner, module.db.padding)
 end
 
 -- Bags and bank -----------------------------------------------------------------------------------

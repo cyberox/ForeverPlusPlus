@@ -21,6 +21,9 @@ local ItemButtons = ns.ItemButtons
 local module = ns.NewModule("AlreadyKnown", L.ALREADYKNOWN_DESC, {
     enabled = true,
     style = "check", -- "check" mark, "tint" the icon green, or "both"
+    corner = "BOTTOMLEFT", -- where the check sits, out of Upgrade Arrows' (top left) way
+    size = 14, -- the check on a bag icon; other places scale from it
+    padding = 1, -- how far the check sits in from its corner, in pixels
     merchant = true,
     auction = true,
     bags = true,
@@ -29,6 +32,11 @@ local module = ns.NewModule("AlreadyKnown", L.ALREADYKNOWN_DESC, {
 })
 module.title = L.ALREADYKNOWN_TITLE
 module.category = "items"
+
+-- The check's corner, size, and padding matter only while the mark has a check.
+local function hasCheck(db)
+    return db.style ~= "tint"
+end
 
 module.options = {
     {
@@ -39,6 +47,37 @@ module.options = {
             { "tint", L.ALREADYKNOWN_STYLE_TINT },
             { "both", L.ALREADYKNOWN_STYLE_BOTH },
         },
+    },
+    {
+        key = "corner", name = L.ICONMARK_CORNER, description = L.ALREADYKNOWN_CORNER_DESC,
+        section = L.ALREADYKNOWN_SECTION_LOOK, choices = ItemButtons.CORNERS, shown = hasCheck, added = "1.2.0",
+        -- Upgrade Arrows' arrows in the same corner. Settings reads its settings and shows these
+        -- only while it's on.
+        conflicts = {
+            {
+                module = "UpgradeArrows", key = "corner", text = L.ALREADYKNOWN_CONFLICT_ARROW,
+                when = function(db, other)
+                    return db.style ~= "tint" and db.corner == other.corner
+                end,
+            },
+            {
+                module = "UpgradeArrows", key = "downCorner", text = L.ALREADYKNOWN_CONFLICT_DOWN,
+                when = function(db, other)
+                    return db.style ~= "tint" and other.downgrades and db.corner == other.downCorner
+                        and other.downCorner ~= other.corner
+                end,
+            },
+        },
+    },
+    {
+        key = "size", name = L.ALREADYKNOWN_SIZE, description = L.ALREADYKNOWN_SIZE_DESC,
+        section = L.ALREADYKNOWN_SECTION_LOOK, min = 8, max = 32, step = 2, format = L.ICONMARK_PIXELS,
+        shown = hasCheck, added = "1.2.0",
+    },
+    {
+        key = "padding", name = L.ICONMARK_PADDING, description = L.ICONMARK_PADDING_DESC,
+        section = L.ALREADYKNOWN_SECTION_LOOK, min = 0, max = 10, step = 1, format = L.ICONMARK_PIXELS,
+        shown = hasCheck, added = "1.2.0",
     },
     {
         key = "merchant", name = L.ALREADYKNOWN_MERCHANT, description = L.ALREADYKNOWN_MERCHANT_DESC,
@@ -168,18 +207,20 @@ end)
 local checks = ItemButtons.Overlays(function(icon)
     local check = icon:GetParent():CreateTexture(nil, "OVERLAY", nil, 7)
     check:SetTexture(CHECK_TEXTURE)
-    check:SetPoint("BOTTOMLEFT", icon, "BOTTOMLEFT", 1, 1)
     return check
 end)
 
--- Shows or clears our mark on an icon, as the Mark option says. `size` is the check mark's size,
--- chosen per place since the icons differ.
-local function setMark(icon, on, size)
-    local style = module.db.style
+-- Shows or clears our mark on an icon, as the Mark option says. `scale` sizes the check against
+-- a bag icon's, since the icons differ from place to place.
+local function setMark(icon, on, scale)
+    local db = module.db
+    local style = db.style
     tints:Set(icon, on and style ~= "check")
     local check = checks:Set(icon, on and style ~= "tint")
     if check then
+        local size = db.size * (scale or 1)
         check:SetSize(size, size)
+        ItemButtons.PlaceInCorner(check, icon, db.corner, db.padding)
     end
 end
 
@@ -193,7 +234,7 @@ end
 local function updateMerchant()
     local on = module.db.merchant
     ItemButtons.EachMerchantItem(function(icon, index)
-        setMark(icon, on and itemKnown(_G.GetMerchantItemLink(index)), 16)
+        setMark(icon, on and itemKnown(_G.GetMerchantItemLink(index)), 1.15)
     end)
 end
 
@@ -209,7 +250,7 @@ end
 local function updateAuction()
     local on = module.db.auction
     ItemButtons.EachAuctionRow(function(icon, itemID)
-        setMark(icon, on and itemID and itemKnown("item:" .. itemID), 12)
+        setMark(icon, on and itemID and itemKnown("item:" .. itemID), 0.85)
     end)
 end
 
@@ -219,7 +260,7 @@ local function updateBag(frame)
     local on = module.db.bags
     ItemButtons.EachBagButton(frame, function(_, icon, bag, slot)
         local link = on and C_Container.GetContainerItemLink(bag, slot)
-        setMark(icon, link and itemKnown(link), 14)
+        setMark(icon, link and itemKnown(link))
     end)
 end
 
@@ -254,7 +295,7 @@ local function updateInbox()
     local on = module.db.mail
     for i = 1, perPage do
         local icon = _G["MailItem" .. i .. "ButtonIcon"]
-        setMark(icon, on and mailKnown(((inbox.pageNum or 1) - 1) * perPage + i), 14)
+        setMark(icon, on and mailKnown(((inbox.pageNum or 1) - 1) * perPage + i))
     end
 end
 
@@ -265,19 +306,19 @@ local function updateOpenMail()
     for n = 1, _G.ATTACHMENTS_MAX_RECEIVE or 16 do
         local icon = _G["OpenMailAttachmentButton" .. n .. "IconTexture"]
         local link = on and mailLink(mailIndex, n)
-        setMark(icon, link and itemKnown(link), 14)
+        setMark(icon, link and itemKnown(link))
     end
 end
 
 -- Loot ------------------------------------------------------------------------------------------
 
 local function markLoot(icon, _, link)
-    setMark(icon, module.db.loot and link and itemKnown(link), 14)
+    setMark(icon, module.db.loot and link and itemKnown(link))
 end
 
 -- Loot rolls are marked as the frame shows, before the player picks Need.
 local function markRoll(icon, link)
-    setMark(icon, module.db.loot and link and itemKnown(link), 14)
+    setMark(icon, module.db.loot and link and itemKnown(link))
 end
 
 -- Module ----------------------------------------------------------------------------------------
