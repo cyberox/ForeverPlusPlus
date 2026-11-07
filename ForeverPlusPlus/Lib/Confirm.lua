@@ -47,6 +47,8 @@ function ns.Confirm(key, text, onAccept, textArg)
     end, { onAccept = onAccept }, textArg)
 end
 
+local choices = {} -- key -> { onFirst, onSecond } of the latest ns.ConfirmChoice for it
+
 ---Asks the player to pick one of two things or cancel, laid out like Blizzard's own Defaults popup
 ---(`first` | Cancel | `second`), then calls that choice's function. Like ns.Confirm, the popup for
 ---a `key` is made the first time it's used.
@@ -61,17 +63,19 @@ function ns.ConfirmChoice(key, text, first, onFirst, second, onSecond)
     if not (StaticPopupDialogs and StaticPopup_Show) then
         return
     end
+    choices[key] = { onFirst, onSecond }
     show(key, text, function()
         return {
             text = text,
             button1 = first,
             button2 = CANCEL,
             button3 = second,
+            -- The latest call's functions, not the first one's, since the popup is made once.
             OnAccept = function()
-                onFirst()
+                choices[key][1]()
             end,
             OnAlt = function()
-                onSecond()
+                choices[key][2]()
             end,
         }
     end)
