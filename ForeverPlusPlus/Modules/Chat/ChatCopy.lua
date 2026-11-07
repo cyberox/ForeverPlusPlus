@@ -8,8 +8,7 @@
 -- it shows that line in a popup to copy. Blizzard adds the stamp itself, so the finished line is
 -- rewritten through the chat frame's own TransformMessages, a frame after it arrives (so other
 -- modules rewriting the same line see it first). The link is the stamp's own text in the line's
--- color, so nothing looks different. The game can't copy for an addon (CopyToClipboard is
--- Blizzard's only), hence the popup.
+-- color, so nothing looks different; the popup is there to copy from, as the window is.
 local _, ns = ...
 
 local CreateFrame, C_Timer, EventRegistry = CreateFrame, C_Timer, EventRegistry
