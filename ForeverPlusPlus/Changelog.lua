@@ -26,7 +26,10 @@ ns.changelog = {
             { L.CHANGELOG_CHANGED, {
                 { L.UPGRADEARROWS_TITLE, "The arrow is 18 pixels by default instead of 20. A size "
                     .. "you picked stays." },
-                { L.ALREADYKNOWN_TITLE, "The green check is 16 pixels on a bag icon instead of 14." },
+                { L.ALREADYKNOWN_TITLE, "The green check is 18 pixels on a bag icon instead of 14, the "
+                    .. "same as the other marks." },
+                { L.SPELLRANKS_TITLE, "The warning badge is 18 pixels instead of 16, the same as the "
+                    .. "other marks." },
             } },
             { L.CHANGELOG_FIXED, {
                 { L.UPGRADEARROWS_TITLE, "With a two-hander on, a one-hander or off hand is judged "
