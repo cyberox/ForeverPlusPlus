@@ -492,9 +492,6 @@ L.GATHERINGMAP_PAGE_SPOTS = "%d spots" -- count, more than one
 L.GATHERINGMAP_PAGE_SHOW_ALL = "Show All"
 L.GATHERINGMAP_PAGE_HIDE_ALL = "Hide All"
 L.GATHERINGMAP_PAGE_EMPTY = "No nodes match the search."
--- The world map's filter menu
-L.GATHERINGMAP_FILTER_NO_SKILL = "This character doesn't have the profession, so Only My Professions "
-    .. "hides these anyway."
 L.GATHERINGMAP_CHAT_DESC = "Say in chat which node Shift+right-click forgot."
 L.GATHERINGMAP_ICON = "Icon Style"
 L.GATHERINGMAP_ICON_DESC = "Show each node as the icon of what it gives (Copper Ore for a Copper "
