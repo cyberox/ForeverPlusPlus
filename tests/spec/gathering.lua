@@ -55,9 +55,19 @@ node = Gathering.See(seen, "Peacebloom", "herb", 0.3, 0.31, W, H, 1030)
 eq(node.sightings .. ":" .. node.y, "1:0.3", "see: seen again on the same visit changes nothing")
 node = Gathering.See(seen, "Peacebloom", "herb", 0.3, 0.31, W, H, 2000)
 eq(node.sightings .. ":" .. node.y, "2:0.305", "see: a later visit moves it")
-node, new = Gathering.Add(seen, "Peacebloom", "herb", 0.3, 0.305, W, H, 2100)
+node, new = Gathering.Add(seen, "Peacebloom", "herb", 0.301, 0.307, W, H, 2100)
 eq(new, false, "see: gathering a node seen is the same node")
 eq(node.count, 1, "see: and counts its first gather")
+eq(node.x .. ":" .. node.y, "0.301:0.307", "see: its first gather puts it where the player stood")
+-- A gather 30 yards from a node only seen is that node; from one gathered, it's another.
+local far = { { name = "Silverleaf", kind = "herb", x = 0.4, y = 0.4, count = 0, sightings = 1 } }
+node, new = Gathering.Add(far, "Silverleaf", "herb", 0.4, 0.43, W, H, 100)
+eq(new, false, "add: claims a node only seen 30 yards off")
+node, new = Gathering.Add(far, "Silverleaf", "herb", 0.4, 0.46, W, H, 1000)
+eq(new, true, "add: but not one gathered 30 yards off")
+-- A sighting wider than the radius, as a hovered dot on a zoomed out minimap, is the same node.
+node, new = Gathering.See(seen, "Peacebloom", "herb", 0.31, 0.307, W, H, 9000, 30)
+eq(new, false, "see: a wider radius finds the same node")
 eq(#seen, 1, "see: one node")
 
 -- The average counts at most ten gathers, so a node that moved still follows.

@@ -316,7 +316,7 @@ local function onSighting(sighting)
         return
     end
     local _, new = Gathering.See(list, sighting.name, sighting.kind, sighting.x, sighting.y, width,
-        height, time())
+        height, time(), sighting.radius)
     if new then
         internal.Changed(sighting.mapID)
     end
@@ -336,6 +336,8 @@ end
 -- where the mouse named it): the herbs and veins it names are there. The only way left to learn
 -- a node without gathering it since build 70862 stopped the minimap answering Minimap Node Icons'
 -- scans (docs/forever-api.md).
+local HOVER_PIXELS = 10 -- about how wide a tracking dot is on the minimap, in minimap units
+
 local function onHover(names, right, up)
     if not module.db.sightings then
         return
@@ -345,10 +347,15 @@ local function onHover(names, right, up)
         return
     end
     local x, y = ns.MinimapPins.FromMinimap(v, right, up)
+    -- Anywhere on the dot is the same node: as many yards as the dot is wide at this zoom.
+    local radius = HOVER_PIXELS / v.scale
+    if radius < Gathering.RADIUS then
+        radius = Gathering.RADIUS
+    end
     for _, name in pairs(names) do
         local kind = Professions.Kind(name)
         if kind then
-            onSighting({ name = name, kind = kind, mapID = v.mapID, x = x, y = y })
+            onSighting({ name = name, kind = kind, mapID = v.mapID, x = x, y = y, radius = radius })
         end
     end
 end

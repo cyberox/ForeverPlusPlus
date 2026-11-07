@@ -271,6 +271,7 @@ local floor, sqrt = math.floor, math.sqrt
 Gathering.RADIUS = 15 -- yards within which a gather is of a node already known
 local WEIGHT = 10 -- the most gathers a spot's average counts, so a node that moved still follows
 local VISIT = 120 -- seconds within which gathering a node again is the same visit
+local SEEN_RADIUS = 40 -- yards within which a gather claims a node only seen, never gathered
 
 ---A spot rounded to the 4 places nodes are saved with.
 ---@param v number
@@ -341,12 +342,22 @@ function Gathering.Add(list, name, kind, x, y, width, height, now, radius)
     local node = Gathering.Nearest(list, x, y, width, height, radius or Gathering.RADIUS, function(known)
         return known.name == name
     end)
+    -- A node only seen may be further off (a hovered dot on a zoomed out minimap): it's this one.
+    node = node or Gathering.Nearest(list, x, y, width, height, SEEN_RADIUS, function(known)
+        return known.name == name and known.count == 0
+    end)
     if node and node.time and now - node.time < VISIT then
         -- Mined again on the same visit (a vein gives two or three times): not another gather.
         node.time = now
         return node, false
     elseif node then
-        average(node, x, y)
+        if node.count == 0 then
+            -- Only seen till now: where the player stands to gather it is closer than a sighting
+            -- (a hovered dot is as big as many yards when the minimap is zoomed out).
+            node.x, node.y = Gathering.Round(x), Gathering.Round(y)
+        else
+            average(node, x, y)
+        end
         node.count = node.count + 1
         node.kind = kind
         node.time = now
