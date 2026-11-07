@@ -98,6 +98,14 @@ L.ICONMARK_PIXELS = "%d px" -- a size or padding slider's value
 L.ICONMARK_PADDING = "Padding"
 L.ICONMARK_PADDING_DESC = "How far in from its corner the mark sits: at 2, a mark in the top left "
     .. "moves 2 pixels right and 2 down."
+L.ICONMARK_SECTION_SHOW = "Show On" -- the header over the places a module marks items in
+L.ICONMARK_PLACE_BAGS = "Bags"
+L.ICONMARK_PLACE_BANK = "Bank"
+L.ICONMARK_PLACE_MERCHANT = "Merchants"
+L.ICONMARK_PLACE_AUCTION = "Auction House"
+L.ICONMARK_PLACE_LOOT = "Loot"
+L.ICONMARK_PLACE_MAIL = "Mail"
+L.ICONMARK_PLACE_QUESTS = "Quest Rewards"
 L.SETTINGS_PAGE_NOTE = "While it's on, its %s page is in the sidebar under Forever++. The page "
     .. "shows or goes away once you pick another page."
 L.SETTINGS_TURN_ON = "Turn On" -- the button on a "Blizzard's ... is off" row

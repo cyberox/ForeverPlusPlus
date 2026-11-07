@@ -31,14 +31,73 @@ ItemButtons.CORNERS = {
     { "BOTTOMRIGHT", L.ICONMARK_CORNER_BOTTOMRIGHT },
 }
 
----The Padding option's slider, the same for every mark: `section` is the module's.
----@param section string
+-- An option with `extra`'s fields (added, shown, conflicts, a different min) laid over it.
+local function withExtra(option, extra)
+    for key, value in pairs(extra or {}) do
+        option[key] = value
+    end
+    return option
+end
+
+---The Corner dropdown (key `corner`), the same for every mark.
+---@param description string what sits in the corner, in the module's words
+---@param section? string
+---@param extra? table more fields for the option
 ---@return table option
-function ItemButtons.PaddingOption(section)
-    return {
+function ItemButtons.CornerOption(description, section, extra)
+    return withExtra({
+        key = "corner", name = L.ICONMARK_CORNER, description = description, section = section,
+        choices = ItemButtons.CORNERS,
+    }, extra)
+end
+
+---The mark's size slider (key `size`): 8 to 32 pixels in steps of 2 unless `extra` says otherwise.
+---@param name string "Arrow Size", "Check Size"
+---@param description string
+---@param section? string
+---@param extra? table
+---@return table option
+function ItemButtons.SizeOption(name, description, section, extra)
+    return withExtra({
+        key = "size", name = name, description = description, section = section,
+        min = 8, max = 32, step = 2, format = L.ICONMARK_PIXELS,
+    }, extra)
+end
+
+---The Padding slider (key `padding`), 0 to 10 pixels, the same for every mark.
+---@param section? string
+---@param extra? table
+---@return table option
+function ItemButtons.PaddingOption(section, extra)
+    return withExtra({
         key = "padding", name = L.ICONMARK_PADDING, description = L.ICONMARK_PADDING_DESC,
         section = section, min = 0, max = 10, step = 1, format = L.ICONMARK_PIXELS,
-    }
+    }, extra)
+end
+
+-- The places a module can mark items in, by their option keys, with the same names everywhere.
+local PLACE_NAMES = {
+    bags = L.ICONMARK_PLACE_BAGS,
+    bank = L.ICONMARK_PLACE_BANK,
+    merchant = L.ICONMARK_PLACE_MERCHANT,
+    auction = L.ICONMARK_PLACE_AUCTION,
+    loot = L.ICONMARK_PLACE_LOOT,
+    mail = L.ICONMARK_PLACE_MAIL,
+    quests = L.ICONMARK_PLACE_QUESTS,
+}
+
+---A place's checkbox in a mark's Show On section (key `place`): its name is the same in every
+---module, its description says what that module does there. List them bags, bank, merchant,
+---auction, loot, then the module's own (mail, quests).
+---@param place string bags, bank, merchant, auction, loot, mail, or quests
+---@param description string
+---@param extra? table
+---@return table option
+function ItemButtons.PlaceOption(place, description, extra)
+    return withExtra({
+        key = place, name = PLACE_NAMES[place], description = description,
+        section = L.ICONMARK_SECTION_SHOW,
+    }, extra)
 end
 
 ---Puts a mark in a corner of an icon (or any region), `padding` pixels in from it: right and down

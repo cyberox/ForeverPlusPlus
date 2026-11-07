@@ -140,30 +140,25 @@ module.options = {
         key = "reagentBag", name = L.UPGRADEARROWS_REAGENT_BAG, description = L.UPGRADEARROWS_REAGENT_BAG_DESC,
         section = L.UPGRADEARROWS_SECTION_GENERAL,
     },
-    {
-        key = "corner", name = L.ICONMARK_CORNER, description = L.UPGRADEARROWS_CORNER_DESC,
-        section = L.UPGRADEARROWS_SECTION_ARROW, choices = CORNERS,
-    },
+    ItemButtons.CornerOption(L.UPGRADEARROWS_CORNER_DESC, L.UPGRADEARROWS_SECTION_ARROW),
     {
         key = "downCorner", name = L.UPGRADEARROWS_DOWNCORNER, description = L.UPGRADEARROWS_DOWNCORNER_DESC,
         section = L.UPGRADEARROWS_SECTION_ARROW, choices = CORNERS,
     },
-    {
-        key = "size", name = L.UPGRADEARROWS_SIZE, description = L.UPGRADEARROWS_SIZE_DESC,
-        section = L.UPGRADEARROWS_SECTION_ARROW, min = 12, max = 32, step = 2, format = L.ICONMARK_PIXELS,
-        changed = "1.2.0", -- 18 by default, not 20
-    },
+    -- The arrow art needs 12 pixels; 18 by default, not 20, since 1.2.0.
+    ItemButtons.SizeOption(L.UPGRADEARROWS_SIZE, L.UPGRADEARROWS_SIZE_DESC, L.UPGRADEARROWS_SECTION_ARROW,
+        { min = 12, changed = "1.2.0" }),
     ItemButtons.PaddingOption(L.UPGRADEARROWS_SECTION_ARROW),
     {
         key = "percent", name = L.UPGRADEARROWS_PERCENT_ICON, description = L.UPGRADEARROWS_PERCENT_ICON_DESC,
         section = L.UPGRADEARROWS_SECTION_ARROW,
     },
-    { key = "bags", name = L.UPGRADEARROWS_BAGS, description = L.UPGRADEARROWS_BAGS_DESC, section = L.UPGRADEARROWS_SECTION_SHOW },
-    { key = "bank", name = L.UPGRADEARROWS_BANK, description = L.UPGRADEARROWS_BANK_DESC, section = L.UPGRADEARROWS_SECTION_SHOW },
-    { key = "merchant", name = L.UPGRADEARROWS_MERCHANT, description = L.UPGRADEARROWS_MERCHANT_DESC, section = L.UPGRADEARROWS_SECTION_SHOW },
-    { key = "loot", name = L.UPGRADEARROWS_LOOT, description = L.UPGRADEARROWS_LOOT_DESC, section = L.UPGRADEARROWS_SECTION_SHOW },
-    { key = "quests", name = L.UPGRADEARROWS_QUESTS, description = L.UPGRADEARROWS_QUESTS_DESC, section = L.UPGRADEARROWS_SECTION_SHOW },
-    { key = "auction", name = L.UPGRADEARROWS_AUCTION, description = L.UPGRADEARROWS_AUCTION_DESC, section = L.UPGRADEARROWS_SECTION_SHOW },
+    ItemButtons.PlaceOption("bags", L.UPGRADEARROWS_BAGS_DESC),
+    ItemButtons.PlaceOption("bank", L.UPGRADEARROWS_BANK_DESC),
+    ItemButtons.PlaceOption("merchant", L.UPGRADEARROWS_MERCHANT_DESC),
+    ItemButtons.PlaceOption("auction", L.UPGRADEARROWS_AUCTION_DESC),
+    ItemButtons.PlaceOption("loot", L.UPGRADEARROWS_LOOT_DESC),
+    ItemButtons.PlaceOption("quests", L.UPGRADEARROWS_QUESTS_DESC),
 }
 
 -- Gray rows in Settings: that the arrows are an estimate, and, while the UpgradeArrow addon is

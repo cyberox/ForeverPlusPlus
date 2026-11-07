@@ -48,9 +48,8 @@ module.options = {
             { "both", L.ALREADYKNOWN_STYLE_BOTH },
         },
     },
-    {
-        key = "corner", name = L.ICONMARK_CORNER, description = L.ALREADYKNOWN_CORNER_DESC,
-        section = L.ALREADYKNOWN_SECTION_LOOK, choices = ItemButtons.CORNERS, shown = hasCheck, added = "1.2.0",
+    ItemButtons.CornerOption(L.ALREADYKNOWN_CORNER_DESC, L.ALREADYKNOWN_SECTION_LOOK, {
+        shown = hasCheck, added = "1.2.0",
         -- Upgrade Arrows' arrows in the same corner. Settings reads its settings and shows these
         -- only while it's on.
         conflicts = {
@@ -68,37 +67,15 @@ module.options = {
                 end,
             },
         },
-    },
-    {
-        key = "size", name = L.ALREADYKNOWN_SIZE, description = L.ALREADYKNOWN_SIZE_DESC,
-        section = L.ALREADYKNOWN_SECTION_LOOK, min = 8, max = 32, step = 2, format = L.ICONMARK_PIXELS,
-        shown = hasCheck, added = "1.2.0",
-    },
-    {
-        key = "padding", name = L.ICONMARK_PADDING, description = L.ICONMARK_PADDING_DESC,
-        section = L.ALREADYKNOWN_SECTION_LOOK, min = 0, max = 10, step = 1, format = L.ICONMARK_PIXELS,
-        shown = hasCheck, added = "1.2.0",
-    },
-    {
-        key = "merchant", name = L.ALREADYKNOWN_MERCHANT, description = L.ALREADYKNOWN_MERCHANT_DESC,
-        section = L.ALREADYKNOWN_SECTION_SHOW,
-    },
-    {
-        key = "auction", name = L.ALREADYKNOWN_AUCTION, description = L.ALREADYKNOWN_AUCTION_DESC,
-        section = L.ALREADYKNOWN_SECTION_SHOW,
-    },
-    {
-        key = "bags", name = L.ALREADYKNOWN_BAGS, description = L.ALREADYKNOWN_BAGS_DESC,
-        section = L.ALREADYKNOWN_SECTION_SHOW,
-    },
-    {
-        key = "mail", name = L.ALREADYKNOWN_MAIL, description = L.ALREADYKNOWN_MAIL_DESC,
-        section = L.ALREADYKNOWN_SECTION_SHOW,
-    },
-    {
-        key = "loot", name = L.ALREADYKNOWN_LOOT, description = L.ALREADYKNOWN_LOOT_DESC,
-        section = L.ALREADYKNOWN_SECTION_SHOW, changed = "0.9.0",
-    },
+    }),
+    ItemButtons.SizeOption(L.ALREADYKNOWN_SIZE, L.ALREADYKNOWN_SIZE_DESC, L.ALREADYKNOWN_SECTION_LOOK,
+        { shown = hasCheck, added = "1.2.0" }),
+    ItemButtons.PaddingOption(L.ALREADYKNOWN_SECTION_LOOK, { shown = hasCheck, added = "1.2.0" }),
+    ItemButtons.PlaceOption("bags", L.ALREADYKNOWN_BAGS_DESC),
+    ItemButtons.PlaceOption("merchant", L.ALREADYKNOWN_MERCHANT_DESC),
+    ItemButtons.PlaceOption("auction", L.ALREADYKNOWN_AUCTION_DESC),
+    ItemButtons.PlaceOption("loot", L.ALREADYKNOWN_LOOT_DESC, { changed = "0.9.0" }),
+    ItemButtons.PlaceOption("mail", L.ALREADYKNOWN_MAIL_DESC),
 }
 
 local TINT = { 0.45, 1, 0.45 }

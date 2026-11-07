@@ -40,18 +40,9 @@ module.options = {
             { "tint", L.SPELLRANKS_STYLE_TINT },
         },
     },
-    {
-        key = "corner", name = L.ICONMARK_CORNER, description = L.SPELLRANKS_CORNER_DESC,
-        choices = ItemButtons.CORNERS, shown = hasBadge, added = "1.2.0",
-    },
-    {
-        key = "size", name = L.SPELLRANKS_SIZE, description = L.SPELLRANKS_SIZE_DESC,
-        min = 8, max = 32, step = 2, format = L.ICONMARK_PIXELS, shown = hasBadge, added = "1.2.0",
-    },
-    {
-        key = "padding", name = L.ICONMARK_PADDING, description = L.ICONMARK_PADDING_DESC,
-        min = 0, max = 10, step = 1, format = L.ICONMARK_PIXELS, shown = hasBadge, added = "1.2.0",
-    },
+    ItemButtons.CornerOption(L.SPELLRANKS_CORNER_DESC, nil, { shown = hasBadge, added = "1.2.0" }),
+    ItemButtons.SizeOption(L.SPELLRANKS_SIZE, L.SPELLRANKS_SIZE_DESC, nil, { shown = hasBadge, added = "1.2.0" }),
+    ItemButtons.PaddingOption(nil, { shown = hasBadge, added = "1.2.0" }),
     { key = "tooltip", name = L.SPELLRANKS_TOOLTIP, description = L.SPELLRANKS_TOOLTIP_DESC },
     ns.ChatOption(L.SPELLRANKS_CHAT_DESC),
 }

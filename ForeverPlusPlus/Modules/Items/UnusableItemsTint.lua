@@ -32,14 +32,11 @@ module.category = "items"
 module.added = "0.8.0"
 
 module.options = {
-    { key = "bags", name = L.UNUSABLEITEMSTINT_BAGS, description = L.UNUSABLEITEMSTINT_BAGS_DESC },
-    { key = "bank", name = L.UNUSABLEITEMSTINT_BANK, description = L.UNUSABLEITEMSTINT_BANK_DESC },
-    { key = "merchant", name = L.UNUSABLEITEMSTINT_MERCHANT, description = L.UNUSABLEITEMSTINT_MERCHANT_DESC },
-    {
-        key = "auction", name = L.UNUSABLEITEMSTINT_AUCTION, description = L.UNUSABLEITEMSTINT_AUCTION_DESC,
-        added = "0.9.0",
-    },
-    { key = "loot", name = L.UNUSABLEITEMSTINT_LOOT, description = L.UNUSABLEITEMSTINT_LOOT_DESC, added = "0.9.0" },
+    ItemButtons.PlaceOption("bags", L.UNUSABLEITEMSTINT_BAGS_DESC),
+    ItemButtons.PlaceOption("bank", L.UNUSABLEITEMSTINT_BANK_DESC),
+    ItemButtons.PlaceOption("merchant", L.UNUSABLEITEMSTINT_MERCHANT_DESC),
+    ItemButtons.PlaceOption("auction", L.UNUSABLEITEMSTINT_AUCTION_DESC, { added = "0.9.0" }),
+    ItemButtons.PlaceOption("loot", L.UNUSABLEITEMSTINT_LOOT_DESC, { added = "0.9.0" }),
 }
 
 local TINT = { 0.9, 0, 0 } -- Blizzard's merchant tint for an item you can't use

@@ -38,9 +38,7 @@ module.added = "1.2.0"
 local ATLAS = "poi-transmogrifier" -- the transmogrifier on the map (29x36), drawn square
 
 module.options = {
-    {
-        key = "corner", name = L.ICONMARK_CORNER, description = L.APPEARANCEICONS_CORNER_DESC,
-        section = L.APPEARANCEICONS_SECTION_ICON, choices = ItemButtons.CORNERS,
+    ItemButtons.CornerOption(L.APPEARANCEICONS_CORNER_DESC, L.APPEARANCEICONS_SECTION_ICON, {
         -- Other modules' marks in the same corner. Settings reads their settings and shows these
         -- only while that module is on.
         conflicts = {
@@ -63,27 +61,19 @@ module.options = {
                 end,
             },
         },
-    },
-    {
-        key = "size", name = L.APPEARANCEICONS_SIZE, description = L.APPEARANCEICONS_SIZE_DESC,
-        section = L.APPEARANCEICONS_SECTION_ICON, min = 8, max = 32, step = 2, format = L.ICONMARK_PIXELS,
-    },
+    }),
+    ItemButtons.SizeOption(L.APPEARANCEICONS_SIZE, L.APPEARANCEICONS_SIZE_DESC, L.APPEARANCEICONS_SECTION_ICON),
     ItemButtons.PaddingOption(L.APPEARANCEICONS_SECTION_ICON),
-    { key = "bags", name = L.APPEARANCEICONS_BAGS, description = L.APPEARANCEICONS_BAGS_DESC,
-        section = L.APPEARANCEICONS_SECTION_SHOW },
-    { key = "bank", name = L.APPEARANCEICONS_BANK, description = L.APPEARANCEICONS_BANK_DESC,
-        section = L.APPEARANCEICONS_SECTION_SHOW },
-    { key = "merchant", name = L.APPEARANCEICONS_MERCHANT, description = L.APPEARANCEICONS_MERCHANT_DESC,
-        section = L.APPEARANCEICONS_SECTION_SHOW },
-    { key = "auction", name = L.APPEARANCEICONS_AUCTION, description = L.APPEARANCEICONS_AUCTION_DESC,
-        section = L.APPEARANCEICONS_SECTION_SHOW },
-    { key = "loot", name = L.APPEARANCEICONS_LOOT, description = L.APPEARANCEICONS_LOOT_DESC,
-        section = L.APPEARANCEICONS_SECTION_SHOW },
+    ItemButtons.PlaceOption("bags", L.APPEARANCEICONS_BAGS_DESC),
+    ItemButtons.PlaceOption("bank", L.APPEARANCEICONS_BANK_DESC),
+    ItemButtons.PlaceOption("merchant", L.APPEARANCEICONS_MERCHANT_DESC),
+    ItemButtons.PlaceOption("auction", L.APPEARANCEICONS_AUCTION_DESC),
+    ItemButtons.PlaceOption("loot", L.APPEARANCEICONS_LOOT_DESC),
     { key = "professions", name = L.APPEARANCEICONS_PROFESSIONS, description = L.APPEARANCEICONS_PROFESSIONS_DESC,
-        section = L.APPEARANCEICONS_SECTION_SHOW },
+        section = L.ICONMARK_SECTION_SHOW },
     {
         key = "recipeSpot", name = L.APPEARANCEICONS_RECIPE_SPOT, description = L.APPEARANCEICONS_RECIPE_SPOT_DESC,
-        section = L.APPEARANCEICONS_SECTION_SHOW, requires = "professions",
+        section = L.ICONMARK_SECTION_SHOW, requires = "professions",
         choices = {
             { "right", L.APPEARANCEICONS_RECIPE_SPOT_RIGHT },
             { "before", L.APPEARANCEICONS_RECIPE_SPOT_BEFORE },
