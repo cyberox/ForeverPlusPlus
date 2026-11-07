@@ -388,19 +388,21 @@ function internal.onHover(names, right, up)
         if internal.iconFor(name) then
             local v = internal.readView()
             hover = { name = name, right = right, up = up, at = GetTime(), x = v and v.x, y = v and v.y,
-                angle = v and v.angle }
+                angle = v and v.angle, scale = v and v.scale }
             return
         end
     end
 end
 
--- Whether the minimap shows what it did at the hover: the player hasn't moved or turned.
+-- Whether the minimap shows what it did at the hover: the player hasn't moved or turned, and the
+-- minimap hasn't zoomed (a zoom moves every dot, so the hover's spot would probe nothing).
 local function sameView(check, v)
     if not (v and check.x) then
         return not v and not check.x
     end
     local east, north = (v.x - check.x) * v.width, (v.y - check.y) * v.height
     return east * east + north * north <= HOVER_YARDS * HOVER_YARDS and abs(v.angle - check.angle) < 0.01
+        and abs(v.scale - check.scale) < 0.0001
 end
 
 local function checkHover(v)
