@@ -137,7 +137,7 @@ function module:OnEnable()
 end
 
 function module:OnOptionChanged(key)
-    if key == "allowFriends" and self.enabled and self.db.allowFriends then
+    if key == "allowFriends" and self.db.allowFriends then
         Units.RequestGuildRoster()
     end
 end
