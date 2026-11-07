@@ -27,8 +27,12 @@ local KINDS = {
     { kind = "herb", name = L.GATHERINGMAP_PAGE_HERBS },
     { kind = "ore", name = L.GATHERINGMAP_PAGE_ORE },
 }
+local KIND_LINES = { herb = Professions.HERBALISM, ore = Professions.MINING } -- the skill gathering each
 
-local LIST_WIDTH = 210 -- wider than the Modules page's list, for names like Ooze Covered Mithril
+-- Wider than the Modules page's list, for names like Ooze Covered Mithril Deposit with the skill and
+-- spots beside them; the details need less room.
+local LIST_WIDTH = 300
+local SKILL_WIDTH, COUNT_WIDTH = 30, 24 -- a node row's skill and spots, right-aligned at its end
 local ICON, INDENT = 14, 14 -- a node row's icon, and how far node rows sit in from their header
 local BIG_ICON = 36 -- the selected node's icon
 local ZONE_ROW = 18
@@ -238,9 +242,16 @@ local function newNodeRow(list)
     row.icon:SetPoint("LEFT", row.box, "RIGHT", 2, 0)
     row.count = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     row.count:SetPoint("RIGHT", -6, 0)
+    row.count:SetWidth(COUNT_WIDTH)
+    row.count:SetJustifyH("RIGHT")
+    -- The skill it takes, in the trainer's colors against this character's.
+    row.skill = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    row.skill:SetPoint("RIGHT", row.count, "LEFT", -4, 0)
+    row.skill:SetWidth(SKILL_WIDTH)
+    row.skill:SetJustifyH("RIGHT")
     row.text = row:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     row.text:SetPoint("LEFT", row.icon, "RIGHT", 4, 0)
-    row.text:SetPoint("RIGHT", row.count, "LEFT", -4, 0)
+    row.text:SetPoint("RIGHT", row.skill, "LEFT", -4, 0)
     row.text:SetJustifyH("LEFT")
     row.text:SetWordWrap(false)
     row:SetScript("OnClick", function()
@@ -259,6 +270,13 @@ local function fillNodeRow(row, entry, kindOn)
     local shown = kindOn and not module.db.hidden[entry.name]
     row.text:SetFontObject(shown and "GameFontHighlight" or "GameFontDisable")
     row.count:SetText(entry.spots > 0 and entry.spots or "")
+    if entry.skill then
+        local color = Professions.Difficulty(Professions.Rank(KIND_LINES[entry.kind]), entry.skill)
+        row.skill:SetText(entry.skill)
+        row.skill:SetTextColor(color.r, color.g, color.b)
+    else
+        row.skill:SetText("")
+    end
 end
 
 -- The selected node -----------------------------------------------------------------------------
