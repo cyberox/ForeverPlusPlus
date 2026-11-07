@@ -757,6 +757,17 @@ local function onGather(gather)
         log(gather, L.GATHERINGMAP_LOG_NOWHERE)
         return
     end
+    -- One the player's skill is too low for: remembered where they stood, not yet gathered, and
+    -- gray on the maps (Too High for You) until they can.
+    if gather.requires then
+        local _, new = Gathering.See(list, gather.name, gather.kind, gather.x, gather.y, width, height,
+            time())
+        log(gather, format(L.GATHERINGMAP_LOG_REQUIRES, gather.requires))
+        if new then
+            internal.Changed(mapID)
+        end
+        return
+    end
     local node, new = Gathering.Add(list, gather.name, gather.kind, gather.x, gather.y, width, height, time())
     for _, item in pairs(gather.items) do
         if item.id then
@@ -776,6 +787,7 @@ local TRACE = {
     success = L.GATHERINGMAP_TRACE_SUCCESS,
     failed = L.GATHERINGMAP_TRACE_FAILED,
     loot = L.GATHERINGMAP_TRACE_LOOT,
+    refused = L.GATHERINGMAP_TRACE_REFUSED,
 }
 
 -- Read at each step rather than when the option changes: the Debug module turning off puts the

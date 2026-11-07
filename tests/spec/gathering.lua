@@ -80,3 +80,12 @@ eq(new, true, "spawns: copper isn't silver's or tin's")
 local moved = { { name = "Peacebloom", kind = "herb", x = 0.2, y = 0.2, count = 50, time = 1 } }
 node = Gathering.Add(moved, "Peacebloom", "herb", 0.2055, 0.2, W, H, 1000)
 eq(node.x, 0.2005, "add: the average weighs at most ten gathers")
+
+-- The red error a node too high for the player's skill gives: its skill line and the rank it takes.
+local Professions = ns.Professions
+local line, need = Gathering.Requirement("Requires Mining 175")
+eq(line == Professions.MINING and need, 175, "requirement: mining")
+line, need = Gathering.Requirement("Requires Herbalism (150)")
+eq(line == Professions.HERBALISM and need, 150, "requirement: herbalism, with parentheses")
+eq(Gathering.Requirement("Requires Mining"), nil, "requirement: no rank, nothing")
+eq(Gathering.Requirement("Not enough rage"), nil, "requirement: another error, nothing")

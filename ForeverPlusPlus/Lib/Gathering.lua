@@ -137,6 +137,17 @@ local function tell(gather)
     end
 end
 
+-- Where the player stands, on the zone's map, so a node in a cave shows on the zone's map with the
+-- rest: mapID, x, y, any of them nil where it can't be read.
+local function playerSpot()
+    local mapID, x, y = ns.WorldMap.PlayerPosition()
+    local zone = mapID and ns.WorldMap.Zone(mapID)
+    if zone and zone ~= mapID then
+        mapID, x, y = ns.WorldMap.PlayerPosition(zone)
+    end
+    return mapID, x, y
+end
+
 local function onSent(_, unit, target, castGUID, spellID)
     if unit ~= "player" then
         return
@@ -154,12 +165,7 @@ local function onSent(_, unit, target, castGUID, spellID)
         return
     end
     local name, from = targetName(target)
-    -- On the zone's map, so a node in a cave shows on the zone's map with the rest.
-    local mapID, x, y = ns.WorldMap.PlayerPosition()
-    local zone = mapID and ns.WorldMap.Zone(mapID)
-    if zone and zone ~= mapID then
-        mapID, x, y = ns.WorldMap.PlayerPosition(zone)
-    end
+    local mapID, x, y = playerSpot()
     serial = serial + 1
     pending = {
         serial = serial,
@@ -169,6 +175,7 @@ local function onSent(_, unit, target, castGUID, spellID)
         line = spell[3],
         spellID = spellID,
         castGUID = IsText(castGUID) and castGUID or nil,
+        sent = GetTime(),
         mapID = mapID,
         x = x,
         y = y,
@@ -215,12 +222,94 @@ local function onSucceeded(_, unit, castGUID, spellID)
     end)
 end
 
+-- The gather that just failed, for the error that says why, which can come after the failure.
+local failed, failedAt
+
 local function onFailed(_, unit, castGUID, spellID)
     if unit == "player" and isPending(castGUID, spellID) then
+        failed, failedAt = pending, GetTime()
         pending = nil
         if trace then
             trace("failed", IsNumber(spellID) and spellID or "?")
         end
+    end
+end
+
+-- Too low a skill --------------------------------------------------------------------------------
+-- A herb or vein the player's skill is too low for refuses the cast with a red error naming the
+-- skill and the rank it takes ("Requires Mining 175"). Its exact words aren't known on Forever and
+-- differ between languages, so the error counts when it names Herbalism or Mining with a number
+-- after it, and only for a gather just tried or a node of that kind the player faces or hovered.
+
+local ERROR_WAIT = 1 -- seconds from the cast (or its failure) to the error that says why
+
+local LINES = { Professions.MINING, Professions.HERBALISM }
+
+---The gathering skill line (Herbalism or Mining) an error names and the rank after it, as in
+---"Requires Mining 175", or nil.
+---@param message string plain text
+---@return number? line
+---@return number? need
+function Gathering.Requirement(message)
+    for _, line in ipairs(LINES) do
+        local skill = Professions.LineName(line)
+        local at = skill and message:find(skill, 1, true)
+        if at then
+            local need = tonumber(message:match("(%d+)", at + #skill))
+            if need then
+                return line, need
+            end
+        end
+    end
+end
+
+-- The gather the error is about: the one just cast or just failed, or else one at the node the
+-- player faces or hovered, when the cast never began. Nil when none is of that skill line.
+local function refused(line)
+    local now = GetTime()
+    local gather
+    if pending and not pending.succeeded and now - pending.sent <= ERROR_WAIT then
+        gather = pending
+    elseif failed and now - failedAt <= ERROR_WAIT then
+        gather = failed
+    end
+    if gather then
+        return gather.line == line and gather or nil
+    end
+    local name, from = targetName(nil)
+    if not name or Professions.KindLine(Professions.Kind(name)) ~= line then
+        return nil
+    end
+    local mapID, x, y = playerSpot()
+    return { name = name, from = from, kind = Professions.LineKind(line), line = line, mapID = mapID,
+        x = x, y = y, items = {} }
+end
+
+local function onError(_, _, message)
+    if not IsText(message, true) then
+        return
+    end
+    local line, need = Gathering.Requirement(ns.Text.Plain(message))
+    if not line then
+        return
+    end
+    local inInstance = IsInInstance and IsInInstance()
+    local gather = inInstance ~= true and refused(line)
+    if trace then
+        trace("refused", message, gather and gather.name or "-")
+    end
+    if not (gather and gather.name) then
+        return
+    end
+    if pending == gather then
+        pending = nil
+    end
+    failed = nil
+    -- Teaches every module the skill the node takes, then tells them where it was found.
+    Professions.LearnRequirement(gather.name, Professions.LineName(line), need)
+    gather.castGUID, gather.requires = nil, need
+    for fn in pairs(listeners) do
+        fn(gather)
     end
 end
 
@@ -301,15 +390,17 @@ local function listen(on)
         change("UNIT_SPELLCAST_FAILED_QUIET", { "player" }, onFailed)
     end
     if on then
+        ns.On("UI_ERROR_MESSAGE", onError)
         ns.On("LOOT_OPENED", onLoot)
         -- Probe: LOOT_READY is Mainline's; without it, LOOT_OPENED alone.
         if ns.HasEvent("LOOT_READY") then
             ns.On("LOOT_READY", onLoot)
         end
     else
+        ns.Off("UI_ERROR_MESSAGE", onError)
         ns.Off("LOOT_OPENED", onLoot)
         ns.Off("LOOT_READY", onLoot)
-        pending, hovered = nil, nil
+        pending, hovered, failed = nil, nil, nil
     end
     -- A tooltip hook can't come off, so it's added once and does nothing while no one listens.
     if on and not tooltipHooked and TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall
@@ -591,7 +682,9 @@ end
 ---"softinteract", "tooltip", or "none"); `kind` ("herb", "ore", "treasure") and `line`, the skill
 ---line of the spell; where the player stood when they cast, on their zone's map (`mapID`, `x`,
 ---`y`, nil where it can't be read); the world object's ID from its loot (nil without loot); and `items`, the loot as
----`{ id, count, icon }`. Gathers in instances aren't told. Don't keep or change the table.
+---`{ id, count, icon }`. A herb or vein the player's skill was too low for is told too, with
+---`requires`, the rank it takes, and no loot: it wasn't gathered. Gathers in instances aren't told.
+---Don't keep or change the table.
 ---@param fn fun(gather: table)
 ---@param on boolean
 function Gathering.Listen(fn, on)
