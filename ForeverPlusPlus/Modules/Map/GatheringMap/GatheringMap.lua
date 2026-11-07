@@ -434,11 +434,41 @@ function internal.NodesChanged(mapID)
     ns.Providers.Changed("gatheringNodes")
 end
 
--- What the public API reads while the module is on (API.lua's GetGatheringMaps and
--- GetGatheringNodes, which copy what they give out).
+-- The kinds this character can show, for the Minimap Button's quick toggles: herbs, ore, and
+-- fishing pools only with their profession (all of them with Only My Professions off), chests
+-- always. The same switches as the page's kind checkboxes.
+local QUICK_KINDS = {
+    { kind = "herb", name = L.GATHERINGMAP_PAGE_HERBS, line = ns.Professions.HERBALISM },
+    { kind = "ore", name = L.GATHERINGMAP_PAGE_ORE, line = ns.Professions.MINING },
+    { kind = "treasure", name = L.GATHERINGMAP_PAGE_TREASURE },
+    { kind = "fish", name = L.GATHERINGMAP_PAGE_FISH, line = ns.Professions.FISHING },
+}
+
+-- What the public API (API.lua's GetGatheringMaps and GetGatheringNodes, which copy what they
+-- give out) and the Minimap Button (Kinds) read while the module is on.
 local provider = {
     Maps = function()
         return module.db.nodes
+    end,
+    ---@return table list of { name, IsShown(), Toggle() }
+    Kinds = function()
+        local db = module.db
+        local list = {}
+        for _, each in ipairs(QUICK_KINDS) do
+            if not (db.onlyMine and each.line) or ns.Professions.Rank(each.line) then
+                list[#list + 1] = {
+                    name = each.name,
+                    IsShown = function()
+                        return not db.hiddenKinds[each.kind]
+                    end,
+                    Toggle = function()
+                        db.hiddenKinds[each.kind] = not db.hiddenKinds[each.kind] or nil
+                        internal.Changed(nil)
+                    end,
+                }
+            end
+        end
+        return list
     end,
 }
 

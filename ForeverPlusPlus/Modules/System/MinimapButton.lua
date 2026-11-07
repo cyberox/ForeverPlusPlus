@@ -92,8 +92,10 @@ end
 local QUICK_GROUPS = {
     { L.MINIMAPBUTTON_GROUP_LOOT, { "AutoRepair", "AutoSellJunk", "AutoStow", "FastLoot" } },
     { L.MINIMAPBUTTON_GROUP_NPCS, { "AutoGossip", "AutoQuest", "SkipCinematics" } },
-    { L.MINIMAPBUTTON_GROUP_WORLD, { "AutoDismount", "AutoRelease", "FishingCast",
-        "GatheringTracking", "MinimapNodeIcons" } },
+    { L.MINIMAPBUTTON_GROUP_WORLD, { "AutoDismount", "AutoRelease" } },
+    -- Then, while Gathering Map is on, the kinds it shows (its Kinds, through ns.Providers).
+    { L.MINIMAPBUTTON_GROUP_GATHERING, { "FishingCast", "GatheringMap", "GatheringTracking",
+        "MinimapNodeIcons" }, kinds = true },
     { L.MINIMAPBUTTON_GROUP_OTHER, { "AutoDecline", "AutoScreenshot", "HideBetaFeedback",
         "MovableFramerate" } },
 }
@@ -104,12 +106,13 @@ local function byTitle(a, b)
     return a.title < b.title
 end
 
--- Each group's modules this client has, sorted by title.
+-- Each group's modules this client has, sorted by title. A locked one (the game broke it) can't
+-- be turned on, so it isn't offered.
 local function quickEntries(names)
     local entries = {}
     for _, name in ipairs(names) do
         local other = ns.modules[name]
-        if other and not other.unavailable then
+        if other and not other.unavailable and not other.locked then
             entries[#entries + 1] = { name = name, module = other, title = other.title or name }
         end
     end
@@ -132,6 +135,18 @@ local function quickMenuItems(_, root)
                         ns.SetEnabled(name, not other.db.enabled)
                         ns.RefreshSetting(name)
                     end)
+            end
+            -- Gathering Map's kinds after its modules, while it's on to offer them.
+            local gathering = group.kinds and ns.Providers.Get("gatheringNodes")
+            local kinds = gathering and gathering.Kinds and gathering.Kinds() or {}
+            if #kinds > 0 then
+                root:CreateTitle(GROUP_COLOR .. L.MINIMAPBUTTON_GATHERING_SHOWS .. "|r")
+                for _, kind in ipairs(kinds) do
+                    root:CreateCheckbox(kind.name, kind.IsShown, function()
+                        kind.Toggle()
+                        ns.RefreshSetting("GatheringMap")
+                    end)
+                end
             end
         end
     end

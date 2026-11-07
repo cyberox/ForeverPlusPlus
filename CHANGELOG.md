@@ -11,6 +11,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Buff Timers**: Sort Buffs (off by default) orders your buffs by time left, the next to run out on the left or right.
 - **Already Known**: Corner, Check Size, and Padding for the green check.
 - **Spell Ranks**: Corner, Badge Size, and Padding for the warning badge.
+- **Minimap Button**: a Gathering group in its quick toggles, with Gathering Map and the kinds it shows (herbs, ore, and fishing pools only with the profession).
 - **AddOns List**: a Chat Messages checkbox, to stop it saying in chat that a set was saved or is missing addons.
 - Other addons can read Gathering Map's nodes through `ForeverPlusPlusAPI.v1` (`GetGatheringMaps`, `GetGatheringNodes`, and the `GATHERING_NODES_UPDATED` callback).
 

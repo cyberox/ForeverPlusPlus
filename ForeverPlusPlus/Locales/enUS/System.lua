@@ -103,6 +103,8 @@ L.MINIMAPBUTTON_TIP_NONE = "None" -- a count of 0 errors
 L.MINIMAPBUTTON_GROUP_LOOT = "Vendors and Loot"
 L.MINIMAPBUTTON_GROUP_NPCS = "NPCs and Quests"
 L.MINIMAPBUTTON_GROUP_WORLD = "Out in the World"
+L.MINIMAPBUTTON_GROUP_GATHERING = "Gathering"
+L.MINIMAPBUTTON_GATHERING_SHOWS = "Gathering Map Shows" -- over its kinds' checkboxes: Herbs, Ore...
 L.MINIMAPBUTTON_GROUP_OTHER = "Other"
 -- The tooltip's hints: what a click does, then the click.
 L.MINIMAPBUTTON_HINT_SETTINGS = "Open Settings"
