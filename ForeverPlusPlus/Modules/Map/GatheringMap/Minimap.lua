@@ -2,12 +2,12 @@
 -- zone map and the player's own (Lib/MinimapPins.lua), so they're exact through moving, turning,
 -- and zooming. Which nodes are near is worked out again each second, after a zoom, and when a
 -- node is gathered; their spots on the minimap every frame while the player moves or turns, and
--- not at all while they stand still. With Minimap Tooltips on, an icon shows its node's tooltip;
--- clicks always go through to the minimap.
+-- not at all while they stand still. The icons take no mouse: the minimap's own tooltip and
+-- Shift+right-click cover them (GatheringMap.lua).
 local _, ns = ...
 
 local pairs = pairs
-local CreateFrame, Minimap, GameTooltip = CreateFrame, Minimap, GameTooltip
+local CreateFrame, Minimap = CreateFrame, Minimap
 
 local module = ns.modules.GatheringMap
 local internal = module.internal
@@ -72,63 +72,17 @@ local function findNear(v)
     nearMap = v.mapID
 end
 
--- A pin's tooltip, while Minimap Tooltips is on: the node, as on the world map, and near the
--- player a note that only the game's own dot says whether it's there now.
-local function onEnter(pin)
-    local node = pin.node
-    if not node then
-        return
-    end
-    -- The game's own tooltip for its dot under the mouse, when there is one (the node is up), with
-    -- our lines added under it (GatheringMap.lua's hook), so it's the same tooltip as on the dot
-    -- itself, arrow for another level and all.
-    GameTooltip:SetOwner(pin, "ANCHOR_CURSOR")
-    if GameTooltip.SetMinimapMouseover then
-        GameTooltip:SetMinimapMouseover()
-        if GameTooltip:NumLines() > 0 then
-            GameTooltip:Show()
-            return
-        end
-    end
-    -- No dot there: the node is gone, or not seen by the game yet. Ours, the same lines with the
-    -- name and requirement as the game writes them, at the cursor as the game's is (Blizzard_Minimap's
-    -- Minimap_OnUpdate: ANCHOR_CURSOR). How far it is, for Within's distance.
-    local yards
-    local v = MinimapPins.View(zoneMap())
-    if v and v.mapID == nearMap then
-        yards = Distance(node.x, node.y, v.x, v.y, v.width, v.height)
-    end
-    ns.MapTooltip.Show(pin, internal.Title(node), internal.TooltipLines(node, yards), nil, true)
-end
-
-local function onLeave(pin)
-    if GameTooltip:IsOwned(pin) then
-        GameTooltip:Hide()
-    end
-end
-
+-- A pin takes no mouse: the mouse always reaches the minimap, whose own tooltip shows the game's
+-- dot there with our lines, or ours where it has none, and whose Shift+right-click forgets a node
+-- (GatheringMap.lua), so a node has one tooltip wherever the mouse is on it.
 local function getPin(i)
     local pin = pins[i]
     if not pin then
         pin = CreateFrame("Frame", nil, frame)
+        pin:EnableMouse(false)
         local texture = pin:CreateTexture(nil, "ARTWORK")
         texture:SetAllPoints()
         pin.texture = texture
-        -- Clicks go through to the minimap (a ping) either way. Probe: without the split, the
-        -- pin takes the mouse whole, so it takes none.
-        if pin.SetMouseMotionEnabled and pin.SetMouseClickEnabled then
-            pin:SetMouseClickEnabled(false)
-        else
-            pin:EnableMouse(false)
-        end
-        pin:SetScript("OnEnter", onEnter)
-        pin:SetScript("OnLeave", onLeave)
-        -- Shift+right-click forgets the node.
-        ns.MapPins.ShiftClick(pin, function(self, button)
-            if button == "RightButton" and self.node and nearMap then
-                internal.Forget(nearMap, self.node)
-            end
-        end)
         pins[i] = pin
     end
     return pin
@@ -138,7 +92,6 @@ end
 -- player (`close`), with Near You set to Empty Ring, the ring alone, so the game's own dot shows
 -- inside it when the node is there.
 local function style(pin, node, size, alpha, close)
-    local db = module.db
     internal.Look(node, look)
     if close then
         internal.Hollow(look)
@@ -149,9 +102,6 @@ local function style(pin, node, size, alpha, close)
     if pin.ring then
         MinimapPins.PlaceRing(pin.ring, pin, size)
     end
-    if pin.SetMouseMotionEnabled then
-        pin:SetMouseMotionEnabled(db.minimapTooltips)
-    end
 end
 
 local function hidePins(from)
@@ -159,7 +109,6 @@ local function hidePins(from)
         local pin = pins[i]
         if pin.node then
             pin.node = nil
-            onLeave(pin)
             pin:Hide()
         end
     end
