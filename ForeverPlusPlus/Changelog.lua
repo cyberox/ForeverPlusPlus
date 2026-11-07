@@ -10,12 +10,13 @@ local L = ns.L
 
 ns.changelog = {
     {
-        version = L.CHANGELOG_UNRELEASED,
+        version = "1.2.1",
+        date = "2026-11-07",
         sections = {
             { L.CHANGELOG_ADDED, {
                 { L.TOOLTIPS_TITLE, "Quest Lines hides the quest lines (a quest's name and its "
                     .. "objectives) on player and NPC tooltips, or on objects such as chests too. "
-                    .. "Shown by default. Thanks to cyberox." },
+                    .. "Quest lines still show until you pick it. Thanks to cyberox." },
                 { L.WORLDMAP_TITLE, "Quick checkboxes in the world map's filter menu for Dungeons, "
                     .. "Raids, Flight Masters, Boats and Zeppelins, Unexplored Areas, and Zone Info." },
                 { L.WORLDMAP_TITLE, "Forever's new dungeons: The Drowned City, Blackmaw Hold, and "
