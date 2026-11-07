@@ -372,11 +372,65 @@ end
 local sinceFollow = 0 -- seconds since the dots were last followed
 local restUntil = 0 -- when the next finding pass may start
 
+-- Checking probes still work ----------------------------------------------------------------------
+-- Since build 70862 the minimap names only what's under the real mouse, so probes read nothing
+-- (in game, 2026-11-07; docs/forever-api.md). The player's own hover is the test: a dot their
+-- mouse named while they stood still is probed at that spot once the mouse leaves the minimap.
+-- If the probe can't read it, probing is off until /reload and the module's notice says why.
+
+local HOVER_CHECK = 2 -- seconds after the hover that the check still counts
+local hover -- { name, right, up, at }: a node the player's mouse named on the minimap
+
+local function noteHover()
+    if not still() then
+        return
+    end
+    for _, entry in ipairs(internal.readMouseover() or NONE) do
+        if internal.iconFor(entry.name) then
+            local right, up = ns.MinimapPins.CursorOffset()
+            hover = { name = entry.name, right = right, up = up, at = GetTime() }
+            return
+        end
+    end
+end
+
+local function checkHover()
+    local check = hover
+    hover = nil
+    if GetTime() - check.at > HOVER_CHECK or not still() then
+        return
+    end
+    startProbing()
+    local found = probe(check.right, check.up, "cursor") or NONE
+    stopProbing()
+    for _, entry in ipairs(found) do
+        if entry.name == check.name then
+            internal.broken = false
+            return
+        end
+    end
+    if not internal.blocked then
+        internal.broken = true
+        internal.nodes, internal.pass = {}, nil
+        module:Print(L.MINIMAPNODEICONS_BROKEN_CHAT)
+    end
+end
+
 -- A round of probes: following, then a part of the finding pass, or a rest between passes.
 function internal.tick(v)
     noteMovement(v)
-    if internal.blocked or InCombatLockdown() or Minimap:IsMouseOver() then
+    if internal.blocked or internal.broken or InCombatLockdown() then
         return
+    end
+    if Minimap:IsMouseOver() then
+        noteHover()
+        return
+    end
+    if hover then
+        checkHover()
+        if internal.broken then
+            return
+        end
     end
     startProbing()
     local space = currentSpace()

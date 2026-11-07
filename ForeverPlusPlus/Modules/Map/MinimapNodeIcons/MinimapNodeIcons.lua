@@ -67,13 +67,23 @@ module.category = "map"
 module.added = "0.9.0"
 module.internal = {}
 local internal = module.internal
--- Honest about what probing costs and misses (see the top of this file); a notice with no button.
+-- Honest about what probing costs and misses (see the top of this file); notices with no button.
+-- The second shows once a check found probes can't read the dots (Nodes.lua).
 module.notice = {
-    text = L.MINIMAPNODEICONS_NOTICE,
-    description = L.MINIMAPNODEICONS_NOTICE_DESC,
-    shown = function()
-        return true
-    end,
+    {
+        text = L.MINIMAPNODEICONS_NOTICE,
+        description = L.MINIMAPNODEICONS_NOTICE_DESC,
+        shown = function()
+            return true
+        end,
+    },
+    {
+        text = L.MINIMAPNODEICONS_BROKEN,
+        description = L.MINIMAPNODEICONS_BROKEN_DESC,
+        shown = function()
+            return internal.broken
+        end,
+    },
 }
 
 module.options = {
@@ -145,6 +155,7 @@ internal.nodes = {}
 internal.seen = {} -- names the minimap showed that aren't nodes we know, for learning
 internal.tracking = false -- Find Herbs or Find Minerals is on
 internal.blocked = false -- the client refused a probe; stop until /reload
+internal.broken = false -- a probe couldn't read a dot the player's mouse named; stop until /reload
 internal.findAll = false -- find every dot at the next tick, after a zoom or a reset
 internal.pass = nil -- the finding pass under way (Nodes.lua)
 local nodesMap

@@ -7,7 +7,7 @@ local _, ns = ...
 
 local sin, cos = math.sin, math.cos
 local Minimap, GetCVarBool, GetPlayerFacing, GetUnitSpeed = Minimap, GetCVarBool, GetPlayerFacing, GetUnitSpeed
-local C_Minimap = C_Minimap
+local C_Minimap, GetCursorPosition = C_Minimap, GetCursorPosition
 
 local readable = ns.IsReadable
 
@@ -93,6 +93,16 @@ function MinimapPins.FromMinimap(v, right, up)
     local c, s = cos(v.angle), sin(v.angle)
     local east, north = right * c - up * s, right * s + up * c
     return v.x + east / (v.width * v.scale), v.y - north / (v.height * v.scale)
+end
+
+---Where the mouse is, as minimap units right and up of the minimap's center.
+---@return number right
+---@return number up
+function MinimapPins.CursorOffset()
+    local x, y = GetCursorPosition()
+    local scale = Minimap:GetEffectiveScale()
+    local cx, cy = Minimap:GetCenter()
+    return x / scale - (cx or 0), y / scale - (cy or 0)
 end
 
 ---Whether a spot right and up of the minimap's center is on the minimap, at least `inset` units
