@@ -138,38 +138,21 @@ function Equipment.CanDualWield()
     return ns.IsTrue(CanDualWield and CanDualWield())
 end
 
--- Blizzard's red (1, 0.125, 0.125), with room for rounding: a tooltip line for something the
--- character lacks.
-local function isRed(color)
-    if not (color and ns.IsReadable(color)) then
-        return false
-    end
-    local r, g, b = color.r, color.g, color.b
-    if not (ns.IsNumber(r) and type(g) == "number" and type(b) == "number") then
-        return false
-    end
-    local red = _G.RED_FONT_COLOR
-    local rr, rg, rb = red and red.r or 1, red and red.g or 0.125, red and red.b or 0.125
-    return r > rr - 0.05 and g < rg + 0.05 and b < rb + 0.05
-end
-
 -- For gear the character is too low level for: whether anything but the level stops them, by a
 -- red line in its tooltip other than "Requires Level N". C_PlayerInfo.CanUseItem counts the level
 -- too, so it says no to all of it (a level 17 Warrior's level 18 mail chest). False while the
 -- tooltip isn't loaded.
 local function usableButForLevel(link, minLevel)
-    local tooltipInfo = _G.C_TooltipInfo
-    local data = tooltipInfo and tooltipInfo.GetHyperlink and tooltipInfo.GetHyperlink(link)
-    local lines = data and ns.IsReadable(data) and data.lines
-    if type(lines) ~= "table" or #lines == 0 then
+    local ItemButtons = ns.ItemButtons
+    local lines = ItemButtons.TooltipLines(link)
+    if not lines then
         return false
     end
     local levelText = _G.ITEM_MIN_LEVEL and format(_G.ITEM_MIN_LEVEL, minLevel)
     for i = 2, #lines do -- line 1 is the name, in its quality color
         local line = lines[i]
         local text = ns.IsReadable(line) and line.leftText
-        if not (levelText and ns.IsText(text) and text == levelText)
-            and (isRed(line.leftColor) or (line.rightText and isRed(line.rightColor))) then
+        if not (levelText and ns.IsText(text) and text == levelText) and ItemButtons.IsRedLine(line) then
             return false
         end
     end

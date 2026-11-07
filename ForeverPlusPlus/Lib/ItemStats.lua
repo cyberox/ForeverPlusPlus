@@ -332,9 +332,7 @@ end
 
 -- A weight as the string writes it: up to two decimals, no trailing zeros.
 local function weightText(value)
-    local text = format("%.2f", value)
-    text = (text:gsub("0+$", ""))
-    return (text:gsub("%.$", ""))
+    return ns.Text.Decimal(value, 2)
 end
 
 ---A profile's weights as a Pawn-format string, stats in ItemStats.ORDER, zero weights left out.

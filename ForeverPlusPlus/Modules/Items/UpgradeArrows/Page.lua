@@ -58,10 +58,7 @@ end
 
 -- A weight as text: up to two decimals, without trailing zeros ("1", "0.35", "0.5").
 local function weightText(value)
-    local text = format("%.2f", value or 0)
-    text = (text:gsub("0+$", ""))
-    text = (text:gsub("%.$", ""))
-    return text
+    return ns.Text.Decimal(value or 0, 2)
 end
 
 -- Classes and trees ---------------------------------------------------------------------------

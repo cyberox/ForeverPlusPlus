@@ -3,6 +3,13 @@ local T = ...
 local ns, eq = T.ns, T.eq
 
 eq(ns.Text.Number(12345), "big:12345", "Number uses the client's separators")
+eq(ns.Text.Decimal(4.6), "4.6", "Decimal drops trailing zeros")
+eq(ns.Text.Decimal(4.1666), "4.17", "Decimal rounds to two places")
+eq(ns.Text.Decimal(5), "5", "Decimal drops the point")
+eq(ns.Text.Decimal(100), "100", "Decimal keeps a whole number's zeros")
+eq(ns.Text.Decimal(-0.001), "0", "Decimal never says -0")
+eq(ns.Text.Decimal(0.12345, 3), "0.123", "Decimal takes the places")
+eq(ns.Text.Decimal(-9.3478), "-9.35", "Decimal keeps the sign")
 eq(ns.Text.Clock(0), "0:00", "Clock zero")
 eq(ns.Text.Clock(42), "0:42", "Clock seconds")
 eq(ns.Text.Clock(725), "12:05", "Clock minutes")

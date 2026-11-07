@@ -13,7 +13,7 @@
 -- on every cooldown update, which would wipe a color we set.
 local _, ns = ...
 
-local _G, type, wipe, select, pairs = _G, type, wipe, select, pairs
+local _G, wipe, select, pairs = _G, wipe, select, pairs
 local C_Item, C_Container = C_Item, C_Container
 
 local L = ns.L
@@ -42,24 +42,6 @@ module.options = {
 local TINT = { 0.9, 0, 0 } -- Blizzard's merchant tint for an item you can't use
 
 -- Is it usable ------------------------------------------------------------------------------------
-
-local RED = _G.RED_FONT_COLOR
-
--- Blizzard's red (1, 0.125, 0.125), with room for rounding.
-local function isRed(color)
-    if not (color and ns.IsReadable(color)) then
-        return false
-    end
-    local r, g, b = color.r, color.g, color.b
-    if not (ns.IsNumber(r) and type(g) == "number" and type(b) == "number") then
-        return false
-    end
-    local rr, rg, rb = 1, 0.125, 0.125
-    if RED then
-        rr, rg, rb = RED.r, RED.g, RED.b
-    end
-    return r > rr - 0.05 and g < rg + 0.05 and b < rb + 0.05
-end
 
 local RECIPE = 9 -- Enum.ItemClass.Recipe
 
@@ -98,7 +80,7 @@ local function tooltipUnusable(link)
             end
         end
         if not crafted and not (alreadyKnown and ns.IsReadable(text) and text == alreadyKnown)
-            and (isRed(line.leftColor) or (line.rightText and isRed(line.rightColor))) then
+            and ItemButtons.IsRedLine(line) then
             return true
         end
     end

@@ -52,6 +52,22 @@ function Text.Number(n)
     return BreakUpLargeNumbers and BreakUpLargeNumbers(n) or n
 end
 
+---A number with up to `places` decimals and no trailing zeros: 4.6, 4.17, 5, never "-0".
+---@param n number
+---@param places? number 2 by default
+---@return string
+function Text.Decimal(n, places)
+    places = places or 2
+    local text = format("%." .. places .. "f", n or 0)
+    if places > 0 then
+        text = gsub(gsub(text, "0+$", ""), "%.$", "")
+    end
+    if text == "-0" then
+        text = "0"
+    end
+    return text
+end
+
 ---A bar's text as Blizzard's unit frame bars write it for mana (TextStatusBarMixin's
 ---UpdateTextStringWithValues, with capNumericDisplay), by the statusTextDisplay CVar: "BOTH" is
 ---the percent at the left and the value at the right, "PERCENT" the percent in the middle, and

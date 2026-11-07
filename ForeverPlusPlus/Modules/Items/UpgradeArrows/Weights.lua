@@ -88,9 +88,7 @@ end
 
 -- A rate as text: up to three decimals, no trailing zeros.
 local function rateText(value)
-    local text = format("%.3f", value)
-    text = (text:gsub("0+$", ""))
-    return (text:gsub("%.$", ""))
+    return ns.Text.Decimal(value, 3)
 end
 
 ---What one point of a derived attribute gives the character, for a row's tooltip, or nil for

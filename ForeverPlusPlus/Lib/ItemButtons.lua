@@ -489,9 +489,34 @@ end
 ---@return table[]?
 function ItemButtons.TooltipLines(link)
     local data = C_TooltipInfo and C_TooltipInfo.GetHyperlink(link)
-    local lines = data and data.lines
-    if not lines or #lines == 0 then
+    local lines = data and ns.IsReadable(data) and data.lines
+    if type(lines) ~= "table" or #lines == 0 then
         return nil
     end
     return lines
+end
+
+-- Blizzard's red (1, 0.125, 0.125), with room for rounding: a tooltip line for something the
+-- character lacks (a class, armor skill, level, or profession).
+local function isRed(color)
+    if not (color and ns.IsReadable(color)) then
+        return false
+    end
+    local r, g, b = color.r, color.g, color.b
+    if not (ns.IsNumber(r) and type(g) == "number" and type(b) == "number") then
+        return false
+    end
+    local red = _G.RED_FONT_COLOR
+    local rr, rg, rb = red and red.r or 1, red and red.g or 0.125, red and red.b or 0.125
+    return r > rr - 0.05 and g < rg + 0.05 and b < rb + 0.05
+end
+
+---Whether a tooltip line (from `TooltipLines`) is in Blizzard's red, on its left or right text.
+---@param line table
+---@return boolean
+function ItemButtons.IsRedLine(line)
+    if not ns.IsReadable(line) then
+        return false
+    end
+    return isRed(line.leftColor) or (line.rightText ~= nil and isRed(line.rightColor))
 end

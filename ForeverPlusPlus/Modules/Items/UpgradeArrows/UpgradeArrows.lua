@@ -587,16 +587,13 @@ end
 -- A score as text: two decimals, without trailing zeros (4.6, 4.17, 5), since low level gear
 -- scores in single digits and rounding hid the difference.
 local function scoreText(number)
-    local text = format("%.2f", number):gsub("0+$", ""):gsub("%.$", "")
-    return text
+    return ns.Text.Decimal(number, 2)
 end
 
 -- A percentage for a tooltip: signed, two decimals, without trailing zeros (+12%, -9.35%).
 local function percentText(percent)
     local text = scoreText(percent)
-    if text == "-0" then
-        text = "0"
-    elseif percent > 0 and text ~= "0" then
+    if percent > 0 and text ~= "0" then
         text = "+" .. text
     end
     return format(L.UPGRADEARROWS_PERCENT_TOOLTIP, text)
