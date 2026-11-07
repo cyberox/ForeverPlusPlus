@@ -251,7 +251,8 @@ end
 
 -- List rows -------------------------------------------------------------------------------------
 
--- A kind's header: the fold button, its checkbox, its name in gold, and how many nodes it lists.
+-- A kind's header: the fold button, its checkbox, and its name in gold. (How many nodes it has is
+-- in its details, beside how many spots.)
 local function newHeader(list, kind)
     local row
     row = Kit.NewListButton(list, function() return isSelected(row) end)
@@ -267,8 +268,6 @@ local function newHeader(list, kind)
     row.box:SetPoint("LEFT", row.fold, "RIGHT", 2, 0)
     hoverWith(row.box, row)
     Kit.AddTooltip(row.box, kind.name, L.GATHERINGMAP_PAGE_KIND_DESC)
-    row.count = row:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    row.count:SetPoint("RIGHT", -6, 0)
     row.text = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     row.text:SetPoint("LEFT", row.box, "RIGHT", 2, 0)
     row.text:SetText(kind.name)
@@ -670,7 +669,6 @@ function refresh()
         if search == "" or #listed > 0 then
             header.box:SetChecked(kindOn)
             header.fold:SetTexture(open and MINUS or PLUS)
-            header.count:SetText(#listed)
             Kit.AddEntry(stack, header, nil, index > 1 and 8 or nil)
             any = any or #listed > 0
             if open then
