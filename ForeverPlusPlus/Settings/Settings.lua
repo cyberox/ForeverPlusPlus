@@ -941,6 +941,11 @@ local function addModuleRows(view, module)
                 end, notice.description, notice.text)
         end
     end
+    -- A locked module (one the game broke) shows only why: none of its options or buttons can do
+    -- anything while it can't be turned on.
+    if module.locked then
+        return
+    end
     local options, byKey, done = {}, {}, {}
     for _, option in ipairs(module.options or {}) do
         if not option.debug then

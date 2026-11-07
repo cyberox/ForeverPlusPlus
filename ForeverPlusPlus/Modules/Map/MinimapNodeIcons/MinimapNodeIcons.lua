@@ -92,8 +92,9 @@ module.notice = {
     {
         text = L.MINIMAPNODEICONS_NOTICE,
         description = L.MINIMAPNODEICONS_NOTICE_DESC,
+        -- Only while it can work: a warning about how it runs means nothing while it can't.
         shown = function()
-            return true
+            return not module:Problem()
         end,
     },
 }

@@ -143,7 +143,7 @@ end
 
 local function skillOption(key, name, description)
     return {
-        key = key, name = name, description = description,
+        key = key, name = name, description = description, section = L.GATHERINGMAP_SECTION_GENERAL,
         choices = {
             { "show", L.GATHERINGMAP_SKILL_SHOW },
             { "gray", L.GATHERINGMAP_SKILL_GRAY },
@@ -159,8 +159,14 @@ local NODES = L.GATHERINGMAP_SECTION_NODES
 local chatOption = ns.ChatOption(L.GATHERINGMAP_CHAT_DESC, NODES)
 
 module.options = {
-    { key = "onlyMine", name = L.GATHERINGMAP_ONLY_MINE, description = L.GATHERINGMAP_ONLY_MINE_DESC },
-    { key = "onlyTracking", name = L.GATHERINGMAP_ONLY_TRACKING, description = L.GATHERINGMAP_ONLY_TRACKING_DESC },
+    {
+        key = "onlyMine", name = L.GATHERINGMAP_ONLY_MINE, description = L.GATHERINGMAP_ONLY_MINE_DESC,
+        section = L.GATHERINGMAP_SECTION_GENERAL,
+    },
+    {
+        key = "onlyTracking", name = L.GATHERINGMAP_ONLY_TRACKING, description = L.GATHERINGMAP_ONLY_TRACKING_DESC,
+        section = L.GATHERINGMAP_SECTION_GENERAL,
+    },
     skillOption("tooHigh", L.GATHERINGMAP_TOO_HIGH, L.GATHERINGMAP_TOO_HIGH_DESC),
     skillOption("trivial", L.GATHERINGMAP_TRIVIAL, L.GATHERINGMAP_TRIVIAL_DESC),
     {
