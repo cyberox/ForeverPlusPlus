@@ -61,6 +61,10 @@ local function infoFor(i, node, size, zone)
     info.size = size
     local db = module.db
     info.alpha = info.just and select(2, internal.JustLook("world")) or db.mapAlpha / 100
+    -- Underground, faded: no more solid than Underground Opacity.
+    if info.deep then
+        info.alpha = math.min(info.alpha, db.undergroundAlpha / 100)
+    end
     info.title = internal.Title(node)
     info.lines = linesFor
     return info

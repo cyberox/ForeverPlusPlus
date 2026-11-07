@@ -167,14 +167,17 @@ local function tell(gather)
 end
 
 -- Where the player stands, on the zone's map, so a node in a cave shows on the zone's map with the
--- rest: mapID, x, y, any of them nil where it can't be read.
+-- rest: mapID, x, y, any of them nil where it can't be read; and the map of the cave they're in
+-- (any map under the zone's, such as Fargodeep Mine), or nil on the zone's own.
 local function playerSpot()
     local mapID, x, y = ns.WorldMap.PlayerPosition()
     local zone = mapID and ns.WorldMap.Zone(mapID)
+    local inside
     if zone and zone ~= mapID then
+        inside = mapID
         mapID, x, y = ns.WorldMap.PlayerPosition(zone)
     end
-    return mapID, x, y
+    return mapID, x, y, inside
 end
 
 -- The spot `yards` in front of the player on `mapID`, or x, y as they are when the facing or the
@@ -212,7 +215,7 @@ local function onSent(_, unit, target, castGUID, spellID)
         return
     end
     local name, from = targetName(target)
-    local mapID, x, y = playerSpot()
+    local mapID, x, y, inside = playerSpot()
     local aimed
     if spell[2] == "fish" then
         -- Only a pool is worth remembering; open water is everywhere. The object hovered just
@@ -242,6 +245,7 @@ local function onSent(_, unit, target, castGUID, spellID)
         mapID = mapID,
         x = x,
         y = y,
+        inside = inside,
         items = {},
     }
 end
@@ -349,9 +353,9 @@ local function refused(line)
     if not name or Professions.KindLine(Professions.Kind(name)) ~= line then
         return nil
     end
-    local mapID, x, y = playerSpot()
+    local mapID, x, y, inside = playerSpot()
     return { name = name, from = from, kind = Professions.LineKind(line), line = line, mapID = mapID,
-        x = x, y = y, items = {} }
+        x = x, y = y, inside = inside, items = {} }
 end
 
 local function onError(_, _, message)
@@ -671,7 +675,8 @@ end
 --
 -- A name starts with its kind's letter (h herb, o ore, t treasure, f fish). A node is its name's
 -- place in the list (from 0), x and y in ten-thousandths of the map, how many times it was
--- gathered, and when last (time(), or 0 for never). No "|", which a text box reads as a code.
+-- gathered, and when last (time(), or 0 for never), and, for one in a cave, that cave's map ID. No
+-- "|", which a text box reads as a code.
 
 local KIND_LETTERS = { herb = "h", ore = "o", treasure = "t", fish = "f" }
 local LETTER_KINDS = {}
@@ -724,8 +729,12 @@ function Gathering.Encode(maps, keep)
                 end
                 local x = node.x < 0 and 0 or node.x > 1 and 1 or node.x
                 local y = node.y < 0 and 0 or node.y > 1 and 1 or node.y
-                nodes[#nodes + 1] = concat({ base36(i), base36(x * 10000 + 0.5),
-                    base36(y * 10000 + 0.5), base36(node.count or 0), base36(node.time or 0) }, ",")
+                local fields = { base36(i), base36(x * 10000 + 0.5), base36(y * 10000 + 0.5),
+                    base36(node.count or 0), base36(node.time or 0) }
+                if type(node.inside) == "number" then
+                    fields[6] = base36(node.inside)
+                end
+                nodes[#nodes + 1] = concat(fields, ",")
             end
         end
         if #nodes > 0 then
@@ -773,7 +782,8 @@ function Gathering.Decode(text, now)
         local list = maps[mapID] or {}
         maps[mapID] = list
         for each in body:gmatch("[^;]+") do
-            local i, x, y, gathers, when = each:match("^(%w+),(%w+),(%w+),(%w+),(%w+)$")
+            -- A sixth field, when there is one, is the cave it's in.
+            local i, x, y, gathers, when, inside = each:match("^(%w+),(%w+),(%w+),(%w+),(%w+),?(%w*)$")
             local entry = i and names[(tonumber(i, 36) or -1) + 1]
             x, y = x and tonumber(x, 36), y and tonumber(y, 36)
             if not (entry and x and y) then
@@ -787,7 +797,8 @@ function Gathering.Decode(text, now)
                 local gathered = tonumber(gathers, 36) or 0
                 list[#list + 1] = { name = entry[1], kind = entry[2], x = x / 10000, y = y / 10000,
                     count = gathered > MAX_COUNT and MAX_COUNT or gathered,
-                    time = last and last > 0 and last or nil }
+                    time = last and last > 0 and last or nil,
+                    inside = inside ~= "" and tonumber(inside, 36) or nil }
                 count = count + 1
             end
         end
@@ -812,10 +823,11 @@ function Gathering.Merge(list, node, width, height)
         if node.time and (not known.time or node.time > known.time) then
             known.time = node.time
         end
+        known.inside = known.inside or node.inside
         return false
     end
     list[#list + 1] = { name = node.name, kind = node.kind, x = Gathering.Round(node.x),
-        y = Gathering.Round(node.y), count = node.count or 0, time = node.time }
+        y = Gathering.Round(node.y), count = node.count or 0, time = node.time, inside = node.inside }
     return true
 end
 
@@ -928,7 +940,8 @@ end
 ---as the world writes it (nil when nothing named it) and `from`, what named it ("target",
 ---"softinteract", "tooltip", or "none"); `kind` ("herb", "ore", "treasure", "fish") and `line`, the skill
 ---line of the spell; where the player stood when they cast, on their zone's map (`mapID`, `x`,
----`y`, nil where it can't be read); the world object's ID from its loot (nil without loot); and `items`, the loot as
+---`y`, nil where it can't be read), and `inside`, the map of the cave they stood in (nil outside);
+---the world object's ID from its loot (nil without loot); and `items`, the loot as
 ---`{ id, count, icon }`. A herb or vein the player's skill was too low for is told too, with
 ---`requires`, the rank it takes, and no loot: it wasn't gathered. Gathers in instances aren't told.
 ---Don't keep or change the table.
