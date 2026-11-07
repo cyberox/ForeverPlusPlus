@@ -32,12 +32,21 @@ end
 -- The tables pins are given, kept from one draw to the next: pin i shows infos[i].
 local infos = {}
 
-local function infoFor(i, node, size)
+-- Shift+right-click forgets the node.
+local function forget(pin, button)
+    local info = pin.info
+    if button == "RightButton" and info and info.node then
+        internal.Forget(info.zone, info.node)
+    end
+end
+
+local function infoFor(i, node, size, zone)
     local info = infos[i]
     if not info then
-        info = {}
+        info = { shiftClick = forget }
         infos[i] = info
     end
+    info.node, info.zone = node, zone
     internal.Look(node, info)
     info.size = size * info.scale
     info.alpha = module.db.mapAlpha / 100 * info.fade
@@ -56,7 +65,7 @@ local function fill(mapID, add)
         for _, node in pairs(own) do
             if shown(node) then
                 count = count + 1
-                add(node.x, node.y, infoFor(count, node, size))
+                add(node.x, node.y, infoFor(count, node, size, mapID))
             end
         end
     end
@@ -75,7 +84,7 @@ local function fill(mapID, add)
                     local x, y = MapPins.Translate(zone, mapID, node.x, node.y)
                     if x then
                         count = count + 1
-                        add(x, y, infoFor(count, node, size))
+                        add(x, y, infoFor(count, node, size, zone))
                     end
                 end
             end

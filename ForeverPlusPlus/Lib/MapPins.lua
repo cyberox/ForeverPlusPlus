@@ -100,6 +100,48 @@ local function newPin(canvas)
     return pin
 end
 
+-- Shift-clicks ---------------------------------------------------------------------------------
+-- A pin that does something on Shift+click takes clicks only while Shift is held over it, so a
+-- plain click still goes through to the map (zooming, changing maps) or the minimap (a ping).
+
+local IsShiftKeyDown = IsShiftKeyDown
+
+local function watchShift(pin)
+    if pin.SetMouseClickEnabled then
+        pin:SetMouseClickEnabled(pin.shiftClick ~= nil and IsShiftKeyDown() and true or false)
+    end
+end
+
+local function onShiftClick(pin, button)
+    if IsShiftKeyDown() and pin.shiftClick then
+        pin.shiftClick(pin, button)
+    end
+end
+
+---Has `fn(pin, button)` run when the pin is clicked with Shift held; a click without Shift goes
+---through to what's under the pin. Nil `fn` stops it. The pin's OnEnter and OnLeave are hooked
+---(HookScript), so its own tooltip scripts stay.
+---@param pin table
+---@param fn? fun(pin: table, button: string)
+function MapPins.ShiftClick(pin, fn)
+    pin.shiftClick = fn
+    if pin.shiftHooked or not fn then
+        return
+    end
+    pin.shiftHooked = true
+    pin:HookScript("OnEnter", function(self)
+        watchShift(self)
+        self:SetScript("OnUpdate", watchShift)
+    end)
+    pin:HookScript("OnLeave", function(self)
+        self:SetScript("OnUpdate", nil)
+        if self.SetMouseClickEnabled then
+            self:SetMouseClickEnabled(false)
+        end
+    end)
+    pin:SetScript("OnMouseUp", onShiftClick)
+end
+
 -- Puts a pin at its place on the canvas, sized so the map's zoom doesn't change it on screen.
 local function place(pin, map)
     local canvas = map:GetCanvas()
@@ -243,6 +285,9 @@ function Layer:Add(map, x, y, info)
     end
     pin.x, pin.y, pin.info = x, y, info
     MapPins.SetArt(pin, info)
+    if info.shiftClick or pin.shiftClick then
+        MapPins.ShiftClick(pin, info.shiftClick)
+    end
     -- Where Blizzard's own dungeon entrance icons go: above the map art and areas, below quests.
     local manager = map.GetPinFrameLevelsManager and map:GetPinFrameLevelsManager()
     if manager then
@@ -332,8 +377,9 @@ end
 ---under the title, as `ns.MapTooltip.Show` takes them; desaturated to gray the icon). In place of
 ---`atlas`, `texture` (a file ID or path, such as an item icon) with `trim` to cut off an item
 ---icon's edge. Any pin can also have `round` (drawn round), `color` ({ r, g, b } it's tinted),
----`alpha`, `ring` (the minimap's gold ring around it), and `hollow` (only the ring, its art
----hidden). Call `layer:Enable()` to show it and
+---`alpha`, `ring` (the minimap's gold ring around it), `hollow` (only the ring, its art
+---hidden), and `shiftClick` (`fn(pin, button)` on a click with Shift held; see
+---ShiftClick). Call `layer:Enable()` to show it and
 ---`layer:Disable()` to take it off.
 ---@param fill fun(mapID: number, add: fun(x: number, y: number, info: table))
 ---@return table layer

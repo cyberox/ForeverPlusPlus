@@ -115,6 +115,12 @@ local function getPin(i)
         end
         pin:SetScript("OnEnter", onEnter)
         pin:SetScript("OnLeave", onLeave)
+        -- Shift+right-click forgets the node.
+        ns.MapPins.ShiftClick(pin, function(self, button)
+            if button == "RightButton" and self.node and nearMap then
+                internal.Forget(nearMap, self.node)
+            end
+        end)
         pins[i] = pin
     end
     return pin

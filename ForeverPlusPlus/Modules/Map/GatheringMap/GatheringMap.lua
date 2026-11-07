@@ -165,27 +165,61 @@ module.options = {
     },
 }
 
+---Forgets one node of the zone map `mapID`. Shift+right-click on its icon on either map.
+---@param mapID number
+---@param node table
+function internal.Forget(mapID, node)
+    local nodes = module.db.nodes
+    local list = nodes[mapID]
+    if not list then
+        return
+    end
+    for i = #list, 1, -1 do
+        if list[i] == node then
+            table.remove(list, i)
+        end
+    end
+    if #list == 0 then
+        nodes[mapID] = nil
+    end
+    ns.Print(format(L.GATHERINGMAP_FORGOT_ONE, node.name))
+    internal.Changed(mapID)
+end
+
+-- Forgets every node of a zone map, or of every map with no `mapID`; says how many.
+local function forgetAll(mapID)
+    local nodes = module.db.nodes
+    local forgot = 0
+    for id, list in pairs(nodes) do
+        if not mapID or id == mapID then
+            forgot = forgot + #list
+            nodes[id] = nil
+        end
+    end
+    ns.Print(format(L.GATHERINGMAP_FORGOT, forgot))
+    internal.Changed(nil)
+end
+
 module.actions = {
     {
-        name = L.GATHERINGMAP_FORGET_SEEN,
-        button = L.GATHERINGMAP_FORGET_SEEN_BUTTON,
-        description = L.GATHERINGMAP_FORGET_SEEN_DESC,
-        confirm = L.GATHERINGMAP_FORGET_SEEN_CONFIRM,
+        name = L.GATHERINGMAP_FORGET_ZONE,
+        button = L.GATHERINGMAP_FORGET_BUTTON,
+        description = L.GATHERINGMAP_FORGET_ZONE_DESC,
+        confirm = L.GATHERINGMAP_FORGET_ZONE_CONFIRM,
         fn = function()
-            local forgot = 0
-            for mapID, list in pairs(module.db.nodes) do
-                for i = #list, 1, -1 do
-                    if list[i].count == 0 then
-                        table.remove(list, i)
-                        forgot = forgot + 1
-                    end
-                end
-                if #list == 0 then
-                    module.db.nodes[mapID] = nil
-                end
+            local zone = internal.ZoneMap()
+            if zone then
+                forgetAll(zone)
             end
-            ns.Print(format(L.GATHERINGMAP_FORGET_SEEN_DONE, forgot))
-            internal.Changed(nil)
+        end,
+    },
+    {
+        name = L.GATHERINGMAP_FORGET_ALL,
+        button = L.GATHERINGMAP_FORGET_BUTTON,
+        description = L.GATHERINGMAP_FORGET_ALL_DESC,
+        confirm = L.GATHERINGMAP_FORGET_ALL_CONFIRM,
+        fn = function()
+            forgetAll(nil)
         end,
     },
 }
@@ -376,6 +410,7 @@ function internal.TooltipLines(node)
     if node.time then
         lines[#lines + 1] = ns.MapTooltip.Note(format(L.GATHERINGMAP_LAST, ns.Text.Ago(time() - node.time)))
     end
+    lines[#lines + 1] = ns.MapTooltip.Note(L.GATHERINGMAP_FORGET_HINT)
     return lines
 end
 
