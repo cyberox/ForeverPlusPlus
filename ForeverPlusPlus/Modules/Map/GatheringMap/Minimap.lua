@@ -79,14 +79,25 @@ local function onEnter(pin)
     if not node then
         return
     end
-    -- How far it is, for seeing where the game starts drawing its own dot (Within's distance).
+    -- The game's own tooltip for its dot under the mouse, when there is one (the node is up), with
+    -- our lines added under it (GatheringMap.lua's hook), so it's the same tooltip as on the dot
+    -- itself, arrow for another level and all.
+    GameTooltip:SetOwner(pin, "ANCHOR_CURSOR")
+    if GameTooltip.SetMinimapMouseover then
+        GameTooltip:SetMinimapMouseover()
+        if GameTooltip:NumLines() > 0 then
+            GameTooltip:Show()
+            return
+        end
+    end
+    -- No dot there: the node is gone, or not seen by the game yet. Ours, the same lines with the
+    -- name and requirement as the game writes them, at the cursor as the game's is (Blizzard_Minimap's
+    -- Minimap_OnUpdate: ANCHOR_CURSOR). How far it is, for Within's distance.
     local yards
     local v = MinimapPins.View(zoneMap())
     if v and v.mapID == nearMap then
         yards = Distance(node.x, node.y, v.x, v.y, v.width, v.height)
     end
-    -- At the cursor, where the game's own tooltip for a minimap dot is (Blizzard_Minimap's
-    -- Minimap_OnUpdate: ANCHOR_CURSOR), so the two read as one.
     ns.MapTooltip.Show(pin, internal.Title(node), internal.TooltipLines(node, yards), nil, true)
 end
 

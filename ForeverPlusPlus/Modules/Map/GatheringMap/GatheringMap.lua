@@ -10,7 +10,7 @@ local _, ns = ...
 local pairs, type, time, format, tostring = pairs, type, time, string.format, tostring
 local C_Minimap, C_Map, IsShiftKeyDown = C_Minimap, C_Map, IsShiftKeyDown
 local Minimap, GameTooltip, strtrim, NORMAL_FONT_COLOR = Minimap, GameTooltip, strtrim, NORMAL_FONT_COLOR
-local ITEM_MIN_SKILL = ITEM_MIN_SKILL
+local ITEM_MIN_SKILL, C_TooltipInfo, setmetatable = ITEM_MIN_SKILL, C_TooltipInfo, setmetatable
 
 local L = ns.L
 local Gathering = ns.Gathering
@@ -453,15 +453,25 @@ function internal.TooltipLines(node, yards, onDot)
     return lines
 end
 
--- The game's own tooltip for a dot on the minimap (where none of our icons is over it): the node
--- remembered there of the name it gives gets our lines under Blizzard's, so the tooltip reads the
--- same either way. Looked for around the mouse, as far as a dot reaches at this zoom.
-local DOT_REACH = 12 -- minimap units around the mouse
+-- The game's own tooltip for a dot on the minimap: the node remembered there of the name it gives
+-- gets our lines under Blizzard's, so there's one tooltip whether the mouse is on the dot or on
+-- our ring around it (Minimap.lua shows this one there too). Blizzard fills it every frame while
+-- the mouse is on the minimap (Minimap_OnUpdate: SetOwner, then SetMinimapMouseover), so this
+-- hooks that call itself; a general tooltip hook missed some frames (in game, 2026-11-07). The
+-- node is looked for around the mouse, as far as a dot reaches at this zoom.
+local DOT_REACH = 24 -- minimap units around the mouse
+local addedAt = setmetatable({}, { __mode = "k" }) -- tooltip -> its line count once ours were added
 
-local function onMinimapTooltip(tooltip, data)
-    if tooltip ~= GameTooltip or not (module.db.minimapTooltips and Minimap:IsMouseOver()) then
+local function onMinimapTooltip(tooltip)
+    if not (module.enabled and module.db.minimapTooltips and Minimap:IsMouseOver()) then
         return
     end
+    -- Ours are there already when the game kept its lines rather than filling them again.
+    if addedAt[tooltip] and tooltip:NumLines() == addedAt[tooltip] then
+        return
+    end
+    addedAt[tooltip] = nil
+    local data = C_TooltipInfo and C_TooltipInfo.GetMinimapMouseover and C_TooltipInfo.GetMinimapMouseover()
     local lines = data and data.lines
     local first = type(lines) == "table" and lines[1]
     local text = type(first) == "table" and first.leftText
@@ -484,6 +494,7 @@ local function onMinimapTooltip(tooltip, data)
             local yards = Gathering.Distance(node.x, node.y, v.x, v.y, v.width, v.height)
             ns.MapTooltip.AddLines(tooltip, internal.TooltipLines(node, yards, true))
             tooltip:Show()
+            addedAt[tooltip] = tooltip:NumLines()
             return
         end
     end
@@ -620,10 +631,7 @@ end
 function module:OnEnable()
     setTrace()
     readTracking()
-    -- Probe: MinimapMouseover is Mainline's tooltip type for minimap dots.
-    if Enum and Enum.TooltipDataType and Enum.TooltipDataType.MinimapMouseover then
-        self:TooltipPostCall(Enum.TooltipDataType.MinimapMouseover, onMinimapTooltip)
-    end
+    self:Hook(GameTooltip, "SetMinimapMouseover", onMinimapTooltip)
     Gathering.Listen(onGather, true)
     Gathering.ListenSightings(onSighting, true)
     Gathering.SetRemembered(rememberedSpot)
