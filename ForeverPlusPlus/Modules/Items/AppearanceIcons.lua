@@ -11,7 +11,7 @@
 -- Nothing is written onto Blizzard's frames: our own texture sits on the icon.
 local _, ns = ...
 
-local _G, pairs, wipe, setmetatable = _G, pairs, wipe, setmetatable
+local _G, pairs, wipe = _G, pairs, wipe
 local C_Item, C_Container, C_TradeSkillUI = C_Item, C_Container, C_TradeSkillUI
 local GetTime = GetTime
 
@@ -288,37 +288,15 @@ local function markRow(row, node)
     end
 end
 
-local function recipeRows(fn)
-    local frame = _G.ProfessionsFrame
-    local page = frame and frame.CraftingPage
-    local box = page and page.RecipeList and page.RecipeList.ScrollBox
-    if box and box.ForEachFrame then
-        box:ForEachFrame(fn)
-    end
-end
+local ROW_HOOKS = { Init = markRow }
 
-local seenRows = setmetatable({}, { __mode = "k" })
-
--- Rows built from the mixin after the hook carry it; rows built before (the window opened before
--- this module turned on) keep the old method, so they're hooked one by one the first time seen.
 local function updateRecipes()
-    local mixin = _G.ProfessionsRecipeListRecipeMixin
-    recipeRows(function(row)
-        if row.Label and not seenRows[row] then
-            seenRows[row] = true
-            if mixin and row.Init ~= mixin.Init then
-                module:Hook(row, "Init", markRow)
-            end
-        end
-        markRow(row)
-    end)
+    ns.Professions.EachRecipeRow(markRow)
 end
 
+-- The rows' mixin is in a load-on-demand Blizzard addon: hooked once it's there.
 local function hookRecipes()
-    local mixin = _G.ProfessionsRecipeListRecipeMixin
-    if mixin then
-        module:Hook(mixin, "Init", markRow)
-    end
+    ns.Professions.HookRecipeRows(module, ROW_HOOKS)
 end
 
 -- Module ----------------------------------------------------------------------------------------

@@ -3,7 +3,7 @@
 -- module first asks.
 local _, ns = ...
 
-local type, ipairs, select = type, ipairs, select
+local _G, type, ipairs, pairs, select = _G, type, ipairs, pairs, select
 local GetProfessions, GetProfessionInfo = GetProfessions, GetProfessionInfo
 
 local Professions = {
@@ -393,4 +393,46 @@ function Professions.Rank(line)
     if info then
         return info.rank, info.name, info.icon
     end
+end
+
+-- The professions window's recipe list -------------------------------------------------------------
+-- Its rows are ProfessionsRecipeListRecipeMixin buttons (Blizzard_ProfessionsTemplates, load on
+-- demand) in a scroll box: name, skill-up arrow, craftable count, lock icon.
+
+---Calls `fn(row)` for each recipe row the professions window shows now.
+---@param fn fun(row: table)
+function Professions.EachRecipeRow(fn)
+    local frame = _G.ProfessionsFrame
+    local page = frame and frame.CraftingPage
+    local box = page and page.RecipeList and page.RecipeList.ScrollBox
+    if box and box.ForEachFrame then
+        box:ForEachFrame(fn)
+    end
+end
+
+---Hooks the recipe rows while `module` is on: each of `hooks` (a row method such as "Init" or
+---"OnLeave" -> `fn(row, ...)`) runs after the row's own. Rows built from now on carry the hooked
+---mixin; rows built before (another addon opened the window first) keep the old methods and are
+---hooked one by one. Returns false while the mixin's addon hasn't loaded: call again on
+---ADDON_LOADED or TRADE_SKILL_SHOW. Keep `hooks` and its functions the same every call, since a
+---hook is made once per function.
+---@param module table
+---@param hooks table<string, function>
+---@return boolean
+function Professions.HookRecipeRows(module, hooks)
+    local mixin = _G.ProfessionsRecipeListRecipeMixin
+    if not mixin then
+        return false
+    end
+    for method, fn in pairs(hooks) do
+        module:Hook(mixin, method, fn)
+    end
+    Professions.EachRecipeRow(function(row)
+        for method, fn in pairs(hooks) do
+            if row[method] ~= mixin[method] then
+                module:Hook(row, method, fn)
+            end
+        end
+    end)
+    return true
 end

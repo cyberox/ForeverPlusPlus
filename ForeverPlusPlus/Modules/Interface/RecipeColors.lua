@@ -131,42 +131,16 @@ local function onLeave(row)
     paint(row)
 end
 
-local function recipeRows(fn)
-    local page = ProfessionsFrame and ProfessionsFrame.CraftingPage
-    local box = page and page.RecipeList and page.RecipeList.ScrollBox
-    if box and box.ForEachFrame then
-        box:ForEachFrame(fn)
-    end
-end
+local recipeRows = ns.Professions.EachRecipeRow
+local ROW_HOOKS = { Init = paint, OnLeave = onLeave }
 
-local seen = setmetatable({}, { __mode = "k" })
-
--- Rows built before the hook (another addon opened the window first) keep the old methods, so
--- they are hooked one by one, and painted, the first time they are seen.
 local function catchUp()
-    local mixin = ProfessionsRecipeListRecipeMixin
-    recipeRows(function(row)
-        if row.Label and not seen[row] then
-            seen[row] = true
-            if mixin and row.Init ~= mixin.Init then
-                module:Hook(row, "Init", paint)
-                module:Hook(row, "OnLeave", onLeave)
-            end
-        end
-        paint(row)
-    end)
+    recipeRows(paint)
 end
 
+-- The rows' mixin is in a load-on-demand Blizzard addon: hooked once it's there.
 local function hook()
-    local mixin = ProfessionsRecipeListRecipeMixin
-    if not mixin then
-        return false
-    end
-    -- Rows built from now on carry the hooked methods: a mixin is copied into each frame when
-    -- the frame is created.
-    module:Hook(mixin, "Init", paint)
-    module:Hook(mixin, "OnLeave", onLeave)
-    return true
+    return ns.Professions.HookRecipeRows(module, ROW_HOOKS)
 end
 
 -- Once for a burst: the list update comes many times as the window fills.
@@ -179,7 +153,6 @@ local function onEvent()
 end
 
 function module:OnEnable()
-    -- The mixin is in a load-on-demand Blizzard addon: hook it once it's there.
     hook()
     self:On("ADDON_LOADED", onEvent)
     self:On("TRADE_SKILL_SHOW", onEvent)
