@@ -607,8 +607,11 @@ local function onMinimapTooltip(tooltip)
     -- Only under the game's own lines: where it has no dot (the node is gone) there's no tooltip,
     -- as without the addon; the empty ring says so, and the world map has the node's history.
     local names = namesAtCursor()
+    if not names then
+        return -- most frames over the minimap: no dot under the mouse
+    end
     local node, yards = nodeAtCursor(names)
-    if not (names and node) then
+    if not node then
         return
     end
     ns.MapTooltip.AddLines(tooltip, internal.TooltipLines(node, yards, true))
@@ -750,8 +753,9 @@ local function traceStep(step, a, b, c)
     end
 end
 
+-- Only while Log Gathers is on, so no step builds its log line for nothing.
 local function setTrace()
-    Gathering.SetTrace(module.enabled and traceStep or nil)
+    Gathering.SetTrace(module.enabled and module.db.log and traceStep or nil)
 end
 
 -- Turning on and off ------------------------------------------------------------------------------
@@ -791,6 +795,8 @@ end
 function module:OnOptionChanged(key)
     if key == "onlyTracking" then
         readTracking()
+    elseif key == "log" then
+        setTrace()
     end
     internal.Changed(nil)
 end
