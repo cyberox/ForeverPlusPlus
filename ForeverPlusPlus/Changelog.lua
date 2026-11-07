@@ -16,8 +16,9 @@ ns.changelog = {
                 { L.GATHERINGMAP_TITLE, "A new module that remembers every herb and vein you "
                     .. "gather, for all your characters, and shows them on the world map and the "
                     .. "minimap as the icon of what they give. Gathering one again moves its icon "
-                    .. "closer to where it really is. With Minimap Node Icons on, it also remembers "
-                    .. "the nodes it finds on the minimap before you gather them. Only My Professions "
+                    .. "closer to where it really is. It also remembers the herbs and veins you point "
+                    .. "at on the minimap, and with Minimap Node Icons on those it finds there, "
+                    .. "before you gather them. Only My Professions "
                     .. "(on by default) shows each character only what it can gather, and Only While "
                     .. "Tracking (on by default) shows herbs only while Find Herbs is on and ore only "
                     .. "while Find Minerals is. On by default." },

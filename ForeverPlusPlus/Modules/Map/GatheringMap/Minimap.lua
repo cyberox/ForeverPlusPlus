@@ -6,7 +6,7 @@
 local _, ns = ...
 
 local pairs = pairs
-local CreateFrame, Minimap, C_Map = CreateFrame, Minimap, C_Map
+local CreateFrame, Minimap = CreateFrame, Minimap
 
 local module = ns.modules.GatheringMap
 local internal = module.internal
@@ -25,14 +25,7 @@ local sinceRefresh = REFRESH
 local redraw = true -- the next frame must draw: an option, a zoom, a new node
 local moved = MinimapPins.NewMotion()
 
--- The zone map the player is on, for a cave or a district too.
-local function zoneMap()
-    local best = C_Map.GetBestMapForUnit and C_Map.GetBestMapForUnit("player")
-    if not (ns.IsNumber(best) and best) then
-        return nil
-    end
-    return ns.WorldMap.Zone(best) or best
-end
+local zoneMap = internal.ZoneMap
 
 local LIVE_YARDS = 10 -- a remembered node this close to a live icon of its name is that node
 

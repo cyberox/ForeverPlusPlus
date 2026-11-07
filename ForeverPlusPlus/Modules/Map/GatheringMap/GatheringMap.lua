@@ -8,7 +8,7 @@
 local _, ns = ...
 
 local pairs, type, time, format = pairs, type, time, string.format
-local C_Minimap = C_Minimap
+local C_Minimap, C_Map, Minimap, strtrim = C_Minimap, C_Map, Minimap, strtrim
 
 local L = ns.L
 local Gathering = ns.Gathering
@@ -297,6 +297,44 @@ local function onSighting(sighting)
     end
 end
 
+---The zone map the player is on, for a cave or a district too, or nil.
+---@return number? mapID
+function internal.ZoneMap()
+    local best = C_Map.GetBestMapForUnit and C_Map.GetBestMapForUnit("player")
+    if not (ns.IsNumber(best) and best) then
+        return nil
+    end
+    return ns.WorldMap.Zone(best) or best
+end
+
+-- A dot the player points at on the minimap: the game's tooltip for it names the herbs and veins
+-- under the mouse, one a row, and where the mouse is on the minimap is where they are, give or
+-- take the dot's size. The only way left to learn a node without gathering it since build 70862
+-- stopped the minimap answering Minimap Node Icons' scans (docs/forever-api.md).
+local function onMinimapTooltip(_, data)
+    if not (module.db.sightings and Minimap:IsMouseOver()) then
+        return
+    end
+    local lines = data and data.lines
+    local first = type(lines) == "table" and lines[1]
+    local text = type(first) == "table" and first.leftText
+    if not ns.IsText(text, true) then
+        return
+    end
+    local v = ns.MinimapPins.View(internal.ZoneMap())
+    if not v then
+        return
+    end
+    local x, y = ns.MinimapPins.FromMinimap(v, ns.MinimapPins.CursorOffset())
+    for row in text:gmatch("[^\n]+") do
+        local name = strtrim(ns.Text.Plain(row))
+        local kind = Professions.Kind(name)
+        if kind then
+            onSighting({ name = name, kind = kind, mapID = v.mapID, x = x, y = y })
+        end
+    end
+end
+
 local LOOKUP = 25 -- yards from a dot first seen while moving to the node remembered for it
 
 -- For Minimap Node Icons: the spot of the node remembered nearest where it saw a dot.
@@ -348,6 +386,9 @@ function module:OnEnable()
     Gathering.Listen(onGather, true)
     Gathering.ListenSightings(onSighting, true)
     Gathering.SetRemembered(rememberedSpot)
+    if Enum and Enum.TooltipDataType and Enum.TooltipDataType.MinimapMouseover then
+        self:TooltipPostCall(Enum.TooltipDataType.MinimapMouseover, onMinimapTooltip)
+    end
     if internal.EnableMap then
         internal.EnableMap()
     end
