@@ -19,11 +19,14 @@ eq(#list, 1, "add: saved")
 eq(node.count .. ":" .. node.time, "1:100", "add: count and time")
 
 -- 10 yards down: the same vein, its spot halfway between the two.
-node, new = Gathering.Add(list, "Copper Vein", "ore", 0.5, 0.51, W, H, 200)
+node, new = Gathering.Add(list, "Copper Vein", "ore", 0.5, 0.51, W, H, 1000)
 eq(new, false, "add: within the radius is the same node")
 eq(#list, 1, "add: not saved twice")
 eq(node.y, 0.505, "add: the spot is the average")
-eq(node.count .. ":" .. node.time, "2:200", "add: counted again")
+eq(node.count .. ":" .. node.time, "2:1000", "add: counted again")
+-- Mined again a minute later: the same visit, neither counted nor moved.
+node = Gathering.Add(list, "Copper Vein", "ore", 0.5, 0.5, W, H, 1060)
+eq(node.count .. ":" .. node.time .. ":" .. node.y, "2:1060:0.505", "add: the same visit counts once")
 
 -- 20 yards across is out of the 15 yard radius: another vein.
 node, new = Gathering.Add(list, "Copper Vein", "ore", 0.51, 0.505, W, H, 300)
@@ -45,5 +48,5 @@ eq(found and found.x, 0.51, "nearest: the closest within the radius")
 
 -- The average counts at most ten gathers, so a node that moved still follows.
 local moved = { { name = "Peacebloom", kind = "herb", x = 0.2, y = 0.2, count = 50, time = 1 } }
-node = Gathering.Add(moved, "Peacebloom", "herb", 0.2055, 0.2, W, H, 2)
+node = Gathering.Add(moved, "Peacebloom", "herb", 0.2055, 0.2, W, H, 1000)
 eq(node.x, 0.2005, "add: the average weighs at most ten gathers")

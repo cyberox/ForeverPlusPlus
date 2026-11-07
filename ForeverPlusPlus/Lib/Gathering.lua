@@ -270,6 +270,7 @@ local floor, sqrt = math.floor, math.sqrt
 
 Gathering.RADIUS = 15 -- yards within which a gather is of a node already known
 local WEIGHT = 10 -- the most gathers a spot's average counts, so a node that moved still follows
+local VISIT = 120 -- seconds within which gathering a node again is the same visit
 
 ---A spot rounded to the 4 places nodes are saved with.
 ---@param v number
@@ -311,7 +312,8 @@ function Gathering.Nearest(list, x, y, width, height, radius, match)
 end
 
 ---Adds a gather of the node `name` at x, y to a map's nodes: the same node within `radius` yards
----counts it once more and moves its spot toward this one; else it's a new node. Returns the node
+---counts it once more and moves its spot toward this one (unless it was gathered in the last two
+---minutes, the same visit); else it's a new node. Returns the node
 ---and whether it's new.
 ---@param list table a map's nodes
 ---@param name string
@@ -328,7 +330,11 @@ function Gathering.Add(list, name, kind, x, y, width, height, now, radius)
     local node = Gathering.Nearest(list, x, y, width, height, radius or Gathering.RADIUS, function(known)
         return known.name == name
     end)
-    if node then
+    if node and node.time and now - node.time < VISIT then
+        -- Mined again on the same visit (a vein gives two or three times): not another gather.
+        node.time = now
+        return node, false
+    elseif node then
         local weight = node.count < WEIGHT and node.count or WEIGHT
         node.x = Gathering.Round((node.x * weight + x) / (weight + 1))
         node.y = Gathering.Round((node.y * weight + y) / (weight + 1))
