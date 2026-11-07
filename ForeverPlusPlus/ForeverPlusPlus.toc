@@ -52,6 +52,7 @@ Lib\MapTooltip.lua
 Lib\Instances.lua
 Lib\MapPins.lua
 Lib\MinimapPins.lua
+Lib\Gathering.lua
 Lib\EditMode.lua
 Lib\Chat.lua
 Lib\TalentPlan.lua

@@ -25,15 +25,16 @@
 -- Where the player's spot can't be read (an instance), icons sit where the dots answered.
 --
 -- Names are matched through Professions.Node: Classic's English names, and those learned in game.
--- A node whose item isn't known gets it the first time the player gathers it: the spell's target,
--- then the first item in the loot window. Its skill is learned from Blizzard's "Requires Herbalism
--- (N)" line where the minimap's tooltip shows one under its name (or Profession Tooltips sees one);
--- until then it's never tinted. Ideas from NodeSight; none of its code.
+-- A node whose item isn't known gets it the first time the player gathers it (Lib/Gathering.lua:
+-- the spell's target, then the first item in the loot window). Its skill is learned from
+-- Blizzard's "Requires Herbalism (N)" line where the minimap's tooltip shows one under its name
+-- (or Profession Tooltips sees one); until then it's never tinted. Ideas from NodeSight; none of
+-- its code.
 --
 -- This file holds the module, its options, and drawing the icons, with the view and its math from
--- Lib/MinimapPins.lua. Probe.lua
--- asks the minimap what is under a spot, Nodes.lua follows and finds the dots, Learn.lua learns
--- a node's item from gathering it, and Report.lua has /fpp nodes. They share module.internal.
+-- Lib/MinimapPins.lua. Probe.lua asks the minimap what is under a spot, Nodes.lua follows and
+-- finds the dots, Learn.lua keeps the icon of a node gathered, and Report.lua has /fpp nodes.
+-- They share module.internal.
 local _, ns = ...
 
 local ipairs, type = ipairs, type
@@ -146,7 +147,6 @@ internal.tracking = false -- Find Herbs or Find Minerals is on
 internal.blocked = false -- the client refused a probe; stop until /reload
 internal.findAll = false -- find every dot at the next tick, after a zoom or a reset
 internal.pass = nil -- the finding pass under way (Nodes.lua)
-internal.pending = nil -- the name the player last cast a spell at (Learn.lua)
 local nodesMap
 
 -- The icon for a node's name, or nil for a name that isn't a node we know.
@@ -414,11 +414,7 @@ function module:OnEnable()
     internal.findAll = true
     self:On("MINIMAP_UPDATE_TRACKING", readTracking)
     self:On("PLAYER_ENTERING_WORLD", readTracking)
-    self:On("UNIT_SPELLCAST_SENT", internal.onCastSent)
-    self:On("LOOT_OPENED", internal.onLootOpened)
-    if Enum and Enum.TooltipDataType then
-        self:TooltipPostCall(Enum.TooltipDataType.Object, internal.onObjectTooltip)
-    end
+    ns.Gathering.Listen(internal.onGather, true)
     self:On("SKILL_LINES_CHANGED", onSkill)
     self:On("MINIMAP_UPDATE_ZOOM", onZoom)
     -- Rotate Minimap may have changed; Lib/MinimapPins.lua reads it again by itself.
@@ -432,7 +428,8 @@ function module:OnDisable()
         frame:SetScript("OnUpdate", nil)
         frame:Hide()
     end
-    internal.nodes, nodesMap, internal.pass, internal.pending = {}, nil, nil, nil
+    ns.Gathering.Listen(internal.onGather, false)
+    internal.nodes, nodesMap, internal.pass = {}, nil, nil
 end
 
 function module:OnOptionChanged(key)
