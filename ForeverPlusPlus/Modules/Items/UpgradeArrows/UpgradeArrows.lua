@@ -603,6 +603,17 @@ local function scoreText(number)
     return text
 end
 
+-- A percentage for a tooltip: signed, two decimals, without trailing zeros (+12%, -9.35%).
+local function percentText(percent)
+    local text = scoreText(percent)
+    if text == "-0" then
+        text = "0"
+    elseif percent > 0 and text ~= "0" then
+        text = "+" .. text
+    end
+    return format(L.UPGRADEARROWS_PERCENT_TOOLTIP, text)
+end
+
 -- The link of a worn item a tooltip shows (the character sheet's, or the Equipped one), or nil.
 local function wornLink(data)
     local guid = ns.IsText(data.guid, true) and data.guid
@@ -645,13 +656,13 @@ local function upgradeText(result)
         elseif hasDownArt then
             arrow = format("|A:%s:%d:%d|a ", DOWN_ATLAS, TEXT_ARROW, TEXT_ARROW)
         end
-        return arrow .. format(L.UPGRADEARROWS_PERCENT_TOOLTIP, result.percent), RED
+        return arrow .. percentText(result.percent), RED
     end
     -- Gear for later keeps the arrow (atlas markup can tint but not desaturate it) with its
     -- percentage in gray.
     local text = hasArt and format("|A:%s:%d:%d|a", ATLAS, TEXT_ARROW, TEXT_ARROW) or ""
     if result.percent then
-        text = text .. " " .. format(L.UPGRADEARROWS_PERCENT_TOOLTIP, result.percent)
+        text = text .. " " .. percentText(result.percent)
     elseif text == "" then
         text = L.UPGRADEARROWS_EMPTY_SLOT
     end
