@@ -567,8 +567,38 @@ local function findDungeons()
     for _, instance in pairs(ns.Instances.byKey) do
         local name = ns.Instances.Name(instance)
         if name and not seen[name] and not placedByUs(name) then
+            seen[name] = true
             ns.Print(format(L.POI_FIND_FINDER, name, ns.Instances.Levels(instance)))
             found = found + 1
+        end
+    end
+    -- The Group Finder's browse list (C_LFGList activities) in its Dungeons and Raids categories.
+    -- Its "Show all level ranges" box only filters what it draws, so this reads them all. Forever's
+    -- new dungeons are listed here (seen in game, 2026-11-07), not in the dungeon finder above.
+    if C_LFGList and C_LFGList.GetAvailableCategories and C_LFGList.GetAvailableActivities
+        and C_LFGList.GetActivityInfoTable and C_LFGList.GetLfgCategoryInfo then
+        local wanted = { [DUNGEONS or "Dungeons"] = true, [RAIDS or "Raids"] = true }
+        local categories, any = C_LFGList.GetAvailableCategories() or {}, false
+        for _, categoryID in ipairs(categories) do
+            local category = C_LFGList.GetLfgCategoryInfo(categoryID)
+            any = any or (category and wanted[category.name]) or false
+        end
+        -- Names that don't match (another language's, or Forever's own) mean every category.
+        for _, categoryID in ipairs(categories) do
+            local category = C_LFGList.GetLfgCategoryInfo(categoryID)
+            if category and (wanted[category.name] or not any) then
+                for _, activityID in ipairs(C_LFGList.GetAvailableActivities(categoryID) or {}) do
+                    local info = C_LFGList.GetActivityInfoTable(activityID)
+                    local name = info and (info.fullName or info.shortName)
+                    if ns.IsText(name, true) and not seen[name] and not placedByUs(name) then
+                        seen[name] = true
+                        local low, high = info.minLevelSuggestion or 0, info.maxLevelSuggestion or 0
+                        ns.Print(format(L.POI_FIND_ACTIVITY, name, category.name, low, high,
+                            info.mapID or 0))
+                        found = found + 1
+                    end
+                end
+            end
         end
     end
     if found == 0 then
