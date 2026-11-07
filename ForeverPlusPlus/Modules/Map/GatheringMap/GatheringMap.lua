@@ -864,6 +864,10 @@ local function log(gather, result)
         and format("%s %.1f, %.1f", ns.WorldMap.MapName(gather.mapID, gather.mapID), gather.x * 100,
             gather.y * 100)
         or L.GATHERINGMAP_LOG_NOWHERE
+    if gather.inside then
+        where = where .. " " .. format(L.GATHERINGMAP_LOG_INSIDE,
+            ns.WorldMap.MapName(gather.inside, gather.inside))
+    end
     ns.Print(format(L.GATHERINGMAP_LOG_LINE, gather.name or "?", gather.kind, gather.from,
         gather.objectID or "-", where, result))
 end

@@ -549,6 +549,7 @@ L.GATHERINGMAP_TRACE_LOOT = "Gathering Map: loot from %s, %s items, %s" -- sourc
 L.GATHERINGMAP_TRACE_CATCH = "Gathering Map: a catch from the bobber, pool %s (last hovered %s)" -- pool or -, object or -
 L.GATHERINGMAP_TRACE_REFUSED = "Gathering Map: refused, \"%s\", node %s" -- the game's error, node or -
 L.GATHERINGMAP_LOG_REQUIRES = "skill too low (needs %d), remembered as not gathered" -- rank
+L.GATHERINGMAP_LOG_INSIDE = "(inside %s)" -- a cave's name, after where a gather was
 L.GATHERINGMAP_LOG_NEW = "a new node"
 L.GATHERINGMAP_LOG_ONCE = "gathered once"
 L.GATHERINGMAP_LOG_AGAIN = "gathered %d times" -- count, more than one

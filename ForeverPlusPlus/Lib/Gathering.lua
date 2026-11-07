@@ -146,9 +146,26 @@ local queued -- a gather still casting when another was cast, in case that one i
 local QUEUE_WAIT = 10 -- seconds a gather still casting is kept aside: longer than any gather's cast
 local serial = 0 -- counts gathers, so a timer can tell it's still the one it was set for
 
-local function tell(gather)
+-- Forgets a gather that won't be told (a catch in open water), from whichever place it's kept.
+local function drop(gather)
     if pending == gather then
         pending = nil
+    end
+    if queued == gather then
+        queued = nil
+    end
+end
+
+local function tell(gather)
+    if gather.told then
+        return
+    end
+    gather.told = true
+    if pending == gather then
+        pending = nil
+    end
+    if queued == gather then
+        queued = nil
     end
     gather.castGUID = nil
     -- Herbs and veins teach the item they give, for every module that reads nodes: the first that
@@ -237,7 +254,13 @@ local function onSent(_, unit, target, castGUID, spellID)
     -- A gather still casting is kept aside, not dropped: a second press while it casts sends a
     -- cast the game refuses at once ("Another action is in progress"), and the first one still
     -- finishes (in game, 2026-11-08).
-    if pending and not pending.succeeded and GetTime() - pending.sent <= QUEUE_WAIT then
+    -- So is one that finished and waits for its loot: a press in the moment between the cast
+    -- ending and the loot coming took its place, and its loot came as no one's (in game,
+    -- 2026-11-08).
+    local now = GetTime()
+    if pending and not pending.succeeded and now - pending.sent <= QUEUE_WAIT then
+        queued = pending
+    elseif pending and pending.succeeded and not pending.looted and now - pending.succeeded <= WAIT then
         queued = pending
     else
         queued = nil
@@ -308,10 +331,15 @@ local function onSucceeded(_, unit, castGUID, spellID)
     -- nothing says nothing about where the pool is.
     local fishing = gather.kind == "fish"
     C_Timer.After(fishing and FISH_WAIT or WAIT, function()
-        if pending == gather then
+        if pending == gather or queued == gather then
+            if queued == gather then
+                queued = nil
+            end
             if fishing then
-                pending = nil
-            else
+                if pending == gather then
+                    pending = nil
+                end
+            elseif not gather.told then
                 tell(gather)
             end
         end
@@ -448,6 +476,11 @@ end
 -- then waits on the gather for its success to tell it.
 local function onLoot(event)
     local gather = pending
+    -- The loot of a gather that finished while a later press is still casting (or was just
+    -- refused) is that finished gather's.
+    if queued and queued.succeeded and not queued.looted and not (pending and pending.succeeded) then
+        gather = queued
+    end
     if trace then
         local guid = GetLootSourceInfo and GetLootSourceInfo(1)
         trace("loot", IsText(guid) and guid or "?", GetNumLootItems(),
@@ -486,14 +519,14 @@ local function onLoot(event)
                 trace("catch", name or "-", hovered or "-")
             end
             if not name then
-                pending = nil
+                drop(gather)
                 return
             end
             gather.name = name
         else
             local name = gather.name or Professions.PoolByObject(objectID) or gather.aimed
             if not name then
-                pending = nil
+                drop(gather)
                 return
             end
             Professions.LearnPool(name, objectID)
