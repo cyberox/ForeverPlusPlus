@@ -178,7 +178,7 @@ end
 local function saveSpot(kindName, where)
     local mapID, x, y = where[1], where[2], where[3]
     if not mapID then
-        return -- afterCast, the only caller, has checked the module is on
+        return -- no spot at the cast (afterCast, the only caller, has checked the module is on)
     end
     x, y = percent(x), percent(y)
     local all = module.db.leyLineSpots

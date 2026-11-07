@@ -14,7 +14,6 @@ module.title = L.WORLDMAP_TITLE
 module.category = "map"
 module.developer = { options = { zoneDungeons = "key", fishing = "key" } }
 module.added = "0.8.0"
-module.options = {}
 
 -- Before 0.8.0 each part was a module of its own. World Map is on if any of them was, each part's
 -- checkbox is its old module's, and its options and data (learned flight points, ley lines found,
@@ -64,5 +63,5 @@ ns.Migrate(1, function(db)
     end
 end)
 
--- Each part's own shared table, by its checkbox's key, for its Data.lua.
+-- Each part's own shared table, by its checkbox's key, for its Data.lua and its other files.
 module.internal = {}
