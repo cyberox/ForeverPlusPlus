@@ -57,10 +57,10 @@ local function infoFor(i, node, size, zone)
         infos[i] = info
     end
     info.node, info.zone = node, zone
-    internal.Look(node, info)
+    internal.Look(node, info, "world")
     info.size = size
     local db = module.db
-    info.alpha = (info.just and db.justAlpha or db.mapAlpha) / 100
+    info.alpha = info.just and select(2, internal.JustLook("world")) or db.mapAlpha / 100
     info.title = internal.Title(node)
     info.lines = linesFor
     return info

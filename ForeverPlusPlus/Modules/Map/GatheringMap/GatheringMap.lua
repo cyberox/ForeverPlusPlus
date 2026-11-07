@@ -23,13 +23,16 @@ local module = ns.NewModule("GatheringMap", L.GATHERINGMAP_DESC, {
     -- "show", "gray" (its icon gray), or "hide".
     tooHigh = "gray",
     trivial = "show",
-    -- A node gathered lately: "faded" (its icon, see-through), "ring" (an empty ring), "hide", or
-    -- "show" (as usual), and how long "lately" is. Faded by default (Cameron, 2026-11-08).
-    justGathered = "faded",
-    justMinutes = 5, -- nodes were back within 10 (in game, 2026-11-07); GatherLite has no timer
-    -- percent: how solid a node just gathered is, faded or a ring, on both maps; on its own, not
-    -- times a map's Opacity, which made it too faint to see (Cameron, 2026-11-08)
-    justAlpha = 40,
+    justMinutes = 5, -- how long a node counts as just gathered; nodes were back within 10 (in game,
+    -- 2026-11-07); GatherLite has no timer
+    -- How a node gathered lately shows on each map: "faded" (its icon, see-through), "ring" (an
+    -- empty ring), "hide", or "show" (as usual), at that map's Just Gathered Opacity (percent, on
+    -- its own, not times the map's Opacity, which made it too faint to see). An empty ring on the
+    -- minimap, the faded icon on the world map (Cameron, 2026-11-08).
+    justMinimap = "ring",
+    justMinimapAlpha = 50,
+    justWorld = "faded",
+    justWorldAlpha = 40,
     icon = "item", -- "item" (the node's item's icon, a circle without one) or "circle"
     ring = true, -- the minimap's gold ring around each icon
     worldMap = true,
@@ -113,6 +116,31 @@ local function tipOption(key, name, description)
 end
 
 -- How a node shows by this character's skill: as usual, gray, or not at all.
+-- How a node just gathered shows on one map (`key`), in that map's section, under its Show on.
+local function justOption(key, section, requires)
+    return {
+        key = key, name = L.GATHERINGMAP_JUST, description = L.GATHERINGMAP_JUST_DESC, section = section,
+        requires = requires,
+        choices = {
+            { "faded", L.GATHERINGMAP_JUST_FADED },
+            { "ring", L.GATHERINGMAP_JUST_RING },
+            { "hide", L.GATHERINGMAP_JUST_HIDE },
+            { "show", L.GATHERINGMAP_JUST_SHOW },
+        },
+    }
+end
+
+-- And how solid it is there, while it's faded or a ring.
+local function justAlphaOption(key, look, section, requires)
+    return {
+        key = key, name = L.GATHERINGMAP_JUST_ALPHA, description = L.GATHERINGMAP_JUST_ALPHA_DESC,
+        section = section, requires = requires, min = 10, max = 100, step = 5, format = "%d%%",
+        shown = function(db)
+            return db[look] == "faded" or db[look] == "ring"
+        end,
+    }
+end
+
 local function skillOption(key, name, description)
     return {
         key = key, name = name, description = description,
@@ -144,28 +172,8 @@ module.options = {
     },
     { key = "ring", name = L.GATHERINGMAP_RING, description = L.GATHERINGMAP_RING_DESC, section = LOOK },
     {
-        key = "justGathered", name = L.GATHERINGMAP_JUST, description = L.GATHERINGMAP_JUST_DESC,
-        section = LOOK,
-        choices = {
-            { "faded", L.GATHERINGMAP_JUST_FADED },
-            { "ring", L.GATHERINGMAP_JUST_RING },
-            { "hide", L.GATHERINGMAP_JUST_HIDE },
-            { "show", L.GATHERINGMAP_JUST_SHOW },
-        },
-    },
-    {
         key = "justMinutes", name = L.GATHERINGMAP_JUST_MINUTES, description = L.GATHERINGMAP_JUST_MINUTES_DESC,
         section = LOOK, min = 1, max = 30, step = 1, format = ns.Text.Minutes,
-        shown = function(db)
-            return db.justGathered ~= "show"
-        end,
-    },
-    {
-        key = "justAlpha", name = L.GATHERINGMAP_JUST_ALPHA, description = L.GATHERINGMAP_JUST_ALPHA_DESC,
-        section = LOOK, min = 10, max = 100, step = 5, format = "%d%%",
-        shown = function(db)
-            return db.justGathered == "faded" or db.justGathered == "ring"
-        end,
     },
     {
         key = "minimap", name = L.GATHERINGMAP_MINIMAP, description = L.GATHERINGMAP_MINIMAP_DESC,
@@ -203,6 +211,8 @@ module.options = {
             return db.nearby == "ring" or db.nearby == "all"
         end,
     },
+    justOption("justMinimap", MINIMAP, "minimap"),
+    justAlphaOption("justMinimapAlpha", "justMinimap", MINIMAP, "minimap"),
     {
         key = "minimapEdge", name = L.GATHERINGMAP_EDGE, description = L.GATHERINGMAP_EDGE_DESC,
         section = MINIMAP, requires = "minimap",
@@ -223,6 +233,8 @@ module.options = {
         key = "mapAlpha", name = L.GATHERINGMAP_ALPHA, description = L.GATHERINGMAP_ALPHA_DESC,
         section = WORLD, requires = "worldMap", min = 10, max = 100, step = 5, format = "%d%%",
     },
+    justOption("justWorld", WORLD, "worldMap"),
+    justAlphaOption("justWorldAlpha", "justWorld", WORLD, "worldMap"),
     {
         key = "mapContinents", name = L.GATHERINGMAP_CONTINENTS, description = L.GATHERINGMAP_CONTINENTS_DESC,
         section = WORLD, requires = "worldMap",
@@ -506,11 +518,13 @@ end
 
 ---Fills `look` with how a node is drawn, as Lib/MapPins takes it: `texture`, `trim`, `round`,
 ---`color`, `ring`, and `hollow`. A node is round: its item's icon, or a circle in its kind's color, with the gold ring if that's
----on; a node just gathered (Just Gathered: Empty Ring) is the ring alone.
+---on; a node just gathered is drawn as that map's Just Gathered says (`just` while it's faded or a
+---ring, at its Just Gathered Opacity), the ring alone for Empty Ring.
 ---@param node table
 ---@param look table
+---@param where "world"|"minimap"
 ---@return table look
-function internal.Look(node, look)
+function internal.Look(node, look, where)
     local db = module.db
     local icon = db.icon == "item" and itemIcon(node) or nil
     look.atlas, look.round = nil, true
@@ -523,12 +537,25 @@ function internal.Look(node, look)
         look.texture, look.trim, look.color = CIRCLE, false, COLORS[node.kind] or COLORS.herb
     end
     look.ring, look.hollow = db.ring, false
-    -- Just gathered: drawn at Just Gathered Opacity (`just`), as its icon or an empty ring.
-    look.just = (db.justGathered == "faded" or db.justGathered == "ring") and internal.JustGathered(node)
-    if look.just and db.justGathered == "ring" then
+    local just = internal.JustLook(where)
+    look.just = (just == "faded" or just == "ring") and internal.JustGathered(node)
+    if look.just and just == "ring" then
         internal.Hollow(look)
     end
     return look
+end
+
+---A map's Just Gathered ("faded", "ring", "hide", or "show"), and its Just Gathered Opacity as a
+---fraction.
+---@param where "world"|"minimap"
+---@return string look
+---@return number alpha
+function internal.JustLook(where)
+    local db = module.db
+    if where == "world" then
+        return db.justWorld, db.justWorldAlpha / 100
+    end
+    return db.justMinimap, db.justMinimapAlpha / 100
 end
 
 ---How this character's skill stands against a node: "tooHigh" while it's too low to gather it,
@@ -581,7 +608,7 @@ function internal.Shown(node, where)
     if db.onlyTracking and TRACKED[kind] and not tracking[kind] then
         return false
     end
-    if db.justGathered == "hide" and internal.JustGathered(node) then
+    if internal.JustLook(where) == "hide" and internal.JustGathered(node) then
         return false
     end
     local standing = internal.Standing(node)

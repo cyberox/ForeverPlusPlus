@@ -116,14 +116,15 @@ end
 -- player (`close`), with Near You set to Empty Ring, the ring alone, so the game's own dot shows
 -- inside it when the node is there.
 local function style(pin, node, size, alpha, close)
-    internal.Look(node, look)
+    internal.Look(node, look, "minimap")
     if close then
         internal.Hollow(look)
     end
     -- Near the player, the ring at Empty Ring Opacity; else a node just gathered at Just Gathered
     -- Opacity; else the minimap's Opacity.
     local db = module.db
-    look.alpha = close and db.ringAlpha / 100 or look.just and db.justAlpha / 100 or alpha
+    look.alpha = close and db.ringAlpha / 100 or look.just and select(2, internal.JustLook("minimap"))
+        or alpha
     ns.MapPins.SetArt(pin, look)
     pin:SetSize(size, size)
     if pin.ring then
