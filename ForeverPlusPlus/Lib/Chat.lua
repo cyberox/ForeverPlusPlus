@@ -340,17 +340,31 @@ end
 
 local column = {} -- { key, button, order }, sorted by order
 local laying
+local ours = setmetatable({}, { __mode = "k" }) -- the buttons Chat.NewButton made
+
+-- The frame holding Blizzard's chat buttons, which ours join so they show and fade with them. Read
+-- from the buttons each time, since another addon (Leatrix Plus' Hide chat buttons) can move them
+-- out of the chat window's button frame.
+local function host()
+    local anchor = Chat.Anchor()
+    local parent = anchor and anchor:GetParent()
+    if parent then
+        return parent
+    end
+    local frame = _G.ChatFrame1
+    return frame and (frame.buttonFrame or frame.ButtonFrame) or UIParent
+end
 
 ---A small button in the art of Blizzard's chat menu and channel buttons, with an icon on it, for
----the column (Chat.AddButton). It sits in the chat window's button frame, so it fades with them.
+---the column (Chat.AddButton). It sits in the frame that holds them, so it fades with them.
 ---@param texture string the icon's texture path
 ---@param onClick function
 ---@param title string the tooltip's first line
 ---@param text string the tooltip's description
 ---@return table button with `.icon`
 function Chat.NewButton(texture, onClick, title, text)
-    local frame = _G.ChatFrame1
-    local b = CreateFrame("Button", nil, frame and (frame.buttonFrame or frame.ButtonFrame) or UIParent)
+    local b = CreateFrame("Button", nil, host())
+    ours[b] = true
     local template = Chat.Anchor()
     b:SetSize(template and template:GetWidth() or 32, template and template:GetHeight() or 32)
     b:SetNormalAtlas("chatframe-button-up")
@@ -382,6 +396,30 @@ end
 ---@return table?
 function Chat.Anchor()
     return _G.ChatFrameChannelButton or _G.ChatFrameMenuButton
+end
+
+---Whether Blizzard's chat buttons can't be seen, so ours can't either: most likely another chat
+---addon hid them or put its own chat in place of Blizzard's (issue #2). Also true for a moment
+---while the chat window itself is hidden.
+---@return boolean
+function Chat.ButtonsHidden()
+    local anchor = Chat.Anchor()
+    return not (anchor and anchor:IsVisible())
+end
+
+---A notice for a module with a button in the column: a gray row while Blizzard's chat buttons are
+---hidden, saying what still works without the button.
+---@param text string
+---@param description string
+---@param shown? function(db) only while this is true as well (the button's option is on)
+---@return table notice for `module.notice`
+function Chat.HiddenNotice(text, description, shown)
+    return {
+        text = text, description = description,
+        shown = function(db)
+            return (not shown or shown(db)) and Chat.ButtonsHidden()
+        end,
+    }
 end
 
 -- Blizzard's voice Deafen and Mute buttons sit under the channel button while in a voice channel
@@ -417,7 +455,12 @@ function Chat.Layout()
         return
     end
     laying = true
+    local parent = host()
     for _, entry in ipairs(column) do
+        -- Ours follow Blizzard's buttons if an addon moved them; Social Button moves its own.
+        if ours[entry.button] and entry.button:GetParent() ~= parent then
+            entry.button:SetParent(parent)
+        end
         entry.button:ClearAllPoints()
         entry.button:SetPoint("TOP", previous, "BOTTOM", 0, -2)
         previous = entry.button

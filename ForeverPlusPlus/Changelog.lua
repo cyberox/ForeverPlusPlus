@@ -30,6 +30,9 @@ ns.changelog = {
                     .. "FLIGHT_STARTED, FLIGHT_ENDED). GetModuleInfo says when a module is locked.",
             } },
             { L.CHANGELOG_FIXED, {
+                { L.WHISPERWINDOW_TITLE, "The Chat Button follows Blizzard's chat buttons when another "
+                    .. "addon moves them, and Settings says when another addon hides them, so the "
+                    .. "button can't show. The same for Chat Copy's button." },
                 { L.GATHERINGMAP_TITLE, "A shared string can't bring colors, textures, or links into "
                     .. "node names." },
                 { L.WORLDMAP_TITLE, "Ley Lines no longer finishes reading a cast after being turned "

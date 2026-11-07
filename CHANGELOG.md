@@ -13,6 +13,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 ### Fixed
 
+- **Whisper Window**: the Chat Button follows Blizzard's chat buttons when another addon moves them, and Settings says when another addon hides them, so the button can't show. The same for Chat Copy's button.
 - **Gathering Map**: a shared string can't bring colors, textures, or links into node names.
 - **World Map**: Ley Lines no longer finishes reading a cast after being turned off.
 - **World Map**: Blackrock Mountain's tooltip lists only the dungeons or raids that are turned on, and its icon is the raid one while only Raids is on.

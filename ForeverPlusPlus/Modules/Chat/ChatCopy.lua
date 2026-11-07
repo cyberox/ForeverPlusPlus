@@ -25,6 +25,8 @@ local module = ns.NewModule("ChatCopy", L.CHATCOPY_DESC, {
 module.title = L.CHATCOPY_TITLE
 module.category = "chat"
 
+module.notice = Chat.HiddenNotice(L.CHATCOPY_BUTTON_HIDDEN, L.CHATCOPY_BUTTON_HIDDEN_DESC)
+
 module.options = {
     {
         key = "stamps",
