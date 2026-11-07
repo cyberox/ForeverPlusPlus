@@ -30,6 +30,11 @@ ns.changelog = {
                     .. "same as the other marks." },
                 { L.SPELLRANKS_TITLE, "The warning badge is 18 pixels instead of 16, the same as the "
                     .. "other marks." },
+                { L.UPGRADEARROWS_TITLE, "The arrow keeps in proportion to the icon it's on: the same "
+                    .. "size against a loot roll's, a merchant's, or the auction house's icon as a bag "
+                    .. "icon's." },
+                { L.ALREADYKNOWN_TITLE, "The check keeps in proportion to the icon it's on." },
+                { L.SPELLRANKS_TITLE, "The badge keeps in proportion to the action button it's on." },
             } },
             { L.CHANGELOG_FIXED, {
                 { L.UPGRADEARROWS_TITLE, "With a two-hander on, a one-hander or off hand is judged "

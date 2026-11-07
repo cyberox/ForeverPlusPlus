@@ -15,6 +15,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Upgrade Arrows**: the arrow is 18 pixels by default instead of 20. A size you picked stays.
 - **Already Known**: the green check is 18 pixels on a bag icon instead of 14, the same as the other marks.
 - **Spell Ranks**: the warning badge is 18 pixels instead of 16, the same as the other marks.
+- **Upgrade Arrows**, **Already Known**, **Spell Ranks**: a mark keeps in proportion to the icon it's on, so it's the same size against a loot roll's, a merchant's, or the auction house's icon as against a bag icon's.
 
 ### Fixed
 
