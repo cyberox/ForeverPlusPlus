@@ -22,7 +22,8 @@ ns.changelog = {
                     .. "gather them. A node you just gathered shows as an empty ring for a while, and "
                     .. "one your skill is too low for is gray, including one you tried to gather before "
                     .. "your skill was high enough. Its own page in Settings, and the world "
-                    .. "map's filter, show or hide nodes for each character. Only My Professions (on "
+                    .. "map's filter, show or hide nodes for each character. Export and Import share "
+                    .. "remembered nodes as a line of text. Only My Professions (on "
                     .. "by default) shows each character only what it can gather, and Only While "
                     .. "Tracking (on by default) shows herbs only while Find Herbs is on and ore only "
                     .. "while Find Minerals is. On by default." },

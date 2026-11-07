@@ -267,7 +267,56 @@ local function forgetAll(mapID)
     internal.Changed(nil)
 end
 
+-- Sharing: every remembered node as a line of text to copy, and a pasted one's nodes added to
+-- what's remembered, the same node close by counted once.
+local function exportNodes()
+    local text, count = Gathering.Encode(module.db.nodes)
+    if count == 0 then
+        ns.Print(L.GATHERINGMAP_EXPORT_NONE)
+        return
+    end
+    ns.Prompt("GATHERINGMAP_EXPORT", format(L.GATHERINGMAP_EXPORT_PROMPT, count), text, nil, true)
+end
+
+local function importNodes(text)
+    local maps, count = Gathering.Decode(text)
+    if not maps then
+        ns.Print(L.GATHERINGMAP_IMPORT_BAD)
+        return
+    end
+    local nodes = module.db.nodes
+    local added = 0
+    for mapID, list in pairs(maps) do
+        local width, height = ns.WorldMap.Size(mapID)
+        if width then
+            local mine = nodes[mapID] or {}
+            for _, node in ipairs(list) do
+                if Gathering.Merge(mine, node, width, height) then
+                    added = added + 1
+                end
+            end
+            nodes[mapID] = #mine > 0 and mine or nil
+        end
+    end
+    ns.Print(format(L.GATHERINGMAP_IMPORTED, added, count - added))
+    internal.Changed(nil)
+end
+
 module.actions = {
+    {
+        name = L.GATHERINGMAP_EXPORT,
+        button = L.GATHERINGMAP_EXPORT_BUTTON,
+        description = L.GATHERINGMAP_EXPORT_DESC,
+        fn = exportNodes,
+    },
+    {
+        name = L.GATHERINGMAP_IMPORT,
+        button = L.GATHERINGMAP_IMPORT_BUTTON,
+        description = L.GATHERINGMAP_IMPORT_DESC,
+        fn = function()
+            ns.Prompt("GATHERINGMAP_IMPORT", L.GATHERINGMAP_IMPORT_PROMPT, "", importNodes, true)
+        end,
+    },
     {
         name = L.GATHERINGMAP_FORGET_ZONE,
         button = L.GATHERINGMAP_FORGET_BUTTON,

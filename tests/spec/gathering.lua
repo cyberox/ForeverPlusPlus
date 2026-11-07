@@ -89,3 +89,34 @@ line, need = Gathering.Requirement("Requires Herbalism (150)")
 eq(line == Professions.HERBALISM and need, 150, "requirement: herbalism, with parentheses")
 eq(Gathering.Requirement("Requires Mining"), nil, "requirement: no rank, nothing")
 eq(Gathering.Requirement("Not enough rage"), nil, "requirement: another error, nothing")
+
+-- Sharing: nodes as a line of text and back, and merged into what's known.
+local shared = {
+    [1429] = {
+        { name = "Copper Vein", kind = "ore", x = 0.4523, y = 0.6711, count = 3, time = 1700000000 },
+        { name = "Peacebloom", kind = "herb", x = 0.1, y = 0.2, count = 0 },
+    },
+    [1436] = { { name = "Battered Chest", kind = "treasure", x = 0.5, y = 0.5, count = 1, time = 5 } },
+}
+local text, sharedCount = Gathering.Encode(shared)
+eq(sharedCount, 3, "share: three nodes")
+eq(text:find("|", 1, true), nil, "share: no pipe in the text")
+local back, backCount = Gathering.Decode(text)
+eq(backCount, 3, "share: three nodes back")
+local vein = back[1429][1]
+eq(vein.name .. ":" .. vein.kind .. ":" .. vein.x .. ":" .. vein.y .. ":" .. vein.count .. ":" .. vein.time,
+    "Copper Vein:ore:0.4523:0.6711:3:1700000000", "share: a node comes back the same")
+eq(back[1429][2].time, nil, "share: never gathered stays without a time")
+eq(back[1436][1].kind, "treasure", "share: a chest's kind")
+local _, onlyOre = Gathering.Encode(shared, function(n) return n.kind == "ore" end)
+eq(onlyOre, 1, "share: only the nodes kept")
+eq(Gathering.Decode("hello"), nil, "share: not a share string")
+eq(Gathering.Decode("GM1/oCopper Vein/1429:5,1,1,1,1"), nil, "share: a name past the list")
+eq(select(2, Gathering.Decode("GM1//")), 0, "share: nothing shared")
+-- Merging: the same vein close by takes the larger count; one far off is added.
+local mine = { { name = "Copper Vein", kind = "ore", x = 0.452, y = 0.671, count = 1, time = 10 } }
+eq(Gathering.Merge(mine, vein, W, H), false, "merge: the same node close by")
+eq(mine[1].count .. ":" .. mine[1].time, "3:1700000000", "merge: larger count, later time")
+eq(Gathering.Merge(mine, { name = "Copper Vein", kind = "ore", x = 0.9, y = 0.9, count = 2 }, W, H),
+    true, "merge: one far off is added")
+eq(#mine, 2, "merge: two nodes")

@@ -640,6 +640,149 @@ function Gathering.See(list, name, kind, x, y, width, height, now)
     return node, true
 end
 
+-- Sharing nodes --------------------------------------------------------------------------------
+-- Remembered nodes as one line of text to copy and paste: "GM1", the names used, and each map's
+-- nodes, with numbers in base 36 to keep it short:
+--
+--   GM1/oCopper Vein~hPeacebloom/1429:0,abc,1a2,3,t5k2f0;1,.../1436:...
+--
+-- A name starts with its kind's letter (h herb, o ore, t treasure, f fish). A node is its name's
+-- place in the list (from 0), x and y in ten-thousandths of the map, how many times it was
+-- gathered, and when last (time(), or 0 for never). No "|", which a text box reads as a code.
+
+local KIND_LETTERS = { herb = "h", ore = "o", treasure = "t", fish = "f" }
+local LETTER_KINDS = {}
+for kind, letter in pairs(KIND_LETTERS) do
+    LETTER_KINDS[letter] = kind
+end
+local HEADER = "GM1"
+local DIGITS = "0123456789abcdefghijklmnopqrstuvwxyz"
+local concat = table.concat
+
+local function base36(n)
+    n = floor(n)
+    if n <= 0 then
+        return "0"
+    end
+    local out = ""
+    while n > 0 do
+        local digit = n % 36
+        out = DIGITS:sub(digit + 1, digit + 1) .. out
+        n = (n - digit) / 36
+    end
+    return out
+end
+
+---Remembered nodes, by zone map ID (each a list as Add makes them), as a line of text to share.
+---With `keep`, only the nodes it's true for.
+---@param maps table<number, table>
+---@param keep? fun(node: table): boolean
+---@return string text
+---@return number count how many nodes it holds
+function Gathering.Encode(maps, keep)
+    local names, index = {}, {}
+    local parts, count = {}, 0
+    local ids = {}
+    for mapID in pairs(maps) do
+        ids[#ids + 1] = mapID
+    end
+    table.sort(ids)
+    for _, mapID in ipairs(ids) do
+        local nodes = {}
+        for _, node in ipairs(maps[mapID]) do
+            local letter = KIND_LETTERS[node.kind]
+            if letter and type(node.name) == "string" and (not keep or keep(node)) then
+                local key = letter .. node.name
+                local i = index[key]
+                if not i then
+                    names[#names + 1] = key
+                    i = #names - 1
+                    index[key] = i
+                end
+                nodes[#nodes + 1] = concat({ base36(i), base36(node.x * 10000 + 0.5),
+                    base36(node.y * 10000 + 0.5), base36(node.count or 0), base36(node.time or 0) }, ",")
+            end
+        end
+        if #nodes > 0 then
+            parts[#parts + 1] = mapID .. ":" .. concat(nodes, ";")
+            count = count + #nodes
+        end
+    end
+    return HEADER .. "/" .. concat(names, "~") .. "/" .. concat(parts, "/"), count
+end
+
+---The nodes in a line of text Encode made, by zone map ID, each as { name, kind, x, y, count,
+---time }; nil when it isn't one.
+---@param text string
+---@return table<number, table>? maps
+---@return number count
+function Gathering.Decode(text)
+    if type(text) ~= "string" then
+        return nil, 0
+    end
+    text = text:gsub("^%s+", ""):gsub("%s+$", "")
+    local header, namePart, rest = text:match("^([^/]+)/([^/]*)/?(.*)$")
+    if header ~= HEADER then
+        return nil, 0
+    end
+    local names = {}
+    for key in namePart:gmatch("[^~]+") do
+        local kind = LETTER_KINDS[key:sub(1, 1)]
+        local name = key:sub(2)
+        if not kind or name == "" then
+            return nil, 0
+        end
+        names[#names + 1] = { name, kind }
+    end
+    local maps, count = {}, 0
+    for part in rest:gmatch("[^/]+") do
+        local mapID, body = part:match("^(%d+):(.*)$")
+        mapID = tonumber(mapID)
+        if not mapID then
+            return nil, 0
+        end
+        local list = maps[mapID] or {}
+        maps[mapID] = list
+        for each in body:gmatch("[^;]+") do
+            local i, x, y, gathers, when = each:match("^(%w+),(%w+),(%w+),(%w+),(%w+)$")
+            local entry = i and names[(tonumber(i, 36) or -1) + 1]
+            x, y = x and tonumber(x, 36), y and tonumber(y, 36)
+            if not (entry and x and y and x <= 10000 and y <= 10000) then
+                return nil, 0
+            end
+            local last = tonumber(when, 36)
+            list[#list + 1] = { name = entry[1], kind = entry[2], x = x / 10000, y = y / 10000,
+                count = tonumber(gathers, 36) or 0, time = last and last > 0 and last or nil }
+            count = count + 1
+        end
+    end
+    return maps, count
+end
+
+---Adds a node shared from elsewhere to a map's `list`: one already known within RADIUS yards of
+---the same spawn keeps its spot and takes the larger count and the later time; else it's added.
+---@param list table
+---@param node table as Decode gives it
+---@param width number the map's size in yards
+---@param height number
+---@return boolean added
+function Gathering.Merge(list, node, width, height)
+    local known = Gathering.Nearest(list, node.x, node.y, width, height, Gathering.RADIUS,
+        sameSpawn(node.name))
+    if known then
+        if (node.count or 0) > (known.count or 0) then
+            known.count = node.count
+        end
+        if node.time and (not known.time or node.time > known.time) then
+            known.time = node.time
+        end
+        return false
+    end
+    list[#list + 1] = { name = node.name, kind = node.kind, x = Gathering.Round(node.x),
+        y = Gathering.Round(node.y), count = node.count or 0, time = node.time }
+    return true
+end
+
 -- Sightings and remembered spots ------------------------------------------------------------------
 -- What one module that sees nodes (Minimap Node Icons, reading the minimap's dots) and one that
 -- remembers them (Gathering Map) tell each other, through here so neither reaches into the other.

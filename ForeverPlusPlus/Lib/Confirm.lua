@@ -89,7 +89,8 @@ end
 ---@param text string the question
 ---@param initial? string
 ---@param onAccept? fun(text: string)
-function ns.Prompt(key, text, initial, onAccept)
+---@param long? boolean no limit on the text's length, for a string as long as a node export
+function ns.Prompt(key, text, initial, onAccept, long)
     if not (StaticPopupDialogs and StaticPopup_Show) then
         return
     end
@@ -99,7 +100,8 @@ function ns.Prompt(key, text, initial, onAccept)
             button1 = onAccept and ACCEPT or CLOSE,
             button2 = onAccept and CANCEL or nil,
             hasEditBox = true,
-            maxLetters = 2000, -- room for a pasted string, past the default limit
+            -- Room for a pasted string, past the default limit; 0 is none at all.
+            maxLetters = long and 0 or 2000,
             OnShow = function(dialog, data)
                 local box = editBoxOf(dialog)
                 if box then
