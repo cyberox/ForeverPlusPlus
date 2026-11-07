@@ -16,6 +16,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 ### Changed
 
 - **Minimap Node Icons**: with Gathering Map on, a dot found while you move gets the spot remembered for it right away instead of sliding into place, and an icon whose spot was fixed while you stood still stays put as you move off.
+- **Minimap Node Icons**: since the game's update of November 7, the minimap only answers for the spot under your own mouse, so the module can't find the dots. Once it sees that (after you point at a dot), it stops scanning, its name shows red in the Modules list, and a note in its settings says why. It checks again after each /reload. `/fpp nodes probe` tests what the minimap still answers.
 - **Upgrade Arrows**: the arrow is 18 pixels by default instead of 20. A size you picked stays.
 - **Already Known**: the green check is 18 pixels on a bag icon instead of 14, the same as the other marks.
 - **Spell Ranks**: the warning badge is 18 pixels instead of 16, the same as the other marks.
