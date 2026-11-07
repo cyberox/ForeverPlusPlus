@@ -248,21 +248,69 @@ function Professions.LearnRequirement(name, skill, need)
     return NODES:Learn(name, { line, need, node and node[3] })
 end
 
----Learns the item node `name` gives, from the loot window after gathering it. Keeps a known
----item: a vein gives stone too, and which comes first can vary.
+---Learns the item node `name` gives, from the loot window after gathering it, and with `line`
+---(Herbalism or Mining, from the spell that gathered it) its skill line when that isn't known.
+---Keeps a known item: a vein gives stone too, and which comes first can vary.
 ---@param name string
 ---@param item number item ID
+---@param line? number the skill line that gathered it
 ---@return boolean changed
-function Professions.LearnNodeItem(name, item)
+function Professions.LearnNodeItem(name, item, line)
     if type(name) ~= "string" or name == "" or type(item) ~= "number" then
         return false
     end
+    if line ~= HERB and line ~= MINE then
+        line = nil
+    end
     local node = NODES:Get(name)
-    if node and node[3] then
+    local knownItem, knownLine = node and node[3], node and node[1]
+    if knownItem and (knownLine or not line) then
         return false
     end
     itemSkills, variants = nil, {}
-    return NODES:Learn(name, { node and node[1], node and node[2], item })
+    return NODES:Learn(name, { knownLine or line, node and node[2], knownItem or item })
+end
+
+-- Kinds of node ---------------------------------------------------------------------------------
+-- What maps sort, filter, and color nodes by. Herbs and veins are told by their skill line; a
+-- chest or a fishing pool is never a node above, so its kind comes from the spell that took it.
+
+---Every kind of node, in the order maps list them.
+Professions.KINDS = { "herb", "ore", "treasure", "fish" }
+
+local LINE_KINDS = {
+    [HERB] = "herb",
+    [MINE] = "ore",
+    [Professions.LOCKPICKING] = "treasure",
+    [Professions.FISHING] = "fish",
+}
+local KIND_LINES = {}
+for line, kind in pairs(LINE_KINDS) do
+    KIND_LINES[kind] = line
+end
+
+---The kind of node a skill line gathers ("herb", "ore", "treasure", "fish"), or nil.
+---@param line number
+---@return string? kind
+function Professions.LineKind(line)
+    return LINE_KINDS[line]
+end
+
+---The skill line that gathers a kind of node, or nil. Treasure's is Lockpicking, though a chest
+---anyone can open needs none.
+---@param kind string
+---@return number? line
+function Professions.KindLine(kind)
+    return KIND_LINES[kind]
+end
+
+---The kind of the herb or vein named `name` ("herb" or "ore"), or nil for a name that isn't one
+---or whose skill line isn't known yet.
+---@param name string
+---@return string? kind
+function Professions.Kind(name)
+    local node = Professions.Node(name)
+    return node and LINE_KINDS[node[1]]
 end
 
 ---Forgets every herb and vein learned in game; the seed stays.
