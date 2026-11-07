@@ -22,7 +22,7 @@ local module = ns.NewModule("GatheringMap", L.GATHERINGMAP_DESC, {
     -- "hide", or "show" (as usual). How long "lately" is, and the first three's opacity.
     justGathered = "ring",
     justMinutes = 10,
-    justAlpha = 60, -- percent
+    justAlpha = 50, -- percent
     icon = "item", -- "item" (the node's item's icon, a circle without one) or "circle"
     shape = "round", -- an item icon "round" or "square"
     ring = true, -- the minimap's gold ring around a round icon
@@ -33,6 +33,12 @@ local module = ns.NewModule("GatheringMap", L.GATHERINGMAP_DESC, {
     minimap = true,
     minimapSize = 12, -- pixels
     minimapAlpha = 100, -- percent
+    minimapTooltips = true, -- an icon shows its node's tooltip
+    -- Within nearYards of the player: "ring" (an empty ring, the game's own dot inside it when
+    -- the node is there), "hide", or "show" (as usual), at nearAlpha.
+    nearby = "ring",
+    nearYards = 70,
+    nearAlpha = 50, -- percent
     log = false, -- print each gather in chat (Debug)
     -- Nodes remembered, by zone map ID: a list of { name, kind, x, y, count, time, loot }, where
     -- loot is item ID -> how many it gave in all. For the whole account. Data, not a setting.
@@ -105,6 +111,33 @@ module.options = {
     {
         key = "minimapAlpha", name = L.GATHERINGMAP_ALPHA, description = L.GATHERINGMAP_ALPHA_DESC,
         section = MINIMAP, requires = "minimap", min = 10, max = 100, step = 5, format = "%d%%",
+    },
+    {
+        key = "nearby", name = L.GATHERINGMAP_NEAR, description = L.GATHERINGMAP_NEAR_DESC,
+        section = MINIMAP, requires = "minimap",
+        choices = {
+            { "ring", L.GATHERINGMAP_JUST_RING },
+            { "hide", L.GATHERINGMAP_JUST_HIDE },
+            { "show", L.GATHERINGMAP_JUST_SHOW },
+        },
+    },
+    {
+        key = "nearYards", name = L.GATHERINGMAP_NEAR_YARDS, description = L.GATHERINGMAP_NEAR_YARDS_DESC,
+        section = MINIMAP, requires = "minimap", min = 10, max = 200, step = 10, format = L.GATHERINGMAP_YARDS,
+        shown = function(db)
+            return db.nearby ~= "show"
+        end,
+    },
+    {
+        key = "nearAlpha", name = L.GATHERINGMAP_ALPHA, description = L.GATHERINGMAP_NEAR_ALPHA_DESC,
+        section = MINIMAP, requires = "minimap", min = 10, max = 100, step = 5, format = "%d%%",
+        shown = function(db)
+            return db.nearby == "ring"
+        end,
+    },
+    {
+        key = "minimapTooltips", name = L.GATHERINGMAP_TOOLTIPS, description = L.GATHERINGMAP_TOOLTIPS_DESC,
+        section = MINIMAP, requires = "minimap",
     },
     {
         key = "worldMap", name = L.GATHERINGMAP_WORLDMAP, description = L.GATHERINGMAP_WORLDMAP_DESC,

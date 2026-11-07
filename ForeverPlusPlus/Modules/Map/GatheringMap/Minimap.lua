@@ -2,16 +2,19 @@
 -- zone map and the player's own (Lib/MinimapPins.lua), so they're exact through moving, turning,
 -- and zooming. Which nodes are near is worked out again each second, after a zoom, and when a
 -- node is gathered; their spots on the minimap every frame while the player moves or turns, and
--- not at all while they stand still. The icons take no mouse, so the minimap's own tooltip shows.
+-- not at all while they stand still. With Minimap Tooltips on, an icon shows its node's tooltip;
+-- clicks always go through to the minimap.
 local _, ns = ...
 
 local pairs = pairs
-local CreateFrame, Minimap = CreateFrame, Minimap
+local CreateFrame, Minimap, GameTooltip = CreateFrame, Minimap, GameTooltip
 
+local L = ns.L
 local module = ns.modules.GatheringMap
 local internal = module.internal
 local MinimapPins = ns.MinimapPins
 local ToMinimap, Inside = MinimapPins.ToMinimap, MinimapPins.Inside
+local Distance = ns.Gathering.Distance
 
 local NEAR = 1.5 -- nodes this many minimap radii away are followed, so one walked toward appears
 local REFRESH = 1 -- seconds between looks for the nodes near the player
@@ -70,28 +73,66 @@ local function findNear(v)
     nearMap = v.mapID
 end
 
+-- A pin's tooltip, while Minimap Tooltips is on: the node, as on the world map, and near the
+-- player a note that only the game's own dot says whether it's there now.
+local function onEnter(pin)
+    local node = pin.node
+    if not node then
+        return
+    end
+    local lines = internal.TooltipLines(node)
+    if pin.near then
+        lines[#lines + 1] = ns.MapTooltip.Note(L.GATHERINGMAP_NEAR_NOTE)
+    end
+    ns.MapTooltip.Show(pin, node.name, lines)
+end
+
+local function onLeave(pin)
+    if GameTooltip:IsOwned(pin) then
+        GameTooltip:Hide()
+    end
+end
+
 local function getPin(i)
     local pin = pins[i]
     if not pin then
         pin = CreateFrame("Frame", nil, frame)
-        pin:EnableMouse(false)
         local texture = pin:CreateTexture(nil, "ARTWORK")
         texture:SetAllPoints()
         pin.texture = texture
+        -- Clicks go through to the minimap (a ping) either way. Probe: without the split, the
+        -- pin takes the mouse whole, so it takes none.
+        if pin.SetMouseMotionEnabled and pin.SetMouseClickEnabled then
+            pin:SetMouseClickEnabled(false)
+        else
+            pin:EnableMouse(false)
+        end
+        pin:SetScript("OnEnter", onEnter)
+        pin:SetScript("OnLeave", onLeave)
         pins[i] = pin
     end
     return pin
 end
 
--- Sets a pin's look for `node`: the same as on the world map, at the minimap's size.
-local function style(pin, node, size, alpha)
+-- Sets a pin's look for `node`: the same as on the world map, at the minimap's size. Near the
+-- player (`close`), with Near You set to Empty Ring, the ring alone, so the game's own dot shows
+-- inside it when the node is there.
+local function style(pin, node, size, alpha, close)
+    local db = module.db
     internal.Look(node, look)
+    if close then
+        look.round, look.ring, look.hollow, look.desaturated = true, true, true, false
+        look.fade, look.scale = db.nearAlpha / 100, 1
+    end
     look.alpha = alpha * look.fade
     ns.MapPins.SetArt(pin, look)
     size = size * look.scale
     pin:SetSize(size, size)
     if pin.ring then
         MinimapPins.PlaceRing(pin.ring, pin, size)
+    end
+    if pin.SetMouseMotionEnabled then
+        pin:SetMouseMotionEnabled(db.minimapTooltips)
     end
 end
 
@@ -100,27 +141,34 @@ local function hidePins(from)
         local pin = pins[i]
         if pin.node then
             pin.node = nil
+            onLeave(pin)
             pin:Hide()
         end
     end
 end
 
 -- Draws an icon for each node followed that's on the minimap now. A pin is restyled only when it
--- shows another node or an option changed (`restyle`), and moved only when its spot changed.
+-- shows another node, comes near the player or leaves, or an option changed (`restyle`), and
+-- moved only when its spot changed. Within Near You's yards of the player, a node is hidden or
+-- an empty ring (Near You), as GatherLite does: only the game's own dot can say whether a node
+-- is there now, so close up ours leaves that to it.
 local function draw(v, restyle)
     local db = module.db
     local size, alpha = db.minimapSize, db.minimapAlpha / 100
     local inset = size / 2
+    local nearby, nearYards = db.nearby, db.nearYards
     local shown = 0
     for i = 1, #near do
         local node = near[i]
         local right, up = ToMinimap(v, node.x, node.y)
-        if Inside(right, up, inset) then
+        local close = nearby ~= "show"
+            and Distance(node.x, node.y, v.x, v.y, v.width, v.height) <= nearYards
+        if Inside(right, up, inset) and not (close and nearby == "hide") then
             shown = shown + 1
             local pin = getPin(shown)
-            if restyle or pin.node ~= node then
-                pin.node = node
-                style(pin, node, size, alpha)
+            if restyle or pin.node ~= node or pin.near ~= close then
+                pin.node, pin.near = node, close
+                style(pin, node, size, alpha, close)
                 pin:Show()
                 pin.right = nil
             end
