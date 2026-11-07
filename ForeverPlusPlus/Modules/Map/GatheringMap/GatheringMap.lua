@@ -48,6 +48,7 @@ local module = ns.NewModule("GatheringMap", L.GATHERINGMAP_DESC, {
     -- GatherMate2 uses 100).
     nearby = "ring",
     nearYards = 150,
+    chat = true, -- say in chat when Shift+right-click forgets a node
     log = false, -- print each gather in chat (Debug)
     -- Nodes remembered, by zone map ID: a list of { name, kind, x, y, count, time, loot }, where
     -- loot is item ID -> how many it gave in all. For the whole account. Data, not a setting.
@@ -74,6 +75,9 @@ local function tipOption(key, name, description)
         },
     }
 end
+
+-- Last, under its own header, as every module's Chat Messages is.
+local chatOption = ns.ChatOption(L.GATHERINGMAP_CHAT_DESC, L.GATHERINGMAP_SECTION_CHAT)
 
 module.options = {
     { key = "onlyMine", name = L.GATHERINGMAP_ONLY_MINE, description = L.GATHERINGMAP_ONLY_MINE_DESC },
@@ -160,6 +164,7 @@ module.options = {
     tipOption("tipAlso", L.GATHERINGMAP_TIP_ALSO_NAME, L.GATHERINGMAP_TIP_ALSO_DESC),
     tipOption("tipDistance", L.GATHERINGMAP_TIP_DISTANCE_NAME, L.GATHERINGMAP_TIP_DISTANCE_DESC),
     tipOption("tipForget", L.GATHERINGMAP_TIP_FORGET_NAME, L.GATHERINGMAP_TIP_FORGET_DESC),
+    chatOption,
     {
         key = "log", name = L.GATHERINGMAP_LOG, description = L.GATHERINGMAP_LOG_DESC,
         debug = true, section = L.DEBUG_SECTION_LOGGING,
@@ -183,7 +188,7 @@ function internal.Forget(mapID, node)
     if #list == 0 then
         nodes[mapID] = nil
     end
-    ns.Print(format(L.GATHERINGMAP_FORGOT_ONE, node.name))
+    module:Print(format(L.GATHERINGMAP_FORGOT_ONE, node.name))
     internal.Changed(mapID)
 end
 
