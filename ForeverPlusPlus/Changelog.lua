@@ -26,7 +26,14 @@ ns.changelog = {
                     .. "node names." },
                 { L.WORLDMAP_TITLE, "Ley Lines no longer finishes reading a cast after being turned "
                     .. "off." },
-                { L.AUTOSCREENSHOT_TITLE, "No longer takes a shot it started after being turned off." },
+                { L.AUTOSCREENSHOT_TITLE, "No longer takes a shot it started after being turned off, "
+                    .. "and no longer takes one at Neutral reputation (Friendly and up, as it says)." },
+                { L.AUTOWEAPONBUFF_TITLE, "An item it learned in play can no longer end up counted as "
+                    .. "fitting every weapon." },
+                { L.MOVABLEWINDOWS_TITLE, "Turning it off puts back how Blizzard kept each window on "
+                    .. "the screen." },
+                { L.CHANGELOG_COMMANDS, "/fpp toggle on a locked module says it's off, and the About "
+                    .. "page doesn't count one as on." },
                 "The public API lists every dungeon and raid, and a callback that registers another "
                     .. "one no longer upsets the rest.",
             } },
