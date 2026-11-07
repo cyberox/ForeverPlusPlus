@@ -362,7 +362,7 @@ local function place(box, frame, current, needed, kind, percent)
     box:Show()
 end
 
--- The tooltip reads' own row on the Profiler page. Profiler.Call keeps one result, so the
+-- Reading tooltips gets its own row on the Profiler page. Profiler.Call keeps one result, so the
 -- scan's four come back in a table.
 local Profiler = ns.Profiler
 local PART_SCAN = Profiler.Part(module, L.QUESTNAMEPLATES_PART_SCAN)

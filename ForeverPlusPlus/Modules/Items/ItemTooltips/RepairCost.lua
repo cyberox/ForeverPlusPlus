@@ -2,7 +2,7 @@
 -- gear you wear or carry. Blizzard's own line only shows with a merchant's repair cursor.
 local _, ns = ...
 
-local type, InRepairMode = type, InRepairMode
+local InRepairMode = InRepairMode
 
 local L = ns.L
 local ItemTooltip = ns.ItemTooltip

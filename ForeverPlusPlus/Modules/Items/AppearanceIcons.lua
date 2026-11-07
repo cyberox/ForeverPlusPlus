@@ -1,8 +1,8 @@
 -- Appearance Icons: marks gear whose appearance you haven't collected yet with Blizzard's
 -- transmogrifier icon in a corner of the item's icon (top right by default, where nothing else of
 -- ours or Blizzard's sits), so you wear it once before selling it. It shows in your bags and bank,
--- at merchants, in the auction house, and in the loot window and loot rolls, and after the name
--- of a recipe that makes such gear in the professions window, each with its own checkbox.
+-- at merchants, in the auction house, and in the loot window and loot rolls, and on the row of a
+-- recipe that makes such gear in the professions window, each with its own checkbox.
 --
 -- "Not collected" is what the game's own item tooltip says: its "You haven't collected this
 -- appearance" line (TRANSMOGRIFY_TOOLTIP_APPEARANCE_UNKNOWN), seen on Forever in Cameron's
@@ -82,7 +82,7 @@ module.options = {
     },
 }
 
-local RECHECK = 10 -- seconds an item found collected (or not gear) is believed before a new look
+local RECHECK = 10 -- seconds an answer is believed before a new look
 local WEAPON, ARMOR = 2, 4 -- Enum.ItemClass: only gear has an appearance
 
 -- Is it collected --------------------------------------------------------------------------------
@@ -151,7 +151,7 @@ end)
 
 local hasAtlas = false -- whether this client has the atlas, read in OnEnable
 
--- Shows or clears our mark on an icon. `scale` sizes it against the bags' icons.
+-- Shows or clears our mark on an icon.
 local function setMark(icon, on)
     local mark = marks:Set(icon, on and hasAtlas)
     if not mark then

@@ -191,7 +191,7 @@ local PI = math.pi
 
 -- The profile ---------------------------------------------------------------------------------
 
-local profile -- { key, template, weights, guess }, from Weights.lua
+local profile -- from internal.Profile (Weights.lua), with `guess` added
 
 ---The character's class token, or "?" while the client doesn't say.
 ---@return string
@@ -244,7 +244,9 @@ end
 
 -- Scores ----------------------------------------------------------------------------------------
 
-local results = {} -- link -> { upgrade, percent, score, rival }, or false for an item that's no upgrade candidate
+-- link -> compute's result ({ upgrade, downgrade, percent, score, rival, later, partner, hand }),
+-- or false for an item that's no upgrade candidate
+local results = {}
 local waiting = {} -- itemID -> true while the game has no data for it yet
 
 -- The scoring's own row on the Profiler page.
@@ -432,8 +434,8 @@ local TEXT_ANCHORS = {
     BOTTOMLEFT = { "BOTTOMLEFT", "TOPLEFT", 1, -1 },
 }
 
--- Shows the mark for an upgrade's `result` on an icon (or clears it), the arrow `size` wide in
--- the corner the Arrow options pick, with the percentage beside it when there is one.
+-- Shows the mark for an upgrade's or a downgrade's `result` on an icon (or clears it), at Arrow
+-- Size in the corner the Arrow options pick, with the percentage beside it when there is one.
 local function setArrow(set, key, result)
     local mark = set:Set(key, hasArt and result)
     if not mark then
@@ -649,8 +651,9 @@ local function upgradeText(result)
     return text, grayed(result) and GRAY or GREEN
 end
 
--- Draws the name line again with the arrow and the percentage at its right, in green, and
--- returns true so Blizzard's is skipped. The name keeps its quality color.
+-- Draws the name line again with the arrow and the percentage at its right, in the mark's color
+-- (green, red for a downgrade, gray for later), and returns true so Blizzard's is skipped. The
+-- name keeps its quality color.
 local function onNameLine(tooltip, data, lineData)
     if not (module.enabled and module.db.tooltip == "name" and profile) then
         return

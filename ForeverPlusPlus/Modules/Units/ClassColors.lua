@@ -145,9 +145,9 @@ local function reactionColor(unit)
     end
 end
 
--- The color for `unit`'s health bar or name (`setting` healthBars or names) on `frame`, else
--- nil for Blizzard's. Players get their class color; NPCs' bars get their reaction color with
--- npcBars on. Disconnected players keep Blizzard's gray.
+-- The color for `unit`'s health bar, name, or name background (`setting` healthBars, names, or
+-- nameBackgrounds) on `frame`, else nil for Blizzard's. Players get their class color; NPCs' bars
+-- get their reaction color with npcBars on. Disconnected players keep Blizzard's gray.
 local function wanted(frame, unit, setting)
     if not frameOn(frame, unit) then
         return nil
