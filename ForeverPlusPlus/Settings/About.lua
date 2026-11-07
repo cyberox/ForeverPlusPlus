@@ -65,7 +65,7 @@ local function countModules()
         local module = ns.modules[name]
         if not (module.unavailable or module.alwaysOn) then
             total = total + 1
-            if module.db.enabled then
+            if module.enabled then -- not a locked one, whatever was saved
                 on = on + 1
             end
         end

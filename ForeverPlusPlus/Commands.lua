@@ -164,7 +164,7 @@ local function describe(module, option)
 end
 
 local function listOptions(module)
-    ns.Print(format(L.OPTIONS_HEADER, module.name, module.db.enabled and L.ON or L.OFF,
+    ns.Print(format(L.OPTIONS_HEADER, module.name, module.enabled and L.ON or L.OFF,
         module.name))
     if not module.options or #module.options == 0 then
         ns.PrintLine(format("  |cff999999%s|r", L.OPTIONS_NONE))
@@ -198,16 +198,17 @@ local function set(rest, flip)
         end
         local on = booleans[value or ""]
         if on == nil and flip and not value then
-            on = not module.db.enabled
+            on = not module.enabled
         end
         if on == nil then
             ns.Print(format(L.MODULE_STATE_ALLOWED, module.name,
-                module.db.enabled and L.ON or L.OFF))
+                module.enabled and L.ON or L.OFF))
             return
         end
         ns.SetEnabled(module.name, on)
         ns.RefreshSetting(module.name)
-        ns.Print(format(L.MODULE_STATE, module.name, on and L.ON or L.OFF))
+        -- What it is now, not what was asked: a locked module stays off.
+        ns.Print(format(L.MODULE_STATE, module.name, module.enabled and L.ON or L.OFF))
         return
     end
     local option = findOption(module, key)
