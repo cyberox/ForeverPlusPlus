@@ -24,7 +24,7 @@ local Instances = {
     -- its dungeon finder's, the highest are guides'. The five after these are the Group Finder's
     -- (C_LFGList activities, IDs and levels, seen in game 2026-11-07), which also gave Hall of
     -- Thanes' 13-20.
-    hallOfThanes = { 3065, "The Hall of Thanes", 13, 20 },
+    hallOfThanes = { 3065, "Hall of Thanes", 13, 20 },
     drownedCity = { 2970, "The Drowned City", 35, 42 },
     kroldok = { 3039, "Krol'dok Stronghold", 40, 47 },
     alcazPrison = { 2994, "Alcaz Prison", 48, 55 },
