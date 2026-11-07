@@ -371,10 +371,38 @@ local function average(node, x, y)
     node.y = Gathering.Round((node.y * weight + y) / (weight + 1))
 end
 
+-- Whether a remembered node is the one named `name` would be: the same name, or one that spawns
+-- in the same spots (Silver in Tin's).
+local function sameSpawn(name)
+    return function(known)
+        return Professions.SharesSpawn(known.name, name)
+    end
+end
+
+-- Counts `name` among a node's names, gathered (`gathered`) or only seen, when the spot has spawned
+-- more than one (Tin and Silver): `names` holds each one's gathers, and `name`, the one most
+-- gathered, is the one the node is shown as.
+local function noteName(node, name, kind, gathered)
+    if node.name == name and not node.names then
+        return
+    end
+    local names = node.names
+    if not names then
+        names = { [node.name] = node.count }
+        node.names = names
+    end
+    names[name] = (names[name] or 0) + (gathered and 1 or 0)
+    if names[name] > (names[node.name] or 0) then
+        node.name, node.kind = name, kind
+    end
+end
+
 ---Adds a gather of the node `name` at x, y to a map's nodes: the same node within `radius` yards
 ---counts it once more and moves its spot toward this one (unless it was gathered in the last two
----minutes, the same visit); else it's a new node. Returns the node
----and whether it's new.
+---minutes, the same visit); else it's a new node. A node of another name that spawns in the
+---same spots (Professions.SharesSpawn: Silver in Tin's) is the same node, which then keeps each
+---name's gathers in `names` and is shown as the one most gathered. Returns the node and whether
+---it's new.
 ---@param list table a map's nodes
 ---@param name string
 ---@param kind string
@@ -387,12 +415,10 @@ end
 ---@return table node
 ---@return boolean new
 function Gathering.Add(list, name, kind, x, y, width, height, now, radius)
-    local node = Gathering.Nearest(list, x, y, width, height, radius or Gathering.RADIUS, function(known)
-        return known.name == name
-    end)
-    -- A node only seen may be further off (a hovered dot on a zoomed out minimap): it's this one.
+    local node = Gathering.Nearest(list, x, y, width, height, radius or Gathering.RADIUS, sameSpawn(name))
+    -- A node only seen may be further off (a dot seen on a zoomed out minimap): it's this one.
     node = node or Gathering.Nearest(list, x, y, width, height, SEEN_RADIUS, function(known)
-        return known.name == name and known.count == 0
+        return known.count == 0 and Professions.SharesSpawn(known.name, name)
     end)
     if node and node.time and now - node.time < VISIT then
         -- Mined again on the same visit (a vein gives two or three times): not another gather.
@@ -401,13 +427,16 @@ function Gathering.Add(list, name, kind, x, y, width, height, now, radius)
     elseif node then
         if node.count == 0 then
             -- Only seen till now: where the player stands to gather it is closer than a sighting
-            -- (a hovered dot is as big as many yards when the minimap is zoomed out).
+            -- (a dot is as big as many yards when the minimap is zoomed out).
             node.x, node.y = Gathering.Round(x), Gathering.Round(y)
         else
             average(node, x, y)
         end
+        noteName(node, name, kind, true)
         node.count = node.count + 1
-        node.kind = kind
+        if not node.names then
+            node.kind = kind
+        end
         node.time = now
         return node, false
     end
@@ -433,10 +462,9 @@ end
 ---@return table node
 ---@return boolean new
 function Gathering.See(list, name, kind, x, y, width, height, now, radius)
-    local node = Gathering.Nearest(list, x, y, width, height, radius or Gathering.RADIUS, function(known)
-        return known.name == name
-    end)
+    local node = Gathering.Nearest(list, x, y, width, height, radius or Gathering.RADIUS, sameSpawn(name))
     if node then
+        noteName(node, name, kind, false)
         -- A node gathered already is where the player stood to gather it, closer than a sighting.
         if node.count == 0 and not (node.seen and now - node.seen < VISIT) then
             average(node, x, y)

@@ -448,3 +448,4 @@ L.GATHERINGMAP_GATHERED_ONCE = "Gathered once"
 L.GATHERINGMAP_GATHERED = "Gathered %d times" -- count, more than one
 L.GATHERINGMAP_LAST = "Last gathered %s" -- "3h ago"
 L.GATHERINGMAP_SEEN = "Seen on the minimap, not gathered yet"
+L.GATHERINGMAP_ALSO = "Also spawns %s (gathered %d)" -- another vein's name, its gathers here

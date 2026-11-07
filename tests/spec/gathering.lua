@@ -73,6 +73,17 @@ local spam = {
 }
 Gathering.See(spam, "Tin Vein", "ore", 0.6, 0.6, W, H, 5000, 30)
 eq(#spam, 2, "see: a nearby copy only seen is folded in, a gathered one isn't")
+-- Silver where Tin spawns is the same node, shown as the one gathered most.
+local shared = {}
+Gathering.Add(shared, "Tin Vein", "ore", 0.7, 0.7, W, H, 100)
+node, new = Gathering.Add(shared, "Silver Vein", "ore", 0.7, 0.701, W, H, 1000)
+eq(new, false, "spawns: silver at tin's spot is the same node")
+eq(node.name .. ":" .. node.names["Tin Vein"] .. ":" .. node.names["Silver Vein"], "Tin Vein:1:1",
+    "spawns: each name counted, shown as the first while even")
+node = Gathering.Add(shared, "Silver Vein", "ore", 0.7, 0.7, W, H, 2000)
+eq(node.name .. ":" .. node.count, "Silver Vein:3", "spawns: shown as the one gathered most")
+node, new = Gathering.Add(shared, "Copper Vein", "ore", 0.7, 0.7, W, H, 3000)
+eq(new, true, "spawns: copper isn't silver's or tin's")
 -- A sighting wider than the radius, as a hovered dot on a zoomed out minimap, is the same node.
 node, new = Gathering.See(seen, "Peacebloom", "herb", 0.31, 0.307, W, H, 9000, 30)
 eq(new, false, "see: a wider radius finds the same node")

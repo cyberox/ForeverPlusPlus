@@ -363,6 +363,12 @@ function internal.TooltipLines(node)
     else
         lines[#lines + 1] = ns.MapTooltip.Detail(L.GATHERINGMAP_SEEN)
     end
+    -- A spot that spawned more than one vein (Tin and Silver): the others, with their gathers.
+    for name, count in pairs(node.names or {}) do
+        if name ~= node.name then
+            lines[#lines + 1] = ns.MapTooltip.Detail(format(L.GATHERINGMAP_ALSO, name, count))
+        end
+    end
     if node.time then
         lines[#lines + 1] = ns.MapTooltip.Note(format(L.GATHERINGMAP_LAST, ns.Text.Ago(time() - node.time)))
     end

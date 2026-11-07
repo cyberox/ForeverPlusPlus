@@ -271,6 +271,35 @@ function Professions.LearnNodeItem(name, item, line)
     return NODES:Learn(name, { knownLine or line, node and node[2], knownItem or item })
 end
 
+-- Spots that spawn either of two veins: the rarer one -> the vein it takes the place of. Classic's
+-- (the rare spawns GatherMate2 also knows); the game shows no list of them.
+local SPAWNS = ns.GameData.New("sharedSpawns", {
+    ["Silver Vein"] = "Tin Vein",
+    ["Gold Vein"] = "Iron Deposit",
+    ["Truesilver Deposit"] = "Mithril Deposit",
+    ["Ooze Covered Silver Vein"] = "Tin Vein",
+    ["Ooze Covered Gold Vein"] = "Iron Deposit",
+    ["Ooze Covered Truesilver Deposit"] = "Mithril Deposit",
+}, { label = "Shared vein spawns" })
+
+---Whether a spot that spawned node `a` can spawn node `b` instead, so the two are one node on a
+---map: the same name, a rare vein and the one it takes the place of (Silver for Tin), or two
+---names that give the same item (Poor Copper Vein and Copper Vein).
+---@param a string
+---@param b string
+---@return boolean
+function Professions.SharesSpawn(a, b)
+    if a == b then
+        return true
+    end
+    local groupA, groupB = SPAWNS:Get(a) or a, SPAWNS:Get(b) or b
+    if groupA == groupB then
+        return true
+    end
+    local nodeA, nodeB = Professions.Node(a), Professions.Node(b)
+    return nodeA ~= nil and nodeB ~= nil and nodeA[3] ~= nil and nodeA[3] == nodeB[3]
+end
+
 -- Kinds of node ---------------------------------------------------------------------------------
 -- What maps sort, filter, and color nodes by. Herbs and veins are told by their skill line; a
 -- chest or a fishing pool is never a node above, so its kind comes from the spell that took it.
