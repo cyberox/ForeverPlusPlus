@@ -7,18 +7,22 @@
 -- the world map and Minimap.lua on the minimap. They share module.internal.
 local _, ns = ...
 
-local pairs, time, format = pairs, time, string.format
+local pairs, type, time, format = pairs, type, time, string.format
+local C_Minimap = C_Minimap
 
 local L = ns.L
 local Gathering = ns.Gathering
 
 local module = ns.NewModule("GatheringMap", L.GATHERINGMAP_DESC, {
     enabled = true,
+    onlyMine = true, -- only nodes this character has the profession for
+    onlyTracking = false, -- herbs only while Find Herbs is on, ore while Find Minerals is
     icon = "item", -- "item" (the node's item's icon, a circle without one) or "circle"
     shape = "round", -- an item icon "round" or "square"
     ring = true, -- the minimap's gold ring around a round icon
     worldMap = true,
     mapSize = 100, -- percent of MAP_PIXELS on the world map
+    mapAlpha = 100, -- percent
     mapContinents = false, -- on continent maps too
     minimap = true,
     minimapSize = 12, -- pixels
@@ -34,12 +38,94 @@ module.added = "1.2.0"
 module.internal = {}
 local internal = module.internal
 
+local LOOK, MINIMAP, WORLD = L.GATHERINGMAP_SECTION_LOOK, L.GATHERINGMAP_SECTION_MINIMAP,
+    L.GATHERINGMAP_SECTION_WORLDMAP
+
 module.options = {
+    { key = "onlyMine", name = L.GATHERINGMAP_ONLY_MINE, description = L.GATHERINGMAP_ONLY_MINE_DESC },
+    { key = "onlyTracking", name = L.GATHERINGMAP_ONLY_TRACKING, description = L.GATHERINGMAP_ONLY_TRACKING_DESC },
+    {
+        key = "icon", name = L.GATHERINGMAP_ICON, description = L.GATHERINGMAP_ICON_DESC, section = LOOK,
+        choices = {
+            { "item", L.GATHERINGMAP_ICON_ITEM },
+            { "circle", L.GATHERINGMAP_ICON_CIRCLE },
+        },
+    },
+    {
+        key = "shape", name = L.GATHERINGMAP_SHAPE, description = L.GATHERINGMAP_SHAPE_DESC, section = LOOK,
+        choices = {
+            { "round", L.GATHERINGMAP_SHAPE_ROUND },
+            { "square", L.GATHERINGMAP_SHAPE_SQUARE },
+        },
+        shown = function(db)
+            return db.icon == "item"
+        end,
+    },
+    { key = "ring", name = L.GATHERINGMAP_RING, description = L.GATHERINGMAP_RING_DESC, section = LOOK },
+    {
+        key = "minimap", name = L.GATHERINGMAP_MINIMAP, description = L.GATHERINGMAP_MINIMAP_DESC,
+        section = MINIMAP, slider = "minimapSize",
+    },
+    {
+        key = "minimapSize", name = L.GATHERINGMAP_SIZE, description = L.GATHERINGMAP_MINIMAP_SIZE_DESC,
+        section = MINIMAP, requires = "minimap", min = 8, max = 32, step = 2, format = L.ICONMARK_PIXELS,
+    },
+    {
+        key = "minimapAlpha", name = L.GATHERINGMAP_ALPHA, description = L.GATHERINGMAP_ALPHA_DESC,
+        section = MINIMAP, requires = "minimap", min = 10, max = 100, step = 5, format = "%d%%",
+    },
+    {
+        key = "worldMap", name = L.GATHERINGMAP_WORLDMAP, description = L.GATHERINGMAP_WORLDMAP_DESC,
+        section = WORLD, slider = "mapSize",
+    },
+    {
+        key = "mapSize", name = L.GATHERINGMAP_SIZE, description = L.GATHERINGMAP_MAP_SIZE_DESC,
+        section = WORLD, requires = "worldMap", min = 50, max = 200, step = 10, format = "%d%%",
+    },
+    {
+        key = "mapAlpha", name = L.GATHERINGMAP_ALPHA, description = L.GATHERINGMAP_ALPHA_DESC,
+        section = WORLD, requires = "worldMap", min = 10, max = 100, step = 5, format = "%d%%",
+    },
+    {
+        key = "mapContinents", name = L.GATHERINGMAP_CONTINENTS, description = L.GATHERINGMAP_CONTINENTS_DESC,
+        section = WORLD, requires = "worldMap",
+    },
     {
         key = "log", name = L.GATHERINGMAP_LOG, description = L.GATHERINGMAP_LOG_DESC,
         debug = true, section = L.DEBUG_SECTION_LOGGING,
     },
 }
+
+-- What decides which nodes show: the player's professions, and their tracking.
+local HERBS = ns.GameData.Spell(2383, "Find Herbs")
+local MINERALS = ns.GameData.Spell(2580, "Find Minerals")
+local tracking = {} -- kind -> true while its tracking spell is on
+
+local function readTracking()
+    tracking = {}
+    for i = 1, C_Minimap.GetNumTrackingTypes() do
+        local info = C_Minimap.GetTrackingInfo(i)
+        if type(info) == "table" and info.active then
+            if info.spellID == HERBS then
+                tracking.herb = true
+            elseif info.spellID == MINERALS then
+                tracking.ore = true
+            end
+        end
+    end
+end
+
+local function onTracking()
+    readTracking()
+    internal.Changed(nil)
+end
+
+local function onSkills()
+    internal.Changed(nil)
+end
+
+module:OnWhile("onlyTracking", { MINIMAP_UPDATE_TRACKING = onTracking, PLAYER_ENTERING_WORLD = onTracking })
+module:OnWhile("onlyMine", { SKILL_LINES_CHANGED = onSkills })
 
 -- The kinds of node remembered.
 local RECORDED = { herb = true, ore = true }
@@ -125,11 +211,26 @@ function internal.Look(node, look)
     return look
 end
 
----Whether a node is shown, on either map.
+-- Herbs and ore need their gathering skill and tracking spell; anyone can open treasure.
+local TRACKED = { herb = true, ore = true }
+
+---Whether a node is shown, on either map: with Only My Professions, only while this character
+---has the skill that gathers it, and with Only While Tracking, only while its tracking is on.
 ---@param node table
 ---@return boolean
 function internal.Shown(node)
-    return node ~= nil
+    local db = module.db
+    local kind = node.kind
+    if db.onlyMine and kind ~= "treasure" then
+        local line = Professions.KindLine(kind)
+        if not (line and Professions.Rank(line)) then
+            return false
+        end
+    end
+    if db.onlyTracking and TRACKED[kind] and not tracking[kind] then
+        return false
+    end
+    return true
 end
 
 ---The lines under a node's name in its tooltip.
@@ -195,6 +296,7 @@ end
 -- Turning on and off ------------------------------------------------------------------------------
 
 function module:OnEnable()
+    readTracking()
     Gathering.Listen(onGather, true)
     if internal.EnableMap then
         internal.EnableMap()
@@ -214,6 +316,9 @@ function module:OnDisable()
     end
 end
 
-function module:OnOptionChanged()
+function module:OnOptionChanged(key)
+    if key == "onlyTracking" then
+        readTracking()
+    end
     internal.Changed(nil)
 end

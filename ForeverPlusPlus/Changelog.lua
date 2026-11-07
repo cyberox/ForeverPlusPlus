@@ -13,6 +13,11 @@ ns.changelog = {
         version = L.CHANGELOG_UNRELEASED,
         sections = {
             { L.CHANGELOG_ADDED, {
+                { L.GATHERINGMAP_TITLE, "A new module that remembers every herb and vein you "
+                    .. "gather, for all your characters, and shows them on the world map and the "
+                    .. "minimap as the icon of what they give. Gathering one again moves its icon "
+                    .. "closer to where it really is. Only My Professions (on by default) shows each "
+                    .. "character only what it can gather. On by default." },
                 { L.APPEARANCEICONS_TITLE, "A new module: gear whose appearance you haven't "
                     .. "collected gets Blizzard's transmogrifier icon in a corner of its icon, top "
                     .. "right by default, in your bags and bank, at merchants, in the auction house, "

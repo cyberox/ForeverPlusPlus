@@ -6,6 +6,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 ### Added
 
+- **Gathering Map**: a new module that remembers every herb and vein you gather, for all your characters, and shows them on the world map and the minimap as the icon of what they give. Gathering one again moves its icon closer to where it really is. Only My Professions (on by default) shows each character only what it can gather. On by default.
 - **Appearance Icons**: a new module: gear whose appearance you haven't collected gets Blizzard's transmogrifier icon in a corner of its icon, top right by default, in your bags and bank, at merchants, in the auction house, and in loot, and so does a recipe that makes it, on its row in the professions window (at the right end by default). A corner Upgrade Arrows or Already Known also uses gets a warning. On by default.
 - **Already Known**: Corner, Check Size, and Padding for the green check, like Upgrade Arrows' arrow. A corner Upgrade Arrows also uses gets a warning.
 - **Spell Ranks**: Corner, Badge Size, and Padding for the warning badge.

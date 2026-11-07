@@ -40,6 +40,7 @@ local function infoFor(i, node, size)
     end
     internal.Look(node, info)
     info.size = size
+    info.alpha = module.db.mapAlpha / 100
     info.title = node.name
     info.lines = internal.TooltipLines(node)
     return info
