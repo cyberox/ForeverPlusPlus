@@ -373,22 +373,28 @@ local function newNodeView(parent, width)
     view.requires:SetPoint("TOPLEFT", view.title, "BOTTOMLEFT", 0, -4)
     view.top = top
 
-    -- Shown on Maps: the same switch as the node's checkbox in the list.
-    local show = CreateFrame("Frame", nil, view.stack)
-    show:SetSize(width, 24)
-    view.show = Kit.NewCheckbox(show, 22, function(checked)
-        if view.entry then
-            module.db.hidden[view.entry.name] = not checked or nil
-            internal.Changed(nil)
-        end
-    end)
-    view.show:SetPoint("LEFT", -2, 0)
-    Kit.AddTooltip(view.show, L.GATHERINGMAP_PAGE_SHOW, L.GATHERINGMAP_PAGE_NODE_DESC)
-    local label = show:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    label:SetPoint("LEFT", view.show, "RIGHT", 2, 0)
-    label:SetText(L.GATHERINGMAP_PAGE_SHOW)
-    view.show:SetHitRectInsets(0, -(ns.Text.Width(label) + 2), 0, 0)
-    view.showRow = show
+    -- Show on World Map and Show on Minimap, each map on its own, under the node's checkbox in the
+    -- list, which shows or hides it on both.
+    local function mapCheck(key, text, description)
+        local row = CreateFrame("Frame", nil, view.stack)
+        row:SetSize(width, 24)
+        row.box = Kit.NewCheckbox(row, 22, function(checked)
+            if view.entry then
+                module.db[key][view.entry.name] = not checked or nil
+                internal.Changed(nil)
+            end
+        end)
+        row.box:SetPoint("LEFT", -2, 0)
+        Kit.AddTooltip(row.box, text, description)
+        row.label = row:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+        row.label:SetPoint("LEFT", row.box, "RIGHT", 2, 0)
+        row.label:SetText(text)
+        row.box:SetHitRectInsets(0, -(ns.Text.Width(row.label) + 2), 0, 0)
+        row.key = key
+        return row
+    end
+    view.world = mapCheck("hiddenWorld", L.GATHERINGMAP_WORLDMAP, L.GATHERINGMAP_PAGE_WORLD_DESC)
+    view.minimap = mapCheck("hiddenMinimap", L.GATHERINGMAP_MINIMAP, L.GATHERINGMAP_PAGE_MINIMAP_DESC)
 
     view.gathered = newPair(view.stack, width)
     view.gathered.label:SetText(L.GATHERINGMAP_TIP_GATHERED)
@@ -438,13 +444,19 @@ local function fillNodeView(view, entry)
     else
         view.requires:SetText("")
     end
-    view.show:SetChecked(not module.db.hidden[entry.name])
-    view.show:SetEnabled(kindOn)
+    -- Greyed while the node or its kind is off in the list, which hides it on both maps.
+    local on = kindOn and not module.db.hidden[entry.name]
+    for _, row in ipairs({ view.world, view.minimap }) do
+        row.box:SetChecked(not module.db[row.key][entry.name])
+        row.box:SetEnabled(on)
+        row.label:SetFontObject(on and "GameFontHighlight" or "GameFontDisable")
+    end
 
     local stack = view.stack
     stack.entries = {}
     Kit.AddEntry(stack, view.top)
-    Kit.AddEntry(stack, view.showRow, nil, 8)
+    Kit.AddEntry(stack, view.world, nil, 8)
+    Kit.AddEntry(stack, view.minimap, nil, 0)
     if entry.gathers > 0 then
         view.gathered.value:SetText(entry.gathers == 1 and L.GATHERINGMAP_TIP_ONCE
             or format(L.GATHERINGMAP_TIP_TIMES, entry.gathers))

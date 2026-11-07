@@ -67,7 +67,7 @@ local function findNear(v)
     if list then
         local reach = v.half * NEAR
         local reach2 = reach * reach
-        local shown = internal.Shown
+        local shown = internal.ShownOnMinimap
         local liveMap, liveList = ns.Gathering.Live()
         if not (liveMap and liveList and #liveList > 0) then
             liveList = nil

@@ -68,7 +68,7 @@ end
 
 local function fill(mapID, add)
     local db = module.db
-    local shown = internal.Shown
+    local shown = internal.ShownOnWorld
     local count = 0
     local own = db.nodes[mapID]
     if own then

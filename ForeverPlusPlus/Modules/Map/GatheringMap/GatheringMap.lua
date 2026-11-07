@@ -65,8 +65,11 @@ local module = ns.NewModule("GatheringMap", L.GATHERINGMAP_DESC, {
     -- node name -> true, and kind ("herb", "ore") -> true. Data, saved for each character.
     hidden = {},
     hiddenKinds = {},
+    -- And node name -> true for a node shown on one map but not the other.
+    hiddenWorld = {},
+    hiddenMinimap = {},
 })
-module.perCharacter = { hidden = true, hiddenKinds = true }
+module.perCharacter = { hidden = true, hiddenKinds = true, hiddenWorld = true, hiddenMinimap = true }
 module.title = L.GATHERINGMAP_TITLE
 module.pageTitle = L.GATHERINGMAP_PAGE_TITLE
 module.category = "map"
@@ -448,16 +451,21 @@ end
 -- Herbs and ore need their gathering skill and tracking spell; anyone can open treasure.
 local TRACKED = { herb = true, ore = true }
 
----Whether a node is shown, on either map: not while this character turned it or its kind off (the
----Gathering Map page); with Only My Professions, only while this character has the skill that
----gathers it; and with Only While Tracking, only while its tracking is on.
+---Whether a node is shown on the world map ("world") or the minimap ("minimap"): not while this
+---character turned it or its kind off (the Gathering Map page), or turned it off on that map; with
+---Only My Professions, only while this character has the skill that gathers it; and with Only
+---While Tracking, only while its tracking is on.
 ---@param node table
+---@param where "world"|"minimap"
 ---@return boolean
-function internal.Shown(node)
+function internal.Shown(node, where)
     local db = module.db
     local kind = node.kind
     -- Turned off on the Gathering Map page or the world map's filter, for this character.
     if db.hiddenKinds[kind] or db.hidden[node.name] then
+        return false
+    end
+    if (where == "world" and db.hiddenWorld or db.hiddenMinimap)[node.name] then
         return false
     end
     if db.onlyMine and kind ~= "treasure" then
@@ -477,6 +485,19 @@ function internal.Shown(node)
         return false
     end
     return true
+end
+
+---internal.Shown for each map, to pass where a function of the node alone is wanted.
+---@param node table
+---@return boolean
+function internal.ShownOnWorld(node)
+    return internal.Shown(node, "world")
+end
+
+---@param node table
+---@return boolean
+function internal.ShownOnMinimap(node)
+    return internal.Shown(node, "minimap")
 end
 
 -- Whether a tooltip line set to `key` ("always", "shift", or "never") shows now.
@@ -591,7 +612,7 @@ local function nodeAtCursor(names)
         local reach = DOT_REACH / v.scale
         for _, name in ipairs(names) do
             node = Gathering.Nearest(list, x, y, v.width, v.height, reach, function(known)
-                return internal.Shown(known) and Professions.SharesSpawn(known.name, name)
+                return internal.Shown(known, "minimap") and Professions.SharesSpawn(known.name, name)
             end)
             if node then
                 break
@@ -600,7 +621,7 @@ local function nodeAtCursor(names)
     else
         -- Anywhere on the icon or the gold ring around it, which reaches past the icon's edge.
         local reach = module.db.minimapSize / v.scale
-        node = Gathering.Nearest(list, x, y, v.width, v.height, reach, internal.Shown)
+        node = Gathering.Nearest(list, x, y, v.width, v.height, reach, internal.ShownOnMinimap)
     end
     if node then
         return node, Gathering.Distance(node.x, node.y, v.x, v.y, v.width, v.height), v.mapID
