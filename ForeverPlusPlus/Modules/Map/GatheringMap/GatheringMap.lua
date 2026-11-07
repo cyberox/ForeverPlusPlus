@@ -493,7 +493,8 @@ function internal.Title(node)
 end
 
 -- Blizzard's "Requires Mining (75)" under the name, as the minimap's own tooltip has it, in the
--- trainer's colors against the player's skill; nil for a node whose skill isn't known.
+-- trainer's colors against the player's skill; nil for a node whose skill isn't known. The page's
+-- details use it too, as internal.Requires.
 local function requiresLine(node)
     local known = Professions.Node(node.name)
     local line, need = known and known[1], known and known[2]
@@ -504,6 +505,8 @@ local function requiresLine(node)
     return { format(ITEM_MIN_SKILL or L.GATHERINGMAP_REQUIRES, skill, need),
         Professions.Difficulty(Professions.Rank(line), need) }
 end
+
+internal.Requires = requiresLine
 
 ---The lines under a node's name in its tooltip, as Blizzard's Sell Price line lays them out: a
 ---label and its value, each line shown always, with Shift held, or never as its option says.
