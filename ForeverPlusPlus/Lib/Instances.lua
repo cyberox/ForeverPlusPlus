@@ -164,6 +164,11 @@ local function refresh()
     end
 end
 
+---Brings the list up to date with what's saved and what the dungeon finder lists, which can add
+---dungeons to `byKey`. Call it before walking `byKey`, since adding to a table mid-walk breaks the
+---walk.
+ns.Instances.Refresh = refresh
+
 ---Blizzard's dungeon or raid entrance icon for an instance, as text to put before its name.
 ---@param instance table an entry of `byKey`, or one shaped like it
 ---@param size number pixels

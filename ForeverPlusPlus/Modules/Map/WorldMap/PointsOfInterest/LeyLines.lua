@@ -261,5 +261,10 @@ function internal.onCast(_, unit, _, spellID)
     -- Where the cast was, in case its buff can only be read after combat, when they've moved on.
     local where = { ns.WorldMap.PlayerPosition() }
     -- The buff lands after the cast; give the server a moment.
-    C_Timer.After(1, function() afterCast(spellID, castTime, where) end)
+    -- Not once World Map has been turned off in that second.
+    C_Timer.After(1, function()
+        if module.enabled then
+            afterCast(spellID, castTime, where)
+        end
+    end)
 end

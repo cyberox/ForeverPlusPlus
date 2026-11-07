@@ -835,7 +835,8 @@ function Gathering.Decode(text, now)
     local names = {}
     for key in namePart:gmatch("[^~]+") do
         local kind = LETTER_KINDS[key:sub(1, 1)]
-        local name = key:sub(2)
+        -- A pasted name can't bring in colors, textures, or links: no codes, and no "|" left.
+        local name = (ns.Text.Plain(key:sub(2)):gsub("|", ""))
         if not kind or name == "" then
             return nil, 0
         end

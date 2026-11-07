@@ -28,9 +28,9 @@ Colors come back as `r, g, b` (0 to 1) plus a hex string `"ffrrggbb"`, the same 
 | --- | --- |
 | `GetVersion()` | The API version (`1`) and Forever++'s version, such as `"1.0.0"`. |
 | `IsReady()` | Whether saved data has loaded (after `PLAYER_LOGIN`). |
-| `IsModuleEnabled(name)` | Whether a module is on, by its internal name (`"ItemTooltips"`, `"ClassColors"`), or `nil` for a name Forever++ doesn't have. Use it to skip something Forever++ is already showing. |
+| `IsModuleEnabled(name)` | Whether a module is on, by its internal name (`"ItemTooltips"`, `"ClassColors"`), or `nil` for a name Forever++ doesn't have (or doesn't offer on this client). Use it to skip something Forever++ is already showing. |
 | `GetModules()` | A list of `{ name, title, category, enabled }` for every module this client gets. |
-| `GetModuleInfo(name)` | One module in full: `{ name, title, description, category, enabled, options }`. Each option is `{ key, name, kind, value, default, choices, min, max }`, where `kind` is `"checkbox"`, `"dropdown"` (its `choices` are the values), or `"slider"`. The options are the ones the Modules page shows. |
+| `GetModuleInfo(name)` | One module in full: `{ name, title, description, category, enabled, locked, problem, options }`. `locked` is true for a module the game broke, which can't be turned on, so don't send the player to; `problem` is true while it has found it can't work (its name is red in Settings). Each option is `{ key, name, kind, value, default, choices, min, max }`, where `kind` is `"checkbox"`, `"dropdown"` (its `choices` are the values), or `"slider"`. The options are the ones the Modules page shows. |
 | `GetModuleOption(name, key)` | One option's value as the player set it, or its default. `nil` for an option the module doesn't have. |
 | `OpenSettings(name)` | Opens Forever++'s settings on that module, or on the Modules page when `name` is left out. Use it for a button in your addon's options that sends the player here. Returns `false` in combat. |
 

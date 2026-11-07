@@ -109,7 +109,8 @@ end)
 ---Nil for a name Forever++ doesn't have.
 export("IsModuleEnabled", function(name)
     local module = type(name) == "string" and ns.modules[name]
-    if not module then
+    -- One this client doesn't get is no module at all, as GetModules has it.
+    if not module or module.unavailable then
         return nil
     end
     return module.enabled and true or false
@@ -174,6 +175,10 @@ export("GetModuleInfo", function(name)
         description = module.description,
         category = module.category,
         enabled = module.enabled and true or false,
+        -- Locked off because the game broke it: it can't be turned on, so don't send the player
+        -- to. And whether it has found it can't work (its name is red in Settings).
+        locked = module.locked and true or false,
+        problem = module.Problem and module:Problem() and true or false,
         options = options,
     }
 end)
@@ -538,6 +543,8 @@ end
 ---player's language), englishName, minLevel, maxLevel, isRaid }. Levels follow the dungeon finder
 ---once it has listed them.
 export("GetInstances", function()
+    -- Brought up to date first: the walk mustn't add dungeons to the table it walks.
+    ns.Instances.Refresh()
     local list = {}
     for key, instance in pairs(ns.Instances.byKey) do
         list[#list + 1] = instanceInfo(key, instance)
@@ -554,6 +561,7 @@ end)
 ---One dungeon or raid, by instance ID or name (the player's language or English), shaped as in
 ---GetInstances. Nil when it isn't one.
 export("GetInstanceInfo", function(instance)
+    ns.Instances.Refresh()
     if type(instance) == "string" then
         local found = ns.Instances.ByName(instance)
         if not found then
@@ -679,8 +687,14 @@ function API.Fire(event, ...)
     if not owners then
         return
     end
+    -- The functions as they are now: a callback that registers or unregisters one mustn't change
+    -- the table this walks.
+    local fns = {}
     for _, fn in pairs(owners) do
-        finish(pcall(fn, event, ...))
+        fns[#fns + 1] = fn
+    end
+    for i = 1, #fns do
+        finish(pcall(fns[i], event, ...))
     end
 end
 

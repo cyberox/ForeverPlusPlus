@@ -113,6 +113,8 @@ eq(onlyOre, 1, "share: only the nodes kept")
 eq(Gathering.Decode("hello"), nil, "share: not a share string")
 eq(Gathering.Decode("GM1/oCopper Vein/1429:5,1,1,1,1"), nil, "share: a name past the list")
 eq(select(2, Gathering.Decode("GM1//")), 0, "share: nothing shared")
+local coded = Gathering.Decode("GM1/o|cffff0000Copper|r Vein|T123:0|t/1429:0,1,1,1,1")
+eq(coded[1429][1].name:find("|", 1, true), nil, "share: a pasted name brings in no codes")
 -- A node off its map is left out; a time ahead of now is taken as now, a huge count capped.
 local odd = Gathering.Decode("GM1/oCopper Vein/1429:0,7pt,1,1,1;0,1,1,zzzzzz,zzzzzz", 1000)
 eq(#odd[1429], 1, "share: a node off its map is left out")

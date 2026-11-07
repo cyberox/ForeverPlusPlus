@@ -148,7 +148,12 @@ local function take(why)
         -- Faded, not hidden: Hide and Show would run every shown window's OnHide and OnShow from
         -- our code. The shot looks the same.
         UIParent:SetAlpha(0)
-        C_Timer.After(HIDE_WAIT, Screenshot)
+        -- Not once the module has been turned off meanwhile (its OnDisable shows the UI again).
+        C_Timer.After(HIDE_WAIT, function()
+            if module.enabled then
+                Screenshot()
+            end
+        end)
     else
         Screenshot()
     end
