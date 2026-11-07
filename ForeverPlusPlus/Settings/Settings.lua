@@ -1110,9 +1110,14 @@ local function newListRow(name)
     text:SetText(module.title or name)
     local mark = newMark(row, text, LIST_WIDTH - 26, name, module)
     bind(name, function()
-        text:SetFontObject(module.db.enabled and "GameFontHighlight" or "GameFontDisable")
+        local font = module.db.enabled and GameFontHighlight or GameFontDisable
+        text:SetFontObject(font)
+        -- Red only while it's on: off, it's grey like any other. The color is set either way, since
+        -- a color set on the text outlasts a change of font object.
         if RED and module.db.enabled and module.Problem and module:Problem() then
             text:SetTextColor(RED:GetRGB())
+        else
+            text:SetTextColor(font:GetTextColor())
         end
         mark()
     end)
