@@ -6,21 +6,23 @@
 --                    and description, its Enabled checkbox, its `notice` (a warning) while that
 --                    applies, then its options (checkboxes, dropdowns and sliders) and buttons
 --                    (from `module.actions`), greyed out while it's off. An option can sit under
---                    another (`requires`), and is greyed out while its `available()` is false. A module made of parts (`module:NewPart`) has a
---                    section for each, headed by the part's Enabled checkbox (a part turned on
---                    by a dropdown is that one row), with the part's options greyed out while
---                    it's off.
+--                    another (`requires`), and is greyed out while its `available()` is false. A
+--                    module made of parts (`module:NewPart`) has a section for each, headed by
+--                    the part's Enabled checkbox (a part turned on by a dropdown is that one
+--                    row), with the part's options greyed out while it's off. A locked module
+--                    (`locked`) shows a padlock for its checkbox and only its notices.
 --                    `alwaysOn` modules (tools) aren't listed. A search box at the top narrows
 --                    the list to modules by title and description, or by an option's name or
 --                    description, and highlights those options; a New checkbox beside it lists
 --                    only modules marked NEW. A module or option added since the player last
 --                    looked (`added`), or an option changed since then (`changed`), is marked NEW.
---                    The Debug module's page (in the sidebar while it's on) has the rows Debug.lua adds:
---                    sections of Forever++'s own buttons and modules' options marked
---                    `debug = true` and buttons from `module.debugActions`, each placed by its
---                    `section`: What's New (Reset Seen Version, Reset Welcome), Diagnostics (Copy
---                    Debug Info, Print Module Events, Reload UI), Testing, and Logging
---     <Tool>         a page a module draws itself (`BuildPage`)
+--     <Tool>         a page a module draws itself (`BuildPage`), in the sidebar always for a tool
+--                    and only while it's on for a module the player turns on and off. The Debug
+--                    module's is one: the rows Debug.lua adds, Forever++'s own buttons and
+--                    modules' options marked `debug = true` and buttons from
+--                    `module.debugActions`, under sections placed by their `section`: What's New
+--                    (Reset Seen Version, Reset Welcome), Diagnostics (Copy Debug Info, Print
+--                    Module Events), Tools (Reload UI), Previews, Layout, and Logging
 --     Changelog      the releases in Changelog.lua in a list like the Modules page's, with the
 --                    selected one's notes beside it, and a By Module checkbox, a search box and
 --                    the Defaults button at the top like Modules
@@ -151,7 +153,6 @@ local function askDefaults()
     ns.ConfirmChoice("DEFAULTS_CHOICE", L.DEFAULTS_ASK, L.DEFAULTS_DEVELOPER,
         ns.ApplyDeveloperDefaults, L.DEFAULTS_RECOMMENDED, function() ns.ApplyPreset() end)
 end
-S.askDefaults = askDefaults
 
 -- NEW labels ----------------------------------------------------------------------------------
 -- A module added (`added`) after the version the player last saw it in gets Blizzard's NEW label
@@ -1028,9 +1029,8 @@ local function buildView(name)
     local width = page.paneWidth
     local view = newStack(page.paneContent, width, 4)
     view:SetPoint("TOPLEFT")
-    -- `follows`: other modules whose changes show here too (the Debug module's rows).
     -- `optionRows`: each option's row by key, for a conflict's button to go to.
-    view.updates, view.found, view.follows, view.optionRows = {}, {}, {}, {}
+    view.updates, view.found, view.optionRows = {}, {}, {}
 
     local heading = view:CreateFontString(nil, "OVERLAY", "GameFontHighlightHuge")
     heading:SetPoint("TOPLEFT", 4, -4)
@@ -1080,11 +1080,6 @@ local function buildView(name)
         end
     end
     bind(name, update)
-    for other in pairs(view.follows) do
-        if other ~= name then
-            bind(other, update)
-        end
-    end
     return view
 end
 
