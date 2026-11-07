@@ -172,6 +172,7 @@ Modules\Map\GatheringMap\GatheringMap.lua
 Modules\Map\GatheringMap\Map.lua
 Modules\Map\GatheringMap\Minimap.lua
 Modules\Map\GatheringMap\Page.lua
+Modules\Map\GatheringMap\Filter.lua
 API.lua
 Changelog.lua
 Settings\Settings.lua

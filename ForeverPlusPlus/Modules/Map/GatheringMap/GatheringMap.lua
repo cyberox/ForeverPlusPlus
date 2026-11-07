@@ -693,6 +693,9 @@ function module:OnEnable()
     if internal.EnableMap then
         internal.EnableMap()
     end
+    if internal.EnableFilter then
+        internal.EnableFilter()
+    end
     if internal.EnableMinimap then
         internal.EnableMinimap()
     end
