@@ -9,7 +9,7 @@
 -- 2026-11-06); none of their code.
 local _, ns = ...
 
-local pairs, type, tonumber, next = pairs, type, tonumber, next
+local pairs, ipairs, type, tonumber, next = pairs, ipairs, type, tonumber, next
 local GetTime, IsInInstance, C_Timer, C_Spell, C_Item = GetTime, IsInInstance, C_Timer, C_Spell, C_Item
 local UnitExists, UnitName = UnitExists, UnitName
 local GetNumLootItems, GetLootSlotInfo, GetLootSlotLink = GetNumLootItems, GetLootSlotInfo, GetLootSlotLink
@@ -77,7 +77,9 @@ local function onObjectTooltip(_, data)
 end
 
 -- What the cast is aimed at: its target, else the soft-target object, else the object hovered
--- just before. And which of those it was, for a debug log.
+-- just before. And which of those it was, for a debug log. The last two can name something else
+-- (a mailbox hovered on the way), so they count only for a herb or vein Professions knows; the
+-- hover is used once.
 local function targetName(target)
     if IsText(target, true) then
         return target, "target"
@@ -86,12 +88,14 @@ local function targetName(target)
     -- have it.
     if UnitExists and UnitName and UnitExists("softinteract") then
         local name = UnitName("softinteract")
-        if IsText(name, true) then
+        if IsText(name, true) and Professions.Node(name) then
             return name, "softinteract"
         end
     end
-    if hovered and GetTime() - hoveredAt <= HOVER_WAIT then
-        return hovered, "tooltip"
+    local name = hovered
+    if name and GetTime() - hoveredAt <= HOVER_WAIT and Professions.Node(name) then
+        hovered = nil
+        return name, "tooltip"
     end
     return nil, "none"
 end
@@ -116,9 +120,16 @@ local function tell(gather)
         pending = nil
     end
     gather.castGUID = nil
-    -- Herbs and veins teach the item they give, for every module that reads nodes.
-    local item = gather.items[1]
-    if gather.name and item and item.id and (gather.kind == "herb" or gather.kind == "ore") then
+    -- Herbs and veins teach the item they give, for every module that reads nodes: the first that
+    -- isn't a vein's stone, since a vein gives its ore and stone in either order.
+    local item
+    for _, each in ipairs(gather.items) do
+        if each.id and not Professions.IsStone(each.id) then
+            item = each
+            break
+        end
+    end
+    if gather.name and item and (gather.kind == "herb" or gather.kind == "ore") then
         Professions.LearnNodeItem(gather.name, item.id, gather.line)
     end
     for fn in pairs(listeners) do
@@ -285,6 +296,10 @@ local function listen(on)
     change("UNIT_SPELLCAST_SUCCEEDED", { "player" }, onSucceeded)
     change("UNIT_SPELLCAST_FAILED", { "player" }, onFailed)
     change("UNIT_SPELLCAST_INTERRUPTED", { "player" }, onFailed)
+    -- A cast refused before it began (moving, too far) fails quietly, without UNIT_SPELLCAST_FAILED.
+    if ns.HasEvent("UNIT_SPELLCAST_FAILED_QUIET") then
+        change("UNIT_SPELLCAST_FAILED_QUIET", { "player" }, onFailed)
+    end
     if on then
         ns.On("LOOT_OPENED", onLoot)
         -- Probe: LOOT_READY is Mainline's; without it, LOOT_OPENED alone.
@@ -319,7 +334,6 @@ local floor, sqrt = math.floor, math.sqrt
 Gathering.RADIUS = 15 -- yards within which a gather is of a node already known
 local WEIGHT = 10 -- the most gathers a spot's average counts, so a node that moved still follows
 local VISIT = 120 -- seconds within which gathering a node again is the same visit
-local SEEN_RADIUS = 60 -- yards within which a gather claims a node only seen, never gathered
 
 ---A spot rounded to the 4 places nodes are saved with.
 ---@param v number
@@ -416,22 +430,12 @@ end
 ---@return boolean new
 function Gathering.Add(list, name, kind, x, y, width, height, now, radius)
     local node = Gathering.Nearest(list, x, y, width, height, radius or Gathering.RADIUS, sameSpawn(name))
-    -- A node only seen may be further off (a dot seen on a zoomed out minimap): it's this one.
-    node = node or Gathering.Nearest(list, x, y, width, height, SEEN_RADIUS, function(known)
-        return known.count == 0 and Professions.SharesSpawn(known.name, name)
-    end)
     if node and node.time and now - node.time < VISIT then
         -- Mined again on the same visit (a vein gives two or three times): not another gather.
         node.time = now
         return node, false
     elseif node then
-        if node.count == 0 then
-            -- Only seen till now: where the player stands to gather it is closer than a sighting
-            -- (a dot is as big as many yards when the minimap is zoomed out).
-            node.x, node.y = Gathering.Round(x), Gathering.Round(y)
-        else
-            average(node, x, y)
-        end
+        average(node, x, y)
         noteName(node, name, kind, true)
         node.count = node.count + 1
         if not node.names then
@@ -446,10 +450,10 @@ function Gathering.Add(list, name, kind, x, y, width, height, now, radius)
 end
 
 ---Adds a sighting of the node `name` at x, y to a map's nodes (seen on the minimap, not gathered):
----like Add, but it doesn't count as a gather. The same node within `radius` yards moves toward
----it, once a visit, if it was never gathered (a gather's spot is closer), and other sightings of
----it that close are folded into it; else it's a new node, gathered 0 times. Returns the node and
----whether it's new.
+---like Add, but it doesn't count as a gather. The same node within Gathering.RADIUS yards moves
+---toward it, once a visit; else it's a new node, gathered 0 times. A sighting is the dot's own
+---spot (Minimap Node Icons reads it standing still), so it weighs as much as a gather. Returns
+---the node and whether it's new.
 ---@param list table a map's nodes
 ---@param name string
 ---@param kind string
@@ -458,28 +462,17 @@ end
 ---@param width number the map's size in yards
 ---@param height number
 ---@param now number time()
----@param radius? number yards, Gathering.RADIUS by default
 ---@return table node
 ---@return boolean new
-function Gathering.See(list, name, kind, x, y, width, height, now, radius)
-    local node = Gathering.Nearest(list, x, y, width, height, radius or Gathering.RADIUS, sameSpawn(name))
+function Gathering.See(list, name, kind, x, y, width, height, now)
+    local node = Gathering.Nearest(list, x, y, width, height, Gathering.RADIUS, sameSpawn(name))
     if node then
         noteName(node, name, kind, false)
-        -- A node gathered already is where the player stood to gather it, closer than a sighting.
-        if node.count == 0 and not (node.seen and now - node.seen < VISIT) then
+        if not (node.seen and now - node.seen < VISIT) then
             average(node, x, y)
             node.sightings = (node.sightings or 0) + 1
         end
         node.seen = now
-        -- Other sightings of that name this close were the same dot, seen from another side.
-        radius = radius or Gathering.RADIUS
-        for i = #list, 1, -1 do
-            local other = list[i]
-            if other ~= node and other.name == name and other.count == 0
-                and Gathering.Distance(x, y, other.x, other.y, width, height) <= radius then
-                table.remove(list, i)
-            end
-        end
         return node, false
     end
     node = { name = name, kind = kind, x = Gathering.Round(x), y = Gathering.Round(y), count = 0,

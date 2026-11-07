@@ -58,21 +58,12 @@ eq(node.sightings .. ":" .. node.y, "2:0.305", "see: a later visit moves it")
 node, new = Gathering.Add(seen, "Peacebloom", "herb", 0.301, 0.307, W, H, 2100)
 eq(new, false, "see: gathering a node seen is the same node")
 eq(node.count, 1, "see: and counts its first gather")
-eq(node.x .. ":" .. node.y, "0.301:0.307", "see: its first gather puts it where the player stood")
--- A gather 30 yards from a node only seen is that node; from one gathered, it's another.
+eq(node.x .. ":" .. node.y, "0.3003:0.3057", "see: a gather averages with the sightings")
+eq(#seen, 1, "see: one node")
+-- A gather 30 yards from a node only seen is another node: sightings are exact spots.
 local far = { { name = "Silverleaf", kind = "herb", x = 0.4, y = 0.4, count = 0, sightings = 1 } }
 node, new = Gathering.Add(far, "Silverleaf", "herb", 0.4, 0.43, W, H, 100)
-eq(new, false, "add: claims a node only seen 30 yards off")
-node, new = Gathering.Add(far, "Silverleaf", "herb", 0.4, 0.46, W, H, 1000)
-eq(new, true, "add: but not one gathered 30 yards off")
--- Seen again, a dot's other sightings close by fold into the one it matched.
-local spam = {
-    { name = "Tin Vein", kind = "ore", x = 0.6, y = 0.6, count = 0, sightings = 1, seen = 1 },
-    { name = "Tin Vein", kind = "ore", x = 0.6, y = 0.62, count = 0, sightings = 1, seen = 1 },
-    { name = "Tin Vein", kind = "ore", x = 0.6, y = 0.64, count = 2, time = 1 },
-}
-Gathering.See(spam, "Tin Vein", "ore", 0.6, 0.6, W, H, 5000, 30)
-eq(#spam, 2, "see: a nearby copy only seen is folded in, a gathered one isn't")
+eq(new, true, "add: a node only seen 30 yards off is another")
 -- Silver where Tin spawns is the same node, shown as the one gathered most.
 local shared = {}
 Gathering.Add(shared, "Tin Vein", "ore", 0.7, 0.7, W, H, 100)
@@ -84,10 +75,6 @@ node = Gathering.Add(shared, "Silver Vein", "ore", 0.7, 0.7, W, H, 2000)
 eq(node.name .. ":" .. node.count, "Silver Vein:3", "spawns: shown as the one gathered most")
 node, new = Gathering.Add(shared, "Copper Vein", "ore", 0.7, 0.7, W, H, 3000)
 eq(new, true, "spawns: copper isn't silver's or tin's")
--- A sighting wider than the radius, as a hovered dot on a zoomed out minimap, is the same node.
-node, new = Gathering.See(seen, "Peacebloom", "herb", 0.31, 0.307, W, H, 9000, 30)
-eq(new, false, "see: a wider radius finds the same node")
-eq(#seen, 1, "see: one node")
 
 -- The average counts at most ten gathers, so a node that moved still follows.
 local moved = { { name = "Peacebloom", kind = "herb", x = 0.2, y = 0.2, count = 50, time = 1 } }

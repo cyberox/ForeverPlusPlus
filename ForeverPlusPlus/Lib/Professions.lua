@@ -110,6 +110,13 @@ local TOOLS = ns.GameData.New("professionTools", {
     [6219] = 202, -- Arclight Spanner (Engineering)
 }, { kind = "item", label = "Profession tools" })
 
+---Whether an item is the stone a vein gives besides its ore (Rough Stone, Coarse Stone, ...).
+---@param itemID number
+---@return boolean
+function Professions.IsStone(itemID)
+    return STONES:Get(itemID) ~= nil
+end
+
 ---Whether an item is a profession tool: a fishing pole, or a tool like the Mining Pick.
 ---@param itemID number
 ---@param classID? number

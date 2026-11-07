@@ -138,6 +138,8 @@ eq(Professions.SharesSpawn("Gold Vein", "Ooze Covered Gold Vein"), true, "spawns
 eq(Professions.SharesSpawn("Poor Copper Vein", "Copper Vein"), true, "spawns: same item")
 eq(Professions.SharesSpawn("Copper Vein", "Silver Vein"), false, "spawns: copper isn't silver")
 eq(Professions.SharesSpawn("Peacebloom", "Silverleaf"), false, "spawns: two herbs")
+eq(Professions.IsStone(2835), true, "stones: Rough Stone")
+eq(Professions.IsStone(2770), false, "stones: Copper Ore isn't")
 Professions.ForgetNodes()
 eq(itemSkill(2447), Professions.HERBALISM .. ":1", "items: herb")
 eq(itemSkill(10620), Professions.MINING .. ":245", "items: the lowest vein that gives it")

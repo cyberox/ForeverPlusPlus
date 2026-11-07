@@ -668,7 +668,7 @@ local function onSighting(sighting)
         return
     end
     local _, new = Gathering.See(list, sighting.name, sighting.kind, sighting.x, sighting.y, width,
-        height, time(), sighting.radius)
+        height, time())
     if new then
         internal.Changed(sighting.mapID)
     end
