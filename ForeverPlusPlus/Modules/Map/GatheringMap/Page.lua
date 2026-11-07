@@ -33,6 +33,7 @@ local KIND_LINES = { herb = Professions.HERBALISM, ore = Professions.MINING } --
 -- front and the spots behind; the details need less room.
 local LIST_WIDTH = 270
 local SKILL_WIDTH = 22 -- a node row's skill, in front of its icon (up to "300")
+local TRIVIAL = 0.7 -- the list's gray for a skill that no longer gives skill-ups
 local ICON, INDENT = 14, 14 -- a node row's icon, and how far node rows sit in from their header
 local TIER_HEIGHT = 18
 
@@ -272,7 +273,7 @@ local function newNodeRow(list)
     row.skill:SetPoint("LEFT", row.box, "RIGHT", 0, 0)
     row.skill:SetJustifyH("RIGHT")
     row.icon = newRoundIcon(row, ICON)
-    row.icon:SetPoint("LEFT", row.skill, "RIGHT", 4, 0)
+    row.icon:SetPoint("LEFT", row.skill, "RIGHT", 6, 0)
     -- How many spots are remembered, in gray at the end: "x12".
     row.count = row:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     row.count:SetPoint("RIGHT", -6, 0)
@@ -300,7 +301,12 @@ local function fillNodeRow(row, entry, kindOn)
     if entry.skill then
         local color = Professions.Difficulty(Professions.Rank(KIND_LINES[entry.kind]), entry.skill)
         row.skill:SetText(entry.skill)
-        row.skill:SetTextColor(color.r, color.g, color.b)
+        if color.r == color.g and color.g == color.b then
+            -- The trainer's gray (no skill-ups) is too dark to read on the list's background.
+            row.skill:SetTextColor(TRIVIAL, TRIVIAL, TRIVIAL)
+        else
+            row.skill:SetTextColor(color.r, color.g, color.b)
+        end
     else
         row.skill:SetText("")
     end
@@ -313,9 +319,10 @@ local function newTierRow(list)
     row:SetSize(LIST_WIDTH, TIER_HEIGHT)
     row.text = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     row.text:SetPoint("BOTTOMLEFT", INDENT + 4, 3)
-    row.text:SetTextColor(0.8, 0.8, 0.8)
-    row.range = row:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    row.text:SetTextColor(0.9, 0.9, 0.9)
+    row.range = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     row.range:SetPoint("LEFT", row.text, "RIGHT", 6, 0)
+    row.range:SetTextColor(0.7, 0.7, 0.7)
     local line = row:CreateTexture(nil, "ARTWORK")
     line:SetColorTexture(1, 1, 1, 0.15)
     line:SetHeight(1)
@@ -337,6 +344,19 @@ local function newPair(parent, width)
     line.label:SetPoint("RIGHT", line.value, "LEFT", -8, 0)
     line.label:SetJustifyH("LEFT")
     line.label:SetWordWrap(false)
+    return line
+end
+
+-- The total under a list of zones: a gold "Total:" and the spots, with a faint line above it.
+local function newTotal(parent, width)
+    local line = newPair(parent, width)
+    line.label:SetFontObject("GameFontNormal")
+    line.label:SetText(L.GATHERINGMAP_PAGE_TOTAL)
+    local rule = line:CreateTexture(nil, "ARTWORK")
+    rule:SetColorTexture(1, 1, 1, 0.15)
+    rule:SetHeight(1)
+    rule:SetPoint("TOPLEFT")
+    rule:SetPoint("TOPRIGHT")
     return line
 end
 
@@ -385,6 +405,7 @@ local function newNodeView(parent, width)
     zonesLabel:SetPoint("BOTTOMLEFT", 0, 2)
     zonesLabel:SetText(L.GATHERINGMAP_PAGE_ZONES)
     view.zones = {}
+    view.total = newTotal(view.stack, width)
 
     view.none = CreateFrame("Frame", nil, view.stack)
     view.none:SetSize(width, ZONE_ROW)
@@ -453,6 +474,13 @@ local function fillNodeView(view, entry)
     for i = #entry.zones + 1, #view.zones do
         view.zones[i]:Hide()
     end
+    -- Spread over more than one zone, the spots' total under them.
+    if #entry.zones > 1 then
+        view.total.value:SetText(spotsText(entry.spots))
+        Kit.AddEntry(stack, view.total, nil, 2)
+    else
+        view.total:Hide()
+    end
     -- Nothing to forget until a spot is remembered.
     if #entry.zones == 0 then
         Kit.AddEntry(stack, view.none, nil, 0)
@@ -514,6 +542,14 @@ local function newKindView(parent, width)
     view.note:SetWidth(width)
     view.note:SetJustifyH("LEFT")
     view.note:SetText(L.GATHERINGMAP_PAGE_NOTE)
+
+    -- Every zone with spots of this kind, how many in each, and their total.
+    view.zonesHeader = view:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    view.zonesHeader:SetPoint("TOPLEFT", view.note, "BOTTOMLEFT", 0, -16)
+    view.zonesHeader:SetText(L.GATHERINGMAP_PAGE_ZONES)
+    view.zones = {}
+    view.total = newTotal(view, width)
+    view.width = width
     return view
 end
 
@@ -522,13 +558,57 @@ local function fillKindView(view, kind, list, listed)
     local kindOn = not module.db.hiddenKinds[kind.kind]
     view.title:SetText(kind.name)
     local spots = 0
+    local byZone, zones = {}, {}
     for _, entry in ipairs(list) do
         spots = spots + entry.spots
+        for _, zone in ipairs(entry.zones) do
+            local sum = byZone[zone.mapID]
+            if not sum then
+                sum = { mapID = zone.mapID, spots = 0 }
+                byZone[zone.mapID] = sum
+                zones[#zones + 1] = sum
+            end
+            sum.spots = sum.spots + zone.spots
+        end
     end
+    sort(zones, function(a, b)
+        if a.spots ~= b.spots then
+            return a.spots > b.spots
+        end
+        return a.mapID < b.mapID
+    end)
     view.summary:SetText(format(L.GATHERINGMAP_PAGE_SUMMARY, #list, spots))
     view.show:SetChecked(kindOn)
     view.showAll:SetEnabled(kindOn)
     view.hideAll:SetEnabled(kindOn)
+
+    local shown = #zones > 0
+    view.zonesHeader:SetShown(shown)
+    local above = view.zonesHeader
+    for i, zone in ipairs(zones) do
+        local line = view.zones[i]
+        if not line then
+            line = newPair(view, view.width)
+            view.zones[i] = line
+        end
+        line.label:SetText(ns.WorldMap.MapName(zone.mapID, tostring(zone.mapID)))
+        line.value:SetText(spotsText(zone.spots))
+        line:ClearAllPoints()
+        line:SetPoint("TOPLEFT", above, "BOTTOMLEFT", 0, i == 1 and -4 or 0)
+        line:Show()
+        above = line
+    end
+    for i = #zones + 1, #view.zones do
+        view.zones[i]:Hide()
+    end
+    view.total:SetShown(shown)
+    if shown then
+        view.total.value:SetText(spotsText(spots))
+        view.total:ClearAllPoints()
+        view.total:SetPoint("TOPLEFT", above, "BOTTOMLEFT", 0, -2)
+    end
+    -- Tall enough for the zones, so the pane scrolls to the last.
+    view:SetHeight(330 + (shown and (#zones + 2) * ZONE_ROW + 24 or 0))
 end
 
 -- Refreshing ------------------------------------------------------------------------------------
