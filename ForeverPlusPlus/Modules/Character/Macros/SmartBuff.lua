@@ -164,7 +164,7 @@ local function givesOthers()
     return false
 end
 
--- "physical" or "mana": what kind of buffs the unit wants.
+-- Whether the unit uses mana, by its class.
 local function usesMana(unit, isSelf)
     local class = isSelf and playerClass or classOf(unit)
     if class then
@@ -176,6 +176,7 @@ local function usesMana(unit, isSelf)
     return readable(power) and power == mana or false
 end
 
+-- "physical" or "mana": what kind of buffs the unit wants. For yourself as a hybrid, your talents.
 local function kindOf(unit, isSelf)
     local trees = isSelf and OWN_TREES[playerClass]
     if trees then
@@ -196,8 +197,8 @@ local function fits(entry, kind, isSelf)
 end
 
 -- The unit's buffs by name: { mine = cast by you, left = seconds left or huge, length = its full
--- length or 0, rank = its rank or nil }. Nil while auras
--- can't be read (in combat, mostly), so nothing counts as there.
+-- length or 0, rank = its rank or nil }. Nil while auras can't be read (in combat, mostly), so
+-- nothing counts as there.
 local function aurasOf(unit)
     if not ns.AurasReadable() then
         return nil

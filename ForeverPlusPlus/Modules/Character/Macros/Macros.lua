@@ -21,13 +21,11 @@ module.title = L.MACROS_TITLE
 module.category = "character"
 module.added = "1.0.0-beta.1"
 module.options = {} -- each part adds its section
--- The game's rule, not ours, so say it where the player turns macros on; a notice with no button.
+-- The game's rule, not ours, so say it where the player turns macros on; a notice with no button,
+-- always shown.
 module.notice = {
     text = L.MACROS_NOTICE,
     description = L.MACROS_NOTICE_DESC,
-    shown = function()
-        return true
-    end,
 }
 module.internal = {}
 local internal = module.internal

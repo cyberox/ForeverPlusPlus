@@ -1,8 +1,8 @@
 -- Talent Planner: a Plan Talents button on the talent window. While planning, clicking a talent
 -- adds a point to a saved plan instead of learning it, in the order clicked, and a level box limits
--- the plan to the points a character has at that level (the beta stops at 30). Out of planning, the
--- plan's next talent glows when you have a point to spend, and talent tooltips say at which levels
--- the plan takes it, and Level-Up Reminder names it in chat when a point comes. Blizzard's tree
+-- the plan to the points a character has at that level. Out of planning, the plan's next talent
+-- glows when you have a point to spend, and talent tooltips say at which levels the plan takes
+-- it, and Level-Up Reminder names it in chat when a point comes. Blizzard's tree
 -- still draws the talents; while planning, our own buttons sit over its buttons (theirs go
 -- transparent) and show the plan's ranks with Blizzard's own art. The tree's data comes from
 -- C_Traits (docs/forever-api.md, Talents); nothing here learns a talent.
