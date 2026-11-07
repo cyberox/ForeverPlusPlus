@@ -12,7 +12,7 @@
 -- Blizzard's only), hence the popup.
 local _, ns = ...
 
-local CreateFrame, UIParent, C_Timer, EventRegistry = CreateFrame, UIParent, C_Timer, EventRegistry
+local CreateFrame, C_Timer, EventRegistry = CreateFrame, C_Timer, EventRegistry
 local ipairs, pairs, type, time = ipairs, pairs, type, time
 local floor, concat = math.floor, table.concat
 local find, match, sub = string.find, string.match, string.sub
