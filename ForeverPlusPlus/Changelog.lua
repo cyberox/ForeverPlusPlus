@@ -18,10 +18,14 @@ ns.changelog = {
                     .. "right by default, in your bags and bank, at merchants, in the auction house, "
                     .. "and in loot, and so does a recipe that makes it, after its name in the "
                     .. "professions window. A corner Upgrade Arrows or Already Known also uses gets a "
-                    .. "warning. Off by default." },
+                    .. "warning. On by default." },
                 { L.ALREADYKNOWN_TITLE, "Corner, Check Size, and Padding for the green check, like "
                     .. "Upgrade Arrows' arrow. A corner Upgrade Arrows also uses gets a warning." },
                 { L.SPELLRANKS_TITLE, "Corner, Badge Size, and Padding for the warning badge." },
+            } },
+            { L.CHANGELOG_CHANGED, {
+                { L.UPGRADEARROWS_TITLE, "The arrow is 18 pixels by default instead of 20. A size "
+                    .. "you picked stays." },
             } },
             { L.CHANGELOG_FIXED, {
                 { L.UPGRADEARROWS_TITLE, "With a two-hander on, a one-hander or off hand is judged "

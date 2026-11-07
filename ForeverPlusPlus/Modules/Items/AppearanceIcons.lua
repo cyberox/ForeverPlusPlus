@@ -19,9 +19,9 @@ local L = ns.L
 local ItemButtons = ns.ItemButtons
 
 local module = ns.NewModule("AppearanceIcons", L.APPEARANCEICONS_DESC, {
-    enabled = false,
+    enabled = true,
     corner = "TOPRIGHT", -- free of Upgrade Arrows (top left), Already Known (bottom left), and counts
-    size = 14, -- in the bags; other places scale from it
+    size = 18, -- in the bags; other places scale from it
     padding = 1, -- how far the icon sits in from its corner, in pixels, as Upgrade Arrows' arrow
     bags = true,
     bank = true,

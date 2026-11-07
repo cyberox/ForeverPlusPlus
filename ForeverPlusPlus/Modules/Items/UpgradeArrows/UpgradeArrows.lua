@@ -26,7 +26,7 @@ local module = ns.NewModule("UpgradeArrows", L.UPGRADEARROWS_DESC, {
     threshold = 0, -- percent an item must beat what you wear by
     corner = "TOPLEFT", -- where the arrow sits on an icon (Blizzard's own UpgradeIcon's corner)
     downCorner = "TOPLEFT", -- where a downgrade's arrow sits
-    size = 20, -- the arrow's size on a bag icon, in pixels
+    size = 18, -- the arrow's size on a bag icon, in pixels
     padding = 1, -- how far the arrow sits in from its corner, in pixels
     percent = false, -- the percentage beside the arrow on icons (the tooltip has it)
     tooltip = "name", -- the arrow and percentage "name" (beside the item's name), on a "line" of their own, or "off"
@@ -151,6 +151,7 @@ module.options = {
     {
         key = "size", name = L.UPGRADEARROWS_SIZE, description = L.UPGRADEARROWS_SIZE_DESC,
         section = L.UPGRADEARROWS_SECTION_ARROW, min = 12, max = 32, step = 2, format = L.ICONMARK_PIXELS,
+        changed = "1.2.0", -- 18 by default, not 20
     },
     ItemButtons.PaddingOption(L.UPGRADEARROWS_SECTION_ARROW),
     {
