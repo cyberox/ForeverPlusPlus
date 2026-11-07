@@ -40,6 +40,11 @@ local function forget(pin, button)
     end
 end
 
+-- A pin's tooltip lines, worked out when it's shown so Shift can change them.
+local function linesFor(info)
+    return internal.TooltipLines(info.node)
+end
+
 local function infoFor(i, node, size, zone)
     local info = infos[i]
     if not info then
@@ -51,7 +56,8 @@ local function infoFor(i, node, size, zone)
     info.size = size * info.scale
     info.alpha = module.db.mapAlpha / 100 * info.fade
     info.title = node.name
-    info.lines = internal.TooltipLines(node)
+    info.kind = internal.KindName(node)
+    info.lines = linesFor
     return info
 end
 

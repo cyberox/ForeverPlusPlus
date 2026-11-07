@@ -69,7 +69,12 @@ end
 -- Pins ----------------------------------------------------------------------------------------
 
 local function onEnter(pin)
-    ns.MapTooltip.Show(pin, pin.info.title, pin.info.lines)
+    local info = pin.info
+    local lines = info.lines
+    if type(lines) == "function" then
+        lines = lines(info)
+    end
+    ns.MapTooltip.Show(pin, info.title, lines, info.kind)
     pin.highlight:Show()
 end
 
@@ -106,9 +111,19 @@ end
 
 local IsShiftKeyDown = IsShiftKeyDown
 
+-- While the mouse is on the pin: takes clicks only with Shift held, and shows its tooltip again
+-- when Shift goes up or down, for lines shown only with Shift.
 local function watchShift(pin)
+    local shift = IsShiftKeyDown() and true or false
     if pin.SetMouseClickEnabled then
-        pin:SetMouseClickEnabled(pin.shiftClick ~= nil and IsShiftKeyDown() and true or false)
+        pin:SetMouseClickEnabled(pin.shiftClick ~= nil and shift)
+    end
+    if shift ~= pin.shiftWas then
+        local first = pin.shiftWas == nil
+        pin.shiftWas = shift
+        if not first and GameTooltip:IsOwned(pin) then
+            pin:GetScript("OnEnter")(pin)
+        end
     end
 end
 
@@ -135,6 +150,7 @@ function MapPins.ShiftClick(pin, fn)
     end)
     pin:HookScript("OnLeave", function(self)
         self:SetScript("OnUpdate", nil)
+        self.shiftWas = nil
         if self.SetMouseClickEnabled then
             self:SetMouseClickEnabled(false)
         end

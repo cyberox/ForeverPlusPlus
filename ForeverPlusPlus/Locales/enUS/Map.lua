@@ -402,15 +402,38 @@ L.GATHERINGMAP_NEAR_YARDS = "Within"
 L.GATHERINGMAP_NEAR_YARDS_DESC = "How close a node is to count as near you; farther out it shows its icon."
 L.GATHERINGMAP_YARDS = "%d yd" -- yards
 L.GATHERINGMAP_NEAR_ALPHA_DESC = "How solid the empty rings are."
-L.GATHERINGMAP_AWAY = "%d yards away" -- yards
-L.GATHERINGMAP_NEAR_NOTE = "Remembered spot; the game's own dot shows whether it's there now."
 L.GATHERINGMAP_TOOLTIPS = "Minimap Tooltips"
-L.GATHERINGMAP_TOOLTIPS_DESC = "Show a node's tooltip when you point at its icon on the minimap."
+L.GATHERINGMAP_TOOLTIPS_DESC = "Show a node's tooltip when you point at its icon on the minimap. It's "
+    .. "also what lets Shift+right-click forget a node there."
+-- A node's tooltip: the lines, each a label and its value as Blizzard's Sell Price line
+L.GATHERINGMAP_TIP_GATHERED = "Gathered:"
+L.GATHERINGMAP_TIP_ONCE = "Once"
+L.GATHERINGMAP_TIP_TIMES = "%d times" -- count, more than one
+L.GATHERINGMAP_TIP_LAST = "Last:"
+L.GATHERINGMAP_TIP_ALSO = "Also:"
+L.GATHERINGMAP_TIP_ALSO_VALUE = "%s (%d)" -- another vein spawning there, its gathers
+L.GATHERINGMAP_TIP_DISTANCE = "Distance:"
+-- Its options: when each line shows
+L.GATHERINGMAP_TIP_ALWAYS = "Always"
+L.GATHERINGMAP_TIP_SHIFT = "With Shift"
+L.GATHERINGMAP_TIP_NEVER = "Never"
+L.GATHERINGMAP_TIP_GATHERED_NAME = "Times Gathered"
+L.GATHERINGMAP_TIP_GATHERED_DESC = "How many times you've gathered the node."
+L.GATHERINGMAP_TIP_LAST_NAME = "Last Gathered"
+L.GATHERINGMAP_TIP_LAST_DESC = "How long ago you last gathered it."
+L.GATHERINGMAP_TIP_ALSO_NAME = "Other Veins"
+L.GATHERINGMAP_TIP_ALSO_DESC = "The other vein a spot has spawned (Silver where Tin spawns), with your "
+    .. "gathers of it."
+L.GATHERINGMAP_TIP_DISTANCE_NAME = "Distance"
+L.GATHERINGMAP_TIP_DISTANCE_DESC = "How far the node is from you, on the minimap."
+L.GATHERINGMAP_TIP_FORGET_NAME = "Forget Hint"
+L.GATHERINGMAP_TIP_FORGET_DESC = "A reminder that Shift+right-click forgets the node."
 L.GATHERINGMAP_JUST_ALPHA_DESC = "How solid a node you just gathered is, on top of the map's own opacity."
 -- Smaller headers over its options in Settings
 L.GATHERINGMAP_SECTION_LOOK = "Look"
 L.GATHERINGMAP_SECTION_MINIMAP = "Minimap"
 L.GATHERINGMAP_SECTION_WORLDMAP = "World Map"
+L.GATHERINGMAP_SECTION_TOOLTIPS = "Tooltips"
 L.GATHERINGMAP_ICON = "Icon Style"
 L.GATHERINGMAP_ICON_DESC = "Show each node as the icon of what it gives, like Copper Ore for a Copper "
     .. "Vein, or as a circle in its kind's color: green for herbs, orange for ore. A node whose "
@@ -455,9 +478,5 @@ L.GATHERINGMAP_KIND_HERB = "Herb"
 L.GATHERINGMAP_KIND_ORE = "Ore"
 L.GATHERINGMAP_KIND_TREASURE = "Treasure"
 L.GATHERINGMAP_KIND_FISH = "Fishing Pool"
--- A node's tooltip
-L.GATHERINGMAP_GATHERED_ONCE = "Gathered once"
-L.GATHERINGMAP_GATHERED = "Gathered %d times" -- count, more than one
-L.GATHERINGMAP_LAST = "Last gathered %s" -- "3h ago"
-L.GATHERINGMAP_SEEN = "Seen on the minimap, not gathered yet"
-L.GATHERINGMAP_ALSO = "Also spawns %s (gathered %d)" -- another vein's name, its gathers here
+-- A node's tooltip, for one seen but never gathered
+L.GATHERINGMAP_SEEN = "Not gathered yet"

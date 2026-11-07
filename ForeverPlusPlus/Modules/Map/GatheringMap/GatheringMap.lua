@@ -8,7 +8,7 @@
 local _, ns = ...
 
 local pairs, type, time, format, tostring = pairs, type, time, string.format, tostring
-local C_Minimap, C_Map = C_Minimap, C_Map
+local C_Minimap, C_Map, IsShiftKeyDown = C_Minimap, C_Map, IsShiftKeyDown
 
 local L = ns.L
 local Gathering = ns.Gathering
@@ -35,6 +35,12 @@ local module = ns.NewModule("GatheringMap", L.GATHERINGMAP_DESC, {
     minimapSize = 12, -- pixels
     minimapAlpha = 100, -- percent
     minimapTooltips = true, -- an icon shows its node's tooltip
+    -- Each line of a node's tooltip: "always", "shift" (while Shift is held), or "never".
+    tipGathered = "always",
+    tipLast = "always",
+    tipAlso = "always",
+    tipDistance = "shift",
+    tipForget = "shift",
     -- How a node shows on the minimap: "all" (an empty ring anywhere on it, the game's own dot
     -- inside it when the node is there, since the game draws dots out to about the minimap's edge:
     -- a Silver Vein ~200 yards off, in game, 2026-11-07), or within nearYards of the player "ring"
@@ -56,6 +62,19 @@ local internal = module.internal
 
 local LOOK, MINIMAP, WORLD = L.GATHERINGMAP_SECTION_LOOK, L.GATHERINGMAP_SECTION_MINIMAP,
     L.GATHERINGMAP_SECTION_WORLDMAP
+local TIPS = L.GATHERINGMAP_SECTION_TOOLTIPS
+
+-- A line of the nodes' tooltips: shown always, only while Shift is held, or never.
+local function tipOption(key, name, description)
+    return {
+        key = key, name = name, description = description, section = TIPS,
+        choices = {
+            { "always", L.GATHERINGMAP_TIP_ALWAYS },
+            { "shift", L.GATHERINGMAP_TIP_SHIFT },
+            { "never", L.GATHERINGMAP_TIP_NEVER },
+        },
+    }
+end
 
 module.options = {
     { key = "onlyMine", name = L.GATHERINGMAP_ONLY_MINE, description = L.GATHERINGMAP_ONLY_MINE_DESC },
@@ -141,10 +160,6 @@ module.options = {
         end,
     },
     {
-        key = "minimapTooltips", name = L.GATHERINGMAP_TOOLTIPS, description = L.GATHERINGMAP_TOOLTIPS_DESC,
-        section = MINIMAP, requires = "minimap",
-    },
-    {
         key = "worldMap", name = L.GATHERINGMAP_WORLDMAP, description = L.GATHERINGMAP_WORLDMAP_DESC,
         section = WORLD, slider = "mapSize",
     },
@@ -160,6 +175,15 @@ module.options = {
         key = "mapContinents", name = L.GATHERINGMAP_CONTINENTS, description = L.GATHERINGMAP_CONTINENTS_DESC,
         section = WORLD, requires = "worldMap",
     },
+    {
+        key = "minimapTooltips", name = L.GATHERINGMAP_TOOLTIPS, description = L.GATHERINGMAP_TOOLTIPS_DESC,
+        section = TIPS,
+    },
+    tipOption("tipGathered", L.GATHERINGMAP_TIP_GATHERED_NAME, L.GATHERINGMAP_TIP_GATHERED_DESC),
+    tipOption("tipLast", L.GATHERINGMAP_TIP_LAST_NAME, L.GATHERINGMAP_TIP_LAST_DESC),
+    tipOption("tipAlso", L.GATHERINGMAP_TIP_ALSO_NAME, L.GATHERINGMAP_TIP_ALSO_DESC),
+    tipOption("tipDistance", L.GATHERINGMAP_TIP_DISTANCE_NAME, L.GATHERINGMAP_TIP_DISTANCE_DESC),
+    tipOption("tipForget", L.GATHERINGMAP_TIP_FORGET_NAME, L.GATHERINGMAP_TIP_FORGET_DESC),
     {
         key = "log", name = L.GATHERINGMAP_LOG, description = L.GATHERINGMAP_LOG_DESC,
         debug = true, section = L.DEBUG_SECTION_LOGGING,
@@ -390,28 +414,52 @@ function internal.Shown(node)
     return true
 end
 
----The lines under a node's name in its tooltip.
+-- Whether a tooltip line set to `key` ("always", "shift", or "never") shows now.
+local function wants(key)
+    local when = module.db[key]
+    return when == "always" or (when == "shift" and IsShiftKeyDown())
+end
+
+---The kind of a node as its tooltip's title shows it at the right ("Ore").
 ---@param node table
+---@return string
+function internal.KindName(node)
+    return internal.KIND_NAMES[node.kind] or node.kind
+end
+
+---The lines under a node's name in its tooltip, as Blizzard's Sell Price line lays them out: a
+---label and its value, each line shown always, with Shift held, or never as its option says.
+---`yards` is how far the node is, where that's known (the minimap).
+---@param node table
+---@param yards? number
 ---@return table lines
-function internal.TooltipLines(node)
-    local lines = { internal.KIND_NAMES[node.kind] or node.kind }
-    if node.count == 1 then
-        lines[#lines + 1] = ns.MapTooltip.Detail(L.GATHERINGMAP_GATHERED_ONCE)
-    elseif node.count > 1 then
-        lines[#lines + 1] = ns.MapTooltip.Detail(format(L.GATHERINGMAP_GATHERED, node.count))
-    else
-        lines[#lines + 1] = ns.MapTooltip.Detail(L.GATHERINGMAP_SEEN)
+function internal.TooltipLines(node, yards)
+    local Tip = ns.MapTooltip
+    local lines = {}
+    if node.count == 0 then
+        lines[#lines + 1] = Tip.Detail(L.GATHERINGMAP_SEEN)
+    elseif wants("tipGathered") then
+        lines[#lines + 1] = Tip.Pair(L.GATHERINGMAP_TIP_GATHERED, node.count == 1 and L.GATHERINGMAP_TIP_ONCE
+            or format(L.GATHERINGMAP_TIP_TIMES, node.count))
+    end
+    if node.time and wants("tipLast") then
+        lines[#lines + 1] = Tip.Pair(L.GATHERINGMAP_TIP_LAST, ns.Text.Ago(time() - node.time))
     end
     -- A spot that spawned more than one vein (Tin and Silver): the others, with their gathers.
-    for name, count in pairs(node.names or {}) do
-        if name ~= node.name then
-            lines[#lines + 1] = ns.MapTooltip.Detail(format(L.GATHERINGMAP_ALSO, name, count))
+    if node.names and wants("tipAlso") then
+        for name, count in pairs(node.names) do
+            if name ~= node.name then
+                lines[#lines + 1] = Tip.Pair(L.GATHERINGMAP_TIP_ALSO,
+                    format(L.GATHERINGMAP_TIP_ALSO_VALUE, name, count))
+            end
         end
     end
-    if node.time then
-        lines[#lines + 1] = ns.MapTooltip.Note(format(L.GATHERINGMAP_LAST, ns.Text.Ago(time() - node.time)))
+    if yards and wants("tipDistance") then
+        lines[#lines + 1] = Tip.Pair(L.GATHERINGMAP_TIP_DISTANCE, format(L.GATHERINGMAP_YARDS, yards + 0.5))
     end
-    lines[#lines + 1] = ns.MapTooltip.Note(L.GATHERINGMAP_FORGET_HINT)
+    if wants("tipForget") then
+        lines[#lines + 1] = Tip.Note(L.GATHERINGMAP_FORGET_HINT)
+    end
     return lines
 end
 
