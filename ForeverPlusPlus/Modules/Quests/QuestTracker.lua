@@ -114,7 +114,7 @@ module.options = {
         description = L.QUESTTRACKER_PADDING_DESC,
         section = BOX,
         requires = "background",
-        min = 0, max = 24, step = 2, format = "%d",
+        min = 0, max = 24, step = 2, format = L.ICONMARK_PIXELS,
     },
     {
         key = "fade",

@@ -77,7 +77,7 @@ module.notice = {
 module.options = {
     {
         key = "size", name = L.MINIMAPNODEICONS_SIZE, description = L.MINIMAPNODEICONS_SIZE_DESC,
-        min = 5, max = 20, step = 1, format = "%d",
+        min = 5, max = 20, step = 1, format = L.ICONMARK_PIXELS,
     },
     { key = "border", name = L.MINIMAPNODEICONS_BORDER, description = L.MINIMAPNODEICONS_BORDER_DESC },
     { key = "levels", name = L.MINIMAPNODEICONS_LEVELS, description = L.MINIMAPNODEICONS_LEVELS_DESC },
