@@ -1,9 +1,8 @@
--- The Debug module's rows on its own page in the sidebar (S.BuildDebugPage), while it's on, so
--- they're a click away instead of at the bottom of the Modules list: a header for each
--- section (What's New, Diagnostics, Tools, Previews, Layout, Logging), with Forever++'s own buttons and then each
--- module's options marked `debug = true` and buttons from `module.debugActions` that name it; after
--- them a header for each module with rows in no section. Drawn with the Modules page's own rows
--- (Settings.lua), and greyed out while Debug is off.
+-- The Debug module's rows on its own page in the sidebar (S.BuildDebugPage), while it's on: a
+-- header for each section (What's New, Diagnostics, Tools, Previews, Layout, Logging), with
+-- Forever++'s own buttons and then each module's options marked `debug = true` and buttons from
+-- `module.debugActions` that name it; after them a header for each module with rows in no section.
+-- Drawn with the Modules page's own rows (Settings.lua), and greyed out while Debug is off.
 local _, ns = ...
 
 local ipairs, pairs, format, concat, tostring = ipairs, pairs, string.format, table.concat, tostring
@@ -129,8 +128,8 @@ local DEBUG_TOOLS = {
 -- The rows -------------------------------------------------------------------------------------
 
 -- A module's debug options and then its debug buttons in `section` (nil: in none of the sections).
--- They're on while Debug (`debugOn`) and the module are, or while Debug is for a button that's for
--- the module being off too (`whileOff`).
+-- They're on while Debug (`debugOn`) and the module are, or, for a button marked `whileOff`, while
+-- Debug is, whether the module is on or not.
 local function addRows(view, debugOn, module, section)
     local function moduleOn()
         return debugOn() and module.db.enabled and true or false
@@ -150,8 +149,8 @@ local function addRows(view, debugOn, module, section)
     view.follows[module.name] = true -- its rows grey out with it
 end
 
----Adds the Debug module's rows to its `view` on the Modules page, after its Enabled checkbox.
----@param view table the Debug module's view (Settings.lua)
+---Adds the Debug module's rows to `view`, the stack on its own page (S.BuildDebugPage).
+---@param view table the Debug page's view (Settings.lua)
 ---@param debugOn function whether Debug is on
 function S.AddDebugRows(view, debugOn)
     local order = S.byTitle()

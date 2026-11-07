@@ -880,7 +880,6 @@ local function addCoreSteps()
     end)
 end
 
----Loads the saved settings and enables every module that is on (called once, at PLAYER_LOGIN).
 -- Checkbox options with `cvar` are one of Blizzard's own settings shown among the module's: they
 -- read and set the CVar, not saved settings, and their default is the client's. Store.Load links
 -- them. Not on a client without the CVar, where the option reads its declared default.
@@ -942,6 +941,7 @@ local function cvarOptions(module)
     return linked
 end
 
+---Loads the saved settings and enables every module that is on (called once, at PLAYER_LOGIN).
 function ns.Start()
     local Store = ns.Store
     ForeverPlusPlusDB = type(ForeverPlusPlusDB) == "table" and ForeverPlusPlusDB or {}
