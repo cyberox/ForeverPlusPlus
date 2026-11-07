@@ -5,7 +5,7 @@
 -- weak table of its own.
 local _, ns = ...
 
-local _G, ipairs, pairs, type, setmetatable = _G, ipairs, pairs, type, setmetatable
+local _G, ipairs, pairs, type, setmetatable, floor = _G, ipairs, pairs, type, setmetatable, math.floor
 local C_TooltipInfo = C_TooltipInfo
 
 local ItemButtons = {}
@@ -98,6 +98,25 @@ function ItemButtons.PlaceOption(place, description, extra)
         key = place, name = PLACE_NAMES[place], description = description,
         section = L.ICONMARK_SECTION_SHOW,
     }, extra)
+end
+
+-- A bag slot's icon (ContainerFrameItemButtonTemplate, 37 square): a mark's Size option is its
+-- size there.
+ItemButtons.BAG_ICON = 37
+
+---A mark's size on `icon`: `size` pixels on an icon `reference` wide (a bag icon unless given),
+---in proportion to this icon's own width, so a mark looks the same on a loot roll, a merchant's
+---item, or the auction house's small icons. `size` itself while the icon has no width yet.
+---@param icon table? the region the mark sits on
+---@param size number
+---@param reference? number
+---@return number
+function ItemButtons.MarkSize(icon, size, reference)
+    local width = icon and icon.GetWidth and icon:GetWidth()
+    if ns.IsNumber(width) and width > 0 then
+        return floor(size * width / (reference or ItemButtons.BAG_ICON) + 0.5)
+    end
+    return size
 end
 
 ---Puts a mark in a corner of an icon (or any region), `padding` pixels in from it: right and down

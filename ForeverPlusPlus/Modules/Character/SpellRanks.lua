@@ -48,6 +48,7 @@ module.options = {
 }
 
 local DELAY = 0.2 -- seconds to wait for a burst of changes to settle
+local ACTION_BUTTON = 45 -- a standard action button's width (ActionBarButtonTemplate)
 
 local ALERT_ATLAS = "services-icon-warning" -- Blizzard's yellow warning triangle, when it exists
 local ALERT_FILE = "Interface\\DialogFrame\\DialogAlertIcon" -- and its older art
@@ -130,8 +131,10 @@ local function mark(button, on)
     local tint = db.style == "tint"
     frame.tint:SetShown(tint)
     frame.badge:SetShown(not tint)
-    -- Inside the button's corner: past its edge, the next button over draws on top of it.
-    frame.badge:SetSize(db.size, db.size)
+    -- Inside the button's corner: past its edge, the next button over draws on top of it. Badge
+    -- Size is a standard action button's; smaller or bigger bars get it in proportion.
+    local size = ItemButtons.MarkSize(frame, db.size, ACTION_BUTTON)
+    frame.badge:SetSize(size, size)
     ItemButtons.PlaceInCorner(frame.badge, frame, db.corner, db.padding)
 end
 

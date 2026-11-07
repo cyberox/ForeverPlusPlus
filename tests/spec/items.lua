@@ -4,6 +4,19 @@ local ns, eq, near, game = T.ns, T.eq, T.near, T.game
 
 local ItemStats, Equipment, Talents = ns.ItemStats, ns.Equipment, ns.Talents
 
+-- A mark's size keeps in proportion to the icon it's on (Lib/ItemButtons.lua, MarkSize).
+do
+    local MarkSize = ns.ItemButtons.MarkSize
+    local function icon(width)
+        return { GetWidth = function() return width end }
+    end
+    eq(MarkSize(icon(37), 18), 18, "mark size: a bag icon gets the size as set")
+    eq(MarkSize(icon(24), 18), 12, "mark size: a small auction icon gets less")
+    eq(MarkSize(icon(45), 18, 45), 18, "mark size: against its own reference")
+    eq(MarkSize(icon(0), 18), 18, "mark size: an icon not laid out yet gets the size as set")
+    eq(MarkSize(nil, 18), 18, "mark size: no icon")
+end
+
 local stats = ItemStats.Normalize({
     ITEM_MOD_STRENGTH_SHORT = 5, ITEM_MOD_SPELL_POWER_SHORT = 2, ITEM_MOD_SPELL_DAMAGE_DONE_SHORT = 3,
     RESISTANCE0_NAME = 34, ITEM_MOD_DAMAGE_PER_SECOND_SHORT = 8.5, MADE_UP_STAT = 1, ITEM_MOD_TEXT = "no",

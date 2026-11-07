@@ -187,15 +187,15 @@ local checks = ItemButtons.Overlays(function(icon)
     return check
 end)
 
--- Shows or clears our mark on an icon, as the Mark option says. `scale` sizes the check against
--- a bag icon's, since the icons differ from place to place.
-local function setMark(icon, on, scale)
+-- Shows or clears our mark on an icon, as the Mark option says. Check Size is a bag icon's; other
+-- icons get it in proportion.
+local function setMark(icon, on)
     local db = module.db
     local style = db.style
     tints:Set(icon, on and style ~= "check")
     local check = checks:Set(icon, on and style ~= "tint")
     if check then
-        local size = db.size * (scale or 1)
+        local size = ItemButtons.MarkSize(icon, db.size)
         check:SetSize(size, size)
         ItemButtons.PlaceInCorner(check, icon, db.corner, db.padding)
     end
@@ -211,7 +211,7 @@ end
 local function updateMerchant()
     local on = module.db.merchant
     ItemButtons.EachMerchantItem(function(icon, index)
-        setMark(icon, on and itemKnown(_G.GetMerchantItemLink(index)), 1.15)
+        setMark(icon, on and itemKnown(_G.GetMerchantItemLink(index)))
     end)
 end
 
@@ -225,7 +225,7 @@ end
 local function updateAuction()
     local on = module.db.auction
     ItemButtons.EachAuctionRow(function(icon, itemID)
-        setMark(icon, on and itemID and itemKnown("item:" .. itemID), 0.85)
+        setMark(icon, on and itemID and itemKnown("item:" .. itemID))
     end)
 end
 

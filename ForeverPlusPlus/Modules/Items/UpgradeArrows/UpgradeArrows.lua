@@ -14,7 +14,7 @@
 local _, ns = ...
 
 local _G, ipairs, pairs, type, wipe, tonumber, tostring = _G, ipairs, pairs, type, wipe, tonumber, tostring
-local format, floor, huge = string.format, math.floor, math.huge
+local format, huge = string.format, math.huge
 local C_Container, C_AddOns, C_Item, UnitClass, UnitLevel = C_Container, C_AddOns, C_Item, UnitClass, UnitLevel
 
 local L = ns.L
@@ -433,11 +433,13 @@ local TEXT_ANCHORS = {
 
 -- Shows the mark for an upgrade's `result` on an icon (or clears it), the arrow `size` wide in
 -- the corner the Arrow options pick, with the percentage beside it when there is one.
-local function setArrow(set, key, result, size)
+local function setArrow(set, key, result)
     local mark = set:Set(key, hasArt and result)
     if not mark then
         return
     end
+    -- Arrow Size is a bag icon's; other icons get it in proportion.
+    local size = ItemButtons.MarkSize(mark.icon, module.db.size)
     -- A downgrade's arrow is the same art turned over and made red (desaturated first, since a
     -- tint multiplies the green), in its own corner. Gear for later gets it desaturated, gray.
     local down = type(result) == "table" and not result.upgrade
@@ -471,12 +473,6 @@ local function setArrow(set, key, result, size)
     end
 end
 
--- The arrow's size at a place, from the Arrow Size option (a bag icon's), scaled where the icons
--- are smaller.
-local function sizeAt(scale)
-    return floor(module.db.size * scale + 0.5)
-end
-
 local function clearArrows()
     arrows:HideAll()
     rewardArrows:HideAll()
@@ -493,7 +489,7 @@ local function updateBag(frame)
     ItemButtons.EachBagButton(frame, function(_, icon, bag, slot)
         local link = on and not (skipReagent and bag == REAGENT_BAG)
             and C_Container.GetContainerItemLink(bag, slot)
-        setArrow(arrows, icon, link and markOf(link), sizeAt(1))
+        setArrow(arrows, icon, link and markOf(link))
     end)
 end
 
@@ -501,7 +497,7 @@ local function updateBank()
     local on = module.db.bank
     ItemButtons.EachBankButton(function(icon, tab, slot)
         local link = on and tab and C_Container.GetContainerItemLink(tab, slot)
-        setArrow(arrows, icon, link and markOf(link), sizeAt(1))
+        setArrow(arrows, icon, link and markOf(link))
     end)
 end
 
@@ -511,7 +507,7 @@ local function updateMerchant()
     local on = module.db.merchant
     ItemButtons.EachMerchantItem(function(icon, index)
         local link = on and _G.GetMerchantItemLink(index)
-        setArrow(arrows, icon, link and markOf(link), sizeAt(1))
+        setArrow(arrows, icon, link and markOf(link))
     end)
 end
 
@@ -527,18 +523,18 @@ end
 local function updateAuction()
     local on = module.db.auction
     ItemButtons.EachAuctionRow(function(icon, itemID)
-        setArrow(arrows, icon, on and itemID and markOf("item:" .. itemID), sizeAt(0.6))
+        setArrow(arrows, icon, on and itemID and markOf("item:" .. itemID))
     end)
 end
 
 -- Loot ------------------------------------------------------------------------------------------
 
 local function markLoot(icon, _, link)
-    setArrow(arrows, icon, module.db.loot and link and markOf(link), sizeAt(0.9))
+    setArrow(arrows, icon, module.db.loot and link and markOf(link))
 end
 
 local function markRoll(icon, link)
-    setArrow(arrows, icon, module.db.loot and link and markOf(link), sizeAt(0.9))
+    setArrow(arrows, icon, module.db.loot and link and markOf(link))
 end
 
 -- Quest rewards ---------------------------------------------------------------------------------
@@ -571,7 +567,7 @@ local function updateRewards(rewardsFrame)
     end
     rewardsWaiting = uncached and rewardsFrame or nil -- looked at again once its items load
     for _, entry in ipairs(best) do
-        setArrow(rewardArrows, entry[1], entry[2], sizeAt(1))
+        setArrow(rewardArrows, entry[1], entry[2])
     end
 end
 

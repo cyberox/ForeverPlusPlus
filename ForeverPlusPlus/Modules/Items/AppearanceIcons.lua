@@ -152,12 +152,13 @@ end)
 local hasAtlas = false -- whether this client has the atlas, read in OnEnable
 
 -- Shows or clears our mark on an icon. `scale` sizes it against the bags' icons.
-local function setMark(icon, on, scale)
+local function setMark(icon, on)
     local mark = marks:Set(icon, on and hasAtlas)
     if not mark then
         return
     end
-    local size = module.db.size * (scale or 1)
+    -- Icon Size is a bag icon's; other icons get it in proportion.
+    local size = ItemButtons.MarkSize(icon, module.db.size)
     mark:SetAtlas(ATLAS)
     mark:SetSize(size, size)
     ItemButtons.PlaceInCorner(mark, icon, module.db.corner, module.db.padding)
@@ -169,7 +170,7 @@ local function updateBag(frame)
     local on = module.db.bags
     ItemButtons.EachBagButton(frame, function(_, icon, bag, slot)
         local link = on and C_Container.GetContainerItemLink(bag, slot)
-        setMark(icon, link and uncollected(link), 1)
+        setMark(icon, link and uncollected(link))
     end)
 end
 
@@ -177,7 +178,7 @@ local function updateBank()
     local on = module.db.bank
     ItemButtons.EachBankButton(function(icon, tab, slot)
         local link = on and tab and C_Container.GetContainerItemLink(tab, slot)
-        setMark(icon, link and uncollected(link), 1)
+        setMark(icon, link and uncollected(link))
     end)
 end
 
@@ -186,7 +187,7 @@ end
 local function updateMerchant()
     local on = module.db.merchant
     ItemButtons.EachMerchantItem(function(icon, index)
-        setMark(icon, on and uncollected(_G.GetMerchantItemLink(index)), 1.15)
+        setMark(icon, on and uncollected(_G.GetMerchantItemLink(index)))
     end)
 end
 
@@ -200,16 +201,16 @@ end
 local function updateAuction()
     local on = module.db.auction
     ItemButtons.EachAuctionRow(function(icon, itemID)
-        setMark(icon, on and itemID and uncollected("item:" .. itemID), 0.85)
+        setMark(icon, on and itemID and uncollected("item:" .. itemID))
     end)
 end
 
 local function markLoot(icon, _, link)
-    setMark(icon, module.db.loot and link and uncollected(link), 1)
+    setMark(icon, module.db.loot and link and uncollected(link))
 end
 
 local function markRoll(icon, link)
-    setMark(icon, module.db.loot and link and uncollected(link), 1)
+    setMark(icon, module.db.loot and link and uncollected(link))
 end
 
 -- Professions -------------------------------------------------------------------------------------
