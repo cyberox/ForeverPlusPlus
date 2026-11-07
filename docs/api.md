@@ -123,6 +123,13 @@ Levels are the last ones seen, so they can be behind. Check `lastSeen`.
 | `GetItemGatheringSkill(item)` | The skill line and skill of the lowest herb or vein that gives an item. |
 | `GetSkinningSkill(level)` | The Skinning skill needed for a creature of that level. |
 
+These come from Gathering Map, and return `nil` while it's off:
+
+| Function | Returns |
+| --- | --- |
+| `GetGatheringMaps()` | The zone map IDs (C_Map's `uiMapID`) with remembered nodes, lowest first. |
+| `GetGatheringNodes(mapID)` | The nodes remembered on a zone map, for the whole account, whatever the character shows or hides: a list of `{ name, kind, x, y, timesGathered, lastGathered }`. `kind` is `"herb"`, `"ore"`, `"treasure"`, or `"fish"`. `x` and `y` run from 0 to 1 across the map. `timesGathered` is 0 for a node seen or tried but not gathered yet, and `lastGathered` is a `time()`, or `nil` then. An empty list for a map without any. |
+
 ## Callbacks
 
 ```lua
@@ -142,3 +149,4 @@ FPP.UnregisterCallback("PRICES_UPDATED", myAddon)
 | `MODULE_TOGGLED` | `name, enabled`: the player turned a module on or off. Modules turning on at login don't fire it. |
 | `OPTION_CHANGED` | `name, key, value`: the player changed one of a module's options. |
 | `WAYPOINT_CHANGED` | The map pin was set, moved, or cleared, by anyone. Forever++ only listens for this once something registers for it. |
+| `GATHERING_NODES_UPDATED` | Gathering Map's remembered nodes changed: a gather, a forget, an import, or it turned on or off. Fires at most twice a second. |

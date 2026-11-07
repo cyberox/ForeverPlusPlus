@@ -185,7 +185,7 @@ local function forgetName(name)
         end
     end
     ns.Print(format(L.GATHERINGMAP_FORGOT, forgot))
-    internal.Changed(nil)
+    internal.NodesChanged(nil)
 end
 
 local refresh

@@ -42,6 +42,9 @@ ns.changelog = {
                 { L.ALREADYKNOWN_TITLE, "Corner, Check Size, and Padding for the green check, like "
                     .. "Upgrade Arrows' arrow. A corner Upgrade Arrows also uses gets a warning." },
                 { L.SPELLRANKS_TITLE, "Corner, Badge Size, and Padding for the warning badge." },
+                "Other addons can read Gathering Map's remembered nodes through ForeverPlusPlusAPI.v1 "
+                    .. "(GetGatheringMaps, GetGatheringNodes), and get the GATHERING_NODES_UPDATED "
+                    .. "callback when they change.",
             } },
             { L.CHANGELOG_CHANGED, {
                 { L.MINIMAPNODEICONS_TITLE, "With Gathering Map on, a dot found while you move gets "

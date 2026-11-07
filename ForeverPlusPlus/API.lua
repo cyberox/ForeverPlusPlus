@@ -607,6 +607,41 @@ export("GetSkinningSkill", function(level)
     return ns.Professions.SkinningNeed(level)
 end)
 
+-- Gathering Map ----------------------------------------------------------------------------------
+-- Offered by Gathering Map while it's on: the herbs, veins, chests, and fishing pools it remembers
+-- for the account, by zone map ID (C_Map's uiMapID), whatever this character shows or hides.
+
+---The zone map IDs with remembered nodes, lowest first, or nil while Gathering Map is off.
+export("GetGatheringMaps", function()
+    local nodes = ns.Providers.Get("gatheringNodes")
+    if not nodes then
+        return nil
+    end
+    local ids = {}
+    for mapID in pairs(nodes.Maps()) do
+        ids[#ids + 1] = mapID
+    end
+    sort(ids)
+    return ids
+end)
+
+---The nodes remembered on a zone map: a list of { name, kind ("herb", "ore", "treasure", "fish"),
+---x, y (0 to 1 across the map), timesGathered (0 for one seen or tried but not gathered),
+---lastGathered (time(), or nil) }. An empty list for a map without any; nil while Gathering Map is
+---off.
+export("GetGatheringNodes", function(mapID)
+    local nodes = ns.Providers.Get("gatheringNodes")
+    if not (nodes and type(mapID) == "number") then
+        return nil
+    end
+    local list = {}
+    for _, node in ipairs(nodes.Maps()[mapID] or {}) do
+        list[#list + 1] = { name = node.name, kind = node.kind, x = node.x, y = node.y,
+            timesGathered = node.count or 0, lastGathered = node.time }
+    end
+    return list
+end)
+
 -- Callbacks --------------------------------------------------------------------------------------
 -- RegisterCallback(event, fn, owner): fn(event, ...) runs on each event. An owner (any value, such
 -- as the caller's addon table) can hold one function per event; without one, the function itself
@@ -619,6 +654,8 @@ end)
 --   MODULE_TOGGLED    name, enabled: the player turned a module on or off
 --   OPTION_CHANGED    name, key, value: the player changed one of a module's options
 --   WAYPOINT_CHANGED  the map pin was set, moved, or cleared, by anyone
+--   GATHERING_NODES_UPDATED  Gathering Map's nodes changed: a gather, a forget, an import, or it
+--                     turned on or off (at most twice a second)
 -- What a game event drives (WAYPOINT_CHANGED) is listened to only once someone registers for it.
 
 local listen = {} -- event -> fn that starts listening, run on the first registration
@@ -632,7 +669,7 @@ listen.WAYPOINT_CHANGED = function()
 end
 
 local EVENTS = { READY = true, PRICES_UPDATED = true, UPGRADES_UPDATED = true, MODULE_TOGGLED = true,
-    OPTION_CHANGED = true, WAYPOINT_CHANGED = true }
+    OPTION_CHANGED = true, WAYPOINT_CHANGED = true, GATHERING_NODES_UPDATED = true }
 local callbacks = {} -- event -> owner -> fn
 
 ---Calls every function registered for `event`, each wrapped so one failing can't stop the rest.
@@ -681,6 +718,11 @@ ns.Prices.OnChanged(pricesChanged)
 -- Scores are forgotten for every piece of gear changed, a few at a time.
 ns.Providers.OnChanged("upgrades", ns.Frames.Coalesce(function()
     API.Fire("UPGRADES_UPDATED")
+end, 0.5))
+
+-- A forget or an import changes many nodes at once.
+ns.Providers.OnChanged("gatheringNodes", ns.Frames.Coalesce(function()
+    API.Fire("GATHERING_NODES_UPDATED")
 end, 0.5))
 
 ns.OnModuleChanged(function(name, key)

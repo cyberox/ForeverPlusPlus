@@ -250,7 +250,7 @@ function internal.Forget(mapID, node)
         nodes[mapID] = nil
     end
     module:Print(format(L.GATHERINGMAP_FORGOT_ONE, node.name))
-    internal.Changed(mapID)
+    internal.NodesChanged(mapID)
 end
 
 -- Forgets every node of a zone map, or of every map with no `mapID`; says how many.
@@ -264,7 +264,7 @@ local function forgetAll(mapID)
         end
     end
     ns.Print(format(L.GATHERINGMAP_FORGOT, forgot))
-    internal.Changed(nil)
+    internal.NodesChanged(nil)
 end
 
 -- Sharing: every remembered node as a line of text to copy, and a pasted one's nodes added to
@@ -299,7 +299,7 @@ local function importNodes(text)
         end
     end
     ns.Print(format(L.GATHERINGMAP_IMPORTED, added, count - added))
-    internal.Changed(nil)
+    internal.NodesChanged(nil)
 end
 
 module.actions = {
@@ -393,6 +393,22 @@ function internal.Changed(mapID)
         redraws[i](mapID)
     end
 end
+
+---internal.Changed after the remembered nodes themselves changed (a gather, a forget, an import),
+---which also tells other addons through the public API.
+---@param mapID number?
+function internal.NodesChanged(mapID)
+    internal.Changed(mapID)
+    ns.Providers.Changed("gatheringNodes")
+end
+
+-- What the public API reads while the module is on (API.lua's GetGatheringMaps and
+-- GetGatheringNodes, which copy what they give out).
+local provider = {
+    Maps = function()
+        return module.db.nodes
+    end,
+}
 
 -- How a node looks ------------------------------------------------------------------------------
 -- Its item's icon (Copper Ore for a Copper Vein): the one Lib/Professions knows, else the first
@@ -788,7 +804,7 @@ local function onSighting(sighting)
     local _, new = Gathering.See(list, sighting.name, sighting.kind, sighting.x, sighting.y, width,
         height, time())
     if new then
-        internal.Changed(sighting.mapID)
+        internal.NodesChanged(sighting.mapID)
     end
 end
 
@@ -850,7 +866,7 @@ local function onGather(gather)
             time())
         log(gather, format(L.GATHERINGMAP_LOG_REQUIRES, gather.requires))
         if new then
-            internal.Changed(mapID)
+            internal.NodesChanged(mapID)
         end
         return
     end
@@ -864,7 +880,7 @@ local function onGather(gather)
     log(gather, new and L.GATHERINGMAP_LOG_NEW
         or node.count == 1 and L.GATHERINGMAP_LOG_ONCE
         or format(L.GATHERINGMAP_LOG_AGAIN, node.count))
-    internal.Changed(mapID)
+    internal.NodesChanged(mapID)
 end
 
 -- Each step of hearing a gather, while Log Gathers is on, for finding out why one wasn't.
@@ -899,6 +915,7 @@ function module:OnEnable()
     Gathering.Listen(onGather, true)
     Gathering.ListenSightings(onSighting, true)
     Gathering.SetRemembered(rememberedSpot)
+    ns.Providers.Set("gatheringNodes", provider)
     if internal.EnableMap then
         internal.EnableMap()
     end
@@ -915,6 +932,7 @@ function module:OnDisable()
     Gathering.Listen(onGather, false)
     Gathering.ListenSightings(onSighting, false)
     Gathering.SetRemembered(nil)
+    ns.Providers.Set("gatheringNodes", nil)
     if internal.DisableMap then
         internal.DisableMap()
     end
