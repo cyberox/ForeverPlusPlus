@@ -19,6 +19,10 @@ local module = ns.NewModule("GatheringMap", L.GATHERINGMAP_DESC, {
     enabled = true,
     onlyMine = true, -- only nodes this character has the profession for
     onlyTracking = true, -- herbs only while Find Herbs is on, ore while Find Minerals is
+    -- A node this character's skill is too low for, and one that no longer gives skill-ups:
+    -- "show", "gray" (its icon gray), or "hide".
+    tooHigh = "gray",
+    trivial = "show",
     -- A node gathered lately: "ring" (an empty ring), "hide", or "show" (as usual), and how long
     -- "lately" is.
     justGathered = "ring",
@@ -82,12 +86,26 @@ local function tipOption(key, name, description)
     }
 end
 
+-- How a node shows by this character's skill: as usual, gray, or not at all.
+local function skillOption(key, name, description)
+    return {
+        key = key, name = name, description = description,
+        choices = {
+            { "show", L.GATHERINGMAP_SKILL_SHOW },
+            { "gray", L.GATHERINGMAP_SKILL_GRAY },
+            { "hide", L.GATHERINGMAP_SKILL_HIDE },
+        },
+    }
+end
+
 -- Last, under its own header, as every module's Chat Messages is.
 local chatOption = ns.ChatOption(L.GATHERINGMAP_CHAT_DESC, L.GATHERINGMAP_SECTION_CHAT)
 
 module.options = {
     { key = "onlyMine", name = L.GATHERINGMAP_ONLY_MINE, description = L.GATHERINGMAP_ONLY_MINE_DESC },
     { key = "onlyTracking", name = L.GATHERINGMAP_ONLY_TRACKING, description = L.GATHERINGMAP_ONLY_TRACKING_DESC },
+    skillOption("tooHigh", L.GATHERINGMAP_TOO_HIGH, L.GATHERINGMAP_TOO_HIGH_DESC),
+    skillOption("trivial", L.GATHERINGMAP_TRIVIAL, L.GATHERINGMAP_TRIVIAL_DESC),
     {
         key = "icon", name = L.GATHERINGMAP_ICON, description = L.GATHERINGMAP_ICON_DESC, section = LOOK,
         choices = {
@@ -265,7 +283,10 @@ local function onSkills()
 end
 
 module:OnWhile("onlyTracking", { MINIMAP_UPDATE_TRACKING = onTracking, PLAYER_ENTERING_WORLD = onTracking })
-module:OnWhile("onlyMine", { SKILL_LINES_CHANGED = onSkills })
+-- A skill-up can change what Only My Professions, Too High for You, and No Skill-Ups show.
+module:OnWhile(function(db)
+    return db.onlyMine or db.tooHigh ~= "show" or db.trivial ~= "show"
+end, { SKILL_LINES_CHANGED = onSkills })
 
 -- The kinds of node remembered.
 local RECORDED = { herb = true, ore = true }
@@ -354,7 +375,10 @@ end
 function internal.Look(node, look)
     local db = module.db
     local icon = db.icon == "item" and itemIcon(node) or nil
-    look.atlas, look.round, look.desaturated = nil, true, false
+    look.atlas, look.round = nil, true
+    -- Gray while Too High for You or No Skill-Ups says so for this character's skill.
+    local standing = internal.Standing(node)
+    look.desaturated = standing ~= nil and db[standing] == "gray"
     if icon then
         look.texture, look.trim, look.color = icon, true, nil
     else
@@ -365,6 +389,27 @@ function internal.Look(node, look)
         internal.Hollow(look)
     end
     return look
+end
+
+---How this character's skill stands against a node: "tooHigh" while it's too low to gather it,
+---"trivial" once gathering it no longer gives skill-ups, else nil, as for a node whose skill isn't
+---known or a character without the profession (Only My Professions is for that).
+---@param node table
+---@return string? standing the key of its option
+function internal.Standing(node)
+    local known = Professions.Node(node.name)
+    local line, need = known and known[1], known and known[2]
+    if not (line and need) then
+        return nil
+    end
+    local rank = Professions.Rank(line)
+    if not rank then
+        return nil
+    elseif rank < need then
+        return "tooHigh"
+    elseif Professions.Difficulty(rank, need) == Professions.TRIVIAL then
+        return "trivial"
+    end
 end
 
 -- Herbs and ore need their gathering skill and tracking spell; anyone can open treasure.
@@ -392,6 +437,10 @@ function internal.Shown(node)
         return false
     end
     if db.justGathered == "hide" and internal.JustGathered(node) then
+        return false
+    end
+    local standing = internal.Standing(node)
+    if standing and db[standing] == "hide" then
         return false
     end
     return true
