@@ -296,7 +296,9 @@ end
 ---@return table lines
 function internal.TooltipLines(node)
     local lines = { internal.KIND_NAMES[node.kind] or node.kind }
-    if node.count > 0 then
+    if node.count == 1 then
+        lines[#lines + 1] = ns.MapTooltip.Detail(L.GATHERINGMAP_GATHERED_ONCE)
+    elseif node.count > 1 then
         lines[#lines + 1] = ns.MapTooltip.Detail(format(L.GATHERINGMAP_GATHERED, node.count))
     else
         lines[#lines + 1] = ns.MapTooltip.Detail(L.GATHERINGMAP_SEEN)
@@ -434,7 +436,9 @@ local function onGather(gather)
             node.loot[item.id] = (node.loot[item.id] or 0) + (item.count or 1)
         end
     end
-    log(gather, new and L.GATHERINGMAP_LOG_NEW or format(L.GATHERINGMAP_LOG_AGAIN, node.count))
+    log(gather, new and L.GATHERINGMAP_LOG_NEW
+        or node.count == 1 and L.GATHERINGMAP_LOG_ONCE
+        or format(L.GATHERINGMAP_LOG_AGAIN, node.count))
     internal.Changed(mapID)
 end
 

@@ -190,6 +190,11 @@ local function onSucceeded(_, unit, castGUID, spellID)
     end
     local gather = pending
     gather.succeeded = GetTime()
+    -- Its loot came first: told now.
+    if gather.looted then
+        tell(gather)
+        return
+    end
     -- Told when its loot comes, or without it if none does in time (auto loot that found nothing,
     -- a chest already empty).
     C_Timer.After(WAIT, function()
@@ -234,14 +239,19 @@ local function slotItem(slot)
     }
 end
 
-local function onLootOpened()
+-- The loot, once a gather: LOOT_READY comes first and is all there is with auto loot or Fast
+-- Loot, which take it before a window opens (in game, 2026-11-07, no LOOT_OPENED); LOOT_OPENED
+-- after it changes nothing. It can come before the cast's UNIT_SPELLCAST_SUCCEEDED, so loot read
+-- then waits on the gather for its success to tell it.
+local function onLoot(event)
     local gather = pending
     if trace then
         local guid = GetLootSourceInfo and GetLootSourceInfo(1)
         trace("loot", IsText(guid) and guid or "?", GetNumLootItems(),
-            gather and (gather.succeeded and "after success" or "before success") or "no gather")
+            (event or "") .. ", " .. (gather and (gather.succeeded and "after success" or "before success")
+                or "no gather"))
     end
-    if not (gather and gather.succeeded and GetTime() - gather.succeeded <= WAIT) then
+    if not gather or gather.looted or (gather.succeeded and GetTime() - gather.succeeded > WAIT) then
         return
     end
     -- A creature's loot isn't the gather's. Where the client can't say, it's taken as the gather's.
@@ -249,6 +259,7 @@ local function onLootOpened()
     if fromObject == false then
         return
     end
+    gather.looted = true
     gather.objectID = objectID
     for slot = 1, GetNumLootItems() do
         local item = slotItem(slot)
@@ -256,7 +267,9 @@ local function onLootOpened()
             gather.items[#gather.items + 1] = item
         end
     end
-    tell(gather)
+    if gather.succeeded then
+        tell(gather)
+    end
 end
 
 local listening = false
@@ -273,9 +286,14 @@ local function listen(on)
     change("UNIT_SPELLCAST_FAILED", { "player" }, onFailed)
     change("UNIT_SPELLCAST_INTERRUPTED", { "player" }, onFailed)
     if on then
-        ns.On("LOOT_OPENED", onLootOpened)
+        ns.On("LOOT_OPENED", onLoot)
+        -- Probe: LOOT_READY is Mainline's; without it, LOOT_OPENED alone.
+        if ns.HasEvent("LOOT_READY") then
+            ns.On("LOOT_READY", onLoot)
+        end
     else
-        ns.Off("LOOT_OPENED", onLootOpened)
+        ns.Off("LOOT_OPENED", onLoot)
+        ns.Off("LOOT_READY", onLoot)
         pending, hovered = nil, nil
     end
     -- A tooltip hook can't come off, so it's added once and does nothing while no one listens.
