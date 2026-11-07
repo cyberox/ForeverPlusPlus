@@ -40,7 +40,7 @@ local view = {}
 ---it, 0 to 1), the map's `width` and `height` in yards, `half` (half the minimap's width), `scale`
 ---(minimap units per yard), and `angle` (what the minimap is turned by, 0 unless it rotates). Nil
 ---when any of it can't be read, as in an instance. With `mapID`, on that map (one the player is
----on, such as the zone above their cave) instead of the one they're on. The same table every
+---on, such as the zone above a district) instead of the one they're on. The same table every
 ---call, filled anew, so read it right away rather than keeping it.
 ---@param mapID? number
 ---@return table? view
@@ -156,7 +156,8 @@ end
 -- (C_TooltipInfo.GetMinimapMouseover), and the middle of everywhere the mouse was while it named
 -- the same ones is the dot's middle. Read a few times a second only while the mouse is on the
 -- minimap and a module listens; each hover is told once, when the names change or the mouse
--- leaves, so moving across the minimap tells each dot once rather than at every spot.
+-- leaves, so moving across the minimap tells each dot once rather than at every spot. Minimap Node
+-- Icons is the only listener, and it's locked off for now (since build 70862), so nothing reads.
 
 local hoverListeners = {} -- fn -> true
 local hoverFrame -- runs the reads while the mouse is on the minimap

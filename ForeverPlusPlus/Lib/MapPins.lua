@@ -234,8 +234,8 @@ function Layer:Release()
     self.count = 0
 end
 
--- The round mask Mainline's portraits use, for an icon drawn round (Minimap Node Icons uses it on
--- the minimap too).
+-- The round mask Mainline's portraits use, for an icon drawn round, on the world map or, through
+-- SetArt, the minimap.
 local ROUND = "Interface\\CharacterFrame\\TempPortraitAlphaMask"
 local TRIM = 0.08 -- the edge cut off an item icon, as the bags do
 
@@ -410,8 +410,9 @@ end
 
 ---Makes a layer of map pins. `fill(mapID, add)` runs each time the map shows a map, and calls
 ---`add(x, y, info)` for each pin: x and y from 0 to 1 across the map, and info
----`{ atlas, size, title, lines, desaturated }` (size in pixels on screen; lines of tooltip text
----under the title, as `ns.MapTooltip.Show` takes them; desaturated to gray the icon). In place of
+---`{ atlas, size, title, kind, lines, desaturated }` (size in pixels on screen; the title, its
+---kind, and lines of tooltip text under it, as `ns.MapTooltip.Show` takes them, `lines` also as
+---`fn(info)` giving them when the tooltip shows; desaturated to gray the icon). In place of
 ---`atlas`, `texture` (a file ID or path, such as an item icon) with `trim` to cut off an item
 ---icon's edge. Any pin can also have `round` (drawn round), `color` ({ r, g, b } it's tinted),
 ---`alpha`, `ring` (the minimap's gold ring around it), `hollow` (only the ring, its art

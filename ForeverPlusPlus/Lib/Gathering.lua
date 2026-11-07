@@ -107,8 +107,7 @@ end
 -- What the cast is aimed at: its target, else the soft-target object, else the object hovered
 -- just before. And which of those it was, for a debug log. The last two can name something else
 -- (a mailbox hovered on the way), so they count only for a herb, vein, chest, or pool Professions
--- knows; the
--- hover is used once.
+-- knows; the hover is used once.
 local function targetName(target)
     if IsText(target, true) then
         return target, "target"
@@ -133,8 +132,9 @@ local trace -- fn(step, a, b, c) while a module logs what's heard, for finding o
 
 ---Has `fn(step, a, b, c)` told each step of hearing a gather, while a module logs them: "cast"
 ---(any spell the player casts: its name or ID, the target, and whether it gathers), "success"
----(spell ID, and whether it was the gather's cast), "failed", and "loot" (the source GUID and
----how many items). Nil to stop.
+---(spell ID, and whether it was the gather's cast), "failed" (spell ID), "refused" (the error and
+---the node it's about), "loot" (the source GUID, how many items, and when it came), and "catch"
+---(the pool a catch was from, and the object hovered). Nil to stop.
 ---@param fn? fun(step: string, a: any, b: any, c: any)
 function Gathering.SetTrace(fn)
     trace = fn
@@ -144,7 +144,6 @@ local listeners = {} -- fn -> true
 local pending -- the gather under way: cast but not yet succeeded, or waiting for its loot
 local queued -- a gather still casting when another was cast, in case that one is refused
 local QUEUE_WAIT = 10 -- seconds a gather still casting is kept aside: longer than any gather's cast
-local serial = 0 -- counts gathers, so a timer can tell it's still the one it was set for
 
 -- Forgets a gather that won't be told (a catch in open water), from whichever place it's kept.
 local function drop(gather)
@@ -185,8 +184,9 @@ local function tell(gather)
     end
 end
 
--- Where the player stands, on the zone's map, so a node in a cave shows on the zone's map with the
--- rest: mapID, x, y, any of them nil where it can't be read.
+-- Where the player stands, on the zone's map, so a node gathered on a map under the zone's (a
+-- city's district) shows on the zone's map with the rest: mapID, x, y, any of them nil where it
+-- can't be read. Forever's caves have no map of their own (docs/forever-api.md).
 local function playerSpot()
     local mapID, x, y = ns.WorldMap.PlayerPosition()
     local zone = mapID and ns.WorldMap.Zone(mapID)
@@ -247,7 +247,6 @@ local function onSent(_, unit, target, castGUID, spellID)
         end
         x, y = ahead(mapID, x, y, CAST_YARDS)
     end
-    serial = serial + 1
     -- A gather still casting is kept aside, not dropped: a second press while it casts sends a
     -- cast the game refuses at once ("Another action is in progress"), and the first one still
     -- finishes (in game, 2026-11-08).
@@ -263,7 +262,6 @@ local function onSent(_, unit, target, castGUID, spellID)
         queued = nil
     end
     pending = {
-        serial = serial,
         name = name,
         from = from,
         kind = spell[2],
@@ -671,7 +669,7 @@ local function noteName(node, name, kind, gathered)
     end
 end
 
----Adds a gather of the node `name` at x, y to a map's nodes: the same node within `radius` yards
+---Adds a gather of the node `name` at x, y to a map's nodes: the same node within RADIUS yards
 ---counts it once more and moves its spot toward this one (unless it was gathered in the last two
 ---minutes, the same visit); else it's a new node. A node of another name that spawns in the
 ---same spots (Professions.SharesSpawn: Silver in Tin's) is the same node, which then keeps each
@@ -685,11 +683,10 @@ end
 ---@param width number the map's size in yards
 ---@param height number
 ---@param now number time()
----@param radius? number yards, Gathering.RADIUS by default
 ---@return table node
 ---@return boolean new
-function Gathering.Add(list, name, kind, x, y, width, height, now, radius)
-    local node = Gathering.Nearest(list, x, y, width, height, radius or Gathering.RADIUS, sameSpawn(name))
+function Gathering.Add(list, name, kind, x, y, width, height, now)
+    local node = Gathering.Nearest(list, x, y, width, height, Gathering.RADIUS, sameSpawn(name))
     if node and node.time and now - node.time < VISIT then
         -- Mined again on the same visit (a vein gives two or three times): not another gather.
         node.time = now
@@ -709,11 +706,11 @@ function Gathering.Add(list, name, kind, x, y, width, height, now, radius)
     return node, true
 end
 
----Adds a sighting of the node `name` at x, y to a map's nodes (seen on the minimap, not gathered):
----like Add, but it doesn't count as a gather. The same node within Gathering.RADIUS yards moves
----toward it, once a visit; else it's a new node, gathered 0 times. A sighting is the dot's own
----spot (Minimap Node Icons reads it standing still), so it weighs as much as a gather. Returns
----the node and whether it's new.
+---Adds a sighting of the node `name` at x, y to a map's nodes, found but not gathered: a dot
+---Minimap Node Icons read on the minimap, or a herb or vein the player's skill was too low for.
+---Like Add, but it doesn't count as a gather. The same node within Gathering.RADIUS yards moves
+---toward it, once a visit; else it's a new node, gathered 0 times. It weighs as much as a gather.
+---Returns the node and whether it's new.
 ---@param list table a map's nodes
 ---@param name string
 ---@param kind string
@@ -900,12 +897,14 @@ end
 -- Sightings and remembered spots ------------------------------------------------------------------
 -- What one module that sees nodes (Minimap Node Icons, reading the minimap's dots) and one that
 -- remembers them (Gathering Map) tell each other, through here so neither reaches into the other.
--- Either works alone; each is better with the other on.
+-- Either works alone; each is better with the other on. Minimap Node Icons is locked off since
+-- build 70862 (the minimap stopped answering its scans), so for now nothing is sighted and nothing
+-- is live; this stays for when it's fixed.
 
 local sightListeners = {} -- fn -> true
 local remembered -- fn(name, mapID, x, y): the spot of a node remembered near there, or nil
 
--- A spot on `mapID` as one on its zone's map (a cave's spot on the zone around it).
+-- A spot on `mapID` as one on its zone's map (one on a district's map on the zone around it).
 local function onZone(mapID, x, y)
     local zone = ns.WorldMap.Zone(mapID)
     if not zone or zone == mapID then
@@ -958,8 +957,9 @@ function Gathering.SetRemembered(fn)
     remembered = fn
 end
 
----The spot of the node `name` remembered nearest x, y on `mapID` (any map; a cave's is looked up
----on its zone's), on `mapID`, or nil when none is remembered there or nothing remembers nodes.
+---The spot of the node `name` remembered nearest x, y on `mapID` (any map; one under a zone's is
+---looked up on the zone's), on `mapID`, or nil when none is remembered there or nothing remembers
+---nodes.
 ---@param name string
 ---@param mapID number
 ---@param x number
@@ -1004,10 +1004,10 @@ end
 ---`OnEnable` and stops in `OnDisable`, and nothing is heard while no module listens. `gather` is
 ---`{ name, from, kind, line, spellID, mapID, x, y, objectID, items, succeeded }`: the node's name
 ---as the world writes it (nil when nothing named it) and `from`, what named it ("target",
----"softinteract", "tooltip", or "none"); `kind` ("herb", "ore", "treasure", "fish") and `line`, the skill
----line of the spell; where the player stood when they cast, on their zone's map (`mapID`, `x`,
----`y`, nil where it can't be read); the world object's ID from its loot (nil without loot); and `items`, the loot as
----`{ id, count, icon }`. A herb or vein the player's skill was too low for is told too, with
+---"softinteract", "tooltip", or "none"); `kind` ("herb", "ore", "treasure", "fish") and `line`,
+---the skill line of the spell; where the player stood when they cast, on their zone's map
+---(`mapID`, `x`, `y`, nil where it can't be read; for a pool, where the line landed); the world
+---object's ID from its loot (nil without loot); and `items`, the loot as `{ id, count, icon }`. A herb or vein the player's skill was too low for is told too, with
 ---`requires`, the rank it takes, and no loot: it wasn't gathered. Gathers in instances aren't told.
 ---Don't keep or change the table.
 ---@param fn fun(gather: table)
