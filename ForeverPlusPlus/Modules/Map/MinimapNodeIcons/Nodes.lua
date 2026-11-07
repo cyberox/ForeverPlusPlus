@@ -421,7 +421,10 @@ local function checkHover(v)
     if not internal.blocked then
         internal.broken = true
         internal.nodes, internal.pass = {}, nil
-        module:Print(L.MINIMAPNODEICONS_BROKEN_CHAT)
+        -- Its name turns red on the Modules page (module:Problem), and its notice says why.
+        if ns.RefreshSetting then
+            ns.RefreshSetting(module.name)
+        end
     end
 end
 

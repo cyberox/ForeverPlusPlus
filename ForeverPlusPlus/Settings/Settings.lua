@@ -1090,8 +1090,11 @@ local function firstNew()
     end
 end
 
+local RED = RED_FONT_COLOR
+
 -- A row of the list: the module's checkbox and its name, white while it's on and grey while it's
--- off, with a NEW label while it's new. Clicking it selects the module.
+-- off, red while it's on but can't work (`module:Problem()`, its notice says why), with a NEW
+-- label while it's new. Clicking it selects the module.
 local function newListRow(name)
     local module = ns.modules[name]
     local row = newListButton(page.list, function() return selected == name end)
@@ -1108,6 +1111,9 @@ local function newListRow(name)
     local mark = newMark(row, text, LIST_WIDTH - 26, name, module)
     bind(name, function()
         text:SetFontObject(module.db.enabled and "GameFontHighlight" or "GameFontDisable")
+        if RED and module.db.enabled and module.Problem and module:Problem() then
+            text:SetTextColor(RED:GetRGB())
+        end
         mark()
     end)
     row:SetScript("OnClick", function()

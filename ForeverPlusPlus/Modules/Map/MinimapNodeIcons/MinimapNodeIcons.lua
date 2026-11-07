@@ -86,6 +86,11 @@ module.notice = {
     },
 }
 
+-- Red on the Modules page while the game doesn't answer its scans (the second notice says why).
+function module:Problem()
+    return internal.broken
+end
+
 module.options = {
     {
         key = "size", name = L.MINIMAPNODEICONS_SIZE, description = L.MINIMAPNODEICONS_SIZE_DESC,
