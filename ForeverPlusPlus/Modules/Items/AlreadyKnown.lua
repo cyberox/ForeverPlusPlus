@@ -216,10 +216,8 @@ local function updateMerchant()
 end
 
 -- The buyback tab reuses the same buttons.
-local function clearMerchant()
-    ItemButtons.EachMerchantItem(function(icon)
-        setMark(icon, false)
-    end)
+local function clearMerchant(icon)
+    setMark(icon, false)
 end
 
 -- Auction house ---------------------------------------------------------------------------------
@@ -301,9 +299,7 @@ end
 -- Module ----------------------------------------------------------------------------------------
 
 local function refresh()
-    local merchant = _G.MerchantFrame
-    -- Only on the Merchant tab: Buyback shows its items on the same buttons.
-    if merchant and merchant:IsShown() and (merchant.selectedTab or 1) == 1 then
+    if ItemButtons.MerchantShown() then
         updateMerchant()
     end
     updateAuction()
@@ -339,8 +335,7 @@ local function onItemInfo(_, itemID)
 end
 
 function module:OnEnable()
-    self:Hook("MerchantFrame_UpdateMerchantInfo", updateMerchant)
-    self:Hook("MerchantFrame_UpdateBuybackInfo", clearMerchant)
+    ItemButtons.HookMerchant(self, updateMerchant, clearMerchant)
     -- Forever's mail frame redraws through its mixins (InboxMixin:Update, OpenMailMixin:Update,
     -- build 70338 on), not Classic's InboxFrame_Update and OpenMail_Update.
     self:Hook(_G.InboxFrame, "Update", updateInbox)

@@ -191,10 +191,8 @@ local function updateMerchant()
 end
 
 -- The buyback tab reuses the same buttons.
-local function clearMerchant()
-    ItemButtons.EachMerchantItem(function(icon)
-        setMark(icon, false)
-    end)
+local function clearMerchant(icon)
+    setMark(icon, false)
 end
 
 -- Auction house and loot ------------------------------------------------------------------------
@@ -327,9 +325,7 @@ end
 
 local function refresh()
     updateRecipes()
-    local merchant = _G.MerchantFrame
-    -- Only on the Merchant tab: Buyback shows its items on the same buttons.
-    if merchant and merchant:IsShown() and (merchant.selectedTab or 1) == 1 then
+    if ItemButtons.MerchantShown() then
         updateMerchant()
     end
     updateAuction()
@@ -379,8 +375,7 @@ function module:OnEnable()
     self:On("ADDON_LOADED", onProfessions)
     self:On("TRADE_SKILL_SHOW", onProfessions)
     self:On("TRADE_SKILL_LIST_UPDATE", onProfessions)
-    self:Hook("MerchantFrame_UpdateMerchantInfo", updateMerchant)
-    self:Hook("MerchantFrame_UpdateBuybackInfo", clearMerchant)
+    ItemButtons.HookMerchant(self, updateMerchant, clearMerchant)
     ItemButtons.HookBags(self, updateBag)
     ItemButtons.HookBank(self, updateBank)
     ItemButtons.HookLoot(self, markLoot)

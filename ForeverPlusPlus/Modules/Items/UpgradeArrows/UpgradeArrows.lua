@@ -516,10 +516,8 @@ local function updateMerchant()
 end
 
 -- The buyback tab reuses the same buttons.
-local function clearMerchant()
-    ItemButtons.EachMerchantItem(function(icon)
-        setArrow(arrows, icon, false)
-    end)
+local function clearMerchant(icon)
+    setArrow(arrows, icon, false)
 end
 
 -- Auction house ---------------------------------------------------------------------------------
@@ -737,8 +735,7 @@ local function refresh()
     if bank and bank:IsShown() then
         updateBank()
     end
-    local merchant = _G.MerchantFrame
-    if merchant and merchant:IsShown() and (merchant.selectedTab or 1) == 1 then
+    if ItemButtons.MerchantShown() then
         updateMerchant()
     end
     updateAuction()
@@ -831,8 +828,7 @@ function module:OnEnable()
     end)
     hasDownFile = ok and ns.IsNumber(fileID) and fileID > 0
     updateProfile()
-    self:Hook("MerchantFrame_UpdateMerchantInfo", updateMerchant)
-    self:Hook("MerchantFrame_UpdateBuybackInfo", clearMerchant)
+    ItemButtons.HookMerchant(self, updateMerchant, clearMerchant)
     ItemButtons.HookBags(self, updateBag)
     ItemButtons.HookBank(self, updateBank)
     ItemButtons.HookLoot(self, markLoot)
