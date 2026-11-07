@@ -88,7 +88,7 @@ L.COMBATALERT_SOUND_DESC = "Play a sound with each alert: the raid warning going
 L.MOVABLEWINDOWS_TITLE = "Movable Windows"
 L.MOVABLEWINDOWS_DESC = "Hold the move key and drag Blizzard's windows, like your character, "
     .. "spellbook, professions, friends, and bags, to put them where you want."
-L.MOVABLEWINDOWS_NOTICE = "Drag a window by its title or edges, not a button or list." -- a gray row atop the module
+L.MOVABLEWINDOWS_NOTICE = "Drag a window anywhere but on a button, box, slider, or list." -- a gray row atop the module
 L.MOVABLEWINDOWS_NOTICE_DESC = "Buttons and lists inside a window take the click themselves. A "
     .. "window with action buttons or other protected parts in it moves only out of combat."
 L.MOVABLEWINDOWS_KEY = "Move Key"

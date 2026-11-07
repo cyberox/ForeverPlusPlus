@@ -122,6 +122,7 @@ local weak = { __mode = "k" }
 local nameOf = setmetatable({}, weak) -- window -> its name, once hooked
 local original = setmetatable({}, weak) -- window -> Blizzard's anchors before we first moved it
 local wasMovable = setmetatable({}, weak) -- window -> whether it was movable before we made it so
+local wasClamped = setmetatable({}, weak) -- window -> whether it was kept on screen before we did
 local wasUserPlaced = setmetatable({}, weak) -- window -> IsUserPlaced before a drag
 local session = {} -- name -> position, for "session" and "never"
 local dragging -- the window being dragged, if any
@@ -215,6 +216,9 @@ local function startDrag(frame, button)
     end
     if wasMovable[frame] == nil then
         wasMovable[frame] = frame:IsMovable() and true or false
+    end
+    if wasClamped[frame] == nil then
+        wasClamped[frame] = frame:IsClampedToScreen() and true or false
     end
     wasUserPlaced[frame] = frame:IsUserPlaced() and true or false
     frame:SetMovable(true)
@@ -377,6 +381,13 @@ function module:OnDisable()
             frame:SetMovable(movable)
         end
         wasMovable[frame] = nil
+    end
+    -- Kept on screen only while we moved it: as Blizzard had it again.
+    for frame, clamped in pairs(wasClamped) do
+        if canMove(frame) then
+            frame:SetClampedToScreen(clamped)
+        end
+        wasClamped[frame] = nil
     end
 end
 

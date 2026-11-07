@@ -55,7 +55,7 @@ L.QUESTTRACKER_FADE_OPACITY_DESC = "How visible the tracker stays while you're i
 -- QuestLevels
 L.QUESTLEVELS_TITLE = "Quest Levels"
 L.QUESTLEVELS_DESC = "Show a quest's level before its name, like the quest log's [12], in a quest "
-    .. "giver's list and at the top of the quest's details."
+    .. "giver's list and at the top of the quest's details and turn-in windows."
 L.QUESTLEVELS_COLOR = "Color by Difficulty"
 L.QUESTLEVELS_COLOR_DESC = "Color the level gray through red by how it compares with yours, like "
     .. "the quest log's colors."
@@ -63,8 +63,8 @@ L.QUESTLEVELS_COLOR_DESC = "Color the level gray through red by how it compares 
 -- ForeverQuestIcons
 L.FOREVERQUESTICONS_TITLE = "Forever Quest Icons"
 L.FOREVERQUESTICONS_DESC = "Mark quests that are new to Forever, the ones that weren't in original "
-    .. "Classic, with an icon after their name in the quest log, the objective tracker, and "
-    .. "quest givers' lists."
+    .. "Classic, with an icon after their name in the quest log, the objective tracker, quest "
+    .. "givers' lists, and the quest's details and turn-in windows."
 L.FOREVERQUESTICONS_LOG = "Quest Log"
 L.FOREVERQUESTICONS_LOG_DESC = "Show the icon in the quest log beside the world map."
 L.FOREVERQUESTICONS_TRACKER = "Objective Tracker"
