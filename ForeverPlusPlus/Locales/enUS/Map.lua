@@ -369,6 +369,12 @@ L.GATHERINGMAP_SIGHTINGS = "Remember Nodes Seen"
 L.GATHERINGMAP_SIGHTINGS_DESC = "Also remember the herbs and veins you point at on the minimap, "
     .. "and with Minimap Node Icons on, those it finds there, so they show before you gather them. "
     .. "Gathering one later counts it and puts it where it really is."
+L.GATHERINGMAP_FORGET_SEEN = "Seen Nodes"
+L.GATHERINGMAP_FORGET_SEEN_BUTTON = "Forget"
+L.GATHERINGMAP_FORGET_SEEN_DESC = "Forget every node only seen on the minimap and never gathered. "
+    .. "Nodes you've gathered stay."
+L.GATHERINGMAP_FORGET_SEEN_CONFIRM = "Forget every node you've seen but never gathered?"
+L.GATHERINGMAP_FORGET_SEEN_DONE = "Forgot %d nodes seen but never gathered." -- count
 -- Smaller headers over its options in Settings
 L.GATHERINGMAP_SECTION_LOOK = "Look"
 L.GATHERINGMAP_SECTION_MINIMAP = "Minimap"

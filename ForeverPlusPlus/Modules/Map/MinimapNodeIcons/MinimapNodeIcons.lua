@@ -421,6 +421,7 @@ function module:OnEnable()
     self:On("MINIMAP_UPDATE_TRACKING", readTracking)
     self:On("PLAYER_ENTERING_WORLD", readTracking)
     ns.Gathering.Listen(internal.onGather, true)
+    MinimapPins.OnHover(internal.onHover, true)
     self:On("SKILL_LINES_CHANGED", onSkill)
     self:On("MINIMAP_UPDATE_ZOOM", onZoom)
     -- Rotate Minimap may have changed; Lib/MinimapPins.lua reads it again by itself.
@@ -435,6 +436,7 @@ function module:OnDisable()
         frame:Hide()
     end
     ns.Gathering.Listen(internal.onGather, false)
+    MinimapPins.OnHover(internal.onHover, false)
     ns.Gathering.SetLive(nil)
     internal.nodes, nodesMap, internal.pass = {}, nil, nil
 end

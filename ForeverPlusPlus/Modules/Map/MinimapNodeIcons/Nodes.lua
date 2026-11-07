@@ -375,29 +375,38 @@ local restUntil = 0 -- when the next finding pass may start
 -- Checking probes still work ----------------------------------------------------------------------
 -- Since build 70862 the minimap names only what's under the real mouse, so probes read nothing
 -- (in game, 2026-11-07; docs/forever-api.md). The player's own hover is the test: a dot their
--- mouse named while they stood still is probed at that spot once the mouse leaves the minimap.
--- If the probe can't read it, probing is off until /reload and the module's notice says why.
+-- mouse named (Lib/MinimapPins.lua, at the middle of where it did) is probed at that spot as soon
+-- as the mouse leaves the minimap, if the player hasn't moved or turned meanwhile. If the probe
+-- can't read it, probing is off until /reload and the module's notice says why.
 
 local HOVER_CHECK = 2 -- seconds after the hover that the check still counts
-local hover -- { name, right, up, at }: a node the player's mouse named on the minimap
+local HOVER_YARDS = 1 -- moving more than this between the hover and the check spoils it
+local hover -- { name, right, up, at, x, y, angle }: a node the player's mouse named on the minimap
 
-local function noteHover()
-    if not still() then
-        return
-    end
-    for _, entry in ipairs(internal.readMouseover() or NONE) do
-        if internal.iconFor(entry.name) then
-            local right, up = ns.MinimapPins.CursorOffset()
-            hover = { name = entry.name, right = right, up = up, at = GetTime() }
+function internal.onHover(names, right, up)
+    for _, name in ipairs(names) do
+        if internal.iconFor(name) then
+            local v = internal.readView()
+            hover = { name = name, right = right, up = up, at = GetTime(), x = v and v.x, y = v and v.y,
+                angle = v and v.angle }
             return
         end
     end
 end
 
-local function checkHover()
+-- Whether the minimap shows what it did at the hover: the player hasn't moved or turned.
+local function sameView(check, v)
+    if not (v and check.x) then
+        return not v and not check.x
+    end
+    local east, north = (v.x - check.x) * v.width, (v.y - check.y) * v.height
+    return east * east + north * north <= HOVER_YARDS * HOVER_YARDS and abs(v.angle - check.angle) < 0.01
+end
+
+local function checkHover(v)
     local check = hover
     hover = nil
-    if GetTime() - check.at > HOVER_CHECK or not still() then
+    if GetTime() - check.at > HOVER_CHECK or not sameView(check, v) then
         return
     end
     startProbing()
@@ -423,11 +432,10 @@ function internal.tick(v)
         return
     end
     if Minimap:IsMouseOver() then
-        noteHover()
         return
     end
     if hover then
-        checkHover()
+        checkHover(v)
         if internal.broken then
             return
         end

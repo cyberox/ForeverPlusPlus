@@ -8,7 +8,7 @@
 local _, ns = ...
 
 local pairs, type, time, format = pairs, type, time, string.format
-local C_Minimap, C_Map, Minimap, strtrim = C_Minimap, C_Map, Minimap, strtrim
+local C_Minimap, C_Map = C_Minimap, C_Map
 
 local L = ns.L
 local Gathering = ns.Gathering
@@ -95,6 +95,31 @@ module.options = {
     {
         key = "log", name = L.GATHERINGMAP_LOG, description = L.GATHERINGMAP_LOG_DESC,
         debug = true, section = L.DEBUG_SECTION_LOGGING,
+    },
+}
+
+module.actions = {
+    {
+        name = L.GATHERINGMAP_FORGET_SEEN,
+        button = L.GATHERINGMAP_FORGET_SEEN_BUTTON,
+        description = L.GATHERINGMAP_FORGET_SEEN_DESC,
+        confirm = L.GATHERINGMAP_FORGET_SEEN_CONFIRM,
+        fn = function()
+            local forgot = 0
+            for mapID, list in pairs(module.db.nodes) do
+                for i = #list, 1, -1 do
+                    if list[i].count == 0 then
+                        table.remove(list, i)
+                        forgot = forgot + 1
+                    end
+                end
+                if #list == 0 then
+                    module.db.nodes[mapID] = nil
+                end
+            end
+            ns.Print(format(L.GATHERINGMAP_FORGET_SEEN_DONE, forgot))
+            internal.Changed(nil)
+        end,
     },
 }
 
@@ -307,27 +332,20 @@ function internal.ZoneMap()
     return ns.WorldMap.Zone(best) or best
 end
 
--- A dot the player points at on the minimap: the game's tooltip for it names the herbs and veins
--- under the mouse, one a row, and where the mouse is on the minimap is where they are, give or
--- take the dot's size. The only way left to learn a node without gathering it since build 70862
--- stopped the minimap answering Minimap Node Icons' scans (docs/forever-api.md).
-local function onMinimapTooltip(_, data)
-    if not (module.db.sightings and Minimap:IsMouseOver()) then
-        return
-    end
-    local lines = data and data.lines
-    local first = type(lines) == "table" and lines[1]
-    local text = type(first) == "table" and first.leftText
-    if not ns.IsText(text, true) then
+-- A dot the player pointed at on the minimap (Lib/MinimapPins.lua, once a hover, at the middle of
+-- where the mouse named it): the herbs and veins it names are there. The only way left to learn
+-- a node without gathering it since build 70862 stopped the minimap answering Minimap Node Icons'
+-- scans (docs/forever-api.md).
+local function onHover(names, right, up)
+    if not module.db.sightings then
         return
     end
     local v = ns.MinimapPins.View(internal.ZoneMap())
     if not v then
         return
     end
-    local x, y = ns.MinimapPins.FromMinimap(v, ns.MinimapPins.CursorOffset())
-    for row in text:gmatch("[^\n]+") do
-        local name = strtrim(ns.Text.Plain(row))
+    local x, y = ns.MinimapPins.FromMinimap(v, right, up)
+    for _, name in pairs(names) do
         local kind = Professions.Kind(name)
         if kind then
             onSighting({ name = name, kind = kind, mapID = v.mapID, x = x, y = y })
@@ -386,9 +404,7 @@ function module:OnEnable()
     Gathering.Listen(onGather, true)
     Gathering.ListenSightings(onSighting, true)
     Gathering.SetRemembered(rememberedSpot)
-    if Enum and Enum.TooltipDataType and Enum.TooltipDataType.MinimapMouseover then
-        self:TooltipPostCall(Enum.TooltipDataType.MinimapMouseover, onMinimapTooltip)
-    end
+    ns.MinimapPins.OnHover(onHover, true)
     if internal.EnableMap then
         internal.EnableMap()
     end
@@ -401,6 +417,7 @@ function module:OnDisable()
     Gathering.Listen(onGather, false)
     Gathering.ListenSightings(onSighting, false)
     Gathering.SetRemembered(nil)
+    ns.MinimapPins.OnHover(onHover, false)
     if internal.DisableMap then
         internal.DisableMap()
     end
