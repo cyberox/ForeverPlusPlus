@@ -484,14 +484,36 @@ local function setOption(module, option, value)
     ns.RefreshSetting(module.name)
 end
 
--- The module's on/off checkbox, kept in step with its other one. A locked module's (`locked`, one
--- the game broke) is unchecked and can't be clicked; its notice says why.
+-- A padlock, Blizzard's own (the group finder's, the quest log's), for a locked module. Probe: the
+-- atlases are Mainline's, seen in the Forever UI source (build 70862); the file is older art.
+local LOCK_ATLAS = ns.Frames.FirstAtlas("LFG-lock", "groupfinder-icon-lock", "QuestSharing-Padlock")
+local LOCK_FILE = "Interface\\LFGFrame\\UI-LFG-ICON-LOCK"
+
+-- The module's on/off checkbox, kept in step with its other one. A locked module (`locked`, one
+-- the game broke) shows a padlock in its place instead, saying why on hover; its notice says more.
 local function newModuleCheck(parent, name, size)
+    local module = ns.modules[name]
     local box = newCheckbox(parent, size, function(checked) setEnabled(name, checked) end)
+    if module.locked then
+        -- The box stays for its place and the mouse (the row's highlight), unseen and unclickable.
+        box:SetAlpha(0)
+        box:SetEnabled(false)
+        local lock = parent:CreateTexture(nil, "OVERLAY")
+        lock:SetSize(size * 0.75, size * 0.75)
+        lock:SetPoint("CENTER", box)
+        if LOCK_ATLAS then
+            lock:SetAtlas(LOCK_ATLAS)
+        else
+            lock:SetTexture(LOCK_FILE)
+        end
+        box:HookScript("OnEnter", function(self)
+            Kit.ShowTooltip(self, module.title or name, L.SETTINGS_LOCKED)
+        end)
+        box:HookScript("OnLeave", Kit.HideTooltip)
+        return box
+    end
     bind(name, function()
-        local module = ns.modules[name]
-        box:SetChecked(not module.locked and module.db.enabled and true or false)
-        box:SetEnabled(not module.locked)
+        box:SetChecked(module.db.enabled and true or false)
     end)
     return box
 end

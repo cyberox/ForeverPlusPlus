@@ -86,6 +86,8 @@ L.MODULES = "Modules" -- the page with every module's checkbox, the top Forever+
 L.ABOUT = "About" -- the page with the version, links, commands, and presets
 -- The selected module on the Modules page
 L.SETTINGS_ENABLED = "Enabled" -- the module's own on/off checkbox, under its description
+-- The tooltip of the padlock in a locked module's checkbox's place
+L.SETTINGS_LOCKED = "Turned off and locked: the game broke what this module does. Its settings say more."
 L.SETTINGS_OPTIONS = "Options" -- the header over its options
 L.SETTINGS_NO_OPTIONS = "This module has no options."
 L.SETTINGS_CONFLICT_GO = "Go to %s" -- an option's name
