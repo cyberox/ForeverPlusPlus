@@ -14,9 +14,10 @@ ns.changelog = {
         sections = {
             { L.CHANGELOG_ADDED, {
                 { L.APPEARANCEICONS_TITLE, "A new module: gear whose appearance you haven't "
-                    .. "collected gets one of Blizzard's appearance icons in a corner of its icon, "
-                    .. "top right by default, in your bags and bank, at merchants, in the auction "
-                    .. "house, and in loot. A corner Upgrade Arrows or Already Known also uses gets a "
+                    .. "collected gets Blizzard's transmogrifier icon in a corner of its icon, top "
+                    .. "right by default, in your bags and bank, at merchants, in the auction house, "
+                    .. "and in loot, and so does a recipe that makes it, after its name in the "
+                    .. "professions window. A corner Upgrade Arrows or Already Known also uses gets a "
                     .. "warning. Off by default." },
             } },
             { L.CHANGELOG_FIXED, {

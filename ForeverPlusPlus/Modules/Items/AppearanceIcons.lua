@@ -1,8 +1,8 @@
--- Appearance Icons: marks gear whose appearance you haven't collected yet with one of Blizzard's
--- appearance icons in a corner of the item's icon (top right by default, where nothing else of
+-- Appearance Icons: marks gear whose appearance you haven't collected yet with Blizzard's
+-- transmogrifier icon in a corner of the item's icon (top right by default, where nothing else of
 -- ours or Blizzard's sits), so you wear it once before selling it. It shows in your bags and bank,
--- at merchants, in the auction house, and in the loot window and loot rolls, each with its own
--- checkbox.
+-- at merchants, in the auction house, and in the loot window and loot rolls, and after the name
+-- of a recipe that makes such gear in the professions window, each with its own checkbox.
 --
 -- "Not collected" is what the game's own item tooltip says: its "You haven't collected this
 -- appearance" line (TRANSMOGRIFY_TOOLTIP_APPEARANCE_UNKNOWN), seen on Forever in Cameron's
@@ -11,8 +11,8 @@
 -- Nothing is written onto Blizzard's frames: our own texture sits on the icon.
 local _, ns = ...
 
-local _G, pairs, wipe = _G, pairs, wipe
-local C_Item, C_Container = C_Item, C_Container
+local _G, pairs, wipe, setmetatable = _G, pairs, wipe, setmetatable
+local C_Item, C_Container, C_TradeSkillUI = C_Item, C_Container, C_TradeSkillUI
 local GetTime = GetTime
 
 local L = ns.L
@@ -20,23 +20,21 @@ local ItemButtons = ns.ItemButtons
 
 local module = ns.NewModule("AppearanceIcons", L.APPEARANCEICONS_DESC, {
     enabled = false,
-    icon = "link", -- which atlas: "link" (the appearance link's mark) or "map" (the transmogrifier)
     corner = "TOPRIGHT", -- free of Upgrade Arrows (top left), Already Known (bottom left), and counts
     size = 14, -- in the bags; other places scale from it
+    padding = 1, -- how far the icon sits in from its corner, in pixels, as Upgrade Arrows' arrow
     bags = true,
     bank = true,
     merchant = true,
     auction = true,
     loot = true,
+    professions = true, -- after a recipe's name in the professions window
 })
 module.title = L.APPEARANCEICONS_TITLE
 module.category = "items"
 module.added = "1.2.0"
 
-local ICONS = {
-    link = "transmog-icon-chat", -- 13x13, the mark on appearance links in chat
-    map = "poi-transmogrifier", -- 29x36, the transmogrifier on the map
-}
+local ATLAS = "poi-transmogrifier" -- the transmogrifier on the map (29x36), drawn square
 
 local CORNERS = {
     { "TOPLEFT", L.APPEARANCEICONS_CORNER_TOPLEFT },
@@ -46,14 +44,6 @@ local CORNERS = {
 }
 
 module.options = {
-    {
-        key = "icon", name = L.APPEARANCEICONS_ICON, description = L.APPEARANCEICONS_ICON_DESC,
-        section = L.APPEARANCEICONS_SECTION_LOOK,
-        choices = {
-            { "link", L.APPEARANCEICONS_ICON_LINK },
-            { "map", L.APPEARANCEICONS_ICON_MAP },
-        },
-    },
     {
         key = "corner", name = L.APPEARANCEICONS_CORNER, description = L.APPEARANCEICONS_CORNER_DESC,
         section = L.APPEARANCEICONS_SECTION_LOOK, choices = CORNERS,
@@ -85,6 +75,11 @@ module.options = {
         section = L.APPEARANCEICONS_SECTION_LOOK, min = 8, max = 28, step = 1,
         format = L.APPEARANCEICONS_SIZE_FORMAT,
     },
+    {
+        key = "padding", name = L.APPEARANCEICONS_PADDING, description = L.APPEARANCEICONS_PADDING_DESC,
+        section = L.APPEARANCEICONS_SECTION_LOOK, min = 0, max = 10, step = 1,
+        format = L.APPEARANCEICONS_SIZE_FORMAT,
+    },
     { key = "bags", name = L.APPEARANCEICONS_BAGS, description = L.APPEARANCEICONS_BAGS_DESC,
         section = L.APPEARANCEICONS_SECTION_SHOW },
     { key = "bank", name = L.APPEARANCEICONS_BANK, description = L.APPEARANCEICONS_BANK_DESC,
@@ -94,6 +89,8 @@ module.options = {
     { key = "auction", name = L.APPEARANCEICONS_AUCTION, description = L.APPEARANCEICONS_AUCTION_DESC,
         section = L.APPEARANCEICONS_SECTION_SHOW },
     { key = "loot", name = L.APPEARANCEICONS_LOOT, description = L.APPEARANCEICONS_LOOT_DESC,
+        section = L.APPEARANCEICONS_SECTION_SHOW },
+    { key = "professions", name = L.APPEARANCEICONS_PROFESSIONS, description = L.APPEARANCEICONS_PROFESSIONS_DESC,
         section = L.APPEARANCEICONS_SECTION_SHOW },
 }
 
@@ -164,25 +161,23 @@ local marks = ItemButtons.Overlays(function(icon)
     return icon:GetParent():CreateTexture(nil, "OVERLAY", nil, 7)
 end)
 
-local hasAtlas = {} -- atlas -> whether this client has it, read in OnEnable
+local hasAtlas = false -- whether this client has the atlas, read in OnEnable
 
 -- Shows or clears our mark on an icon. `scale` sizes it against the bags' icons.
 local function setMark(icon, on, scale)
-    local atlas = ICONS[module.db.icon] or ICONS.link
-    if on and not hasAtlas[atlas] then
-        on = false
-    end
-    local mark = marks:Set(icon, on)
+    local mark = marks:Set(icon, on and hasAtlas)
     if not mark then
         return
     end
     local size = module.db.size * (scale or 1)
     local corner = module.db.corner
-    mark:SetAtlas(atlas)
+    local padding = module.db.padding or 0
+    mark:SetAtlas(ATLAS)
     mark:SetSize(size, size)
     mark:ClearAllPoints()
-    local x = corner:find("LEFT") and 1 or -1
-    local y = corner:find("TOP") and -1 or 1
+    -- In from the corner: right and down from the top left, left and up from the bottom right.
+    local x = corner:find("LEFT") and padding or -padding
+    local y = corner:find("TOP") and -padding or padding
     mark:SetPoint(corner, icon, corner, x, y)
 end
 
@@ -237,9 +232,92 @@ local function markRoll(icon, link)
     setMark(icon, module.db.loot and link and uncollected(link), 1)
 end
 
+-- Professions -------------------------------------------------------------------------------------
+-- The recipe list's rows have no item icon: the mark goes after the recipe's name, or after its
+-- "[3]" craftable count when that shows, at text height. Blizzard's row (ProfessionsRecipeList-
+-- RecipeMixin, Gethe forever branch) keeps 10 pixels after the count; the lock icon of a disabled
+-- recipe sits at the row's right end.
+
+local ROW_SIZE = 14
+
+local rowMarks = ItemButtons.Overlays(function(row)
+    return row:CreateTexture(nil, "OVERLAY", nil, 7)
+end)
+
+local outputs = {} -- recipeID -> the item it makes, or false for none (an enchant)
+
+local function outputOf(recipeID)
+    local item = outputs[recipeID]
+    if item == nil then
+        local T = C_TradeSkillUI
+        local schematic = T and T.GetRecipeSchematic and T.GetRecipeSchematic(recipeID, false)
+        item = schematic and schematic.outputItemID or false
+        outputs[recipeID] = item
+    end
+    return item or nil
+end
+
+local function markRow(row, node)
+    if not (row and row.Label) then
+        return
+    end
+    local on = module.enabled and module.db.professions and hasAtlas
+    local recipeID
+    if on then
+        node = node or (row.GetElementData and row:GetElementData())
+        local data = node and (node.GetData and node:GetData() or node.data)
+        local info = data and data.recipeInfo
+        recipeID = info and info.recipeID
+    end
+    local item = recipeID and outputOf(recipeID)
+    local mark = rowMarks:Set(row, item and uncollected("item:" .. item))
+    if not mark then
+        return
+    end
+    mark:SetAtlas(ATLAS)
+    mark:SetSize(ROW_SIZE, ROW_SIZE)
+    mark:ClearAllPoints()
+    local after = row.Count and row.Count:IsShown() and row.Count or row.Label
+    mark:SetPoint("LEFT", after, "RIGHT", 2, 0)
+end
+
+local function recipeRows(fn)
+    local frame = _G.ProfessionsFrame
+    local page = frame and frame.CraftingPage
+    local box = page and page.RecipeList and page.RecipeList.ScrollBox
+    if box and box.ForEachFrame then
+        box:ForEachFrame(fn)
+    end
+end
+
+local seenRows = setmetatable({}, { __mode = "k" })
+
+-- Rows built from the mixin after the hook carry it; rows built before (the window opened before
+-- this module turned on) keep the old method, so they're hooked one by one the first time seen.
+local function updateRecipes()
+    local mixin = _G.ProfessionsRecipeListRecipeMixin
+    recipeRows(function(row)
+        if row.Label and not seenRows[row] then
+            seenRows[row] = true
+            if mixin and row.Init ~= mixin.Init then
+                module:Hook(row, "Init", markRow)
+            end
+        end
+        markRow(row)
+    end)
+end
+
+local function hookRecipes()
+    local mixin = _G.ProfessionsRecipeListRecipeMixin
+    if mixin then
+        module:Hook(mixin, "Init", markRow)
+    end
+end
+
 -- Module ----------------------------------------------------------------------------------------
 
 local function refresh()
+    updateRecipes()
     local merchant = _G.MerchantFrame
     -- Only on the Merchant tab: Buyback shows its items on the same buttons.
     if merchant and merchant:IsShown() and (merchant.selectedTab or 1) == 1 then
@@ -280,10 +358,18 @@ local function onCollectionChanged()
     refreshSoon()
 end
 
+-- The professions window is a load-on-demand addon: hook its recipe rows once they're there.
+local function onProfessions()
+    hookRecipes()
+    refreshSoon()
+end
+
 function module:OnEnable()
-    for _, atlas in pairs(ICONS) do
-        hasAtlas[atlas] = ns.Frames.HasAtlas(atlas)
-    end
+    hasAtlas = ns.Frames.HasAtlas(ATLAS)
+    hookRecipes()
+    self:On("ADDON_LOADED", onProfessions)
+    self:On("TRADE_SKILL_SHOW", onProfessions)
+    self:On("TRADE_SKILL_LIST_UPDATE", onProfessions)
     self:Hook("MerchantFrame_UpdateMerchantInfo", updateMerchant)
     self:Hook("MerchantFrame_UpdateBuybackInfo", clearMerchant)
     ItemButtons.HookBags(self, updateBag)
@@ -304,6 +390,7 @@ end
 function module:OnDisable()
     ItemButtons.CancelAuction(updateAuction)
     marks:HideAll()
+    rowMarks:HideAll()
     forget()
     wipe(waiting)
 end
