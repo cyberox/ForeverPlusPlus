@@ -40,6 +40,7 @@ local LISTED = { herb = true, ore = true, treasure = true, fish = true }
 local LIST_WIDTH = 270
 local SKILL_WIDTH = 22 -- a node row's skill, in front of its icon (up to "300")
 local TRIVIAL = 0.7 -- the list's gray for a skill that no longer gives skill-ups
+local NO_SKILL, NO_SKILL_GRAY = "\226\128\147", 0.45 -- an en dash, for a row with no skill
 local ICON, INDENT = 14, 14 -- a node row's icon, and how far node rows sit in from their header
 local TIER_HEIGHT = 18
 
@@ -338,7 +339,10 @@ local function fillNodeRow(row, entry, kindOn)
             row.skill:SetTextColor(color.r, color.g, color.b)
         end
     else
-        row.skill:SetText("")
+        -- Nothing to take (a chest that isn't locked, a pool) or not known yet: a faint dash, so
+        -- every icon stays in line.
+        row.skill:SetText(NO_SKILL)
+        row.skill:SetTextColor(NO_SKILL_GRAY, NO_SKILL_GRAY, NO_SKILL_GRAY)
     end
 end
 
