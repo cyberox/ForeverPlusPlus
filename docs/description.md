@@ -95,6 +95,7 @@ Everything is on by default except where noted. Each module can be turned off, a
 - **Forever Quest Icons**: Marks quests that are new to Forever (not in original Classic) with an infinity sign, or the Forever logo, after their name in the quest log on the world map, the objective tracker, a quest giver's list of quests, and the title of a quest's details, each with its own checkbox and icon size slider. On by default.
 - **Quest Levels**: Shows a quest's level before its name, like the quest log's [12] (with a + for elite quests), in a quest giver's list and at the top of the quest's details. On by default. Its Color by Difficulty option (off by default) colors the level gray through red by how it compares with yours.
 - **Quest Nameplates**: Shows a quest icon that matches the objective (kill, item, or interact) and your progress (3/8, or how many are left) beside the health bar of creatures you need for a quest. In a party it can count everyone's progress added up, or the member furthest from done.
+- **Hide Quest Tooltips**: Takes the quest lines (the quest's name and its objectives, like "- Item 0/8") off the tooltips of creatures, players, and, by default, objects such as chests. Off by default.
 
 ### System
 
