@@ -99,7 +99,7 @@ module.options = {
         description = L.QUESTTRACKER_OPACITY_DESC,
         section = BOX,
         requires = "background",
-        min = 10, max = 100, step = 5, format = "%d%%", -- opacity steps by 5, as the Whisper Window's
+        min = 10, max = 100, step = 5, format = "%d%%", -- opacity steps by 5, as every opacity slider does
     },
     {
         key = "border",
@@ -392,7 +392,8 @@ end
 
 -- After each tracker update: style fonts it has started using, and fit the box. At Blizzard's
 -- font and outline there's nothing to style, so its text isn't searched. The box is fitted now,
--- so it never trails a frame behind, and once more as the tracker settles; not again next frame as well (requestFit), since nothing moved since now.
+-- so it never trails a frame behind, and once more as the tracker settles, but not next frame
+-- as well (as requestFit would), since nothing has moved since.
 local function onUpdate()
     if styled() then
         Profiler.Call(PART_FONTS, findFonts, tracker(), 4)
