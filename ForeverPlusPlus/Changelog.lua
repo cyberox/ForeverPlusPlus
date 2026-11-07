@@ -28,6 +28,9 @@ ns.changelog = {
                 { L.ADDONSLIST_TITLE, "A Chat Messages checkbox (on by default) under AddOn Sets, to "
                     .. "stop it saying in chat that a set was saved or has addons that aren't "
                     .. "installed." },
+                { L.BUFFTIMERS_TITLE, "A new Sort Buffs option (off by default) orders your buffs by "
+                    .. "time left, the next to run out on the left or right, and buffs that never run "
+                    .. "out at the other end." },
                 { L.APPEARANCEICONS_TITLE, "A new module: gear whose appearance you haven't "
                     .. "collected gets Blizzard's transmogrifier icon in a corner of its icon, top "
                     .. "right by default, in your bags and bank, at merchants, in the auction house, "
