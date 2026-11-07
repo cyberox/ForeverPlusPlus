@@ -88,6 +88,7 @@ end
 
 local function newPin(canvas)
     local pin = CreateFrame("Frame", nil, canvas)
+    pin.ringAbove = true -- every pin of a layer shares one frame level (SetArt)
     pin.texture = pin:CreateTexture(nil, "ARTWORK")
     pin.texture:SetAllPoints()
     pin.highlight = pin:CreateTexture(nil, "OVERLAY")
@@ -288,7 +289,21 @@ function MapPins.SetArt(pin, info)
     texture:SetShown(not info.hollow)
     pin:SetAlpha(info.alpha or 1)
     if info.ring then
-        pin.ring = pin.ring or ns.MinimapPins.NewRing(pin)
+        if not pin.ring then
+            -- With `ringAbove`, the ring is in a frame of its own one level up: at one frame level
+            -- the game draws every pin's art before every pin's ring, so a neighbor's ring could
+            -- land between a pin's icon and its own ring (in game, 2026-11-07). Up a level, every
+            -- ring is above every icon.
+            local holder = pin
+            if pin.ringAbove then
+                holder = CreateFrame("Frame", nil, pin)
+                holder:SetAllPoints(pin)
+                holder:EnableMouse(false)
+                holder:SetFrameLevel(pin:GetFrameLevel() + 1)
+                pin.ringFrame = holder
+            end
+            pin.ring = ns.MinimapPins.NewRing(holder)
+        end
         pin.ring:Show()
     elseif pin.ring then
         pin.ring:Hide()
@@ -311,6 +326,9 @@ function Layer:Add(map, x, y, info)
     local manager = map.GetPinFrameLevelsManager and map:GetPinFrameLevelsManager()
     if manager then
         pin:SetFrameLevel(manager:GetValidFrameLevel("PIN_FRAME_LEVEL_DUNGEON_ENTRANCE"))
+        if pin.ringFrame then
+            pin.ringFrame:SetFrameLevel(pin:GetFrameLevel() + 1)
+        end
     end
     place(pin, map)
     pin:Show()

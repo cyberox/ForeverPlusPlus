@@ -17,6 +17,7 @@ local Distance = ns.Gathering.Distance
 
 local NEAR = 1.5 -- nodes this many minimap radii away are followed, so one walked toward appears
 local REFRESH = 1 -- seconds between looks for the nodes near the player
+local LEVELS = 12 -- frame levels the pins spread over
 
 local frame -- over the minimap; holds the icons and runs OnUpdate
 local pins = {}
@@ -80,6 +81,11 @@ local function getPin(i)
     if not pin then
         pin = CreateFrame("Frame", nil, frame)
         pin:EnableMouse(false)
+        -- A level of its own, so each pin draws whole, icon and ring, over the one before: at one
+        -- level the game draws every icon before every ring, and a neighbor's ring could land
+        -- between a pin's icon and its ring (in game, 2026-11-07). A few levels, so many pins
+        -- can't climb over the minimap's own buttons.
+        pin:SetFrameLevel(frame:GetFrameLevel() + 1 + (i - 1) % LEVELS)
         local texture = pin:CreateTexture(nil, "ARTWORK")
         texture:SetAllPoints()
         pin.texture = texture
