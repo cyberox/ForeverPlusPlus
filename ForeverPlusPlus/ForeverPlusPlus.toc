@@ -90,6 +90,7 @@ Modules\Items\WaylaidCrates\Costs.lua
 Modules\Items\WaylaidCrates\Category.lua
 Modules\Items\BagSlotCounter.lua
 Modules\Items\AlreadyKnown.lua
+Modules\Items\AppearanceIcons.lua
 Modules\Items\UnusableItemsTint.lua
 Modules\Items\UpgradeArrows\UpgradeArrows.lua
 Modules\Items\UpgradeArrows\Weights.lua

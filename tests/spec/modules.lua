@@ -211,7 +211,18 @@ for _, name in ipairs(ns.order or {}) do
             problem("%s's slider %s isn't a slider", key, option.slider)
         end
         for _, conflict in ipairs(option.conflicts or {}) do
-            if not byKey[conflict.key] then
+            -- With `module`, the key is that module's option.
+            local other = conflict.module and ns.modules[conflict.module]
+            local found = byKey[conflict.key]
+            if conflict.module then
+                found = nil
+                for _, each in ipairs(other and other.options or {}) do
+                    found = found or (each.key == conflict.key and each) or nil
+                end
+            end
+            if conflict.module and not other then
+                problem("%s conflicts with module %s, which isn't one", key, tostring(conflict.module))
+            elseif not found then
                 problem("%s conflicts with %s, which isn't an option", key, tostring(conflict.key))
             end
             if type(conflict.when) ~= "function" or not text(conflict.text) then

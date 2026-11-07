@@ -12,6 +12,13 @@ ns.changelog = {
     {
         version = L.CHANGELOG_UNRELEASED,
         sections = {
+            { L.CHANGELOG_ADDED, {
+                { L.APPEARANCEICONS_TITLE, "A new module: gear whose appearance you haven't "
+                    .. "collected gets one of Blizzard's appearance icons in a corner of its icon, "
+                    .. "top right by default, in your bags and bank, at merchants, in the auction "
+                    .. "house, and in loot. A corner Upgrade Arrows or Already Known also uses gets a "
+                    .. "warning. Off by default." },
+            } },
             { L.CHANGELOG_FIXED, {
                 { L.UPGRADEARROWS_TITLE, "With a two-hander on, a one-hander or off hand is judged "
                     .. "together with the best hand item in your bags for the other hand, as the "

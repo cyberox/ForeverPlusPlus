@@ -4,6 +4,10 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 ## Unreleased
 
+### Added
+
+- **Appearance Icons**: a new module: gear whose appearance you haven't collected gets one of Blizzard's appearance icons in a corner of its icon, top right by default, in your bags and bank, at merchants, in the auction house, and in loot. A corner Upgrade Arrows or Already Known also uses gets a warning. Off by default.
+
 ### Fixed
 
 - **Upgrade Arrows**: with a two-hander on, a one-hander or off hand is judged together with the best hand item in your bags for the other hand, as the game's own comparison pairs them, instead of against that bag item (a cutlass showed +1898%). The tooltip says which item it was paired with.

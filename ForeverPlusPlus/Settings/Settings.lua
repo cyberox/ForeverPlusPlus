@@ -422,6 +422,7 @@ local newOnly -- the New checkbox: only modules marked NEW show, off each time S
 local page -- the page's frames, once built
 local bound = {} -- module name -> functions that put what shows of it back to what's saved
 local refreshModule -- puts one module back to what's saved wherever it shows
+local selectModule -- shows a module on the right of the Modules page (a conflict's button)
 
 local function isNew(name)
     return (newRows[name] or newRows[ns.modules[name]]) and true or false
@@ -813,18 +814,34 @@ end
 -- Under an option, a gray row for each of its `conflicts` ({ key, when = fn(db), text }) while
 -- `when` is true: it and the option `key` can't both work as set. A button goes
 -- to that one, unless it's the row just above or below (`options` in the order they're drawn,
--- with this one at `index`), where the line alone is enough.
+-- with this one at `index`), where the line alone is enough. With `module` (another module's
+-- name), `key` is that module's option, `when(db, otherDB)` gets its settings too, the row shows
+-- only while that module is on, and the button opens it there.
 local function addConflictRows(view, module, options, index)
     local option = options[index]
     for _, conflict in ipairs(option.conflicts or {}) do
         local beside = false
         local other
-        for i, each in ipairs(options) do
+        local otherModule = conflict.module and ns.modules[conflict.module]
+        for i, each in ipairs(otherModule and otherModule.options or options) do
             if each.key == conflict.key then
-                other, beside = each, i == index - 1 or i == index + 1
+                other, beside = each, not otherModule and (i == index - 1 or i == index + 1)
             end
         end
-        if other then
+        if other and otherModule then
+            local function shown()
+                return module.db.enabled and otherModule.db.enabled
+                    and conflict.when(module.db, otherModule.db) and true or false
+            end
+            addButtonRow(view, format("|cff999999%s|r", conflict.text), nil, shown,
+                format(L.SETTINGS_CONFLICT_GO, other.name), function()
+                    selectModule(conflict.module)
+                    local otherView = page and page.views[conflict.module]
+                    if otherView then
+                        goToOption(otherView, conflict.key)
+                    end
+                end, nil, conflict.text)
+        elseif other then
             local function shown()
                 return module.db.enabled and conflict.when(module.db) and true or false
             end
@@ -1057,7 +1074,7 @@ local function choose(name)
 end
 
 -- Shows `name` on the right and scrolls the list to it.
-local function selectModule(name)
+function selectModule(name)
     choose(name)
     scrollTo(page.listScroll, page.list, page.rows[name])
 end
