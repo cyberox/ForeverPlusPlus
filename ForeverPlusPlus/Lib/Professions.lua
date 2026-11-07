@@ -1,6 +1,6 @@
--- The player's profession skills by skill line, read once and again only after they change, and
--- the herbs and veins in the world with the skill they take. Nothing is listened to until a
--- module first asks.
+-- The player's profession skills by skill line, read once and again only after they change; the
+-- herbs and veins in the world with the skill they take, and the chests and fishing pools; and
+-- the professions window's recipe rows. Nothing is listened to until a module first asks.
 local _, ns = ...
 
 local _G, type, ipairs, pairs, select = _G, type, ipairs, pairs, select
@@ -385,8 +385,8 @@ function Professions.LearnChest(name, need)
     if type(name) ~= "string" or name == "" then
         return false
     end
-    local _, known = Professions.Chest(name)
-    if Professions.Chest(name) and (known or not need) then
+    local chest, known = Professions.Chest(name)
+    if chest and (known or not need) then
         return false
     end
     return CHESTS:Learn(name, type(need) == "number" and need or true)

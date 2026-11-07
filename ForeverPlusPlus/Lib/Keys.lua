@@ -1,7 +1,7 @@
 -- The modifier key a module lets the player hold to skip what it does (Auto Quest, Auto Gossip,
--- Auto Repair, Auto Sell Junk, Auto Release), to let something through (Skip Cinematics), or to
--- pick another action (Minimap Button, World Map), so each offers the same choices under the
--- same names.
+-- Auto Repair, Auto Sell Junk, Auto Release), to let something through (Skip Cinematics), to
+-- pick another action (Minimap Button, World Map's Zone Info), or to drag (Movable Windows), so
+-- each offers the same choices under the same names.
 local _, ns = ...
 
 local type = type

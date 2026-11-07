@@ -33,7 +33,7 @@ local MAX_AGE = 60 * 24 * 60 * 60 -- seconds; someone unseen for 60 days is drop
 local MAX_PLAYERS = 5000 -- the oldest go past this, so a busy city can't grow the file for ever
 local REFRESH = 60 * 60 -- seconds before an unchanged entry gets its seen time written again
 
-Players.MAX_AGE, Players.MAX_PLAYERS = MAX_AGE, MAX_PLAYERS
+Players.MAX_AGE = MAX_AGE
 
 -- Class tokens and names ------------------------------------------------------------------------
 

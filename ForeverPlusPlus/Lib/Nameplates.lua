@@ -26,8 +26,6 @@ local frames = {} -- nameplate unit -> its UnitFrame, while on screen
 local barUnits = setmetatable({}, { __mode = "k" })
 local hookedBars = setmetatable({}, { __mode = "k" })
 
--- Calls each user's handler; while the Profiler records, timed and charged to the user's module
--- (an owner that isn't a module itself carries it as `owner.module`).
 -- Each callback as the Profiler page names it.
 local SOURCES = {
     OnAdded = ns.L.PROFILER_SOURCE_PLATE_ADDED,
@@ -35,6 +33,8 @@ local SOURCES = {
     OnCastBar = ns.L.PROFILER_SOURCE_PLATE_CAST,
 }
 
+-- Calls each user's handler; while the Profiler records, timed and charged to the user's module
+-- (an owner that isn't a module itself carries it as `owner.module`).
 local function dispatch(method, ...)
     local profiler = ns.Profiler
     local timed = profiler and profiler.recording

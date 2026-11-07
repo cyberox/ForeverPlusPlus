@@ -241,14 +241,14 @@ function ItemButtons.MerchantShown()
     return frame and frame:IsShown() and (frame.selectedTab or 1) == 1 or false
 end
 
+local clearers = weak() -- clear -> the function hooked for it, the same one every OnEnable, since
+-- module:Hook hooks once per function and a new one would hook again each time the module turns on
+
 ---Marks the merchant's items while a module is on: `update()` when the Merchant tab draws, and
 ---`clear(icon)` on each button when the Buyback tab draws on the same buttons.
 ---@param module table
 ---@param update fun()
 ---@param clear fun(icon: table)
-local clearers = weak() -- clear -> the function hooked for it, the same one every OnEnable, since
--- module:Hook hooks once per function and a new one would hook again each time the module turns on
-
 function ItemButtons.HookMerchant(module, update, clear)
     module:Hook("MerchantFrame_UpdateMerchantInfo", update)
     local clearAll = clearers[clear]
