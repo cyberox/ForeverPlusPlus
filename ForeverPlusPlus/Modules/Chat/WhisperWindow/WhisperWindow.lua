@@ -641,10 +641,6 @@ end
 
 -- /fpp whispers opens or closes the window; /fpp whispers Bob opens it on Bob, ready to type.
 ns.AddCommand("whispers", L.WHISPERWINDOW_COMMAND_USAGE, L.WHISPERWINDOW_COMMAND, function(rest)
-    if not module.enabled then
-        ns.Print(L.WHISPERWINDOW_OFF)
-        return
-    end
     local name = strtrim(rest or "")
     if name ~= "" then
         internal.Open(internal.Start(name), true)

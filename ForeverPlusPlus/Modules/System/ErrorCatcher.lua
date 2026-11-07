@@ -866,10 +866,5 @@ function module:OnDisable()
     end
 end
 
-ns.AddCommand("errors", "", L.ERRORCATCHER_COMMAND, function()
-    if module.enabled then
-        toggleWindow()
-    else
-        ns.Print(L.ERRORCATCHER_OFF)
-    end
-end, "ErrorCatcher")
+-- Only while the module is on: Core says so otherwise.
+ns.AddCommand("errors", "", L.ERRORCATCHER_COMMAND, toggleWindow, "ErrorCatcher")

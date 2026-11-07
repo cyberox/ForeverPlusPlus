@@ -309,7 +309,9 @@ local function learn(used)
             if fits(entry, slot) then
                 return -- already known
             end
-            local learned = { kind = type(entry) == "table" and entry.kind or entry }
+            -- A copy of what's known: its kind (none for an item learned in play) and the weapon
+            -- types learned before.
+            local learned = { kind = type(entry) ~= "table" and entry or nil }
             if type(entry) == "table" then
                 for key, value in pairs(entry) do
                     learned[key] = value

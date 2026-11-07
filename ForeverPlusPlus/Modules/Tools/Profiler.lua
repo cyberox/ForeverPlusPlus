@@ -3,8 +3,8 @@
 -- the list shows the heaviest modules first, with their milliseconds a second, their worst single
 -- frame, and how often they ran, beside the game's own numbers for Forever++ as a whole. A module
 -- with parts or named sources has the AddOn List's +/- and folds open to them (its parts, then
--- what its time went to by source: an event, a hook, an update); the heaviest module starts
--- open. A faint bar behind each module shows its share against the heaviest. Under the list, the
+-- what its time went to by source: an event, a hook, an update); the heaviest module with parts
+-- starts open, once. A faint bar behind each module shows its share against the heaviest. Under the list, the
 -- worst frames Forever++ took too long in (spikes) say when, how long, and whose call it was.
 -- Copy gives it all as one line for a bug report. Memory can only be read for the whole addon,
 -- with how fast it grew while recording. Nothing is timed until Record, and nothing is built

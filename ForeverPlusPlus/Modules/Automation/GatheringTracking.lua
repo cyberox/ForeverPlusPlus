@@ -44,14 +44,14 @@ module.quickToggle = "gathering"
 -- Swap was one slider, 0.8.4 and before, whose first stop (2) meant never.
 ns.Migrate(1, function(db)
     local saved = db.modules or {}
-    local db = saved.GatherTracking
-    if not (db and type(db.swap) == "number") then
+    local old = saved.GatherTracking -- its name before the version 3 rename
+    if not (old and type(old.swap) == "number") then
         return
     end
-    if db.swap >= FASTEST then
-        db.swapEvery = db.swap
+    if old.swap >= FASTEST then
+        old.swapEvery = old.swap
     end
-    db.swap = db.swap >= FASTEST
+    old.swap = old.swap >= FASTEST
 end)
 
 module.options = {
@@ -270,9 +270,6 @@ function module:OnDisable()
 end
 
 function module:OnOptionChanged(key)
-    if not self.enabled then
-        return
-    end
     if key == "swap" or key == "swapEvery" then
         startSwapping()
     elseif key == "reapply" and self.db.reapply then

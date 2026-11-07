@@ -108,7 +108,5 @@ function module:OnDisable()
 end
 
 function module:OnOptionChanged(key)
-    if self.enabled then
-        cvars.Apply(key)
-    end
+    cvars.Apply(key)
 end

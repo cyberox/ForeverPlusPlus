@@ -1,12 +1,14 @@
 -- Gathering Map's own page in Settings, laid out like the Modules and Console Variables pages: a
 -- list on the left and the selected entry on the right, each scrolling on its own.
 --
--- The list has a header for Herbs and for Ore that folds its nodes away, with the kind's checkbox
--- (the same switch as the world map's filter). Under each header is a row for every herb or vein:
--- its checkbox, which shows or hides it on both maps for this character, its icon, and how many
--- spots are remembered. Selecting a node shows its skill, how often and how lately it was
--- gathered, the zones its spots are in, and a button that forgets them. Selecting a kind shows
--- Show All and Hide All for its nodes. The search box narrows the list by name.
+-- The list has a header for Herbs, Ore, Treasure, and Fishing Pools that folds its nodes away,
+-- with the kind's checkbox (the same switch as the world map's filter) and this character's skill.
+-- Under each header, grouped by the trainer's ranks for herbs and ore, is a row for every node:
+-- its checkbox, which shows or hides it on both maps for this character, the skill it takes, its
+-- icon, and how many spots are remembered. Selecting a node shows its skill, a checkbox for each
+-- map, how often and how lately it was gathered, the zones its spots are in, and a button that
+-- forgets them. Selecting a kind shows Show All and Hide All for its nodes and its zones. The
+-- search box narrows the list by name.
 --
 -- Hiding forgets nothing: hidden nodes are kept, for every character, and come back when shown.
 local _, ns = ...
@@ -87,10 +89,10 @@ local entries = {} -- node name -> its entry, from the last collect()
 
 -- Data ------------------------------------------------------------------------------------------
 
--- Every node of each kind: the herbs, veins, and chests Lib/Professions knows, and any remembered
--- under a name it doesn't, each as { name, kind, skill, spots, gathers, last, zones }, where zones
--- is a list of { mapID, spots, last }. Sorted by skill and then name. A chest's skill is the
--- Lockpicking it takes, when it's locked.
+-- Every node of each kind: the herbs, veins, chests, and pools Lib/Professions knows, and any
+-- remembered under a name it doesn't, each as { name, kind, skill, spots, gathers, last, zones },
+-- where zones is a list of { mapID, spots, last }, and a pool's loot. Sorted by skill and then
+-- name. A chest's skill is the Lockpicking it takes, when it's locked.
 local function collect()
     local byName = {}
     for name, node in Professions.EachNode() do

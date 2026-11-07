@@ -1,9 +1,10 @@
 -- Points of Interest, a part of World Map: icons on the world map for dungeons, raids, capital
 -- cities, flight masters, boats, zeppelins, and spirit healers, each with a tooltip saying what and
--- where it is. Every kind has its own checkbox, icon size, and whether it also shows on the
--- continent and world maps, not just zone maps. Travel points of the other faction are off unless
--- asked for. Where the points are is in Data.lua, except Skyborne ley lines, saved as they're
--- found. This file has the part, its options, and drawing the points; Flights.lua the flight
+-- where it is. Every kind has its own checkbox (a dropdown for capital cities and ley lines), icon
+-- size, and whether it also shows on the continent and world maps, not just zone maps. Travel
+-- points of the other faction are off unless asked for. Where the points are is in Data.lua,
+-- except Skyborne ley lines, saved as they're found, and flight points a flight master shows,
+-- which take the place of Data.lua's. This file has the part, its options, and drawing the points; Flights.lua the flight
 -- points flight masters show, LeyLines.lua the ley lines, and BlizzardIcons.lua hiding the
 -- game's own icons where ours show.
 local _, ns = ...

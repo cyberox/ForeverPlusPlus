@@ -255,8 +255,8 @@ end
 
 -- Adds a node for a dot that answered at a spot. Moving, the trail is taken off before the spot
 -- is placed on the map: the one measured now, or else the last one measured, which is closer than
--- none; following corrects it from there. Better still, a node Gathering Map remembers near there
--- takes its remembered spot right away.
+-- none; following corrects it from there. Better still, while moving, a node Gathering Map
+-- remembers near there takes its remembered spot right away.
 local function addNode(name, icon, right, up, gray, v)
     local node = { name = name, icon = icon, right = right, up = up, level = gray, misses = 0,
         standing = internal.standing(name) }
@@ -333,7 +333,6 @@ end
 local function find(count, v)
     internal.pass = internal.pass or newPass()
     local pass = internal.pass
-    local seen = internal.seen
     local list = pass.points
     local last = min(pass.index + count - 1, #list)
     for i = pass.index, last do
@@ -347,12 +346,8 @@ local function find(count, v)
             else
                 -- Blizzard's "Requires Herbalism (75)" under a name says what that node takes.
                 local skill, need = Requires(entry.name)
-                if skill then
-                    if k > 1 then
-                        Professions.LearnRequirement(found[k - 1].name, skill, need)
-                    end
-                else
-                    seen[entry.name] = true
+                if skill and k > 1 then
+                    Professions.LearnRequirement(found[k - 1].name, skill, need)
                 end
             end
         end
@@ -377,11 +372,13 @@ local restUntil = 0 -- when the next finding pass may start
 -- (in game, 2026-11-07; docs/forever-api.md). The player's own hover is the test: a dot their
 -- mouse named (Lib/MinimapPins.lua, at the middle of where it did) is probed at that spot as soon
 -- as the mouse leaves the minimap, if the player hasn't moved or turned meanwhile. If the probe
--- can't read it, probing is off until /reload and the module's notice says why.
+-- can't read it, the module turns itself off for this client build (internal.SetBroken), its name
+-- goes red, and its notice says why, until the player turns it on again.
 
 local HOVER_CHECK = 2 -- seconds after the hover that the check still counts
 local HOVER_YARDS = 1 -- moving more than this between the hover and the check spoils it
-local hover -- { name, right, up, at, x, y, angle }: a node the player's mouse named on the minimap
+-- A node the player's mouse named on the minimap: { name, right, up, at, x, y, angle, scale }.
+local hover
 
 function internal.onHover(names, right, up)
     for _, name in ipairs(names) do

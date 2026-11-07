@@ -1,16 +1,17 @@
--- Gathering Map: every herb and vein the player gathers is remembered where they stood, for the
--- whole account, and shown on the world map and the minimap. Gathering the same node again counts
--- it and moves its spot toward the average of where the player stood (Lib/Gathering.lua). Ideas
--- from GatherMate2 and GatherLite; none of their code or data.
+-- Gathering Map: every herb, vein, chest, and fishing pool the player gathers is remembered where
+-- they stood, for the whole account, and shown on the world map and the minimap. Gathering the
+-- same node again counts it and moves its spot toward the average of where the player stood
+-- (Lib/Gathering.lua). Ideas from GatherMate2 and GatherLite; none of their code or data.
 --
 -- This file holds the module, its options, and remembering gathers. Map.lua draws the nodes on
--- the world map and Minimap.lua on the minimap. They share module.internal.
+-- the world map, Minimap.lua on the minimap, Page.lua is its Settings page, and Filter.lua adds
+-- its kinds to the world map's filter menu. They share module.internal.
 local _, ns = ...
 
 local pairs, ipairs, type, time, format, tostring = pairs, ipairs, type, time, string.format, tostring
 local C_Minimap, C_Map, IsShiftKeyDown = C_Minimap, C_Map, IsShiftKeyDown
-local Minimap, GameTooltip, strtrim, NORMAL_FONT_COLOR = Minimap, GameTooltip, strtrim, NORMAL_FONT_COLOR
-local ITEM_MIN_SKILL, C_TooltipInfo, setmetatable = ITEM_MIN_SKILL, C_TooltipInfo, setmetatable
+local Minimap, GameTooltip, NORMAL_FONT_COLOR = Minimap, GameTooltip, NORMAL_FONT_COLOR
+local ITEM_MIN_SKILL, setmetatable = ITEM_MIN_SKILL, setmetatable
 
 local L = ns.L
 local Gathering = ns.Gathering
@@ -62,7 +63,9 @@ local module = ns.NewModule("GatheringMap", L.GATHERINGMAP_DESC, {
     chat = true, -- say in chat when Shift+right-click forgets a node
     log = false, -- print each gather in chat (Debug)
     -- Nodes remembered, by zone map ID: a list of { name, kind, x, y, count, time, loot }, where
-    -- loot is item ID -> how many it gave in all. For the whole account. Data, not a setting.
+    -- loot is item ID -> how many it gave in all, with `names` on a spot that spawned more than
+    -- one node and `seen` and `sightings` on one seen (Lib/Gathering.lua). For the whole account.
+    -- Data, not a setting.
     nodes = {},
     -- What this character doesn't show, from the Gathering Map page (and the world map's filter):
     -- node name -> true, and kind ("herb", "ore") -> true. Data, saved for each character.
@@ -116,7 +119,6 @@ local function tipOption(key, name, description)
     }
 end
 
--- How a node shows by this character's skill: as usual, gray, or not at all.
 -- How a node just gathered shows on one map (`key`), in that map's section, under its Show on.
 local function justOption(key, section, requires)
     return {
@@ -142,6 +144,7 @@ local function justAlphaOption(key, look, section, requires)
     }
 end
 
+-- How a node shows by this character's skill: as usual, gray, or not at all.
 local function skillOption(key, name, description)
     return {
         key = key, name = name, description = description, section = L.GATHERINGMAP_SECTION_GENERAL,
@@ -153,7 +156,6 @@ local function skillOption(key, name, description)
     }
 end
 
--- Last, under its own header, as every module's Chat Messages is.
 -- Under Remembered Nodes, after its Share and Forget buttons (which sit at the top of the section):
 -- what it says in chat is about forgetting them.
 local NODES = L.GATHERINGMAP_SECTION_NODES
@@ -435,15 +437,16 @@ function internal.NodesChanged(mapID)
     ns.Providers.Changed("gatheringNodes")
 end
 
--- The kinds this character can show, for the Minimap Button's quick toggles: herbs, ore, and
--- fishing pools only with their profession (all of them with Only My Professions off), chests
--- always. The same switches as the page's kind checkboxes.
-local QUICK_KINDS = {
+-- The kinds a player turns on and off, in order, with the skill line that gathers each (anyone
+-- can open a chest): the Minimap Button's quick toggles and the world map's filter (Filter.lua).
+-- The same switches as the page's kind checkboxes.
+local KINDS = {
     { kind = "herb", name = L.GATHERINGMAP_PAGE_HERBS, line = ns.Professions.HERBALISM },
     { kind = "ore", name = L.GATHERINGMAP_PAGE_ORE, line = ns.Professions.MINING },
     { kind = "treasure", name = L.GATHERINGMAP_PAGE_TREASURE },
     { kind = "fish", name = L.GATHERINGMAP_PAGE_FISH, line = ns.Professions.FISHING },
 }
+internal.KINDS = KINDS
 
 -- What the public API (API.lua's GetGatheringMaps and GetGatheringNodes, which copy what they
 -- give out) and the Minimap Button (Kinds) read while the module is on.
@@ -451,11 +454,13 @@ local provider = {
     Maps = function()
         return module.db.nodes
     end,
+    -- Herbs, ore, and fishing pools only with their profession (all of them with Only My
+    -- Professions off), chests always.
     ---@return table list of { name, IsShown(), Toggle() }
     Kinds = function()
         local db = module.db
         local list = {}
-        for _, each in ipairs(QUICK_KINDS) do
+        for _, each in ipairs(KINDS) do
             if not (db.onlyMine and each.line) or ns.Professions.Rank(each.line) then
                 list[#list + 1] = {
                     name = each.name,
@@ -544,8 +549,9 @@ function internal.JustGathered(node)
 end
 
 ---Makes `look` an empty ring: a node just gathered, or near the player on the minimap, where the
----game's own dot shows inside it when the node is up. Each map draws it at its own Empty Ring
----Opacity, not on top of its icons' Opacity, so a ring stays as solid as that setting says.
+---game's own dot shows inside it when the node is up. It's drawn at its own opacity (Just
+---Gathered Opacity, or the minimap's Empty Ring Opacity near the player), not on top of the
+---icons' Opacity, so a ring stays as solid as that setting says.
 ---@param look table
 ---@return table look
 function internal.Hollow(look)
@@ -554,9 +560,10 @@ function internal.Hollow(look)
 end
 
 ---Fills `look` with how a node is drawn, as Lib/MapPins takes it: `texture`, `trim`, `round`,
----`color`, `ring`, and `hollow`. A node is round: its item's icon, or a circle in its kind's color, with the gold ring if that's
----on; a node just gathered is drawn as that map's Just Gathered says (`just` while it's faded or a
----ring, at its Just Gathered Opacity), the ring alone for Empty Ring.
+---`color`, `desaturated`, `ring`, and `hollow`. A node is round: its item's icon, or a circle in
+---its kind's color, with the gold ring if that's on, and gray as Too High for You or No Skill-Ups
+---says. A node just gathered is drawn as that map's Just Gathered says (`just` while it's faded
+---or a ring, for the caller to draw at Just Gathered Opacity), the ring alone for Empty Ring.
 ---@param node table
 ---@param look table
 ---@param where "world"|"minimap"

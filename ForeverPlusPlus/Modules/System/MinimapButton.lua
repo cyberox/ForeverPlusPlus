@@ -1,7 +1,8 @@
 -- Minimap Button: Forever++'s button on the minimap, in the addon compartment, or both. A click
--- opens Forever++ settings and a right-click a menu of quick module toggles; while Error Catcher
--- is on, a click with a key held shows its errors, clears this session's, or clears them all (each
--- key is an option), and the button shows how many this session caught (through ns.Errors, never
+-- opens a menu of quick module toggles and a right-click Forever++ settings (the other way round
+-- with Swap Clicks off); while Error Catcher is on, a click with a key held shows its errors,
+-- clears this session's, or clears them all (each key is an option), and the button shows how
+-- many this session caught (through ns.Errors, never
 -- Error Catcher itself). After a fresh install the button wears Blizzard's NEW label, and its
 -- first click opens the About page instead, once; no popup at login.
 local _, ns = ...
@@ -85,13 +86,12 @@ for _, choice in ipairs(Keys.CHOICES) do
     KEY_NAMES[choice[1]] = choice[2]
 end
 
--- The modules the right-click menu turns on and off, grouped by what you're doing rather than by
--- the Modules page's categories, where nearly all of them are Automation. Each group lists its
--- modules by title in alphabetical order, so the order holds in every language. One that isn't
--- available on this client (Hide Beta Feedback off the beta) is left out, and so is a group left
--- empty.
--- A module joins a group by saying so in its own file: `module.quickToggle = "loot"`, one of the
--- keys below.
+-- The modules the quick toggles menu turns on and off, grouped by what you're doing rather than
+-- by the Modules page's categories, where nearly all of them are Automation. A module joins a
+-- group by saying so in its own file: `module.quickToggle = "loot"`, one of the keys below. Each
+-- group lists its modules by title in alphabetical order, so the order holds in every language.
+-- One that isn't available on this client (Hide Beta Feedback off the beta) is left out, and so
+-- is a group left empty.
 local QUICK_GROUPS = {
     { L.MINIMAPBUTTON_GROUP_LOOT, key = "loot" },
     { L.MINIMAPBUTTON_GROUP_NPCS, key = "npcs" },

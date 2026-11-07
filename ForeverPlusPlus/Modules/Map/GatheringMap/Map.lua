@@ -33,7 +33,7 @@ end
 local infos = {}
 
 -- Shift+click puts Blizzard's map pin on the node; Shift+right-click forgets it.
-local function forget(pin, button)
+local function shiftClick(pin, button)
     local info = pin.info
     if not (info and info.node) then
         return
@@ -53,7 +53,7 @@ end
 local function infoFor(i, node, size, zone)
     local info = infos[i]
     if not info then
-        info = { shiftClick = forget }
+        info = { shiftClick = shiftClick }
         infos[i] = info
     end
     info.node, info.zone = node, zone

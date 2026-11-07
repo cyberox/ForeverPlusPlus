@@ -159,7 +159,8 @@ local function showMessages()
     f.messages:ScrollToBottom()
 end
 
--- The friends list or guild roster changed: the line under the name again, after a burst.
+-- Friends, Battle.net friends, the guild roster, or the group changed: the line under the name
+-- again, after a burst.
 local refreshDetails = Frames.Coalesce(function()
     if internal.IsShown() and selected then
         window.details:SetText(detailsText(selected))

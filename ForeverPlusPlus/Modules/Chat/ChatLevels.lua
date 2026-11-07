@@ -73,7 +73,7 @@ local function tagPending()
     end
 end
 
-local tagSoon, cancelTag = ns.Frames.Coalesce(tagPending, nil, module)
+local tagSoon = ns.Frames.Coalesce(tagPending, nil, module)
 
 local function onMessage(frame, text)
     if not ns.IsText(text) then
@@ -138,8 +138,7 @@ end
 
 -- Lines already tagged lose their levels, so turning the module off undoes it.
 function module:OnDisable()
-    ns.Players.Release(self)
-    cancelTag()
+    ns.Players.Release(self) -- a queued tagSoon is dropped by Core, which owns it for the module
     for frame in pairs(pending) do
         pending[frame] = nil
     end

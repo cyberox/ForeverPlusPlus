@@ -172,7 +172,6 @@ internal.NONE = {}
 -- the zone map `nodesMap`, set when the view could be read, and what the icon is drawn from.
 -- `level` is true while the minimap names it in gray (on another level).
 internal.nodes = {}
-internal.seen = {} -- names the minimap showed that aren't nodes we know, for learning
 internal.tracking = false -- Find Herbs or Find Minerals is on
 internal.blocked = false -- the client refused a probe; stop until /reload
 -- A probe couldn't read a dot the player's mouse named: stopped, and the module turns itself off,
