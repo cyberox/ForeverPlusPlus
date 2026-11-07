@@ -329,3 +329,19 @@ L.MINIMAPNODEICONS_CLEAR_DESC = "Forget the herbs and veins learned in game, wit
     .. "gather them."
 L.MINIMAPNODEICONS_CLEAR_CONFIRM = "Forget every herb and vein Forever++ has learned?"
 L.MINIMAPNODEICONS_CLEAR_DONE = "Learned herbs and veins cleared."
+
+-- GatheringMap
+L.GATHERINGMAP_TITLE = "Gathering Map"
+L.GATHERINGMAP_DESC = "Remember every herb and vein you gather, for all your characters, and show "
+    .. "them on the world map and the minimap. Gathering one again moves its icon closer to where "
+    .. "it really is."
+L.GATHERINGMAP_LOG = "Log Gathers"
+L.GATHERINGMAP_LOG_DESC = "Print in chat each gather Gathering Map hears of: the node, what named "
+    .. "it, the world object's ID, where you stood, and whether it was saved."
+-- node, kind, what named it (target, softinteract, tooltip, none), object ID, where, result
+L.GATHERINGMAP_LOG_LINE = "Gathering Map: %s (%s, from %s, object %s) at %s: %s"
+L.GATHERINGMAP_LOG_NEW = "a new node"
+L.GATHERINGMAP_LOG_AGAIN = "gathered %d times" -- count
+L.GATHERINGMAP_LOG_KIND = "not saved: not a kind it remembers"
+L.GATHERINGMAP_LOG_UNNAMED = "not saved: nothing named it"
+L.GATHERINGMAP_LOG_NOWHERE = "not saved: no spot on a map"

@@ -128,7 +128,12 @@ local function onSent(_, unit, target, castGUID, spellID)
         return
     end
     local name, from = targetName(target)
+    -- On the zone's map, so a node in a cave shows on the zone's map with the rest.
     local mapID, x, y = ns.WorldMap.PlayerPosition()
+    local zone = mapID and ns.WorldMap.Zone(mapID)
+    if zone and zone ~= mapID then
+        mapID, x, y = ns.WorldMap.PlayerPosition(zone)
+    end
     serial = serial + 1
     pending = {
         serial = serial,
@@ -342,8 +347,8 @@ end
 ---`{ name, from, kind, line, spellID, mapID, x, y, objectID, items, succeeded }`: the node's name
 ---as the world writes it (nil when nothing named it) and `from`, what named it ("target",
 ---"softinteract", "tooltip", or "none"); `kind` ("herb", "ore", "treasure") and `line`, the skill
----line of the spell; where the player stood when they cast (`mapID`, `x`, `y`, nil where it can't
----be read); the world object's ID from its loot (nil without loot); and `items`, the loot as
+---line of the spell; where the player stood when they cast, on their zone's map (`mapID`, `x`,
+---`y`, nil where it can't be read); the world object's ID from its loot (nil without loot); and `items`, the loot as
 ---`{ id, count, icon }`. Gathers in instances aren't told. Don't keep or change the table.
 ---@param fn fun(gather: table)
 ---@param on boolean

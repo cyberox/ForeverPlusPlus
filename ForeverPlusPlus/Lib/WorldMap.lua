@@ -103,6 +103,19 @@ function WorldMap.Up(mapID)
     end
 end
 
+---The zone `mapID` is in: the map itself when it's a zone, else the first zone above it (for a
+---cave or a city's district), or nil above zones.
+---@param mapID number?
+---@return number?
+function WorldMap.Zone(mapID)
+    local zone = Enum and Enum.UIMapType and Enum.UIMapType.Zone or 3
+    for id, info in WorldMap.Up(mapID) do
+        if info and info.mapType == zone then
+            return id
+        end
+    end
+end
+
 ---The top map above `mapID` (the world, or Azeroth), under which every zone is.
 ---@param mapID number?
 ---@return number?

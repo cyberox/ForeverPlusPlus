@@ -56,6 +56,10 @@ game.secret = 0.25
 eq(WorldMap.PlayerPosition(), nil, "PlayerPosition while secret")
 game.secret = nil
 
+eq(WorldMap.Zone(9001), 1411, "Zone above a cave")
+eq(WorldMap.Zone(1411), 1411, "Zone of a zone")
+eq(WorldMap.Zone(12), nil, "Zone of a continent")
+
 -- A map's size in yards, asked once per map.
 local asked = 0
 C_Map.GetMapWorldSize = function(id)
