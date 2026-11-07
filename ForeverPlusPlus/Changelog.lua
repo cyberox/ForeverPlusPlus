@@ -25,6 +25,9 @@ ns.changelog = {
                     .. "gather, and Only While "
                     .. "Tracking (on by default) shows herbs only while Find Herbs is on and ore only "
                     .. "while Find Minerals is. On by default." },
+                { L.ADDONSLIST_TITLE, "A Chat Messages checkbox (on by default) under AddOn Sets, to "
+                    .. "stop it saying in chat that a set was saved or has addons that aren't "
+                    .. "installed." },
                 { L.APPEARANCEICONS_TITLE, "A new module: gear whose appearance you haven't "
                     .. "collected gets Blizzard's transmogrifier icon in a corner of its icon, top "
                     .. "right by default, in your bags and bank, at merchants, in the auction house, "
