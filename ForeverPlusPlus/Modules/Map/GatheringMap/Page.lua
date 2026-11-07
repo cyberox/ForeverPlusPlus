@@ -71,15 +71,17 @@ local ui -- the page's frames, once built
 local search = "" -- the search box's text, lowered
 local selected -- { kind = "herb" } or { name = "Peacebloom" }
 -- kind -> true while its nodes are folded away, false while open, for this session. Until the
--- player folds or opens one, herbs or ore are folded while this character can't gather them;
--- anyone opens chests.
+-- player folds or opens one, herbs or ore are folded while this character can't gather them, and
+-- chests and pools always, to keep the list to what most players look for.
 local folded = {}
 
 local function isFolded(kind)
     if folded[kind] ~= nil then
         return folded[kind]
+    elseif kind == "treasure" or kind == "fish" then
+        return true
     end
-    return kind ~= "treasure" and not Professions.Rank(KIND_LINES[kind])
+    return not Professions.Rank(KIND_LINES[kind])
 end
 local entries = {} -- node name -> its entry, from the last collect()
 
