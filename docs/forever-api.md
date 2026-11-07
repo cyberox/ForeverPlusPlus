@@ -327,15 +327,15 @@ From the Gear Probe tool (the Debug module's settings, `/fpp gearprobe`), run on
 - Chests and fishing pools are **Unverified** on Forever:
   - **Chests:** opening one is taken from the Opening spell (3365) with its target's name. Only names in `Lib/Professions.lua`'s chest seed (Classic's world chests) or ones whose tooltip said "Requires Lockpicking (N)" count, since Opening opens quest objects too.
   - **Fishing pools:** a cast is Fishing (7620; Forever's rank 2 arrives as 7731).
-    - The bobber is object 35591 on Forever too. **[in-game]** (2026-11-08)
-    - Five catches all came from the bobber (`GetLootSourceInfo`). Whether any of them landed in a pool is unknown, so it's still open whether a pool's catch ever comes from the pool itself. **[in-game]** (2026-11-08)
+    - The bobber is object 35591 on Forever too. **[in-game]** (2026-11-07)
+    - Five catches all came from the bobber (`GetLootSourceInfo`). Whether any of them landed in a pool is unknown, so it's still open whether a pool's catch ever comes from the pool itself. **[in-game]** (2026-11-07)
     - So a catch from the bobber counts as a pool's only when a known pool's name was seen around the cast: hovered just before, or its tooltip seen while the line was out. A catch from any other world object is taken as that pool's.
-    - Hovering Floating Debris and fishing it saved the pool. A cast in open water saved nothing and learned the bobber's name ("Fishing Bobber"). **[in-game]** (2026-11-08)
+    - Hovering Floating Debris and fishing it saved the pool. A cast in open water saved nothing and learned the bobber's name ("Fishing Bobber"). **[in-game]** (2026-11-07)
   - **Pool names:** named by the pool hovered before the cast, or by the object ID seen with that name before.
   - **Pool spot:** estimated as 15 yards in front of the player (`GetPlayerFacing`).
   - **Catch timing:** a catch has to come within 25 seconds of the cast, which assumes Classic's 20 second channel.
   - **Bobber name:** the bobber's own name is learned from a catch out of it, so it can't be taken for a pool.
-- Caves have no map of their own here: mining in Westfall's Gold Coast Quarry left the player on Westfall's map (`C_Map.GetBestMapForUnit`), so a node can't be told to be underground. A cave badge was tried and taken out. **[in-game]** (2026-11-08)
+- Caves have no map of their own here: mining in Westfall's Gold Coast Quarry left the player on Westfall's map (`C_Map.GetBestMapForUnit`), so a node can't be told to be underground. A cave badge was tried and taken out. **[in-game]** (2026-11-07)
 - A herb or vein the player's skill is too low for refuses the gather with a red `UI_ERROR_MESSAGE` naming the skill and rank ("Requires Mining 175" in Classic). Its exact words, whether `UNIT_SPELLCAST_SENT` fires first, and whether `UNIT_SPELLCAST_FAILED` comes before or after the error are **Unverified** on Forever. So `Lib/Gathering.lua` takes any error that names Herbalism or Mining with a number after it, for a gather cast or failed within a second, or else for a node of that kind the player faces or hovered. Log Gathers prints the error's text ("refused") to settle it.
 - Nothing else gives an addon a node's spot after build 70862, and we decided not to work around it **[source]** **[addon]** (2026-11-07). Blizzard's minimap Lua and `MinimapFrameAPIDocumentation` are byte-identical from 70532 to 70862 (Gethe/wow-ui-source, `forever` branch), and no Blizzard Lua calls `UpdateMouseoverAtPoint` or `SetUsingSoftCursor`, so the change is in the client itself. NodeSight's author found the same (Krelock/NodeSight f922db7). What's left:
   - Soft-target interact CVars give nearby game objects nameplates (`UnitIsGameObject`), about 30 yards at most. NodeSight's sparkles and ForeverMapNotes 1.8.0 use these.

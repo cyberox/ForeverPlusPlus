@@ -337,7 +337,7 @@ end
 -- The chests in the world, by name: true, or the Lockpicking a locked one takes once its "Requires
 -- Lockpicking (N)" line was read. The Opening spell opens much besides chests (quest objects, crates
 -- a quest asks for), so only these count as treasure. Seed: Classic's world chests, from memory of
--- Classic Era (2026-11-08), unverified on Forever; a world object's Lockpicking line teaches more.
+-- Classic Era (2026-11-07), unverified on Forever; a world object's Lockpicking line teaches more.
 -- (Pick Lock doesn't: it's cast on lockboxes in the bags too.)
 local CHESTS = ns.GameData.New("treasureNodes", {
     ["Battered Chest"] = true,
@@ -395,7 +395,7 @@ end
 -- Fishing pools -----------------------------------------------------------------------------------
 -- The pools in the world, by name, and the world object ID each was seen with, so a pool's loot
 -- (whose source is the pool) names it even when nothing else did. Seed: Classic's pools, from
--- memory of Classic Era (2026-11-08), unverified on Forever; play teaches more.
+-- memory of Classic Era (2026-11-07), unverified on Forever; play teaches more.
 local POOLS = ns.GameData.New("fishingPools", {
     ["Floating Wreckage"] = true,
     ["Floating Debris"] = true,

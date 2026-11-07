@@ -28,9 +28,9 @@ local module = ns.NewModule("GatheringMap", L.GATHERINGMAP_DESC, {
     -- How a node gathered lately shows on each map: "faded" (its icon, see-through), "ring" (an
     -- empty ring), "hide", or "show" (as usual), at that map's Just Gathered Opacity (percent, on
     -- its own, not times the map's Opacity, which made it too faint to see). An empty ring on the
-    -- minimap, the faded icon on the world map (Cameron, 2026-11-08).
+    -- minimap, the faded icon on the world map (Cameron, 2026-11-07).
     justMinimap = "ring",
-    justMinimapAlpha = 70, -- 50 and 40 were too faint to see; 70 and 65 (Cameron, 2026-11-08)
+    justMinimapAlpha = 70, -- 50 and 40 were too faint to see; 70 and 65 (Cameron, 2026-11-07)
     justWorld = "faded",
     justWorldAlpha = 65,
     icon = "item", -- "item" (the node's item's icon, a circle without one) or "circle"

@@ -244,10 +244,10 @@ local function onSent(_, unit, target, castGUID, spellID)
     end
     -- A gather still casting is kept aside, not dropped: a second press while it casts sends a
     -- cast the game refuses at once ("Another action is in progress"), and the first one still
-    -- finishes (in game, 2026-11-08).
+    -- finishes (in game, 2026-11-07).
     -- So is one that finished and waits for its loot: a press in the moment between the cast
     -- ending and the loot coming took its place, and its loot came as no one's (in game,
-    -- 2026-11-08).
+    -- 2026-11-07).
     local now = GetTime()
     if pending and not pending.succeeded and now - pending.sent <= QUEUE_WAIT then
         queued = pending
@@ -492,7 +492,7 @@ local function onLoot(event)
         local now = GetTime()
         lastCatch = now
         if not objectID or BOBBERS:Get(objectID) then
-            -- On Forever a catch comes from the bobber even in a pool (in game, 2026-11-08), so
+            -- On Forever a catch comes from the bobber even in a pool (in game, 2026-11-07), so
             -- the bobber says nothing about where it landed. A pool counts when one Professions
             -- knows was named around the cast: aimed at as it went out, or its tooltip seen while
             -- the line was out (pointing at the bobber in it). Otherwise it's open water.
