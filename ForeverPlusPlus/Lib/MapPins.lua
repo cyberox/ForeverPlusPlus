@@ -240,8 +240,7 @@ local ROUND = "Interface\\CharacterFrame\\TempPortraitAlphaMask"
 local TRIM = 0.08 -- the edge cut off an item icon, as the bags do
 
 ---Sets an icon frame's art from `info` as a layer's pins take it (see MapPins.New): an atlas, or
----a texture (an item icon) trimmed, optionally round, tinted, see-through, ringed, and badged (an
----atlas in the bottom right corner, `badge`). `pin` has
+---a texture (an item icon) trimmed, optionally round, tinted, see-through, and ringed. `pin` has
 ---its art in `pin.texture`, and optionally a hover highlight in `pin.highlight`; the mask and the
 ---ring are made on it when first needed. For our icons elsewhere too, such as on the minimap; the
 ---ring is placed by whoever sizes the pin (MinimapPins.PlaceRing).
@@ -308,21 +307,6 @@ function MapPins.SetArt(pin, info)
         pin.ring:Show()
     elseif pin.ring then
         pin.ring:Hide()
-    end
-    -- `badge`: a small atlas over the bottom right quarter, poking out a little, over the ring (an
-    -- underground node's arrow). Anchored to the pin's corners, so it follows whatever size the
-    -- pin is given after this.
-    if info.badge then
-        if not pin.badge then
-            local holder = pin.ringFrame or pin
-            pin.badge = holder:CreateTexture(nil, "OVERLAY", nil, 7)
-            pin.badge:SetPoint("TOPLEFT", pin, "CENTER", 0, 0)
-            pin.badge:SetPoint("BOTTOMRIGHT", pin, "BOTTOMRIGHT", 2, -2)
-        end
-        pin.badge:SetAtlas(info.badge)
-        pin.badge:Show()
-    elseif pin.badge then
-        pin.badge:Hide()
     end
 end
 

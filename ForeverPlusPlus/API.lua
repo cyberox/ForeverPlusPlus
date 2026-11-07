@@ -627,8 +627,8 @@ end)
 
 ---The nodes remembered on a zone map: a list of { name, kind ("herb", "ore", "treasure", "fish"),
 ---x, y (0 to 1 across the map), timesGathered (0 for one seen or tried but not gathered),
----lastGathered (time(), or nil), insideMapID (the cave it's in, its own map ID, or nil) }. An empty
----list for a map without any; nil while Gathering Map is off.
+---lastGathered (time(), or nil) }. An empty list for a map without any; nil while Gathering Map is
+---off.
 export("GetGatheringNodes", function(mapID)
     local nodes = ns.Providers.Get("gatheringNodes")
     if not (nodes and type(mapID) == "number") then
@@ -637,7 +637,7 @@ export("GetGatheringNodes", function(mapID)
     local list = {}
     for _, node in ipairs(nodes.Maps()[mapID] or {}) do
         list[#list + 1] = { name = node.name, kind = node.kind, x = node.x, y = node.y,
-            timesGathered = node.count or 0, lastGathered = node.time, insideMapID = node.inside }
+            timesGathered = node.count or 0, lastGathered = node.time }
     end
     return list
 end)

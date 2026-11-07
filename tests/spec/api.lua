@@ -223,8 +223,7 @@ do
     -- Gathering Map's nodes, while it offers them, copied.
     eq(v1.GetGatheringMaps(), nil, "api: no nodes while Gathering Map is off")
     local remembered = {
-        [1436] = { { name = "Copper Vein", kind = "ore", x = 0.5, y = 0.4, count = 2, time = 99,
-            inside = 1440 } },
+        [1436] = { { name = "Copper Vein", kind = "ore", x = 0.5, y = 0.4, count = 2, time = 99 } },
         [1429] = { { name = "Peacebloom", kind = "herb", x = 0.1, y = 0.2, count = 0 } },
     }
     ns.Providers.Set("gatheringNodes", { Maps = function() return remembered end })
@@ -233,7 +232,6 @@ do
     local vein = v1.GetGatheringNodes(1436)[1]
     eq(vein.name .. ":" .. vein.kind .. ":" .. vein.timesGathered .. ":" .. vein.lastGathered,
         "Copper Vein:ore:2:99", "api: a node")
-    eq(vein.insideMapID, 1440, "api: the cave a node is in")
     vein.name = "Changed"
     eq(remembered[1436][1].name, "Copper Vein", "api: nodes are copies")
     eq(v1.GetGatheringNodes(1429)[1].timesGathered, 0, "api: one not gathered yet")

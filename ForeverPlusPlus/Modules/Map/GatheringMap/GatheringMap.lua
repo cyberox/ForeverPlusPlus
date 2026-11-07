@@ -34,11 +34,6 @@ local module = ns.NewModule("GatheringMap", L.GATHERINGMAP_DESC, {
     justWorld = "faded",
     justWorldAlpha = 65,
     icon = "item", -- "item" (the node's item's icon, a circle without one) or "circle"
-    -- A node in a cave, shown on the zone's map over the ground above it: "badge" (a down arrow in
-    -- its corner), "faded" (at Underground Opacity), or "show" (as usual). Gathered from 2026-11-08
-    -- on; one gathered before is marked the next time.
-    underground = "badge",
-    undergroundAlpha = 50,
     ring = true, -- the minimap's gold ring around each icon
     worldMap = true,
     mapSize = 70, -- percent of MAP_PIXELS on the world map
@@ -66,9 +61,8 @@ local module = ns.NewModule("GatheringMap", L.GATHERINGMAP_DESC, {
     ringAlpha = 70, -- percent: those empty rings near you on the minimap
     chat = true, -- say in chat when Shift+right-click forgets a node
     log = false, -- print each gather in chat (Debug)
-    -- Nodes remembered, by zone map ID: a list of { name, kind, x, y, count, time, loot, inside },
-    -- where loot is item ID -> how many it gave in all, and inside the map of the cave it was last
-    -- gathered in (nil outside). For the whole account. Data, not a setting.
+    -- Nodes remembered, by zone map ID: a list of { name, kind, x, y, count, time, loot }, where
+    -- loot is item ID -> how many it gave in all. For the whole account. Data, not a setting.
     nodes = {},
     -- What this character doesn't show, from the Gathering Map page (and the world map's filter):
     -- node name -> true, and kind ("herb", "ore") -> true. Data, saved for each character.
@@ -177,23 +171,6 @@ module.options = {
         },
     },
     { key = "ring", name = L.GATHERINGMAP_RING, description = L.GATHERINGMAP_RING_DESC, section = LOOK },
-    {
-        key = "underground", name = L.GATHERINGMAP_UNDERGROUND, description = L.GATHERINGMAP_UNDERGROUND_DESC,
-        section = LOOK,
-        choices = {
-            { "badge", L.GATHERINGMAP_UNDERGROUND_BADGE },
-            { "faded", L.GATHERINGMAP_UNDERGROUND_FADED },
-            { "show", L.GATHERINGMAP_UNDERGROUND_SHOW },
-        },
-    },
-    {
-        key = "undergroundAlpha", name = L.GATHERINGMAP_UNDERGROUND_ALPHA,
-        description = L.GATHERINGMAP_UNDERGROUND_ALPHA_DESC, section = LOOK,
-        min = 10, max = 100, step = 5, format = "%d%%",
-        shown = function(db)
-            return db.underground == "faded"
-        end,
-    },
     {
         key = "justMinutes", name = L.GATHERINGMAP_JUST_MINUTES, description = L.GATHERINGMAP_JUST_MINUTES_DESC,
         section = LOOK, min = 1, max = 30, step = 1, format = ns.Text.Minutes,
@@ -475,11 +452,6 @@ local COLORS = {
     fish = { 0.35, 0.65, 1 },
 }
 local CIRCLE = "Interface\\Buttons\\WHITE8X8" -- tinted and drawn round
--- An underground node's badge: Blizzard's arrow for a cave's way down, else a plain down arrow.
--- Probe: the first is Retail's cave entrance icon, unverified on Forever; the others are in its UI
--- source (build 70862).
-local UNDERGROUND_ATLAS = ns.Frames.FirstAtlas("CaveUnderground-Down",
-    "friendslist-categorybutton-arrow-down", "NPE_ArrowDown")
 internal.COLORS, internal.CIRCLE = COLORS, CIRCLE
 
 local icons = {} -- node name -> its item's icon, once found
@@ -570,23 +542,7 @@ function internal.Look(node, look, where)
     if look.just and just == "ring" then
         internal.Hollow(look)
     end
-    -- In a cave: a down arrow in its corner, or faded (`deep`, at Underground Opacity), as
-    -- Underground Nodes says. Not while the player is in that cave: on the minimap it's right there.
-    local underground = node.inside and node.inside ~= internal.PlayerCave() and db.underground
-    look.badge = underground == "badge" and UNDERGROUND_ATLAS or nil
-    look.deep = underground == "faded"
     return look
-end
-
----The map of the cave the player is in now (a map under their zone's), or nil outside one.
----@return number?
-function internal.PlayerCave()
-    local best = C_Map.GetBestMapForUnit and C_Map.GetBestMapForUnit("player")
-    if not ns.IsNumber(best) then
-        return nil
-    end
-    local zone = ns.WorldMap.Zone(best)
-    return zone and zone ~= best and best or nil
 end
 
 ---A map's Just Gathered ("faded", "ring", "hide", or "show"), and its Just Gathered Opacity as a
@@ -737,11 +693,6 @@ function internal.TooltipLines(node, yards, onDot)
     if node.time and wants("tipLast") then
         lines[#lines + 1] = Tip.Pair(L.GATHERINGMAP_TIP_LAST, ns.Text.Ago(time() - node.time))
     end
-    -- In a cave: which one, since the icon sits over the ground above it.
-    if node.inside then
-        lines[#lines + 1] = Tip.Pair(L.GATHERINGMAP_TIP_INSIDE,
-            ns.WorldMap.MapName(node.inside, tostring(node.inside)))
-    end
     -- A spot that spawned more than one vein (Tin and Silver): the others, with their gathers.
     if node.names and wants("tipAlso") then
         for name, count in pairs(node.names) do
@@ -864,10 +815,6 @@ local function log(gather, result)
         and format("%s %.1f, %.1f", ns.WorldMap.MapName(gather.mapID, gather.mapID), gather.x * 100,
             gather.y * 100)
         or L.GATHERINGMAP_LOG_NOWHERE
-    if gather.inside then
-        where = where .. " " .. format(L.GATHERINGMAP_LOG_INSIDE,
-            ns.WorldMap.MapName(gather.inside, gather.inside))
-    end
     ns.Print(format(L.GATHERINGMAP_LOG_LINE, gather.name or "?", gather.kind, gather.from,
         gather.objectID or "-", where, result))
 end
@@ -958,9 +905,8 @@ local function onGather(gather)
     -- One the player's skill is too low for: remembered where they stood, not yet gathered, and
     -- gray on the maps (Too High for You) until they can.
     if gather.requires then
-        local seen, new = Gathering.See(list, gather.name, gather.kind, gather.x, gather.y, width, height,
+        local _, new = Gathering.See(list, gather.name, gather.kind, gather.x, gather.y, width, height,
             time())
-        seen.inside = gather.inside
         log(gather, format(L.GATHERINGMAP_LOG_REQUIRES, gather.requires))
         if new then
             internal.NodesChanged(mapID)
@@ -968,8 +914,6 @@ local function onGather(gather)
         return
     end
     local node, new = Gathering.Add(list, gather.name, gather.kind, gather.x, gather.y, width, height, time())
-    -- The cave it's in, as of this gather: a node gathered again outside isn't in one.
-    node.inside = gather.inside
     for _, item in pairs(gather.items) do
         if item.id then
             node.loot = node.loot or {}
@@ -1016,11 +960,6 @@ function module:OnEnable()
     Gathering.ListenSightings(onSighting, true)
     Gathering.SetRemembered(rememberedSpot)
     ns.Providers.Set("gatheringNodes", provider)
-    -- Going into a cave or out: its nodes drop their underground look on the minimap, or take it
-    -- back.
-    self:On("ZONE_CHANGED_INDOORS", function()
-        internal.Changed(nil)
-    end)
     if internal.EnableMap then
         internal.EnableMap()
     end

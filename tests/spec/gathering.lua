@@ -120,15 +120,6 @@ eq(odd[1429][1].time .. ":" .. odd[1429][1].count, "1000:1000000", "share: futur
 local edge = { [1] = { { name = "Copper Vein", kind = "ore", x = 1.02, y = -0.01, count = 1 } } }
 local edged = Gathering.Decode((Gathering.Encode(edge)))
 eq(edged[1][1].x .. ":" .. edged[1][1].y, "1:0", "share: a spot past the edge is kept on it")
--- A node in a cave keeps its cave; one without stays without.
-local caved = { [1429] = { { name = "Copper Vein", kind = "ore", x = 0.4, y = 0.8, count = 2, inside = 1440 },
-    { name = "Tin Vein", kind = "ore", x = 0.6, y = 0.8, count = 1 } } }
-local cavedBack = Gathering.Decode((Gathering.Encode(caved)))
-eq(cavedBack[1429][1].inside, 1440, "share: the cave comes back")
-eq(cavedBack[1429][2].inside, nil, "share: no cave stays none")
-local open = { { name = "Copper Vein", kind = "ore", x = 0.4, y = 0.8, count = 1 } }
-Gathering.Merge(open, cavedBack[1429][1], W, H)
-eq(open[1].inside, 1440, "merge: a known node learns its cave")
 -- Merging: the same vein close by takes the larger count; one far off is added.
 local mine = { { name = "Copper Vein", kind = "ore", x = 0.452, y = 0.671, count = 1, time = 10 } }
 eq(Gathering.Merge(mine, vein, W, H), false, "merge: the same node close by")

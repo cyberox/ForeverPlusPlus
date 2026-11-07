@@ -125,10 +125,6 @@ local function style(pin, node, size, alpha, close)
     local db = module.db
     look.alpha = close and db.ringAlpha / 100 or look.just and select(2, internal.JustLook("minimap"))
         or alpha
-    -- Underground, faded: no more solid than Underground Opacity.
-    if look.deep then
-        look.alpha = math.min(look.alpha, db.undergroundAlpha / 100)
-    end
     ns.MapPins.SetArt(pin, look)
     pin:SetSize(size, size)
     if pin.ring then
