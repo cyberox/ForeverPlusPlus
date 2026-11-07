@@ -419,6 +419,7 @@ From the Gear Probe tool (the Debug module's settings, `/fpp gearprobe`), run on
 
 - NovaSpellRankChecker, an installed addon that lists low-rank spells on the bars, has a Forever branch: it walks `C_SpellBook.GetNumSpellBookSkillLines()` and `GetSpellBookSkillLineInfo` (`itemIndexOffset`, `numSpellBookItems`), reads each item with `C_SpellBook.GetSpellBookItemName(i, Enum.SpellBookSpellBank.Player)` whose second value is the subtext ("Rank 3"), and reads a bar slot's rank with `Spell:CreateFromSpellID(id):GetSpellSubtext()`. **[installed addon]** It implies Forever's spellbook lists every rank; whether it lists only the highest is **Unverified**.
 - Spell Ranks uses `C_SpellBook.GetSpellBookItemInfo(i, bank)` (`spellID`, `isPassive`) with `C_Spell.GetSpellName` and `C_Spell.GetSpellSubtext`, and compares ranks by name. Those calls, and `offSpecID` on skill lines, are Mainline's. **[web]** **Unverified** on Forever. Action buttons' `.action` and `GetActionInfo(slot)` are as on Retail. **Unverified**.
+- `C_ActionBar.IsHighestSpellRank(spellID)` returns whether a spell is the highest rank, `SecretArguments = "AllowedWhenUntainted"`. It's new in build 70755 (Gethe/wow-ui-source, `forever` branch, `ActionBarFrameDocumentation.lua`), and Camelot's `ActionButtonUtilOverrides.lua` uses it to light up only the highest rank of a spell missing from the bars, so it most likely means the highest rank the player knows. Spell Ranks uses it to veto a mark. **[source]** **Unverified** in game.
 
 ## Lua errors
 

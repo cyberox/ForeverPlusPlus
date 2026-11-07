@@ -83,6 +83,35 @@ local function spellRank(spellID)
     return name, rank
 end
 
+-- Forever's own answer to whether a spell is the highest rank you know, which its action bars use
+-- to light up spells missing from them (C_ActionBar.IsHighestSpellRank, build 70755, Camelot's
+-- ActionButtonUtilOverrides.lua). Its argument can't be secret for us (AllowedWhenUntainted), so
+-- only a readable ID is asked. Nil when the client has no such call or can't say.
+local isHighest = C_ActionBar and C_ActionBar.IsHighestSpellRank
+local function gameSaysHighest(spellID)
+    if not (isHighest and readable(spellID)) then
+        return nil
+    end
+    local ok, top = pcall(isHighest, spellID)
+    if ok and readable(top) then
+        return top and true or false
+    end
+    return nil
+end
+
+-- The spell's name, rank, and the best rank known when a higher one is known, or nil. The
+-- spellbook scan gives the number; the game's own check, where it has one, has the last word, so
+-- a spell the game calls the highest (another spell with the same name, a rank text we read
+-- wrong) is never marked.
+local function lowerRank(spellID)
+    local name, rank = spellRank(spellID)
+    local best = name and rank and known and known[name]
+    if not (best and rank < best) or gameSaysHighest(spellID) then
+        return nil
+    end
+    return name, rank, best
+end
+
 -- Every spell in your spellbook's highest rank by name (Spellbook.Ranks leaves out passives and
 -- the other spec's spells, which can't be put on the bar).
 local function scan()
@@ -165,9 +194,8 @@ local function refresh()
         local low = false
         local spellID = slotSpell(button)
         if spellID then
-            local name, rank = spellRank(spellID)
-            local best = name and rank and known[name]
-            if best and rank < best then
+            local _, rank, best = lowerRank(spellID)
+            if best then
                 low = true
                 lowSlots[#lowSlots + 1] = { bar = bar, slot = slotNumber,
                     spellID = spellID, rank = rank, best = best }
@@ -217,9 +245,8 @@ local function onTooltip(tooltip, data)
         and data and readable(data.id) and data.id) then
         return
     end
-    local name, rank = spellRank(data.id)
-    local best = name and rank and known[name]
-    if best and rank < best then
+    local _, _, best = lowerRank(data.id)
+    if best then
         tooltip:AddDoubleLine(L.SPELLRANKS_BEST, format(L.SPELLRANKS_BEST_RANK, best), 1, 1, 1, 1, 1, 1)
     end
 end

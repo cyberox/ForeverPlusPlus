@@ -80,6 +80,8 @@ ns.changelog = {
                     .. "too, in its tooltip and the Equipped one, and scores show up to two decimals "
                     .. "instead of whole numbers. The tooltip's percentage shows two decimals "
                     .. "(-9.35%)." },
+                { L.SPELLRANKS_TITLE, "A spell the game itself says is the highest rank you know "
+                    .. "is never marked, such as one that shares its name with another spell." },
             } },
         },
     },
