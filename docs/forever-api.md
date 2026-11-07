@@ -326,7 +326,10 @@ From the Gear Probe tool (the Debug module's settings, `/fpp gearprobe`), run on
 - NPC Nameplates tells players' pets, minions, guardians, totems, and companions apart with `UnitPlayerControlled`, `UnitIsOtherPlayersPet` (probed), and the creature type IDs Totem 11 and Non-combat Pet 12 (`Units.SummonKind`). Whether totems and companions read as player controlled on Forever, and whether those IDs match, isn't checked yet. **Unverified**
 - Chests and fishing pools are **Unverified** on Forever:
   - **Chests:** opening one is taken from the Opening spell (3365) with its target's name. Only names in `Lib/Professions.lua`'s chest seed (Classic's world chests) or ones whose tooltip said "Requires Lockpicking (N)" count, since Opening opens quest objects too.
-  - **Fishing pools:** a cast is Fishing (7620), and the catch's loot source (`GetLootSourceInfo`) is taken to be the pool's world object when it isn't the Fishing Bobber (object 35591, Classic's).
+  - **Fishing pools:** a cast is Fishing (7620; Forever's rank 2 arrives as 7731).
+    - The bobber is object 35591 on Forever too. **[in-game]** (2026-11-08)
+    - Five catches all came from the bobber (`GetLootSourceInfo`). Whether any of them landed in a pool is unknown, so it's still open whether a pool's catch ever comes from the pool itself. **[in-game]** (2026-11-08)
+    - So a catch from the bobber counts as a pool's only when a known pool's name was seen around the cast: hovered just before, or its tooltip seen while the line was out. A catch from any other world object is taken as that pool's.
   - **Pool names:** named by the pool hovered before the cast, or by the object ID seen with that name before.
   - **Pool spot:** estimated as 15 yards in front of the player (`GetPlayerFacing`).
   - **Catch timing:** a catch has to come within 25 seconds of the cast, which assumes Classic's 20 second channel.

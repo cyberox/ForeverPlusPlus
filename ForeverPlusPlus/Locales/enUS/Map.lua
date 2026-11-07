@@ -546,6 +546,7 @@ L.GATHERINGMAP_TRACE_CAST = "Gathering Map: cast %s at %s (gathers: %s)" -- spel
 L.GATHERINGMAP_TRACE_SUCCESS = "Gathering Map: cast done, spell %s; the gather's: %s" -- spell ID, yes/no
 L.GATHERINGMAP_TRACE_FAILED = "Gathering Map: the gather's cast failed, spell %s" -- spell ID
 L.GATHERINGMAP_TRACE_LOOT = "Gathering Map: loot from %s, %s items, %s" -- source GUID, count, when
+L.GATHERINGMAP_TRACE_CATCH = "Gathering Map: a catch from the bobber, pool %s (last hovered %s)" -- pool or -, object or -
 L.GATHERINGMAP_TRACE_REFUSED = "Gathering Map: refused, \"%s\", node %s" -- the game's error, node or -
 L.GATHERINGMAP_LOG_REQUIRES = "skill too low (needs %d), remembered as not gathered" -- rank
 L.GATHERINGMAP_LOG_NEW = "a new node"

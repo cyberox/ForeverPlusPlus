@@ -470,20 +470,35 @@ local function onLoot(event)
         local now = GetTime()
         lastCatch = now
         if not objectID or BOBBERS:Get(objectID) then
-            -- The object hovered just now was the bobber, clicked to take this.
-            if objectID and hovered and now - hoveredAt <= HOVER_WAIT then
+            -- On Forever a catch comes from the bobber even in a pool (in game, 2026-11-08), so
+            -- the bobber says nothing about where it landed. A pool counts when one Professions
+            -- knows was named around the cast: aimed at as it went out, or its tooltip seen while
+            -- the line was out (pointing at the bobber in it). Otherwise it's open water.
+            local name = gather.name
+            if not name and hovered and hoveredAt >= gather.sent - HOVER_WAIT
+                and Professions.Pool(hovered) then
+                name = hovered
+            elseif not name and hovered and now - hoveredAt <= HOVER_WAIT then
+                -- The object hovered just now was the bobber, clicked to take this.
                 bobberName = hovered
             end
-            pending = nil
-            return
+            if trace then
+                trace("catch", name or "-", hovered or "-")
+            end
+            if not name then
+                pending = nil
+                return
+            end
+            gather.name = name
+        else
+            local name = gather.name or Professions.PoolByObject(objectID) or gather.aimed
+            if not name then
+                pending = nil
+                return
+            end
+            Professions.LearnPool(name, objectID)
+            gather.name = name
         end
-        local name = gather.name or Professions.PoolByObject(objectID) or gather.aimed
-        if not name then
-            pending = nil
-            return
-        end
-        Professions.LearnPool(name, objectID)
-        gather.name = name
     end
     gather.looted = true
     gather.objectID = objectID

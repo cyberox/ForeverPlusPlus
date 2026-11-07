@@ -985,6 +985,7 @@ local TRACE = {
     failed = L.GATHERINGMAP_TRACE_FAILED,
     loot = L.GATHERINGMAP_TRACE_LOOT,
     refused = L.GATHERINGMAP_TRACE_REFUSED,
+    catch = L.GATHERINGMAP_TRACE_CATCH,
 }
 
 -- Read at each step rather than when the option changes: the Debug module turning off puts the
