@@ -128,12 +128,10 @@ local function style(pin, node, size, alpha, close)
     local db = module.db
     internal.Look(node, look)
     if close then
-        look.round, look.ring, look.hollow, look.desaturated = true, true, true, false
-        look.fade, look.scale = db.nearAlpha / 100, 1
+        internal.Hollow(look)
     end
     look.alpha = alpha * look.fade
     ns.MapPins.SetArt(pin, look)
-    size = size * look.scale
     pin:SetSize(size, size)
     if pin.ring then
         MinimapPins.PlaceRing(pin.ring, pin, size)

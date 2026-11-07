@@ -53,7 +53,7 @@ local function infoFor(i, node, size, zone)
     end
     info.node, info.zone = node, zone
     internal.Look(node, info)
-    info.size = size * info.scale
+    info.size = size
     info.alpha = module.db.mapAlpha / 100 * info.fade
     info.title = node.name
     info.kind = internal.KindName(node)

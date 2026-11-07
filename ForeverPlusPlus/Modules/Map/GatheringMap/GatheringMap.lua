@@ -18,15 +18,13 @@ local module = ns.NewModule("GatheringMap", L.GATHERINGMAP_DESC, {
     onlyMine = true, -- only nodes this character has the profession for
     onlyTracking = true, -- herbs only while Find Herbs is on, ore while Find Minerals is
     sightings = true, -- also remember the nodes Minimap Node Icons sees, not gathered
-    -- A node gathered lately: "ring" (an empty ring), "gray" (its icon gray), "dot" (a small dot),
-    -- "hide", or "show" (as usual). How long "lately" is, and the first three's opacity.
+    -- A node gathered lately: "ring" (an empty ring), "hide", or "show" (as usual), and how long
+    -- "lately" is.
     justGathered = "ring",
     justMinutes = 5, -- nodes were back within 10 (in game, 2026-11-07); GatherLite has no timer
-
-    justAlpha = 50, -- percent
     icon = "item", -- "item" (the node's item's icon, a circle without one) or "circle"
-    shape = "round", -- an item icon "round" or "square"
-    ring = true, -- the minimap's gold ring around a round icon
+    ring = true, -- the minimap's gold ring around each icon
+    ringAlpha = 50, -- percent: every empty ring, a node near you or just gathered
     worldMap = true,
     mapSize = 100, -- percent of MAP_PIXELS on the world map
     mapAlpha = 100, -- percent
@@ -44,11 +42,10 @@ local module = ns.NewModule("GatheringMap", L.GATHERINGMAP_DESC, {
     -- How a node shows on the minimap: "all" (an empty ring anywhere on it, the game's own dot
     -- inside it when the node is there, since the game draws dots out to about the minimap's edge:
     -- a Silver Vein ~200 yards off, in game, 2026-11-07), or within nearYards of the player "ring"
-    -- (an empty ring) or "hide"; else, and with "show", its icon. Rings at nearAlpha.
+    -- (an empty ring) or "hide"; else, and with "show", its icon. Rings at ringAlpha.
     -- GatherMate2's way by default: icons far off, empty rings within 100 yards.
     nearby = "ring",
     nearYards = 100,
-    nearAlpha = 50, -- percent
     log = false, -- print each gather in chat (Debug)
     -- Nodes remembered, by zone map ID: a list of { name, kind, x, y, count, time, loot }, where
     -- loot is item ID -> how many it gave in all. For the whole account. Data, not a setting.
@@ -84,8 +81,6 @@ module.options = {
         key = "justGathered", name = L.GATHERINGMAP_JUST, description = L.GATHERINGMAP_JUST_DESC,
         choices = {
             { "ring", L.GATHERINGMAP_JUST_RING },
-            { "gray", L.GATHERINGMAP_JUST_GRAY },
-            { "dot", L.GATHERINGMAP_JUST_DOT },
             { "hide", L.GATHERINGMAP_JUST_HIDE },
             { "show", L.GATHERINGMAP_JUST_SHOW },
         },
@@ -98,31 +93,17 @@ module.options = {
         end,
     },
     {
-        key = "justAlpha", name = L.GATHERINGMAP_ALPHA, description = L.GATHERINGMAP_JUST_ALPHA_DESC,
-        min = 10, max = 100, step = 5, format = "%d%%",
-        shown = function(db)
-            local style = db.justGathered
-            return style == "ring" or style == "gray" or style == "dot"
-        end,
-    },
-    {
         key = "icon", name = L.GATHERINGMAP_ICON, description = L.GATHERINGMAP_ICON_DESC, section = LOOK,
         choices = {
             { "item", L.GATHERINGMAP_ICON_ITEM },
             { "circle", L.GATHERINGMAP_ICON_CIRCLE },
         },
     },
-    {
-        key = "shape", name = L.GATHERINGMAP_SHAPE, description = L.GATHERINGMAP_SHAPE_DESC, section = LOOK,
-        choices = {
-            { "round", L.GATHERINGMAP_SHAPE_ROUND },
-            { "square", L.GATHERINGMAP_SHAPE_SQUARE },
-        },
-        shown = function(db)
-            return db.icon == "item"
-        end,
-    },
     { key = "ring", name = L.GATHERINGMAP_RING, description = L.GATHERINGMAP_RING_DESC, section = LOOK },
+    {
+        key = "ringAlpha", name = L.GATHERINGMAP_RING_ALPHA, description = L.GATHERINGMAP_RING_ALPHA_DESC,
+        section = LOOK, min = 10, max = 100, step = 5, format = "%d%%",
+    },
     {
         key = "minimap", name = L.GATHERINGMAP_MINIMAP, description = L.GATHERINGMAP_MINIMAP_DESC,
         section = MINIMAP, slider = "minimapSize",
@@ -150,13 +131,6 @@ module.options = {
         section = MINIMAP, requires = "minimap", min = 10, max = 200, step = 10, format = L.GATHERINGMAP_YARDS,
         shown = function(db)
             return db.nearby == "ring" or db.nearby == "hide"
-        end,
-    },
-    {
-        key = "nearAlpha", name = L.GATHERINGMAP_ALPHA, description = L.GATHERINGMAP_NEAR_ALPHA_DESC,
-        section = MINIMAP, requires = "minimap", min = 10, max = 100, step = 5, format = "%d%%",
-        shown = function(db)
-            return db.nearby == "all" or db.nearby == "ring"
         end,
     },
     {
@@ -351,40 +325,35 @@ function internal.JustGathered(node)
     return node.time ~= nil and time() - node.time < module.db.justMinutes * 60
 end
 
-local DOT = 0.5 -- a Small Dot's size, against the icon's
+---Makes `look` an empty ring at Ring Opacity: a node just gathered, or near the player on the
+---minimap, where the game's own dot shows inside it when the node is up.
+---@param look table
+---@return table look
+function internal.Hollow(look)
+    look.round, look.ring, look.hollow = true, true, true
+    look.fade = module.db.ringAlpha / 100
+    return look
+end
 
 ---Fills `look` with how a node is drawn, as Lib/MapPins takes it: `texture`, `trim`, `round`,
----`color`, `ring`, `hollow`, and `desaturated`; and for the maps, `fade` (what its opacity is
----multiplied by) and `scale` (its size against the icon size). A node just gathered is drawn in
----the Just Gathered style: an empty ring, its icon gray, or a small dot, at that opacity.
+---`color`, `ring`, and `hollow`; and for the maps, `fade`, what its opacity is multiplied by. A
+---node is round: its item's icon, or a circle in its kind's color, with the gold ring if that's
+---on; a node just gathered (Just Gathered: Empty Ring) is the ring alone.
 ---@param node table
 ---@param look table
 ---@return table look
 function internal.Look(node, look)
     local db = module.db
-    local style = db.justGathered
-    local just = (style == "ring" or style == "gray" or style == "dot") and internal.JustGathered(node)
-    -- A small dot is always its kind's color.
-    local icon = db.icon == "item" and not (just and style == "dot") and itemIcon(node) or nil
-    look.atlas = nil
+    local icon = db.icon == "item" and itemIcon(node) or nil
+    look.atlas, look.round, look.desaturated = nil, true, false
     if icon then
         look.texture, look.trim, look.color = icon, true, nil
-        look.round = db.shape == "round"
     else
         look.texture, look.trim, look.color = CIRCLE, false, COLORS[node.kind] or COLORS.herb
-        look.round = true
     end
-    look.ring = db.ring and look.round or false
-    look.hollow, look.desaturated, look.fade, look.scale = false, false, 1, 1
-    if just then
-        look.fade = db.justAlpha / 100
-        if style == "ring" then
-            look.round, look.ring, look.hollow = true, true, true
-        elseif style == "gray" then
-            look.desaturated = true
-        else
-            look.ring, look.scale = false, DOT
-        end
+    look.ring, look.hollow, look.fade = db.ring, false, 1
+    if db.justGathered == "ring" and internal.JustGathered(node) then
+        internal.Hollow(look)
     end
     return look
 end

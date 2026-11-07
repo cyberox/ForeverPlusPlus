@@ -20,7 +20,7 @@ ns.changelog = {
                     .. "Gathering one again moves it "
                     .. "closer to where it really is. With Minimap Node Icons on, it also remembers "
                     .. "the nodes it finds on the minimap before you gather them. A node you just "
-                    .. "gathered shows as an empty ring for a while, or in another style you pick. "
+                    .. "gathered shows as an empty ring for a while. "
                     .. "Only My Professions (on by default) shows each character only what it can "
                     .. "gather, and Only While "
                     .. "Tracking (on by default) shows herbs only while Find Herbs is on and ore only "

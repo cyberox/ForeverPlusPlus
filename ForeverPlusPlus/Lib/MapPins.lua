@@ -75,7 +75,10 @@ local function onEnter(pin)
         lines = lines(info)
     end
     ns.MapTooltip.Show(pin, info.title, lines, info.kind)
-    pin.highlight:Show()
+    -- An empty ring has nothing to light up: its art is hidden, and the highlight would fill it.
+    if not info.hollow then
+        pin.highlight:Show()
+    end
 end
 
 local function onLeave(pin)
