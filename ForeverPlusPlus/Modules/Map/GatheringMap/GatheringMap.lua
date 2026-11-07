@@ -37,6 +37,7 @@ local module = ns.NewModule("GatheringMap", L.GATHERINGMAP_DESC, {
     minimap = true,
     minimapSize = 12, -- pixels
     minimapAlpha = 100, -- percent
+    minimapEdge = false, -- a node just past the minimap's edge sits on the edge
     minimapTooltips = true, -- an icon shows its node's tooltip
     -- Each line of a node's tooltip: "always", "shift" (while Shift is held), or "never".
     tipGathered = "always",
@@ -181,6 +182,10 @@ module.options = {
         shown = function(db)
             return db.nearby == "ring" or db.nearby == "hide"
         end,
+    },
+    {
+        key = "minimapEdge", name = L.GATHERINGMAP_EDGE, description = L.GATHERINGMAP_EDGE_DESC,
+        section = MINIMAP, requires = "minimap",
     },
     {
         key = "minimapTooltips", name = L.GATHERINGMAP_TOOLTIPS, description = L.GATHERINGMAP_TOOLTIPS_DESC,

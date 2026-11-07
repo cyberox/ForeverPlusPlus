@@ -6,6 +6,7 @@
 local _, ns = ...
 
 local sin, cos, pairs, next, type = math.sin, math.cos, pairs, next, type
+local abs, max, sqrt, _G = math.abs, math.max, math.sqrt, _G
 local CreateFrame, C_TooltipInfo, strtrim = CreateFrame, C_TooltipInfo, strtrim
 local Minimap, GetCVarBool, GetPlayerFacing, GetUnitSpeed = Minimap, GetCVarBool, GetPlayerFacing, GetUnitSpeed
 local C_Minimap, GetCursorPosition = C_Minimap, GetCursorPosition
@@ -106,15 +107,48 @@ function MinimapPins.CursorOffset()
     return x / scale - (cx or 0), y / scale - (cy or 0)
 end
 
+-- Whether the minimap is square: an addon that squares it says so with the global GetMinimapShape
+-- (the convention minimap button libraries read); Blizzard's is round and defines none.
+local function square()
+    local shape = _G.GetMinimapShape and _G.GetMinimapShape()
+    return shape == "SQUARE"
+end
+
 ---Whether a spot right and up of the minimap's center is on the minimap, at least `inset` units
----inside its edge.
+---inside its edge: within its circle, or its square when an addon has made it square.
 ---@param right number
 ---@param up number
 ---@param inset? number
 ---@return boolean
 function MinimapPins.Inside(right, up, inset)
     local radius = Minimap:GetWidth() / 2 - (inset or 0)
+    if square() then
+        return abs(right) <= radius and abs(up) <= radius
+    end
     return right * right + up * up <= radius * radius
+end
+
+---The spot on the minimap's edge, `inset` units inside it, toward a spot right and up of its
+---center that's past it: for a node kept at the edge.
+---@param right number
+---@param up number
+---@param inset? number
+---@return number right
+---@return number up
+function MinimapPins.ToEdge(right, up, inset)
+    local radius = Minimap:GetWidth() / 2 - (inset or 0)
+    if square() then
+        local far = max(abs(right), abs(up))
+        if far == 0 then
+            return 0, 0
+        end
+        return right * radius / far, up * radius / far
+    end
+    local length = sqrt(right * right + up * up)
+    if length == 0 then
+        return 0, 0
+    end
+    return right * radius / length, up * radius / length
 end
 
 -- Hovering a dot -----------------------------------------------------------------------------------

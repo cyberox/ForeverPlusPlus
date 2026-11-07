@@ -6,7 +6,7 @@
 -- Shift+right-click cover them (GatheringMap.lua).
 local _, ns = ...
 
-local pairs = pairs
+local pairs, sort, setmetatable = pairs, table.sort, setmetatable
 local CreateFrame, Minimap = CreateFrame, Minimap
 
 local module = ns.modules.GatheringMap
@@ -44,8 +44,16 @@ local function isLive(node, liveList, v)
     return false
 end
 
--- The nodes within NEAR radii of the player on view `v`'s map, but for those Minimap Node Icons
--- draws on their live dots already.
+-- How far each node followed is from the player, squared in minimap units, as findNear found it:
+-- kept apart from the node, which is saved data.
+local away = setmetatable({}, { __mode = "k" })
+
+local function byAway(a, b)
+    return (away[a] or 0) < (away[b] or 0)
+end
+
+-- The nodes within NEAR radii of the player on view `v`'s map, nearest first, but for those
+-- Minimap Node Icons draws on their live dots already.
 local function findNear(v)
     local count = 0
     local list = module.db.nodes[v.mapID]
@@ -60,9 +68,11 @@ local function findNear(v)
         for _, node in pairs(list) do
             if shown(node) and not (liveList and isLive(node, liveList, v)) then
                 local right, up = ToMinimap(v, node.x, node.y)
-                if right * right + up * up <= reach2 then
+                local far2 = right * right + up * up
+                if far2 <= reach2 then
                     count = count + 1
                     near[count] = node
+                    away[node] = far2
                 end
             end
         end
@@ -70,12 +80,13 @@ local function findNear(v)
     for i = count + 1, #near do
         near[i] = nil
     end
+    -- Nearest first, so where icons overlap the one nearest the player is the one drawn.
+    sort(near, byAway)
     nearMap = v.mapID
 end
 
 -- A pin takes no mouse: the mouse always reaches the minimap, whose own tooltip shows the game's
--- dot there with our lines, or ours where it has none, and whose Shift+right-click forgets a node
--- (GatheringMap.lua), so a node has one tooltip wherever the mouse is on it.
+-- dot there with our lines, and whose Shift+right-click forgets a node (GatheringMap.lua).
 local function getPin(i)
     local pin = pins[i]
     if not pin then
@@ -125,18 +136,42 @@ end
 -- moved only when its spot changed. Anywhere on the minimap (Near You's Whole Minimap), or within
 -- its yards of the player, a node is an empty ring or hidden, as GatherLite does close up: only
 -- the game's own dot can say whether a node is there now, so ours leaves room for it.
+-- Icons closer than this share of their size overlap: only the first drawn (the nearest) shows.
+local OVERLAP = 0.75
+local placed = {} -- the spots drawn this frame: right, up, right, up, ...
+
+-- Whether a spot is on an icon already drawn this frame.
+local function overlaps(right, up, count, gap)
+    for i = 1, count, 2 do
+        local dr, du = placed[i] - right, placed[i + 1] - up
+        if dr * dr + du * du < gap * gap then
+            return true
+        end
+    end
+    return false
+end
+
 local function draw(v, restyle)
     local db = module.db
     local size, alpha = db.minimapSize, db.minimapAlpha / 100
     local inset = size / 2
-    local nearby, nearYards = db.nearby, db.nearYards
-    local shown = 0
+    local nearby, nearYards, edge = db.nearby, db.nearYards, db.minimapEdge
+    local gap = size * OVERLAP
+    local shown, count = 0, 0
     for i = 1, #near do
         local node = near[i]
         local right, up = ToMinimap(v, node.x, node.y)
         local close = nearby == "all" or (nearby ~= "show"
             and Distance(node.x, node.y, v.x, v.y, v.width, v.height) <= nearYards)
-        if Inside(right, up, inset) and not (close and nearby == "hide") then
+        local inside = Inside(right, up, inset)
+        -- Keep at the Edge: a node past the minimap's edge sits on it, toward where it is.
+        if not inside and edge and not close then
+            right, up = MinimapPins.ToEdge(right, up, inset)
+            inside = true
+        end
+        if inside and not (close and nearby == "hide") and not overlaps(right, up, count, gap) then
+            placed[count + 1], placed[count + 2] = right, up
+            count = count + 2
             shown = shown + 1
             local pin = getPin(shown)
             if restyle or pin.node ~= node or pin.near ~= close then
