@@ -155,6 +155,11 @@ for _, name in ipairs(ns.order or {}) do
     if module.added ~= nil and not version(module.added) then
         problem("added %s isn't a version", tostring(module.added))
     end
+    -- The Minimap Button's quick toggles group a module by its own field.
+    local QUICK = { loot = true, npcs = true, world = true, gathering = true, other = true }
+    if module.quickToggle ~= nil and not QUICK[module.quickToggle] then
+        problem("quickToggle %s isn't one of the Minimap Button's groups", tostring(module.quickToggle))
+    end
 
     local byKey = {}
     for i, option in ipairs(module.options or {}) do
@@ -244,6 +249,12 @@ for _, name in ipairs(ns.order or {}) do
     for i, action in ipairs(module.actions or {}) do
         if not (text(action.name) and text(action.button) and type(action.fn) == "function") then
             problem("action %d needs a name, a button, and fn", i)
+        end
+    end
+    -- Developer's Defaults sets options the module has (a part's included, as byKey has them).
+    for key in pairs(module.developer and module.developer.options or {}) do
+        if not byKey[key] then
+            problem("developer option %s isn't an option", tostring(key))
         end
     end
     eq(table.concat(problems, "; "), "", "modules: " .. name .. "'s settings")

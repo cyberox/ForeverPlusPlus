@@ -19,6 +19,7 @@ local module = ns.NewModule("AutoQuest", L.AUTOQUEST_DESC, {
 })
 module.title = L.AUTOQUEST_TITLE
 module.category = "quests"
+module.quickToggle = "npcs"
 module.added = "0.8.0"
 
 module.options = {

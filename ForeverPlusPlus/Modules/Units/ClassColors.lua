@@ -83,8 +83,7 @@ local plateNames = ns.CVars.OffNotice(module, FRIENDLY_PLATE_NAMES, L.CLASSCOLOR
     L.CLASSCOLORS_PLATE_NAMES_OFF_DESC)
 local plateNamesOff = plateNames.shown
 plateNames.shown = function()
-    local playerPlates = ns.modules.PlayerNameplates
-    return plateNamesOff() and not (playerPlates and playerPlates.enabled)
+    return plateNamesOff() and not ns.FriendlyPlates.DrawsPlayers()
 end
 module.notice = { friendlyBars, enemyBars, plateNames }
 

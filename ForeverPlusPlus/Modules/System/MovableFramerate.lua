@@ -21,6 +21,7 @@ local module = ns.NewModule("MovableFramerate", L.MOVABLEFRAMERATE_DESC, {
 })
 module.title = L.MOVABLEFRAMERATE_TITLE
 module.category = "system"
+module.quickToggle = "other"
 
 local ADDON = "Blizzard_FramerateFrame"
 local SAMPLE = 144 -- a wide framerate, to size the Edit Mode box

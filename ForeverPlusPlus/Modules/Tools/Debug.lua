@@ -10,6 +10,7 @@ local L = ns.L
 local module = ns.NewModule("Debug", L.DEBUG_DESC, { enabled = false })
 module.title = L.DEBUG
 module.category = "tools"
+module.developer = { enabled = true }
 module.added = "1.0.0-beta.1"
 module.notice = { text = L.DEBUG_NOTICE, description = L.DEBUG_NOTICE_DESC }
 

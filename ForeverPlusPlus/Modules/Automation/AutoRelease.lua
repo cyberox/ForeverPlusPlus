@@ -18,6 +18,7 @@ local module = ns.NewModule("AutoRelease", L.AUTORELEASE_DESC, {
 })
 module.title = L.AUTORELEASE_TITLE
 module.category = "automation"
+module.quickToggle = "world"
 
 module.options = {
     {

@@ -27,6 +27,7 @@ local module = ns.NewModule("AutoStow", L.AUTOSTOW_DESC, {
 })
 module.title = L.AUTOSTOW_TITLE
 module.category = "automation"
+module.quickToggle = "loot"
 
 module.options = {
     {

@@ -12,6 +12,7 @@ local module = ns.NewModule("WorldMap", L.WORLDMAP_DESC, {
 })
 module.title = L.WORLDMAP_TITLE
 module.category = "map"
+module.developer = { options = { zoneDungeons = "key", fishing = "key" } }
 module.added = "0.8.0"
 module.options = {}
 

@@ -40,6 +40,7 @@ local module = ns.NewModule("MinimapButton", L.MINIMAPBUTTON_DESC, {
 })
 module.title = L.MINIMAPBUTTON_TITLE
 module.category = "system"
+module.developer = { options = { menuSide = "left" } }
 module.added = "0.8.0"
 
 -- Before 0.8.0 the button was Error Catcher's, with its Minimap Button checkbox, Clear Key, and the
@@ -89,16 +90,27 @@ end
 -- modules by title in alphabetical order, so the order holds in every language. One that isn't
 -- available on this client (Hide Beta Feedback off the beta) is left out, and so is a group left
 -- empty.
+-- A module joins a group by saying so in its own file: `module.quickToggle = "loot"`, one of the
+-- keys below.
 local QUICK_GROUPS = {
-    { L.MINIMAPBUTTON_GROUP_LOOT, { "AutoRepair", "AutoSellJunk", "AutoStow", "FastLoot" } },
-    { L.MINIMAPBUTTON_GROUP_NPCS, { "AutoGossip", "AutoQuest", "SkipCinematics" } },
-    { L.MINIMAPBUTTON_GROUP_WORLD, { "AutoDismount", "AutoRelease" } },
+    { L.MINIMAPBUTTON_GROUP_LOOT, key = "loot" },
+    { L.MINIMAPBUTTON_GROUP_NPCS, key = "npcs" },
+    { L.MINIMAPBUTTON_GROUP_WORLD, key = "world" },
     -- Then, while Gathering Map is on, the kinds it shows (its Kinds, through ns.Providers).
-    { L.MINIMAPBUTTON_GROUP_GATHERING, { "FishingCast", "GatheringMap", "GatheringTracking",
-        "MinimapNodeIcons" }, kinds = true },
-    { L.MINIMAPBUTTON_GROUP_OTHER, { "AutoDecline", "AutoScreenshot", "HideBetaFeedback",
-        "MovableFramerate" } },
+    { L.MINIMAPBUTTON_GROUP_GATHERING, key = "gathering", kinds = true },
+    { L.MINIMAPBUTTON_GROUP_OTHER, key = "other" },
 }
+
+-- The names of the modules that joined a group.
+local function groupNames(key)
+    local names = {}
+    for _, name in ipairs(ns.order) do
+        if ns.modules[name].quickToggle == key then
+            names[#names + 1] = name
+        end
+    end
+    return names
+end
 
 local GROUP_COLOR = Colors.Code(GRAY[1], GRAY[2], GRAY[3])
 
@@ -124,7 +136,7 @@ end
 local function quickMenuItems(_, root)
     root:CreateTitle(ns.title)
     for _, group in ipairs(QUICK_GROUPS) do
-        local entries = quickEntries(group[2])
+        local entries = quickEntries(groupNames(group.key))
         if #entries > 0 then
             root:CreateTitle(GROUP_COLOR .. group[1] .. "|r")
             for _, entry in ipairs(entries) do

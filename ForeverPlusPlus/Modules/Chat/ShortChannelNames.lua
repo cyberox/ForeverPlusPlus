@@ -18,6 +18,7 @@ local module = ns.NewModule("ShortChannelNames", L.SHORTCHANNELNAMES_DESC, {
 })
 module.title = L.SHORTCHANNELNAMES_TITLE
 module.category = "chat"
+module.developer = { enabled = true }
 
 module.options = {
     {

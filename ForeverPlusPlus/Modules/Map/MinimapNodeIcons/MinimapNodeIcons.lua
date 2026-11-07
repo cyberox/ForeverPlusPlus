@@ -68,6 +68,7 @@ local module = ns.NewModule("MinimapNodeIcons", L.MINIMAPNODEICONS_DESC, {
 })
 module.title = L.MINIMAPNODEICONS_TITLE
 module.category = "map"
+module.quickToggle = "gathering"
 module.added = "0.9.0"
 module.internal = {}
 local internal = module.internal

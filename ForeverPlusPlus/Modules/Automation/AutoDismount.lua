@@ -19,6 +19,7 @@ local module = ns.NewModule("AutoDismount", L.AUTODISMOUNT_DESC, {
 })
 module.title = L.AUTODISMOUNT_TITLE
 module.category = "automation"
+module.quickToggle = "world"
 
 module.options = {
     { key = "dismount", name = L.AUTODISMOUNT_DISMOUNT, description = L.AUTODISMOUNT_DISMOUNT_DESC },

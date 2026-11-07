@@ -31,6 +31,7 @@ local FriendlyPlates = {}
 ns.FriendlyPlates = FriendlyPlates
 
 local Plates = {}
+local active = {} -- the plates of modules that are on -> true
 Plates.__index = Plates
 
 local weak = { __mode = "k" }
@@ -480,6 +481,7 @@ end
 ---Sets the CVars, and starts handling plates and their events (through module:On, so they stop
 ---when the module turns off).
 function Plates:Enable()
+    active[self] = true
     local module = self.module
     if not curve then
         curve, inverse = ns.HealthStepCurve(1, 0), ns.HealthStepCurve(0, 1)
@@ -511,6 +513,20 @@ end
 
 ---Gives every plate back to Blizzard and puts the player's CVars back.
 function Plates:Disable()
+    active[self] = nil
     Nameplates.Unregister(self)
     ns.CVars.RestoreAll(self.module.db.saved)
+end
+
+---Whether a module's friendly plates draw friendly players' names now (Player Nameplates is on),
+---for another module that would otherwise change Blizzard's own (Class Colors) without reading
+---that module.
+---@return boolean
+function FriendlyPlates.DrawsPlayers()
+    for plates in pairs(active) do
+        if plates.spec.players then
+            return true
+        end
+    end
+    return false
 end

@@ -39,6 +39,7 @@ local module = ns.NewModule("GatheringTracking", L.GATHERINGTRACKING_DESC, {
 })
 module.title = L.GATHERINGTRACKING_TITLE
 module.category = "automation"
+module.quickToggle = "gathering"
 
 -- Swap was one slider, 0.8.4 and before, whose first stop (2) meant never.
 ns.Migrate(1, function(db)

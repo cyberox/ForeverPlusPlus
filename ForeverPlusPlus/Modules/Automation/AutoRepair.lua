@@ -20,6 +20,7 @@ local module = ns.NewModule("AutoRepair", L.AUTOREPAIR_DESC, {
 })
 module.title = L.AUTOREPAIR_TITLE
 module.category = "automation"
+module.quickToggle = "loot"
 
 -- Hold Shift to Skip was a checkbox, 0.8.4 and before.
 ns.Migrate(1, function(db)

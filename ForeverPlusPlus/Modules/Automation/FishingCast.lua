@@ -24,6 +24,8 @@ local module = ns.NewModule("FishingCast", L.FISHINGCAST_DESC, {
 })
 module.title = L.FISHINGCAST_TITLE
 module.category = "automation"
+module.quickToggle = "gathering"
+module.developer = { enabled = true }
 -- A /reload, logout, or disconnect mid-cast leaves the changed volumes behind: put them back at
 -- login if the module is off then (OnEnable does it when it's on).
 ns.CVars.Track(module)

@@ -20,6 +20,7 @@ local module = ns.NewModule("AutoDecline", L.AUTODECLINE_DESC, {
 })
 module.title = L.AUTODECLINE_TITLE
 module.category = "automation"
+module.quickToggle = "other"
 
 module.options = {
     { key = "duels", name = L.AUTODECLINE_DUELS, description = L.AUTODECLINE_DUELS_DESC },

@@ -11,6 +11,7 @@ local L = ns.L
 local module = ns.NewModule("FastLoot", L.FASTLOOT_DESC, { enabled = true })
 module.title = L.FASTLOOT_TITLE
 module.category = "automation"
+module.quickToggle = "loot"
 
 -- With the game's auto loot off, only loot taken while holding its modifier is fast, which looks
 -- like the module doing nothing.

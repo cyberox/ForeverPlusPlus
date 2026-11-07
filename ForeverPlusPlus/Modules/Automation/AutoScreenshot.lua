@@ -36,6 +36,8 @@ local module = ns.NewModule("AutoScreenshot", L.AUTOSCREENSHOT_DESC, {
 })
 module.title = L.AUTOSCREENSHOT_TITLE
 module.category = "automation"
+module.quickToggle = "other"
+module.developer = { enabled = true }
 
 local GENERAL, EVENTS = L.AUTOSCREENSHOT_SECTION_GENERAL, L.AUTOSCREENSHOT_SECTION_EVENTS
 

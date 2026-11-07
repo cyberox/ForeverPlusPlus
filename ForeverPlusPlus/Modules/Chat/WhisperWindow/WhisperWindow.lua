@@ -30,6 +30,7 @@ local module = ns.NewModule("WhisperWindow", L.WHISPERWINDOW_DESC, {
 })
 module.title = L.WHISPERWINDOW_TITLE
 module.category = "chat"
+module.developer = { enabled = true, options = { hideInChat = true } }
 module.added = "0.9.0"
 module.perCharacter = { conversations = true }
 module.internal = {}

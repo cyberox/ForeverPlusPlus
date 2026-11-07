@@ -33,6 +33,7 @@ local module = ns.NewModule("MovableWindows", L.MOVABLEWINDOWS_DESC, {
 })
 module.title = L.MOVABLEWINDOWS_TITLE
 module.category = "interface"
+module.developer = { enabled = true }
 module.added = "1.0.0"
 
 module.options = {

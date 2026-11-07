@@ -33,6 +33,7 @@ local module = ns.NewModule("QuestTracker", L.QUESTTRACKER_DESC, {
 })
 module.title = L.QUESTTRACKER_TITLE
 module.category = "quests"
+module.developer = { options = { sort = "low" } }
 module.perCharacter = { hidden = true }
 
 -- 0.8.x saved every default as if the player chose it, so a 30% background from then is 0.8.4's

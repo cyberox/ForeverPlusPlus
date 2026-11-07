@@ -9,21 +9,23 @@ local L = ns.L
 
 -- Presets -------------------------------------------------------------------------------------
 
--- Modules the Developer's Defaults preset turns on, on top of every module's default settings.
-local developerEnables = { "FishingCast", "SkipCinematics", "AutoScreenshot", "CurrencyBar",
-    "HideBetaFeedback", "ShortChannelNames", "EasyDelete", "AutoWeaponBuff",
-    "AutoGossip", "WhisperWindow", "ConsoleVariables", "Profiler", "Debug", "UpgradeArrows",
-    "Macros", "MovableWindows" }
-
--- Options the Developer's Defaults preset sets differently from the module's default.
-local developerOptions = {
-    WorldMap = { zoneDungeons = "key", fishing = "key" },
-    ChatHistory = { divider = true },
-    QuestTracker = { sort = "low" },
-    AutoGossip = { other = true },
-    MinimapButton = { menuSide = "left" },
-    WhisperWindow = { hideInChat = true },
-}
+-- What the Developer's Defaults preset does, on top of every module's default settings, as each
+-- module declares it in its own file: `module.developer = { enabled = true, options = { key =
+-- value } }`, turned on and set differently from its defaults. A locked module isn't turned on.
+local function developerPreset()
+    local enables, options = {}, {}
+    for _, name in ipairs(ns.order) do
+        local module = ns.modules[name]
+        local developer = module.developer
+        if developer then
+            if developer.enabled and not module.locked then
+                enables[#enables + 1] = name
+            end
+            options[name] = developer.options
+        end
+    end
+    return enables, options
+end
 
 ---Puts every module's options (`module.options`) back to their defaults, then turns on the
 ---modules in `enable`. Everything else a module saves stays: data (prices, seen cinematics, chat
@@ -87,7 +89,7 @@ end
 
 ---Defaults plus the modules the developer turns on (Developer's Defaults in the Defaults popup).
 function ns.ApplyDeveloperDefaults()
-    ns.ApplyPreset(developerEnables, developerOptions)
+    ns.ApplyPreset(developerPreset())
 end
 
 -- /fpp ----------------------------------------------------------------------------------------

@@ -21,6 +21,8 @@ local module = ns.NewModule("SkipCinematics", L.SKIPCINEMATICS_DESC, {
 })
 module.title = L.SKIPCINEMATICS_TITLE
 module.category = "automation"
+module.quickToggle = "npcs"
+module.developer = { enabled = true }
 
 -- Hold Shift to Watch was a checkbox, 0.8.4 and before.
 ns.Migrate(1, function(db)

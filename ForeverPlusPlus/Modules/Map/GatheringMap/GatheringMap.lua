@@ -76,6 +76,7 @@ module.perCharacter = { hidden = true, hiddenKinds = true, hiddenWorld = true, h
 module.title = L.GATHERINGMAP_TITLE
 module.pageTitle = L.GATHERINGMAP_PAGE_TITLE
 module.category = "map"
+module.quickToggle = "gathering"
 module.added = "1.2.0"
 module.internal = {}
 local internal = module.internal
