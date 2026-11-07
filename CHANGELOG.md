@@ -13,6 +13,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 - **Gathering Map**: a shared string can't bring colors, textures, or links into node names.
 - **World Map**: Ley Lines no longer finishes reading a cast after being turned off.
+- **World Map**: Blackrock Mountain's tooltip lists only the dungeons or raids that are turned on, and its icon is the raid one while only Raids is on.
 - **Auto Screenshot**: no longer takes a shot it started after being turned off, and no longer takes one at Neutral reputation (Friendly and up, as it says).
 - **Auto Weapon Buff**: an item it learned in play can no longer end up counted as fitting every weapon.
 - **Movable Windows**: turning it off puts back how Blizzard kept each window on the screen.

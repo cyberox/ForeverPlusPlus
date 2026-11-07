@@ -28,6 +28,8 @@ ns.changelog = {
                     .. "node names." },
                 { L.WORLDMAP_TITLE, "Ley Lines no longer finishes reading a cast after being turned "
                     .. "off." },
+                { L.WORLDMAP_TITLE, "Blackrock Mountain's tooltip lists only the dungeons or raids "
+                    .. "that are turned on, and its icon is the raid one while only Raids is on." },
                 { L.AUTOSCREENSHOT_TITLE, "No longer takes a shot it started after being turned off, "
                     .. "and no longer takes one at Neutral reputation (Friendly and up, as it says)." },
                 { L.AUTOWEAPONBUFF_TITLE, "An item it learned in play can no longer end up counted as "

@@ -218,8 +218,9 @@ internal.linesOf = linesOf
 
 -- The tooltip of a dungeon or raid: one instance (its kind, then its level range colored against
 -- the player's), or a place with several (Blackrock Mountain), a row each. Also the rows alone,
--- for a city's tooltip that takes them in.
-local function instanceTooltip(kindName, key)
+-- for a city's tooltip that takes them in. With `dungeons` and `raids`, a place's rows are only of
+-- the kinds that show (its dungeons hidden while Dungeons is off).
+local function instanceTooltip(kindName, key, dungeons, raids)
     local instance = internal.instances[key]
     if not instance.parts then
         local row = MapTooltip.Detail(ns.Instances.Line(instance, instanceName(instance)))
@@ -229,7 +230,10 @@ local function instanceTooltip(kindName, key)
     local rows = {}
     for _, partKey in ipairs(instance.parts) do
         local part = internal.instances[partKey]
-        rows[#rows + 1] = MapTooltip.Detail(ns.Instances.Line(part, instanceName(part)))
+        local isRaid = part[5] and true or false
+        if (dungeons == nil or (isRaid and raids) or (not isRaid and dungeons)) then
+            rows[#rows + 1] = MapTooltip.Detail(ns.Instances.Line(part, instanceName(part)))
+        end
     end
     return place(instance.name), rows, rows
 end
@@ -258,9 +262,19 @@ local function pinFor(point, mapID, world)
     local kindName = point[1]
     local kindInfo = KINDS[kindName]
     local db = module.db
-    -- A place with dungeons and raids (Blackrock Mountain) shows with either.
+    -- A place with dungeons and raids (Blackrock Mountain) shows with either: as a raid while only
+    -- Raids is on, and its tooltip lists only the kinds that show.
     local mixed = kindName == "dungeon" and internal.instances[point[4]].raids
-    if not (shows(kindInfo, world) or (mixed and shows(KINDS.raid, world))) then
+    local dungeonsOn, raidsOn
+    if mixed then
+        dungeonsOn, raidsOn = shows(KINDS.dungeon, world), shows(KINDS.raid, world)
+        if not (dungeonsOn or raidsOn) then
+            return nil
+        end
+        if not dungeonsOn then
+            kindName, kindInfo = "raid", KINDS.raid
+        end
+    elseif not shows(kindInfo, world) then
         return nil
     end
     local info = { size = kindInfo.pixels * db[kindInfo.size] / 100 }
@@ -272,7 +286,7 @@ local function pinFor(point, mapID, world)
     elseif kindName == "dungeon" or kindName == "raid" then
         info.atlas = kindInfo.atlas
         info.title, info.lines, info.rows = instanceTooltip(
-            kindName == "raid" and L.POI_RAID or L.POI_DUNGEON, point[4])
+            kindName == "raid" and L.POI_RAID or L.POI_DUNGEON, point[4], dungeonsOn, raidsOn)
     elseif kindName == "flight" then
         if not forPlayer(point[4]) then
             return nil
