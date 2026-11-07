@@ -345,3 +345,11 @@ L.GATHERINGMAP_LOG_AGAIN = "gathered %d times" -- count
 L.GATHERINGMAP_LOG_KIND = "not saved: not a kind it remembers"
 L.GATHERINGMAP_LOG_UNNAMED = "not saved: nothing named it"
 L.GATHERINGMAP_LOG_NOWHERE = "not saved: no spot on a map"
+-- Kinds of node, the gold line under a node's name on the map
+L.GATHERINGMAP_KIND_HERB = "Herb"
+L.GATHERINGMAP_KIND_ORE = "Ore"
+L.GATHERINGMAP_KIND_TREASURE = "Treasure"
+L.GATHERINGMAP_KIND_FISH = "Fishing Pool"
+-- A node's tooltip
+L.GATHERINGMAP_GATHERED = "Gathered %d times" -- count
+L.GATHERINGMAP_LAST = "Last gathered %s" -- "3h ago"

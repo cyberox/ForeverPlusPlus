@@ -14,6 +14,12 @@ local Gathering = ns.Gathering
 
 local module = ns.NewModule("GatheringMap", L.GATHERINGMAP_DESC, {
     enabled = true,
+    icon = "item", -- "item" (the node's item's icon, a circle without one) or "circle"
+    shape = "round", -- an item icon "round" or "square"
+    ring = true, -- the minimap's gold ring around a round icon
+    worldMap = true,
+    mapSize = 100, -- percent of MAP_PIXELS on the world map
+    mapContinents = false, -- on continent maps too
     log = false, -- print each gather in chat (Debug)
     -- Nodes remembered, by zone map ID: a list of { name, kind, x, y, count, time, loot }, where
     -- loot is item ID -> how many it gave in all. For the whole account. Data, not a setting.
@@ -50,6 +56,89 @@ function internal.Changed(mapID)
     for i = 1, #redraws do
         redraws[i](mapID)
     end
+end
+
+-- How a node looks ------------------------------------------------------------------------------
+-- Its item's icon (Copper Ore for a Copper Vein): the one Lib/Professions knows, else the first
+-- the node gave. A node with neither, or every node with Icon Style set to circles, is a circle
+-- in its kind's color.
+
+local next = next
+local C_Item = C_Item
+local Professions = ns.Professions
+
+local COLORS = {
+    herb = { 0.35, 0.85, 0.35 },
+    ore = { 0.95, 0.6, 0.25 },
+    treasure = { 1, 0.82, 0 },
+    fish = { 0.35, 0.65, 1 },
+}
+local CIRCLE = "Interface\\Buttons\\WHITE8X8" -- tinted and drawn round
+internal.COLORS = COLORS
+internal.KIND_NAMES = {
+    herb = L.GATHERINGMAP_KIND_HERB,
+    ore = L.GATHERINGMAP_KIND_ORE,
+    treasure = L.GATHERINGMAP_KIND_TREASURE,
+    fish = L.GATHERINGMAP_KIND_FISH,
+}
+
+local icons = {} -- node name -> its item's icon, once found
+
+-- The icon of a node's item, or nil.
+local function itemIcon(node)
+    local icon = icons[node.name]
+    if icon then
+        return icon
+    end
+    local known = Professions.Node(node.name)
+    local item = known and known[3]
+    if not item and node.loot then
+        item = next(node.loot)
+    end
+    icon = item and C_Item.GetItemIconByID(item)
+    if icon and ns.IsReadable(icon) then
+        icons[node.name] = icon
+        return icon
+    end
+end
+
+---Fills `look` with how a node is drawn, as Lib/MapPins takes it: `texture`, `trim`, `round`,
+---`color`, and `ring`.
+---@param node table
+---@param look table
+---@return table look
+function internal.Look(node, look)
+    local db = module.db
+    local icon = db.icon == "item" and itemIcon(node)
+    look.atlas = nil
+    if icon then
+        look.texture, look.trim, look.color = icon, true, nil
+        look.round = db.shape == "round"
+    else
+        look.texture, look.trim, look.color = CIRCLE, false, COLORS[node.kind] or COLORS.herb
+        look.round = true
+    end
+    look.ring = db.ring and look.round or false
+    return look
+end
+
+---Whether a node is shown, on either map.
+---@param node table
+---@return boolean
+function internal.Shown(node)
+    return node ~= nil
+end
+
+---The lines under a node's name in its tooltip.
+---@param node table
+---@return table lines
+function internal.TooltipLines(node)
+    local lines = { internal.KIND_NAMES[node.kind] or node.kind }
+    lines[#lines + 1] = ns.MapTooltip.Detail(format(L.GATHERINGMAP_GATHERED, node.count))
+    if node.time then
+        lines[#lines + 1] = ns.MapTooltip.Note(format(L.GATHERINGMAP_LAST, ns.Text.Ago(time() - node.time)))
+    end
+    return lines
 end
 
 -- Remembering gathers ---------------------------------------------------------------------------

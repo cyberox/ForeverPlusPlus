@@ -106,6 +106,9 @@ local function place(pin, map)
     local scale = map.GetCanvasScale and map:GetCanvasScale() or 1
     local size = pin.info.size / (scale > 0 and scale or 1)
     pin:SetSize(size, size)
+    if pin.info.ring then
+        ns.MinimapPins.PlaceRing(pin.ring, pin, size)
+    end
     pin:ClearAllPoints()
     pin:SetPoint("CENTER", canvas, "TOPLEFT", canvas:GetWidth() * pin.x,
         -canvas:GetHeight() * pin.y)
@@ -169,6 +172,53 @@ function Layer:Release()
     self.count = 0
 end
 
+-- The round mask Mainline's portraits use, for an icon drawn round (Minimap Node Icons uses it on
+-- the minimap too).
+local ROUND = "Interface\\CharacterFrame\\TempPortraitAlphaMask"
+local TRIM = 0.08 -- the edge cut off an item icon, as the bags do
+
+-- Sets a pin's art: an atlas, or a texture (an item icon) trimmed, optionally round, tinted, and
+-- see-through.
+local function setArt(pin, info)
+    local texture, highlight = pin.texture, pin.highlight
+    if info.atlas then
+        texture:SetAtlas(info.atlas)
+        highlight:SetAtlas(info.atlas)
+    else
+        texture:SetTexture(info.texture)
+        highlight:SetTexture(info.texture)
+        local trim = info.trim and TRIM or 0
+        texture:SetTexCoord(trim, 1 - trim, trim, 1 - trim)
+        highlight:SetTexCoord(trim, 1 - trim, trim, 1 - trim)
+    end
+    local round = info.round and true or false
+    if round ~= (pin.round or false) then
+        if not pin.mask then
+            pin.mask = pin:CreateMaskTexture()
+            pin.mask:SetTexture(ROUND, "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+            pin.mask:SetAllPoints(texture)
+        end
+        if round then
+            texture:AddMaskTexture(pin.mask)
+            highlight:AddMaskTexture(pin.mask)
+        else
+            texture:RemoveMaskTexture(pin.mask)
+            highlight:RemoveMaskTexture(pin.mask)
+        end
+        pin.round = round
+    end
+    local color = info.color
+    texture:SetVertexColor(color and color[1] or 1, color and color[2] or 1, color and color[3] or 1)
+    texture:SetDesaturated(info.desaturated or false)
+    pin:SetAlpha(info.alpha or 1)
+    if info.ring then
+        pin.ring = pin.ring or ns.MinimapPins.NewRing(pin)
+        pin.ring:Show()
+    elseif pin.ring then
+        pin.ring:Hide()
+    end
+end
+
 function Layer:Add(map, x, y, info)
     self.count = self.count + 1
     local pin = self.pins[self.count]
@@ -177,9 +227,7 @@ function Layer:Add(map, x, y, info)
         self.pins[self.count] = pin
     end
     pin.x, pin.y, pin.info = x, y, info
-    pin.texture:SetAtlas(info.atlas)
-    pin.texture:SetDesaturated(info.desaturated or false)
-    pin.highlight:SetAtlas(info.atlas)
+    setArt(pin, info)
     -- Where Blizzard's own dungeon entrance icons go: above the map art and areas, below quests.
     local manager = map.GetPinFrameLevelsManager and map:GetPinFrameLevelsManager()
     if manager then
@@ -266,8 +314,11 @@ end
 ---Makes a layer of map pins. `fill(mapID, add)` runs each time the map shows a map, and calls
 ---`add(x, y, info)` for each pin: x and y from 0 to 1 across the map, and info
 ---`{ atlas, size, title, lines, desaturated }` (size in pixels on screen; lines of tooltip text
----under the title, as `ns.MapTooltip.Show` takes them; desaturated to gray the icon). Call
----`layer:Enable()` to show it and `layer:Disable()` to take it off.
+---under the title, as `ns.MapTooltip.Show` takes them; desaturated to gray the icon). In place of
+---`atlas`, `texture` (a file ID or path, such as an item icon) with `trim` to cut off an item
+---icon's edge. Any pin can also have `round` (drawn round), `color` ({ r, g, b } it's tinted),
+---`alpha`, and `ring` (the minimap's gold ring around it). Call `layer:Enable()` to show it and
+---`layer:Disable()` to take it off.
 ---@param fill fun(mapID: number, add: fun(x: number, y: number, info: table))
 ---@return table layer
 function MapPins.New(fill)

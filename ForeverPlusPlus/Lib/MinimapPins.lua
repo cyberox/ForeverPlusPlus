@@ -103,6 +103,33 @@ function MinimapPins.Inside(right, up, inset)
     return right * right + up * up <= radius * radius
 end
 
+-- The ring ---------------------------------------------------------------------------------------
+-- The gold ring of the minimap's tracking button, which Blizzard also puts around a 24 pixel spec
+-- icon (ItemDisplay.xml): the 64 pixel file with the icon's center 19 right and 18 down of its
+-- corner. Scaled to the icon it's around.
+local RING = "Interface\\Minimap\\MiniMap-TrackingBorder"
+local RING_ICON, RING_FILE, RING_X, RING_Y = 24, 64, 19, 18
+
+---A gold ring for an icon on `frame`, placed with PlaceRing.
+---@param frame table
+---@return table texture
+function MinimapPins.NewRing(frame)
+    local ring = frame:CreateTexture(nil, "OVERLAY")
+    ring:SetTexture(RING)
+    return ring
+end
+
+---Puts a ring around `icon`, an icon frame or texture `size` pixels across.
+---@param ring table
+---@param icon table
+---@param size number
+function MinimapPins.PlaceRing(ring, icon, size)
+    local k = size / RING_ICON
+    ring:SetSize(RING_FILE * k, RING_FILE * k)
+    ring:ClearAllPoints()
+    ring:SetPoint("TOPLEFT", icon, "CENTER", -RING_X * k, RING_Y * k)
+end
+
 ---A function that says whether icons on the minimap could have moved since it was last called:
 ---the player is moving, or turning while the minimap rotates. While they stand still the icons
 ---stay where they were, so a module can skip drawing them. Each caller makes its own, since it
