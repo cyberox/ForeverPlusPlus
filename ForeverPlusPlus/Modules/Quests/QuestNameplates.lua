@@ -7,7 +7,7 @@ local _, ns = ...
 
 local ipairs, pairs, setmetatable, tonumber, unpack, floor, max = ipairs, pairs, setmetatable, tonumber,
     unpack, math.floor, math.max
-local tostring = tostring
+local tostring, type = tostring, type
 local CreateFrame, C_TooltipInfo, C_QuestLog, UnitName = CreateFrame, C_TooltipInfo, C_QuestLog,
     UnitName
 local UnitIsPlayer = UnitIsPlayer
@@ -69,7 +69,11 @@ module.options = {
     },
 }
 
-local ICON_SIZE = 18 -- at 100%
+local ICON_SIZE = 18 -- at 100%, on a plate at the game's default nameplate size
+-- Forever doesn't scale a nameplate as a whole: it draws its parts bigger as the game's nameplate
+-- size goes up. The name is 11.2 at the default size, 14 at 2x, and 17.5 at 3x (Cameron's /dump of
+-- the target plate's name:GetFont(), 2026-11-06), so the column grows with the name's size.
+local NAME_SIZE = 11.2
 local TEXT_SIZE = 12
 local GAP = 2 -- between the icon and the count
 local PAD = 8 -- between the column and the health bar
@@ -274,14 +278,31 @@ local function eliteMark(frame)
     return readable(shown) and shown and mark or nil
 end
 
+-- The size the game draws a plate's name at, against its default: Blizzard shrinks a long name's
+-- font to fit its plate, so the largest size seen is the plate's. A nameplate CVar change (the
+-- nameplate size among them) measures it again.
+local plateNameSize = 0
+
+local function plateScale(parts)
+    local name = parts.name
+    if name and name.GetFont then
+        local _, size = name:GetFont()
+        if ns.IsNumber(size) and size > plateNameSize then
+            plateNameSize = size
+        end
+    end
+    return plateNameSize > 0 and plateNameSize / NAME_SIZE or 1
+end
+
 local function place(box, frame, current, needed, kind, percent)
     local db = module.db
-    local scale = db.size / 100
     local parts = Nameplates.Parts(frame)
     local anchor = parts.container
     if not anchor then
         return
     end
+    -- The module's Size, on top of the game's nameplate size.
+    local scale = db.size / 100 * plateScale(parts)
     local right = db.side == "right"
     local pad = PAD
     -- The level badge sits at the bar's right end and an elite's dragon at its left, so the box
@@ -397,8 +418,9 @@ local function update(unit, frame)
     -- Quest events come often and mostly change nothing on a given plate: lay it out again only
     -- when what it shows changed.
     -- Plates are pooled, so whether this one has an elite's dragon is part of it too.
+    -- So is the plate's size, which follows the game's nameplate size.
     local shows = current .. "/" .. needed .. ":" .. tostring(kind) .. ":" .. tostring(percent)
-        .. (eliteMark(frame) and ":elite" or "")
+        .. (eliteMark(frame) and ":elite" or "") .. ":" .. plateScale(Nameplates.Parts(frame))
     if box.shows == shows then
         return
     end
@@ -413,6 +435,14 @@ local refreshSoon = ns.Frames.Coalesce(function()
         Nameplates.ForEach(update)
     end
 end, 0.2, module)
+
+-- The game's nameplate size changed (or another nameplate CVar): measure the plates' names again.
+local function onCVarUpdate(_, cvar)
+    if type(cvar) == "string" and cvar:lower():find("^nameplate") then
+        plateNameSize = 0
+        refreshSoon()
+    end
+end
 
 function module:OnEnable()
     kinds = nil
@@ -432,6 +462,7 @@ function module:OnEnable()
     self:On("GROUP_ROSTER_UPDATE", refreshSoon) -- party members' lines come and go
     -- A plate whose tooltip was secret in combat kept what it showed; look again now it's readable.
     self:On("PLAYER_REGEN_ENABLED", refreshSoon)
+    self:On("CVAR_UPDATE", onCVarUpdate)
 end
 
 function module:OnDisable()

@@ -35,6 +35,8 @@ ns.changelog = {
                     .. "icon's." },
                 { L.ALREADYKNOWN_TITLE, "The check keeps in proportion to the icon it's on." },
                 { L.SPELLRANKS_TITLE, "The badge keeps in proportion to the action button it's on." },
+                { L.QUESTNAMEPLATES_TITLE, "The quest icon and its count grow and shrink with the game's "
+                    .. "nameplate size, as the plate's name and health bar do." },
             } },
             { L.CHANGELOG_FIXED, {
                 { L.UPGRADEARROWS_TITLE, "With a two-hander on, a one-hander or off hand is judged "
