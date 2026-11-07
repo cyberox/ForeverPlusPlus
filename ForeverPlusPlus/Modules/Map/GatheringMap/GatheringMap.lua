@@ -125,7 +125,10 @@ local function skillOption(key, name, description)
 end
 
 -- Last, under its own header, as every module's Chat Messages is.
-local chatOption = ns.ChatOption(L.GATHERINGMAP_CHAT_DESC, L.GATHERINGMAP_SECTION_CHAT)
+-- Under Remembered Nodes, after its Share and Forget buttons (which sit at the top of the section):
+-- what it says in chat is about forgetting them.
+local NODES = L.GATHERINGMAP_SECTION_NODES
+local chatOption = ns.ChatOption(L.GATHERINGMAP_CHAT_DESC, NODES)
 
 module.options = {
     { key = "onlyMine", name = L.GATHERINGMAP_ONLY_MINE, description = L.GATHERINGMAP_ONLY_MINE_DESC },
@@ -314,12 +317,14 @@ module.actions = {
         name = L.GATHERINGMAP_EXPORT,
         button = L.GATHERINGMAP_EXPORT_BUTTON,
         description = L.GATHERINGMAP_EXPORT_DESC,
+        section = NODES,
         fn = exportNodes,
     },
     {
         name = L.GATHERINGMAP_IMPORT,
         button = L.GATHERINGMAP_IMPORT_BUTTON,
         description = L.GATHERINGMAP_IMPORT_DESC,
+        section = NODES,
         fn = function()
             ns.Prompt("GATHERINGMAP_IMPORT", L.GATHERINGMAP_IMPORT_PROMPT, "", importNodes, true)
         end,
@@ -329,6 +334,7 @@ module.actions = {
         button = L.GATHERINGMAP_FORGET_BUTTON,
         description = L.GATHERINGMAP_FORGET_ZONE_DESC,
         confirm = L.GATHERINGMAP_FORGET_ZONE_CONFIRM,
+        section = NODES,
         fn = function()
             local zone = internal.ZoneMap()
             if zone then
@@ -341,6 +347,7 @@ module.actions = {
         button = L.GATHERINGMAP_FORGET_BUTTON,
         description = L.GATHERINGMAP_FORGET_ALL_DESC,
         confirm = L.GATHERINGMAP_FORGET_ALL_CONFIRM,
+        section = NODES,
         fn = function()
             forgetAll(nil)
         end,

@@ -934,6 +934,29 @@ local function addModuleRows(view, module)
         end
         return
     end
+    -- A button with a `section` sits at the top of that section, under its header, before its
+    -- options; the rest come after every option, as before.
+    local actionsIn, loose = {}, {}
+    for i, action in ipairs(module.actions or {}) do
+        local list = action.section and actionsIn[action.section] or nil
+        if action.section and not list then
+            list = {}
+            actionsIn[action.section] = list
+        end
+        local entry = { action = action, index = i }
+        if list then
+            list[#list + 1] = entry
+        else
+            loose[#loose + 1] = entry
+        end
+    end
+    local function addActions(list)
+        for _, entry in ipairs(list or {}) do
+            local action = entry.action
+            addButtonRow(view, action.name, on, nil, action.button, actionFn(module, action, entry.index),
+                action.description)
+        end
+    end
     local section, subsection
     if not (options[1] and options[1].section) then
         addLine(view, "GameFontHighlightLarge", L.SETTINGS_OPTIONS)
@@ -945,6 +968,8 @@ local function addModuleRows(view, module)
             if not (option.toggle and option.choices) then
                 addLine(view, "GameFontHighlightLarge", section)
             end
+            addActions(actionsIn[section])
+            actionsIn[section] = nil
         end
         if option.subsection and option.subsection ~= subsection then
             subsection = option.subsection
@@ -955,10 +980,16 @@ local function addModuleRows(view, module)
             addConflictRows(view, module, options, i)
         end
     end
-    for i, action in ipairs(module.actions or {}) do
-        addButtonRow(view, action.name, on, nil, action.button, actionFn(module, action, i),
-            action.description)
+    -- Buttons of a section no option is in, under its own header, then the rest.
+    for _, action in ipairs(module.actions or {}) do
+        local list = action.section and actionsIn[action.section]
+        if list then
+            addLine(view, "GameFontHighlightLarge", action.section)
+            addActions(list)
+            actionsIn[action.section] = nil
+        end
     end
+    addActions(loose)
     if extra then
         extra(view, on)
     end

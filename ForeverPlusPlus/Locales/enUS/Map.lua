@@ -465,7 +465,7 @@ L.GATHERINGMAP_SKILL_HIDE = "Hidden"
 L.GATHERINGMAP_SECTION_MINIMAP = "Minimap"
 L.GATHERINGMAP_SECTION_WORLDMAP = "World Map"
 L.GATHERINGMAP_SECTION_TOOLTIPS = "Tooltips"
-L.GATHERINGMAP_SECTION_CHAT = "Chat"
+L.GATHERINGMAP_SECTION_NODES = "Remembered Nodes" -- sharing and forgetting them, and Chat Messages
 -- Its own page in Settings: every node, with a checkbox to show or hide it
 L.GATHERINGMAP_PAGE_TITLE = "Gathering Map"
 L.GATHERINGMAP_PAGE_NOTE = "Uncheck a node or a whole kind to hide it on both maps for this "
