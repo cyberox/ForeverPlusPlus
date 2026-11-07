@@ -20,6 +20,9 @@ local module = ns.NewModule("GatheringMap", L.GATHERINGMAP_DESC, {
     worldMap = true,
     mapSize = 100, -- percent of MAP_PIXELS on the world map
     mapContinents = false, -- on continent maps too
+    minimap = true,
+    minimapSize = 12, -- pixels
+    minimapAlpha = 100, -- percent
     log = false, -- print each gather in chat (Debug)
     -- Nodes remembered, by zone map ID: a list of { name, kind, x, y, count, time, loot }, where
     -- loot is item ID -> how many it gave in all. For the whole account. Data, not a setting.

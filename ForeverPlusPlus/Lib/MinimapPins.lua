@@ -37,11 +37,14 @@ local view = {}
 ---What the minimap shows right now: `mapID` (the player's zone map) and `x`, `y` (their spot on
 ---it, 0 to 1), the map's `width` and `height` in yards, `half` (half the minimap's width), `scale`
 ---(minimap units per yard), and `angle` (what the minimap is turned by, 0 unless it rotates). Nil
----when any of it can't be read, as in an instance. The same table every call, filled anew, so
----read it right away rather than keeping it.
+---when any of it can't be read, as in an instance. With `mapID`, on that map (one the player is
+---on, such as the zone above their cave) instead of the one they're on. The same table every
+---call, filled anew, so read it right away rather than keeping it.
+---@param mapID? number
 ---@return table? view
-function MinimapPins.View()
-    local mapID, x, y = ns.WorldMap.PlayerPosition()
+function MinimapPins.View(mapID)
+    local x, y
+    mapID, x, y = ns.WorldMap.PlayerPosition(mapID)
     if not mapID then
         return nil
     end

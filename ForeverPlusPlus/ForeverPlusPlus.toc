@@ -170,6 +170,7 @@ Modules\Map\MinimapNodeIcons\Learn.lua
 Modules\Map\MinimapNodeIcons\Report.lua
 Modules\Map\GatheringMap\GatheringMap.lua
 Modules\Map\GatheringMap\Map.lua
+Modules\Map\GatheringMap\Minimap.lua
 API.lua
 Changelog.lua
 Settings\Settings.lua

@@ -177,19 +177,28 @@ end
 local ROUND = "Interface\\CharacterFrame\\TempPortraitAlphaMask"
 local TRIM = 0.08 -- the edge cut off an item icon, as the bags do
 
--- Sets a pin's art: an atlas, or a texture (an item icon) trimmed, optionally round, tinted, and
--- see-through.
-local function setArt(pin, info)
+---Sets an icon frame's art from `info` as a layer's pins take it (see MapPins.New): an atlas, or
+---a texture (an item icon) trimmed, optionally round, tinted, see-through, and ringed. `pin` has
+---its art in `pin.texture`, and optionally a hover highlight in `pin.highlight`; the mask and the
+---ring are made on it when first needed. For our icons elsewhere too, such as on the minimap; the
+---ring is placed by whoever sizes the pin (MinimapPins.PlaceRing).
+---@param pin table
+---@param info table
+function MapPins.SetArt(pin, info)
     local texture, highlight = pin.texture, pin.highlight
     if info.atlas then
         texture:SetAtlas(info.atlas)
-        highlight:SetAtlas(info.atlas)
+        if highlight then
+            highlight:SetAtlas(info.atlas)
+        end
     else
-        texture:SetTexture(info.texture)
-        highlight:SetTexture(info.texture)
         local trim = info.trim and TRIM or 0
+        texture:SetTexture(info.texture)
         texture:SetTexCoord(trim, 1 - trim, trim, 1 - trim)
-        highlight:SetTexCoord(trim, 1 - trim, trim, 1 - trim)
+        if highlight then
+            highlight:SetTexture(info.texture)
+            highlight:SetTexCoord(trim, 1 - trim, trim, 1 - trim)
+        end
     end
     local round = info.round and true or false
     if round ~= (pin.round or false) then
@@ -200,10 +209,14 @@ local function setArt(pin, info)
         end
         if round then
             texture:AddMaskTexture(pin.mask)
-            highlight:AddMaskTexture(pin.mask)
+            if highlight then
+                highlight:AddMaskTexture(pin.mask)
+            end
         else
             texture:RemoveMaskTexture(pin.mask)
-            highlight:RemoveMaskTexture(pin.mask)
+            if highlight then
+                highlight:RemoveMaskTexture(pin.mask)
+            end
         end
         pin.round = round
     end
@@ -227,7 +240,7 @@ function Layer:Add(map, x, y, info)
         self.pins[self.count] = pin
     end
     pin.x, pin.y, pin.info = x, y, info
-    setArt(pin, info)
+    MapPins.SetArt(pin, info)
     -- Where Blizzard's own dungeon entrance icons go: above the map art and areas, below quests.
     local manager = map.GetPinFrameLevelsManager and map:GetPinFrameLevelsManager()
     if manager then
