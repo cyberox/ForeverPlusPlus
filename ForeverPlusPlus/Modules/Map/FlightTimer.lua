@@ -87,7 +87,9 @@ end
 
 -- The flight underway ---------------------------------------------------------------------------
 
-local flight -- { from, to, total, name, asked, started, aborted, warned }, once one is asked for
+-- { from, to, total, name, asked, started, aborted, warned }, once one is asked for, and `test`
+-- for Test Flight's.
+local flight
 local lastFlight -- { from, to, seconds } of the flight that last landed, for the public API
 
 local bar, watcher
