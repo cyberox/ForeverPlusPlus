@@ -21,7 +21,8 @@ local module = ns.NewModule("GatheringMap", L.GATHERINGMAP_DESC, {
     -- A node gathered lately: "ring" (an empty ring), "gray" (its icon gray), "dot" (a small dot),
     -- "hide", or "show" (as usual). How long "lately" is, and the first three's opacity.
     justGathered = "ring",
-    justMinutes = 10,
+    justMinutes = 5, -- nodes were back within 10 (in game, 2026-11-07); GatherLite has no timer
+
     justAlpha = 50, -- percent
     icon = "item", -- "item" (the node's item's icon, a circle without one) or "circle"
     shape = "round", -- an item icon "round" or "square"
