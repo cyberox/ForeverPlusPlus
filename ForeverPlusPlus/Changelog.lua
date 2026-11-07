@@ -10,7 +10,8 @@ local L = ns.L
 
 ns.changelog = {
     {
-        version = L.CHANGELOG_UNRELEASED,
+        version = "1.2.0",
+        date = "2026-11-07",
         sections = {
             { L.CHANGELOG_ADDED, {
                 { L.GATHERINGMAP_TITLE, "A new module, on by default. It remembers every herb, vein, "
