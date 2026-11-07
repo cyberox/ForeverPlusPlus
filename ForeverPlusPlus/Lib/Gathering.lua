@@ -255,6 +255,88 @@ local function listen(on)
     end
 end
 
+-- Remembering nodes ----------------------------------------------------------------------------
+-- A map's nodes are a list of { name, kind, x, y, count, time }: x and y from 0 to 1 across the
+-- map, rounded to 4 places (half a yard on a big zone), how many times it was gathered, and when
+-- last (time()). The player stands a few yards from what they gather, from a different side each
+-- time, so a node's spot is the average of where they stood.
+
+local floor, sqrt = math.floor, math.sqrt
+
+Gathering.RADIUS = 15 -- yards within which a gather is of a node already known
+local WEIGHT = 10 -- the most gathers a spot's average counts, so a node that moved still follows
+
+---A spot rounded to the 4 places nodes are saved with.
+---@param v number
+---@return number
+function Gathering.Round(v)
+    return floor(v * 10000 + 0.5) / 10000
+end
+
+---How far apart two spots on a map are, in yards, for a map `width` by `height` yards.
+---@return number yards
+function Gathering.Distance(x1, y1, x2, y2, width, height)
+    local dx, dy = (x1 - x2) * width, (y1 - y2) * height
+    return sqrt(dx * dx + dy * dy)
+end
+
+---The node in `list` nearest to x, y within `radius` yards for which `match(node)` is true (any
+---node without `match`), and how far it is; nil when there's none.
+---@param list table a map's nodes
+---@param x number
+---@param y number
+---@param width number the map's size in yards
+---@param height number
+---@param radius number yards
+---@param match? fun(node: table): boolean
+---@return table? node
+---@return number? yards
+function Gathering.Nearest(list, x, y, width, height, radius, match)
+    local best, bestYards
+    for i = 1, #list do
+        local node = list[i]
+        if not match or match(node) then
+            local yards = Gathering.Distance(x, y, node.x, node.y, width, height)
+            if yards <= radius and (not bestYards or yards < bestYards) then
+                best, bestYards = node, yards
+            end
+        end
+    end
+    return best, bestYards
+end
+
+---Adds a gather of the node `name` at x, y to a map's nodes: the same node within `radius` yards
+---counts it once more and moves its spot toward this one; else it's a new node. Returns the node
+---and whether it's new.
+---@param list table a map's nodes
+---@param name string
+---@param kind string
+---@param x number
+---@param y number
+---@param width number the map's size in yards
+---@param height number
+---@param now number time()
+---@param radius? number yards, Gathering.RADIUS by default
+---@return table node
+---@return boolean new
+function Gathering.Add(list, name, kind, x, y, width, height, now, radius)
+    local node = Gathering.Nearest(list, x, y, width, height, radius or Gathering.RADIUS, function(known)
+        return known.name == name
+    end)
+    if node then
+        local weight = node.count < WEIGHT and node.count or WEIGHT
+        node.x = Gathering.Round((node.x * weight + x) / (weight + 1))
+        node.y = Gathering.Round((node.y * weight + y) / (weight + 1))
+        node.count = node.count + 1
+        node.kind = kind
+        node.time = now
+        return node, false
+    end
+    node = { name = name, kind = kind, x = Gathering.Round(x), y = Gathering.Round(y), count = 1, time = now }
+    list[#list + 1] = node
+    return node, true
+end
+
 ---Calls `fn(gather)` each time the player gathers something, while `on`: a module listens in
 ---`OnEnable` and stops in `OnDisable`, and nothing is heard while no module listens. `gather` is
 ---`{ name, from, kind, line, spellID, mapID, x, y, objectID, items, succeeded }`: the node's name
