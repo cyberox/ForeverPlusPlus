@@ -13,6 +13,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 ### Changed
 
 - **Upgrade Arrows**: the arrow is 18 pixels by default instead of 20. A size you picked stays.
+- **Already Known**: the green check is 16 pixels on a bag icon instead of 14.
 
 ### Fixed
 
