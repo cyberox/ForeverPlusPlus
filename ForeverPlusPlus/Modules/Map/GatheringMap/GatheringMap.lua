@@ -30,9 +30,9 @@ local module = ns.NewModule("GatheringMap", L.GATHERINGMAP_DESC, {
     -- its own, not times the map's Opacity, which made it too faint to see). An empty ring on the
     -- minimap, the faded icon on the world map (Cameron, 2026-11-08).
     justMinimap = "ring",
-    justMinimapAlpha = 50,
+    justMinimapAlpha = 80, -- 50 and 40 were too faint to see (in game, 2026-11-08)
     justWorld = "faded",
-    justWorldAlpha = 40,
+    justWorldAlpha = 65,
     icon = "item", -- "item" (the node's item's icon, a circle without one) or "circle"
     ring = true, -- the minimap's gold ring around each icon
     worldMap = true,
@@ -58,7 +58,7 @@ local module = ns.NewModule("GatheringMap", L.GATHERINGMAP_DESC, {
     -- GatherMate2 uses 100).
     nearby = "ring",
     nearYards = 150,
-    ringAlpha = 50, -- percent: those empty rings near you on the minimap
+    ringAlpha = 80, -- percent: those empty rings near you on the minimap
     chat = true, -- say in chat when Shift+right-click forgets a node
     log = false, -- print each gather in chat (Debug)
     -- Nodes remembered, by zone map ID: a list of { name, kind, x, y, count, time, loot }, where
