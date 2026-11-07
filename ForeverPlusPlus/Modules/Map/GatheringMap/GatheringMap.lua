@@ -35,9 +35,11 @@ local module = ns.NewModule("GatheringMap", L.GATHERINGMAP_DESC, {
     minimapSize = 12, -- pixels
     minimapAlpha = 100, -- percent
     minimapTooltips = true, -- an icon shows its node's tooltip
-    -- Within nearYards of the player: "ring" (an empty ring, the game's own dot inside it when
-    -- the node is there), "hide", or "show" (as usual), at nearAlpha.
-    nearby = "ring",
+    -- How a node shows on the minimap: "all" (an empty ring anywhere on it, the game's own dot
+    -- inside it when the node is there, since the game draws dots out to about the minimap's edge:
+    -- a Silver Vein ~200 yards off, in game, 2026-11-07), or within nearYards of the player "ring"
+    -- (an empty ring) or "hide"; else, and with "show", its icon. Rings at nearAlpha.
+    nearby = "all",
     nearYards = 70,
     nearAlpha = 50, -- percent
     log = false, -- print each gather in chat (Debug)
@@ -117,23 +119,24 @@ module.options = {
         key = "nearby", name = L.GATHERINGMAP_NEAR, description = L.GATHERINGMAP_NEAR_DESC,
         section = MINIMAP, requires = "minimap",
         choices = {
-            { "ring", L.GATHERINGMAP_JUST_RING },
-            { "hide", L.GATHERINGMAP_JUST_HIDE },
-            { "show", L.GATHERINGMAP_JUST_SHOW },
+            { "all", L.GATHERINGMAP_NEAR_ALL },
+            { "ring", L.GATHERINGMAP_NEAR_RING },
+            { "hide", L.GATHERINGMAP_NEAR_HIDE },
+            { "show", L.GATHERINGMAP_NEAR_SHOW },
         },
     },
     {
         key = "nearYards", name = L.GATHERINGMAP_NEAR_YARDS, description = L.GATHERINGMAP_NEAR_YARDS_DESC,
         section = MINIMAP, requires = "minimap", min = 10, max = 200, step = 10, format = L.GATHERINGMAP_YARDS,
         shown = function(db)
-            return db.nearby ~= "show"
+            return db.nearby == "ring" or db.nearby == "hide"
         end,
     },
     {
         key = "nearAlpha", name = L.GATHERINGMAP_ALPHA, description = L.GATHERINGMAP_NEAR_ALPHA_DESC,
         section = MINIMAP, requires = "minimap", min = 10, max = 100, step = 5, format = "%d%%",
         shown = function(db)
-            return db.nearby == "ring"
+            return db.nearby == "all" or db.nearby == "ring"
         end,
     },
     {

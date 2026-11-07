@@ -155,9 +155,9 @@ end
 
 -- Draws an icon for each node followed that's on the minimap now. A pin is restyled only when it
 -- shows another node, comes near the player or leaves, or an option changed (`restyle`), and
--- moved only when its spot changed. Within Near You's yards of the player, a node is hidden or
--- an empty ring (Near You), as GatherLite does: only the game's own dot can say whether a node
--- is there now, so close up ours leaves that to it.
+-- moved only when its spot changed. Anywhere on the minimap (Near You's Whole Minimap), or within
+-- its yards of the player, a node is an empty ring or hidden, as GatherLite does close up: only
+-- the game's own dot can say whether a node is there now, so ours leaves room for it.
 local function draw(v, restyle)
     local db = module.db
     local size, alpha = db.minimapSize, db.minimapAlpha / 100
@@ -167,8 +167,8 @@ local function draw(v, restyle)
     for i = 1, #near do
         local node = near[i]
         local right, up = ToMinimap(v, node.x, node.y)
-        local close = nearby ~= "show"
-            and Distance(node.x, node.y, v.x, v.y, v.width, v.height) <= nearYards
+        local close = nearby == "all" or (nearby ~= "show"
+            and Distance(node.x, node.y, v.x, v.y, v.width, v.height) <= nearYards)
         if Inside(right, up, inset) and not (close and nearby == "hide") then
             shown = shown + 1
             local pin = getPin(shown)

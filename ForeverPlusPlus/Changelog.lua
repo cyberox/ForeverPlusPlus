@@ -14,8 +14,9 @@ ns.changelog = {
         sections = {
             { L.CHANGELOG_ADDED, {
                 { L.GATHERINGMAP_TITLE, "A new module that remembers every herb and vein you "
-                    .. "gather, for all your characters, and shows them on the world map and the "
-                    .. "minimap as the icon of what they give. Gathering one again moves its icon "
+                    .. "gather, for all your characters, and shows them on the world map as the icon "
+                    .. "of what they give, and on the minimap as an empty ring that the game's own "
+                    .. "tracking dot shows inside when the node is up. Gathering one again moves it "
                     .. "closer to where it really is. With Minimap Node Icons on, it also remembers "
                     .. "the nodes it finds on the minimap before you gather them. A node you just "
                     .. "gathered shows as an empty ring for a while, or in another style you pick. "
