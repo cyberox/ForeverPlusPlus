@@ -232,6 +232,9 @@ end
 -- the right end the lock icon of a disabled recipe. Nothing of Blizzard's is moved.
 
 local ROW_SIZE = 14
+-- Where the skill-up arrow starts, from the row's left: its slot starts 9 pixels left of the row
+-- and is 26 wide, and the arrow (13 wide, professions-icon-skill-*) sits at the slot's right.
+local ARROW_LEFT = -9 + 26 - 13
 
 local rowMarks = ItemButtons.Overlays(function(row)
     return row:CreateTexture(nil, "OVERLAY", nil, 7)
@@ -276,15 +279,16 @@ local function markRow(row, node)
         local after = row.Count and row.Count:IsShown() and row.Count or row.Label
         mark:SetPoint("LEFT", after, "RIGHT", 2, 0)
     elseif spot == "before" then
-        -- Left of the skill-up arrow (and its number) when it shows; else in the arrow's empty
-        -- spot, just before the name.
+        -- One column on every row, just left of where the skill-up arrow goes (13 wide, its
+        -- left edge 4 pixels into the row), whether a row has an arrow or not, so the names
+        -- don't look indented. Only the arrow's "2" for several skill-ups pushes it further left.
         local skillUps = row.SkillUps
-        local first
-        if skillUps and skillUps:IsShown() then
-            local text = skillUps.Text
-            first = text and text:IsShown() and text or skillUps.Icon
+        local text = skillUps and skillUps:IsShown() and skillUps.Text
+        if text and text:IsShown() then
+            mark:SetPoint("RIGHT", text, "LEFT", -1, 0)
+        else
+            mark:SetPoint("RIGHT", row, "LEFT", ARROW_LEFT - 1, 0)
         end
-        mark:SetPoint("RIGHT", first or row.Label, "LEFT", first and -1 or -2, 0)
     else
         -- At the row's right end, left of a disabled recipe's lock icon.
         local lock = row.LockedIcon
