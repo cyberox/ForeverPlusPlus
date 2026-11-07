@@ -170,6 +170,9 @@ internal.points = {
     },
     [1434] = { -- Stranglethorn Vale
         { "raid", 53.9, 17.6, "zulgurub" },
+        -- Underwater off the west coast, a cave by a large tablet past the Vile Reef: Warcraft
+        -- Tavern's and Zockify's 21.4, 27.9. Not checked in game.
+        { "dungeon", 21.4, 27.9, "drownedCity" },
         { "flight", 27.5, 77.8, "A", "Booty Bay" },
         { "flight", 26.9, 77.1, "H", "Booty Bay" },
         { "flight", 32.5, 29.4, "H", "Grom'gol Base Camp" },
@@ -320,6 +323,9 @@ internal.points = {
         { "spirit", 69.0, 40.7 },
     },
     [1447] = { -- Azshara
+        -- The furbolg tunnel's mouth: Warcraft Tavern's 38.7, 33.4 and mmonster's 38.6, 33.2.
+        -- The portal itself is deep inside, under Winterspring. Not checked in game.
+        { "dungeon", 38.7, 33.4, "blackmawHold" },
         { "flight", 11.9, 77.6, "A", "Talrendis Point" },
         { "flight", 22.0, 49.6, "H", "Valormok" },
         { "spirit", 70.4, 16.1 },
@@ -333,6 +339,9 @@ internal.points = {
         { "spirit", 56.8, 87.0 },
     },
     [1449] = { -- Un'Goro Crater
+        -- On the hill over Marshal's Refuge: Warcraft Tavern's 48.1, 6.1, the only spot a guide
+        -- gives. Not checked in game.
+        { "dungeon", 48.1, 6.1, "shapersTerrace" },
         { "flight", 45.2, 5.8, "N", "Marshal's Refuge" },
         { "spirit", 45.3, 7.6 },
         { "spirit", 50.0, 56.0 },

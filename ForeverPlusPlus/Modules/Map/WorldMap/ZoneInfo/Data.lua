@@ -223,7 +223,10 @@ local DUNGEONS = {
     [1435] = { I.sunkenTemple }, -- Swamp of Sorrows
     [1427] = BLACKROCK, -- Searing Gorge
     [1428] = BLACKROCK, -- Burning Steppes
-    [1434] = { I.zulgurub }, -- Stranglethorn Vale
+    [1434] = { I.drownedCity, I.zulgurub }, -- Stranglethorn Vale
+    [2548] = { I.kroldok }, -- Riverglades
+    [1447] = { I.blackmawHold }, -- Azshara
+    [1449] = { I.shapersTerrace }, -- Un'Goro Crater
     [1422] = { I.scholomance }, -- Western Plaguelands
     [1423] = { I.stratholme, I.naxxramas }, -- Eastern Plaguelands
     [1454] = { I.ragefire }, -- Orgrimmar
@@ -232,7 +235,7 @@ local DUNGEONS = {
     [1443] = { I.maraudon }, -- Desolace
     [1446] = { I.zulfarrak }, -- Tanaris
     [1444] = { I.diremaul }, -- Feralas
-    [1445] = { I.onyxia }, -- Dustwallow Marsh
+    [1445] = { I.alcazPrison, I.onyxia }, -- Dustwallow Marsh
     [1451] = { I.aq20, I.aq40 }, -- Silithus
 }
 for mapID, dungeons in pairs(DUNGEONS) do

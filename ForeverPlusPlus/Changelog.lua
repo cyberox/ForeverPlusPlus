@@ -15,6 +15,9 @@ ns.changelog = {
             { L.CHANGELOG_ADDED, {
                 { L.WORLDMAP_TITLE, "Quick checkboxes in the world map's filter menu for Dungeons, "
                     .. "Raids, Flight Masters, Boats and Zeppelins, Unexplored Areas, and Zone Info." },
+                { L.WORLDMAP_TITLE, "Forever's new dungeons: The Drowned City, Blackmaw Hold, and "
+                    .. "The Shaper's Terrace on the map, and with Krol'dok Stronghold and Alcaz "
+                    .. "Prison in their zones' info." },
                 "Other addons can read more through ForeverPlusPlusAPI.v1: your talent trees "
                     .. "(GetTalentTabs), any herb, vein, chest, or fishing pool by name "
                     .. "(GetWorldNodeInfo, GetFishingPoolByObject), your profession skills "

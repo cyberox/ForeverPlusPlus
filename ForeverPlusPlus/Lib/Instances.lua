@@ -21,9 +21,15 @@ local Instances = {
     diremaul = { 429, "Dire Maul", 56, 60 },
     gnomeregan = { 90, "Gnomeregan", 29, 38 },
     -- Forever's. The instance IDs are the client's Map table (build 70009); the lowest levels are
-    -- its dungeon finder's, the highest are guides'. The other five Forever dungeons weren't in
-    -- the client then; the dungeon finder adds them once it lists them.
-    hallOfThanes = { 3065, "The Hall of Thanes", 13, 18 },
+    -- its dungeon finder's, the highest are guides'. The five after these are the Group Finder's
+    -- (C_LFGList activities, IDs and levels, seen in game 2026-11-07), which also gave Hall of
+    -- Thanes' 13-20.
+    hallOfThanes = { 3065, "The Hall of Thanes", 13, 20 },
+    drownedCity = { 2970, "The Drowned City", 35, 42 },
+    kroldok = { 3039, "Krol'dok Stronghold", 40, 47 },
+    alcazPrison = { 2994, "Alcaz Prison", 48, 55 },
+    blackmawHold = { 2974, "Blackmaw Hold", 55, 60 },
+    shapersTerrace = { 3001, "The Shaper's Terrace", 58, 60 },
     ruinsOfLordaeron = { 2999, "Ruins of Lordaeron", 15, 20 },
     excavationSite = { 2998, "Excavation Site: Wetlands", 26, 31 },
     dalaran = { 2959, "City of Dalaran", 28, 33 },
