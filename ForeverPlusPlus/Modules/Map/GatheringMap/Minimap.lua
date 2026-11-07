@@ -120,7 +120,10 @@ local function style(pin, node, size, alpha, close)
     if close then
         internal.Hollow(look)
     end
-    look.alpha = look.hollow and module.db.ringAlpha / 100 or alpha
+    -- Near the player, the ring at Empty Ring Opacity; else a node just gathered at Just Gathered
+    -- Opacity; else the minimap's Opacity.
+    local db = module.db
+    look.alpha = close and db.ringAlpha / 100 or look.just and db.justAlpha / 100 or alpha
     ns.MapPins.SetArt(pin, look)
     pin:SetSize(size, size)
     if pin.ring then

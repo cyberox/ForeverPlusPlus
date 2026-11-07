@@ -19,7 +19,7 @@ ns.changelog = {
                     .. "empty ring that the game's own tracking dot shows inside when the node is up. "
                     .. "Gathering one again moves it closer to where it really is. With Minimap Node "
                     .. "Icons on, it also remembers the nodes it finds on the minimap before you "
-                    .. "gather them. A node you just gathered shows as an empty ring for a while, and "
+                    .. "gather them. A node you just gathered shows faded for a while, and "
                     .. "one your skill is too low for is gray, including one you tried to gather before "
                     .. "your skill was high enough. Its own page in Settings, and the world "
                     .. "map's filter, show or hide nodes for each character. Export and Import share "

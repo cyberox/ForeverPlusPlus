@@ -60,7 +60,7 @@ local function infoFor(i, node, size, zone)
     internal.Look(node, info)
     info.size = size
     local db = module.db
-    info.alpha = (info.hollow and db.mapRingAlpha or db.mapAlpha) / 100
+    info.alpha = (info.just and db.justAlpha or db.mapAlpha) / 100
     info.title = internal.Title(node)
     info.lines = linesFor
     return info

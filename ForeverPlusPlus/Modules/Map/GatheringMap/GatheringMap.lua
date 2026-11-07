@@ -23,19 +23,18 @@ local module = ns.NewModule("GatheringMap", L.GATHERINGMAP_DESC, {
     -- "show", "gray" (its icon gray), or "hide".
     tooHigh = "gray",
     trivial = "show",
-    -- A node gathered lately: "ring" (an empty ring), "hide", or "show" (as usual), and how long
-    -- "lately" is.
-    justGathered = "ring",
+    -- A node gathered lately: "faded" (its icon, see-through), "ring" (an empty ring), "hide", or
+    -- "show" (as usual), and how long "lately" is. Faded by default (Cameron, 2026-11-08).
+    justGathered = "faded",
     justMinutes = 5, -- nodes were back within 10 (in game, 2026-11-07); GatherLite has no timer
+    -- percent: how solid a node just gathered is, faded or a ring, on both maps; on its own, not
+    -- times a map's Opacity, which made it too faint to see (Cameron, 2026-11-08)
+    justAlpha = 40,
     icon = "item", -- "item" (the node's item's icon, a circle without one) or "circle"
     ring = true, -- the minimap's gold ring around each icon
-    ringAlpha = 50, -- percent: the minimap's empty rings, a node near you or just gathered
     worldMap = true,
     mapSize = 70, -- percent of MAP_PIXELS on the world map
     mapAlpha = 85, -- percent
-    -- percent: the world map's empty rings (a node just gathered), on their own and not times
-    -- mapAlpha, which made them too faint to see (Cameron, 2026-11-08)
-    mapRingAlpha = 100,
     mapContinents = false, -- on continent maps too
     minimap = true,
     minimapSize = 10, -- pixels, a little bigger than the game's own tracking dots
@@ -56,6 +55,7 @@ local module = ns.NewModule("GatheringMap", L.GATHERINGMAP_DESC, {
     -- GatherMate2 uses 100).
     nearby = "ring",
     nearYards = 150,
+    ringAlpha = 50, -- percent: those empty rings near you on the minimap
     chat = true, -- say in chat when Shift+right-click forgets a node
     log = false, -- print each gather in chat (Debug)
     -- Nodes remembered, by zone map ID: a list of { name, kind, x, y, count, time, loot }, where
@@ -144,6 +144,7 @@ module.options = {
         key = "justGathered", name = L.GATHERINGMAP_JUST, description = L.GATHERINGMAP_JUST_DESC,
         section = LOOK,
         choices = {
+            { "faded", L.GATHERINGMAP_JUST_FADED },
             { "ring", L.GATHERINGMAP_JUST_RING },
             { "hide", L.GATHERINGMAP_JUST_HIDE },
             { "show", L.GATHERINGMAP_JUST_SHOW },
@@ -157,6 +158,13 @@ module.options = {
         end,
     },
     {
+        key = "justAlpha", name = L.GATHERINGMAP_JUST_ALPHA, description = L.GATHERINGMAP_JUST_ALPHA_DESC,
+        section = LOOK, min = 10, max = 100, step = 5, format = "%d%%",
+        shown = function(db)
+            return db.justGathered == "faded" or db.justGathered == "ring"
+        end,
+    },
+    {
         key = "minimap", name = L.GATHERINGMAP_MINIMAP, description = L.GATHERINGMAP_MINIMAP_DESC,
         section = MINIMAP, slider = "minimapSize",
     },
@@ -166,10 +174,6 @@ module.options = {
     },
     {
         key = "minimapAlpha", name = L.GATHERINGMAP_ALPHA, description = L.GATHERINGMAP_ALPHA_DESC,
-        section = MINIMAP, requires = "minimap", min = 10, max = 100, step = 5, format = "%d%%",
-    },
-    {
-        key = "ringAlpha", name = L.GATHERINGMAP_RING_ALPHA, description = L.GATHERINGMAP_RING_ALPHA_DESC,
         section = MINIMAP, requires = "minimap", min = 10, max = 100, step = 5, format = "%d%%",
     },
     {
@@ -187,6 +191,13 @@ module.options = {
         section = MINIMAP, requires = "minimap", min = 10, max = 200, step = 10, format = L.GATHERINGMAP_YARDS,
         shown = function(db)
             return db.nearby == "ring" or db.nearby == "hide"
+        end,
+    },
+    {
+        key = "ringAlpha", name = L.GATHERINGMAP_RING_ALPHA, description = L.GATHERINGMAP_RING_ALPHA_DESC,
+        section = MINIMAP, requires = "minimap", min = 10, max = 100, step = 5, format = "%d%%",
+        shown = function(db)
+            return db.nearby == "ring" or db.nearby == "all"
         end,
     },
     {
@@ -208,13 +219,6 @@ module.options = {
     {
         key = "mapAlpha", name = L.GATHERINGMAP_ALPHA, description = L.GATHERINGMAP_ALPHA_DESC,
         section = WORLD, requires = "worldMap", min = 10, max = 100, step = 5, format = "%d%%",
-    },
-    {
-        key = "mapRingAlpha", name = L.GATHERINGMAP_RING_ALPHA, description = L.GATHERINGMAP_MAP_RING_ALPHA_DESC,
-        section = WORLD, requires = "worldMap", min = 10, max = 100, step = 5, format = "%d%%",
-        shown = function(db)
-            return db.justGathered == "ring"
-        end,
     },
     {
         key = "mapContinents", name = L.GATHERINGMAP_CONTINENTS, description = L.GATHERINGMAP_CONTINENTS_DESC,
@@ -512,7 +516,9 @@ function internal.Look(node, look)
         look.texture, look.trim, look.color = CIRCLE, false, COLORS[node.kind] or COLORS.herb
     end
     look.ring, look.hollow = db.ring, false
-    if db.justGathered == "ring" and internal.JustGathered(node) then
+    -- Just gathered: drawn at Just Gathered Opacity (`just`), as its icon or an empty ring.
+    look.just = (db.justGathered == "faded" or db.justGathered == "ring") and internal.JustGathered(node)
+    if look.just and db.justGathered == "ring" then
         internal.Hollow(look)
     end
     return look
