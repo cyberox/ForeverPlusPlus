@@ -28,7 +28,8 @@ local module = ns.NewModule("AppearanceIcons", L.APPEARANCEICONS_DESC, {
     merchant = true,
     auction = true,
     loot = true,
-    professions = true, -- after a recipe's name in the professions window
+    professions = true, -- on a recipe's row in the professions window
+    recipeSpot = "right", -- where on the row: "right" end, "before" the name (and its arrow), or "after" it
 })
 module.title = L.APPEARANCEICONS_TITLE
 module.category = "items"
@@ -80,6 +81,15 @@ module.options = {
         section = L.APPEARANCEICONS_SECTION_SHOW },
     { key = "professions", name = L.APPEARANCEICONS_PROFESSIONS, description = L.APPEARANCEICONS_PROFESSIONS_DESC,
         section = L.APPEARANCEICONS_SECTION_SHOW },
+    {
+        key = "recipeSpot", name = L.APPEARANCEICONS_RECIPE_SPOT, description = L.APPEARANCEICONS_RECIPE_SPOT_DESC,
+        section = L.APPEARANCEICONS_SECTION_SHOW, requires = "professions",
+        choices = {
+            { "right", L.APPEARANCEICONS_RECIPE_SPOT_RIGHT },
+            { "before", L.APPEARANCEICONS_RECIPE_SPOT_BEFORE },
+            { "after", L.APPEARANCEICONS_RECIPE_SPOT_AFTER },
+        },
+    },
 }
 
 local RECHECK = 10 -- seconds an item found collected (or not gear) is believed before a new look
@@ -215,10 +225,11 @@ local function markRoll(icon, link)
 end
 
 -- Professions -------------------------------------------------------------------------------------
--- The recipe list's rows have no item icon: the mark goes after the recipe's name, or after its
--- "[3]" craftable count when that shows, at text height. Blizzard's row (ProfessionsRecipeList-
--- RecipeMixin, Gethe forever branch) keeps 10 pixels after the count; the lock icon of a disabled
--- recipe sits at the row's right end.
+-- The recipe list's rows have no item icon, so the mark goes on the row at text height, where the
+-- Recipe Icon option says. Blizzard's row (ProfessionsRecipeListRecipeMixin, Gethe forever
+-- branch), left to right: the skill-up arrow (SkillUps, 26 wide from 9 pixels left of the row,
+-- its arrow at its right and a number left of that), the name, the "[3]" craftable count, and at
+-- the right end the lock icon of a disabled recipe. Nothing of Blizzard's is moved.
 
 local ROW_SIZE = 14
 
@@ -259,8 +270,30 @@ local function markRow(row, node)
     mark:SetAtlas(ATLAS)
     mark:SetSize(ROW_SIZE, ROW_SIZE)
     mark:ClearAllPoints()
-    local after = row.Count and row.Count:IsShown() and row.Count or row.Label
-    mark:SetPoint("LEFT", after, "RIGHT", 2, 0)
+    local spot = module.db.recipeSpot
+    if spot == "after" then
+        -- After the name, or after its count when that shows.
+        local after = row.Count and row.Count:IsShown() and row.Count or row.Label
+        mark:SetPoint("LEFT", after, "RIGHT", 2, 0)
+    elseif spot == "before" then
+        -- Left of the skill-up arrow (and its number) when it shows; else in the arrow's empty
+        -- spot, just before the name.
+        local skillUps = row.SkillUps
+        local first
+        if skillUps and skillUps:IsShown() then
+            local text = skillUps.Text
+            first = text and text:IsShown() and text or skillUps.Icon
+        end
+        mark:SetPoint("RIGHT", first or row.Label, "LEFT", first and -1 or -2, 0)
+    else
+        -- At the row's right end, left of a disabled recipe's lock icon.
+        local lock = row.LockedIcon
+        if lock and lock:IsShown() then
+            mark:SetPoint("RIGHT", lock, "LEFT", -1, 0)
+        else
+            mark:SetPoint("RIGHT", row, "RIGHT", -2, 0)
+        end
+    end
 end
 
 local function recipeRows(fn)
