@@ -477,12 +477,25 @@ local function child(t, key)
     return value
 end
 
+-- What module:TooltipLinePreCall hooks are kept under, apart from the post calls, since a line
+-- type and a tooltip type can share a number.
+local LINE_PRE_CALLS = {}
+
 -- What a hook is on, as the Profiler page names it: "GameTooltip:Show", "UnitFrame_Update", or
 -- "PlayerFrame OnEnter" for a script. Made once, when it's hooked.
 local function hookName(target, method)
     local script = type(method) == "string" and method:match("^script:(.+)$")
     if target == _G then
         return method
+    end
+    -- module:TooltipLinePreCall: the kind of line, by its Enum.TooltipDataLineType name.
+    if target == LINE_PRE_CALLS then
+        for name, value in pairs(Enum and Enum.TooltipDataLineType or {}) do
+            if value == method then
+                return "TooltipLinePreCall " .. name
+            end
+        end
+        return "TooltipLinePreCall " .. tostring(method)
     end
     -- module:TooltipPostCall: the kind of tooltip, by its Enum.TooltipDataType name.
     if target == TooltipDataProcessor then
@@ -526,13 +539,13 @@ local function hookOnce(module, target, method, fn, install)
         install(function(...)
             if module.enabled then
                 -- Through `call`, as events are: an error in our hook is reported, and doesn't
-                -- surface inside Blizzard's own code or stop the hooks after ours.
+                -- surface inside Blizzard's own code or stop the hooks after ours. What `fn`
+                -- returns is passed on, for a line pre call (true leaves the line out).
                 local profiler = ns.Profiler
                 if profiler and profiler.recording then
-                    profiler.CallFrom(module, source, call, fn, ...)
-                else
-                    call(fn, ...)
+                    return profiler.CallFrom(module, source, call, fn, ...)
                 end
+                return call(fn, ...)
             end
         end)
     end
@@ -583,6 +596,21 @@ function Module:TooltipPostCall(kind, fn)
     end
     hookOnce(self, TooltipDataProcessor, kind, fn, function(hook)
         TooltipDataProcessor.AddTooltipPostCall(kind, hook)
+    end)
+end
+
+---Like `module:TooltipPostCall`, before the game adds each tooltip line of one kind
+---(`TooltipDataProcessor.AddLinePreCall`): `fn(tooltip, lineData)` runs while the module is on,
+---and a true return leaves the line out. It runs before every such line of every tooltip, so keep
+---it cheap, and check an option in `fn`. Does nothing on a client without line pre calls.
+---@param kind any such as Enum.TooltipDataLineType.QuestTitle, or TooltipDataProcessor.AllTypes
+---@param fn function
+function Module:TooltipLinePreCall(kind, fn)
+    if not (TooltipDataProcessor and TooltipDataProcessor.AddLinePreCall and kind) then
+        return
+    end
+    hookOnce(self, LINE_PRE_CALLS, kind, fn, function(hook)
+        TooltipDataProcessor.AddLinePreCall(kind, hook)
     end)
 end
 

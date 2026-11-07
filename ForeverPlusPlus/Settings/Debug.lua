@@ -69,7 +69,8 @@ local function debugInfo()
         tostring(interface), GetLocale(), #on, concat(on, ", "))
 end
 
--- How many hooks a module has made (`module:Hook`, `HookScript`, `TooltipPostCall`). They stay but
+-- How many hooks a module has made (`module:Hook`, `HookScript`, `TooltipPostCall`,
+-- `TooltipLinePreCall`). They stay but
 -- do nothing while the module is off.
 local function hookCount(module)
     local count = 0
