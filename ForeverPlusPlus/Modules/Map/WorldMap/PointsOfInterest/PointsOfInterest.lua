@@ -577,6 +577,14 @@ local function findDungeons()
     -- new dungeons are listed here (seen in game, 2026-11-07), not in the dungeon finder above.
     if C_LFGList and C_LFGList.GetAvailableCategories and C_LFGList.GetAvailableActivities
         and C_LFGList.GetActivityInfoTable and C_LFGList.GetLfgCategoryInfo then
+        -- Matched by instance ID, since its names differ from ours ("Scarlet Monastery - Library",
+        -- "Hall of Thanes"); ones we know but don't place were listed just above.
+        local known = {}
+        for _, instance in pairs(ns.Instances.byKey) do
+            if instance[1] then
+                known[instance[1]] = true
+            end
+        end
         local wanted = { [DUNGEONS or "Dungeons"] = true, [RAIDS or "Raids"] = true }
         local categories, any = C_LFGList.GetAvailableCategories() or {}, false
         for _, categoryID in ipairs(categories) do
@@ -590,7 +598,8 @@ local function findDungeons()
                 for _, activityID in ipairs(C_LFGList.GetAvailableActivities(categoryID) or {}) do
                     local info = C_LFGList.GetActivityInfoTable(activityID)
                     local name = info and (info.fullName or info.shortName)
-                    if ns.IsText(name, true) and not seen[name] and not placedByUs(name) then
+                    if ns.IsText(name, true) and not seen[name] and not known[info.mapID]
+                        and not placedByUs(name) then
                         seen[name] = true
                         local low, high = info.minLevelSuggestion or 0, info.maxLevelSuggestion or 0
                         ns.Print(format(L.POI_FIND_ACTIVITY, name, category.name, low, high,

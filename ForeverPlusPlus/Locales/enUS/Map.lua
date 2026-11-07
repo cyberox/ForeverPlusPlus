@@ -28,7 +28,7 @@ L.POI_FIND_DESC = "List in chat every dungeon and raid the game knows that the m
     .. "yet: entrances the game places, with their spot, and ones only the dungeon finder or "
     .. "the Group Finder lists."
 L.POI_FIND_ENTRANCE = "Entrance: %s, %s %.1f, %.1f" -- dungeon, zone, x, y
-L.POI_FIND_FINDER = "In the dungeon finder, no entrance known: %s (%s)" -- dungeon, levels
+L.POI_FIND_FINDER = "Known, but no entrance on the map: %s (%s)" -- dungeon, levels
 L.POI_FIND_ACTIVITY = "In the Group Finder: %s (%s, %d-%d, instance %d)" -- name, category, levels, ID
 L.POI_FIND_NONE = "Every dungeon and raid the game knows is on the map already."
 -- Smaller headers over its options in Settings
