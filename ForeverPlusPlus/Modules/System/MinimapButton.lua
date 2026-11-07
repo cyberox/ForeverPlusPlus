@@ -132,8 +132,7 @@ local function quickMenuItems(_, root)
                 root:CreateCheckbox(entry.title,
                     function() return other.db.enabled end,
                     function()
-                        ns.SetEnabled(name, not other.db.enabled)
-                        ns.RefreshSetting(name)
+                        ns.SetEnabled(name, not other.db.enabled) -- Settings follows by itself
                     end)
             end
             -- Gathering Map's kinds after its modules, while it's on to offer them.

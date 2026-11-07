@@ -191,7 +191,6 @@ local function use(name, options)
             ns.SetOption(name, key, value)
         end
     end
-    ns.RefreshSetting(name)
     return true
 end
 
@@ -204,7 +203,6 @@ local function putBack()
         else
             ns.SetOption(name, key, old)
         end
-        ns.RefreshSetting(name)
         changed[i] = nil
     end
 end

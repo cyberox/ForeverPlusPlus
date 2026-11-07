@@ -19,11 +19,8 @@ local function resetDebugOptions()
         local other = ns.modules[name]
         for _, option in ipairs(other.options or {}) do
             if option.debug and other.db then
-                local before = other.db[option.key]
-                ns.ResetOption(name, option.key) -- forgotten, so none stays saved at its default
-                if before ~= other.db[option.key] then
-                    ns.RefreshSetting(name)
-                end
+                -- Forgotten, so none stays saved at its default; Settings follows by itself.
+                ns.ResetOption(name, option.key)
             end
         end
     end

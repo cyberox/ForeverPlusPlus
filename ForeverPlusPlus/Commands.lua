@@ -206,7 +206,6 @@ local function set(rest, flip)
             return
         end
         ns.SetEnabled(module.name, on)
-        ns.RefreshSetting(module.name)
         ns.Print(format(L.MODULE_STATE, module.name, on and L.ON or L.OFF))
         return
     end
@@ -239,7 +238,6 @@ local function set(rest, flip)
         return
     end
     ns.SetOption(module.name, option.key, new)
-    ns.RefreshSetting(module.name)
     ns.Print(format(L.OPTION_STATE, module.name, option.key, (describe(module, option))))
 end
 

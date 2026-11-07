@@ -1511,3 +1511,26 @@ function ns.RefreshSetting(name)
     refreshModule(name)
     updatePage(name)
 end
+
+-- Every module turned on or off and every option changed, reset, or set by a command, a preset,
+-- the Minimap Button, or this page goes through Core's ns.OnModuleChanged, so Settings follows
+-- them all from here, once per module on the next frame (a preset changes many options at once).
+-- ns.RefreshSetting is left for what isn't an option: a module's Problem, a page's own data.
+local waitingRefresh = {}
+local refreshQueued = false
+
+ns.OnModuleChanged(function(name)
+    waitingRefresh[name] = true
+    if refreshQueued or not C_Timer then
+        return
+    end
+    refreshQueued = true
+    C_Timer.After(0, function()
+        refreshQueued = false
+        local names = waitingRefresh
+        waitingRefresh = {}
+        for each in pairs(names) do
+            ns.RefreshSetting(each)
+        end
+    end)
+end)
