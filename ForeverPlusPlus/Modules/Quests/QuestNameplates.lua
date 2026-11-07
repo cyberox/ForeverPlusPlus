@@ -23,7 +23,7 @@ local module = ns.NewModule("QuestNameplates", L.QUESTNAMEPLATES_DESC, {
     completed = true, -- keep a green check on creatures whose objective is done
     completedCount = true, -- and its final count beside it
     side = "left", -- which side of the bar: "left" or "right"
-    size = 100, -- a percent
+    size = 90, -- a percent, of ICON_SIZE; 90 since the icon grew with the nameplate size
     testIcons = false, -- debug: made-up progress on every creature's plate
 })
 module.title = L.QUESTNAMEPLATES_TITLE
@@ -61,7 +61,7 @@ module.options = {
     },
     {
         key = "size", name = L.QUESTNAMEPLATES_SIZE, description = L.QUESTNAMEPLATES_SIZE_DESC,
-        min = 50, max = 200, step = 10, format = "%d%%",
+        min = 50, max = 200, step = 10, format = "%d%%", changed = "1.2.0", -- 90% by default, not 100%
     },
     {
         key = "testIcons", name = L.QUESTNAMEPLATES_TEST, description = L.QUESTNAMEPLATES_TEST_DESC,
