@@ -533,12 +533,13 @@ local function add(index)
     if not index then
         return
     end
-    local name, icon, level, _, _, _, line, modifier = GetProfessionInfo(index)
+    local name, icon, level, maxLevel, _, _, line, modifier = GetProfessionInfo(index)
     if readable(line) and ns.IsNumber(level) then
         -- The modifier (from gear or racials) counts toward what the player can gather.
         local rank = level + (ns.IsNumber(modifier) and modifier or 0)
         known[line] = { rank = rank, name = readable(name) and name or nil,
-            icon = readable(icon) and icon or nil }
+            icon = readable(icon) and icon or nil, level = level,
+            max = ns.IsNumber(maxLevel) and maxLevel or nil }
     end
 end
 
@@ -613,6 +614,19 @@ function Professions.Rank(line)
     if info then
         return info.rank, info.name, info.icon
     end
+end
+
+---The player's skill in a profession as its window shows it, without gear or racial bonuses, and
+---the most its rank allows (131 and 150), or nil without the profession. Not for Lockpicking.
+---@param line number
+---@return number? level
+---@return number? max
+function Professions.Progress(line)
+    if line == Professions.LOCKPICKING or not Professions.Rank(line) then
+        return nil
+    end
+    local info = known and known[line]
+    return info and info.level, info and info.max
 end
 
 -- The professions window's recipe list -------------------------------------------------------------

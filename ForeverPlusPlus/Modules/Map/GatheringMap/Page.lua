@@ -271,6 +271,9 @@ local function newHeader(list, kind)
     row.text = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     row.text:SetPoint("LEFT", row.box, "RIGHT", 2, 0)
     row.text:SetText(kind.name)
+    -- This character's skill in the profession at the right, as its window shows it: "131 / 150".
+    row.progress = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    row.progress:SetPoint("RIGHT", -6, 0)
     -- Clicking a header folds or unfolds it and shows the kind on the right.
     row:SetScript("OnClick", function()
         if search == "" then
@@ -669,6 +672,9 @@ function refresh()
         if search == "" or #listed > 0 then
             header.box:SetChecked(kindOn)
             header.fold:SetTexture(open and MINUS or PLUS)
+            local level, top = Professions.Progress(KIND_LINES[kind.kind])
+            header.progress:SetText(level and top and format(L.GATHERINGMAP_PAGE_PROGRESS, level, top)
+                or "")
             Kit.AddEntry(stack, header, nil, index > 1 and 8 or nil)
             any = any or #listed > 0
             if open then
