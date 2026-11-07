@@ -3,7 +3,7 @@
 -- module count and the commands of the modules that are on update each time.
 local _, ns = ...
 
-local ipairs, format, max = ipairs, string.format, math.max
+local ipairs, format, max, concat = ipairs, string.format, math.max, table.concat
 local CreateFrame, GameTooltip, GetBuildInfo = CreateFrame, GameTooltip, GetBuildInfo
 local L = ns.L
 local S = ns.SettingsUI
@@ -14,6 +14,20 @@ local WEBSITE = "https://github.com/xIGBClutchIx/ForeverPlusPlus"
 local ISSUES = WEBSITE .. "/issues"
 
 local metadata = ns.Metadata
+
+-- Who else wrote part of the addon, by the name they go by on GitHub, and what they added, for the
+-- Thanks line under the version. Keep it the same as the README's Contributors list.
+local CREDITS = {
+    { "cyberox", L.TOOLTIPS_QUEST_LINES },
+}
+
+local function thanksText()
+    local parts = {}
+    for i, credit in ipairs(CREDITS) do
+        parts[i] = format(L.HOME_CREDIT, credit[1], credit[2])
+    end
+    return format(L.HOME_THANKS, concat(parts, ", "))
+end
 
 -- A gold label at the left of a row, for a value beside it.
 local function addLabel(frame, y, text)
@@ -103,7 +117,11 @@ function S.BuildAbout(frame)
     game:SetPoint("TOPLEFT", version, "BOTTOMLEFT", 0, -2)
     game:SetText(format(L.HOME_GAME_BUILD, gameVersion, build, interface))
 
-    local y = -144
+    local thanks = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    thanks:SetPoint("TOPLEFT", game, "BOTTOMLEFT", 0, -2)
+    thanks:SetText(thanksText())
+
+    local y = -154
     local intro = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     intro:SetPoint("TOPLEFT", 16, y)
     intro:SetWidth(560)

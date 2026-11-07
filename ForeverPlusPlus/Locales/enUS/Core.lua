@@ -181,6 +181,8 @@ L.CHANGELOG_COMMANDS = "Commands"
 L.HOME_WELCOME = "Welcome to %s" -- addon title
 L.HOME_TAGLINE = "Small additions and changes to the default UI for WoW Forever."
 L.HOME_VERSION = "Version %s by %s" -- version, author
+L.HOME_THANKS = "Thanks to %s" -- the contributors, each as HOME_CREDIT, joined by commas
+L.HOME_CREDIT = "%s (%s)" -- contributor's name, what they added
 L.HOME_INTRO = "Each module is one small change to Blizzard's interface, made to look like it "
     .. "shipped with the game. Turn them on and off on the Modules page, and click one there to "
     .. "see what it does and its options. Settings are saved for your whole account."

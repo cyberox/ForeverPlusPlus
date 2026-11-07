@@ -87,7 +87,7 @@ module.options = {
         description = L.TOOLTIPS_HIDE_HEALTH_BAR_DESC, section = L.TOOLTIPS_SECTION_BEHAVIOR, added = "0.9.0" },
     {
         key = "questLines", name = L.TOOLTIPS_QUEST_LINES, description = L.TOOLTIPS_QUEST_LINES_DESC,
-        section = L.TOOLTIPS_SECTION_BEHAVIOR, added = "1.3.0",
+        section = L.TOOLTIPS_SECTION_BEHAVIOR, added = "1.2.1",
         choices = {
             { "show", L.TOOLTIPS_QUEST_LINES_SHOW },
             { "units", L.TOOLTIPS_QUEST_LINES_UNITS },

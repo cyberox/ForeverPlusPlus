@@ -131,6 +131,12 @@ Other addons can read what Forever++ knows through `ForeverPlusPlusAPI.v1`: auct
 
 Bugs and ideas go in [GitHub issues](https://github.com/xIGBClutchIx/ForeverPlusPlus/issues).
 
+## Contributors
+
+Thanks to everyone who has added to Forever++ (also on the in-game About page):
+
+- [cyberox](https://github.com/cyberox): Tooltips' Quest Lines option, which hides quest lines on unit and object tooltips.
+
 ## Contributing
 
 Forever runs the modern Retail client and API, not Classic Era, so read [AGENTS.md](AGENTS.md) first: it has the rules for this repository and how Forever differs. [docs/forever-api.md](docs/forever-api.md) records what's known about the client API. There's no build step; the addon is plain Lua loaded from the TOC.
