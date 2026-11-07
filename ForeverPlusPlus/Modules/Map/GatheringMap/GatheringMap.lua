@@ -19,7 +19,6 @@ local module = ns.NewModule("GatheringMap", L.GATHERINGMAP_DESC, {
     enabled = true,
     onlyMine = true, -- only nodes this character has the profession for
     onlyTracking = true, -- herbs only while Find Herbs is on, ore while Find Minerals is
-    sightings = true, -- also remember the nodes Minimap Node Icons sees, not gathered
     -- A node gathered lately: "ring" (an empty ring), "hide", or "show" (as usual), and how long
     -- "lately" is.
     justGathered = "ring",
@@ -78,22 +77,6 @@ end
 module.options = {
     { key = "onlyMine", name = L.GATHERINGMAP_ONLY_MINE, description = L.GATHERINGMAP_ONLY_MINE_DESC },
     { key = "onlyTracking", name = L.GATHERINGMAP_ONLY_TRACKING, description = L.GATHERINGMAP_ONLY_TRACKING_DESC },
-    { key = "sightings", name = L.GATHERINGMAP_SIGHTINGS, description = L.GATHERINGMAP_SIGHTINGS_DESC },
-    {
-        key = "justGathered", name = L.GATHERINGMAP_JUST, description = L.GATHERINGMAP_JUST_DESC,
-        choices = {
-            { "ring", L.GATHERINGMAP_JUST_RING },
-            { "hide", L.GATHERINGMAP_JUST_HIDE },
-            { "show", L.GATHERINGMAP_JUST_SHOW },
-        },
-    },
-    {
-        key = "justMinutes", name = L.GATHERINGMAP_JUST_MINUTES, description = L.GATHERINGMAP_JUST_MINUTES_DESC,
-        min = 1, max = 30, step = 1, format = ns.Text.Minutes,
-        shown = function(db)
-            return db.justGathered ~= "show"
-        end,
-    },
     {
         key = "icon", name = L.GATHERINGMAP_ICON, description = L.GATHERINGMAP_ICON_DESC, section = LOOK,
         choices = {
@@ -102,6 +85,22 @@ module.options = {
         },
     },
     { key = "ring", name = L.GATHERINGMAP_RING, description = L.GATHERINGMAP_RING_DESC, section = LOOK },
+    {
+        key = "justGathered", name = L.GATHERINGMAP_JUST, description = L.GATHERINGMAP_JUST_DESC,
+        section = LOOK,
+        choices = {
+            { "ring", L.GATHERINGMAP_JUST_RING },
+            { "hide", L.GATHERINGMAP_JUST_HIDE },
+            { "show", L.GATHERINGMAP_JUST_SHOW },
+        },
+    },
+    {
+        key = "justMinutes", name = L.GATHERINGMAP_JUST_MINUTES, description = L.GATHERINGMAP_JUST_MINUTES_DESC,
+        section = LOOK, min = 1, max = 30, step = 1, format = ns.Text.Minutes,
+        shown = function(db)
+            return db.justGathered ~= "show"
+        end,
+    },
     {
         key = "ringAlpha", name = L.GATHERINGMAP_RING_ALPHA, description = L.GATHERINGMAP_RING_ALPHA_DESC,
         section = LOOK, min = 10, max = 100, step = 5, format = "%d%%",
@@ -136,6 +135,10 @@ module.options = {
         end,
     },
     {
+        key = "minimapTooltips", name = L.GATHERINGMAP_TOOLTIPS, description = L.GATHERINGMAP_TOOLTIPS_DESC,
+        section = MINIMAP, requires = "minimap",
+    },
+    {
         key = "worldMap", name = L.GATHERINGMAP_WORLDMAP, description = L.GATHERINGMAP_WORLDMAP_DESC,
         section = WORLD, slider = "mapSize",
     },
@@ -150,10 +153,6 @@ module.options = {
     {
         key = "mapContinents", name = L.GATHERINGMAP_CONTINENTS, description = L.GATHERINGMAP_CONTINENTS_DESC,
         section = WORLD, requires = "worldMap",
-    },
-    {
-        key = "minimapTooltips", name = L.GATHERINGMAP_TOOLTIPS, description = L.GATHERINGMAP_TOOLTIPS_DESC,
-        section = TIPS,
     },
     tipOption("tipGathered", L.GATHERINGMAP_TIP_GATHERED_NAME, L.GATHERINGMAP_TIP_GATHERED_DESC),
     tipOption("tipLast", L.GATHERINGMAP_TIP_LAST_NAME, L.GATHERINGMAP_TIP_LAST_DESC),
@@ -292,13 +291,6 @@ local COLORS = {
     fish = { 0.35, 0.65, 1 },
 }
 local CIRCLE = "Interface\\Buttons\\WHITE8X8" -- tinted and drawn round
-internal.COLORS = COLORS
-internal.KIND_NAMES = {
-    herb = L.GATHERINGMAP_KIND_HERB,
-    ore = L.GATHERINGMAP_KIND_ORE,
-    treasure = L.GATHERINGMAP_KIND_TREASURE,
-    fish = L.GATHERINGMAP_KIND_FISH,
-}
 
 local icons = {} -- node name -> its item's icon, once found
 
@@ -574,7 +566,7 @@ end
 
 -- A node Minimap Node Icons saw where it really is, while the player stood still.
 local function onSighting(sighting)
-    if not (module.db.sightings and RECORDED[sighting.kind]) then
+    if not RECORDED[sighting.kind] then
         return
     end
     local list, width, height = mapNodes(sighting.mapID, true)
