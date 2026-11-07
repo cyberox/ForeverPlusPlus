@@ -1,4 +1,5 @@
--- The Debug module's rows on the Modules page, under its Enabled checkbox: a header for each
+-- The Debug module's rows on its own page in the sidebar (S.BuildDebugPage), while it's on, so
+-- they're a click away instead of at the bottom of the Modules list: a header for each
 -- section (What's New, Diagnostics, Tools, Previews, Layout, Logging), with Forever++'s own buttons and then each
 -- module's options marked `debug = true` and buttons from `module.debugActions` that name it; after
 -- them a header for each module with rows in no section. Drawn with the Modules page's own rows
@@ -199,4 +200,10 @@ function S.DebugSearchText()
         end
     end
     return concat(text, "\n")
+end
+
+-- The page, made a tool page of the Debug module so Settings puts it in the sidebar while Debug
+-- is on (Settings.lua's pages, read when Settings is built, after every file has loaded).
+ns.modules.Debug.BuildPage = function(_, frame)
+    S.BuildDebugPage(frame)
 end

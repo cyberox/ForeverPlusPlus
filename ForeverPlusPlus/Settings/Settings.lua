@@ -15,7 +15,7 @@
 --                    description, and highlights those options; a New checkbox beside it lists
 --                    only modules marked NEW. A module or option added since the player last
 --                    looked (`added`), or an option changed since then (`changed`), is marked NEW.
---                    The Debug module shows, under its Enabled checkbox, the rows Debug.lua adds:
+--                    The Debug module's page (in the sidebar while it's on) has the rows Debug.lua adds:
 --                    sections of Forever++'s own buttons and modules' options marked
 --                    `debug = true` and buttons from `module.debugActions`, each placed by its
 --                    `section`: What's New (Reset Seen Version, Reset Welcome), Diagnostics (Copy
@@ -923,13 +923,10 @@ local function addModuleRows(view, module)
             byKey[option.key] = option
         end
     end
-    -- The Debug module's rows (Debug.lua): every module's debug options and buttons.
-    local extra = name == "Debug" and S.AddDebugRows
-    -- A module's own page needs no button here: it's in the sidebar while the module is on.
+    -- A module's own page needs no button here: it's in the sidebar while the module is on (the
+    -- Debug module's rows are on its page, S.BuildDebugPage).
     if #options == 0 and not module.actions then
-        if extra then
-            extra(view, on)
-        else
+        if not pages[name] then
             addLine(view, "GameFontDisable", L.SETTINGS_NO_OPTIONS)
         end
         return
@@ -990,9 +987,6 @@ local function addModuleRows(view, module)
         end
     end
     addActions(loose)
-    if extra then
-        extra(view, on)
-    end
 end
 S.addOptionRow, S.addButtonRow, S.addLine = addOptionRow, addButtonRow, addLine
 
@@ -1062,6 +1056,40 @@ local function buildView(name)
         end
     end
     return view
+end
+
+---Draws the Debug module's own page, in the sidebar while it's on: the rows Debug.lua adds (its
+---tools, and every module's debug options and buttons, under their sections), scrolling, in the
+---same rows as the Modules page's, so they look and work the same.
+---@param frame table the empty page
+function S.BuildDebugPage(frame)
+    local module = ns.modules.Debug
+    Kit.AddPageTitle(frame, module.pageTitle or module.title)
+    local scroll = Kit.NewScroll(frame)
+    scroll:SetPoint("TOPLEFT", 4, -60)
+    scroll:SetPoint("BOTTOMRIGHT", -28, 8)
+    local width = frame:GetWidth()
+    width = (width > 0 and width or 615) - 40
+    local view = newStack(scroll, width, 4)
+    view.updates, view.found, view.follows, view.optionRows = {}, {}, {}, {}
+    view.top, view.bottom = 4, 12
+    scroll:SetScrollChild(view)
+    S.AddDebugRows(view, function()
+        return module.db.enabled and true or false
+    end)
+    local function update()
+        for _, each in ipairs(view.updates) do
+            each()
+        end
+        layoutStack(view)
+    end
+    bind(module.name, update)
+    for other in pairs(view.follows) do
+        if other ~= module.name then
+            bind(other, update)
+        end
+    end
+    frame:HookScript("OnShow", update)
 end
 
 -- The module list ------------------------------------------------------------------------------

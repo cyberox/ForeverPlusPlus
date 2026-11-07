@@ -16,6 +16,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 ### Changed
 
+- **Debug**: its tools and every module's debug options are on a Debug page of their own in the Settings sidebar again, while it's on, instead of at the bottom of the Modules list.
 - **Minimap Node Icons**: with Gathering Map on, a dot found while you move gets the spot remembered for it right away instead of sliding into place, and an icon whose spot was fixed while you stood still stays put as you move off.
 - **Minimap Node Icons**: since the game's update of November 7, the minimap only answers for the spot under your own mouse, so the module can't find the dots. Once it sees that (after you point at a dot), it stops scanning, its name shows red in the Modules list, and a note in its settings says why. It checks again after each /reload. `/fpp nodes probe` tests what the minimap still answers.
 - **Upgrade Arrows**: the arrow is 18 pixels by default instead of 20. A size you picked stays.

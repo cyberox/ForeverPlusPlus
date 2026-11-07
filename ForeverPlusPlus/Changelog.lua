@@ -48,6 +48,9 @@ ns.changelog = {
                     .. "callback when they change.",
             } },
             { L.CHANGELOG_CHANGED, {
+                { L.DEBUG, "Its tools and every module's debug options are on a Debug page of their "
+                    .. "own in the Settings sidebar again, while it's on, instead of at the bottom of "
+                    .. "the Modules list." },
                 { L.MINIMAPNODEICONS_TITLE, "With Gathering Map on, a dot found while you move gets "
                     .. "the spot remembered for it right away instead of sliding into place, and an "
                     .. "icon whose spot was fixed while you stood still stays put as you move off." },
