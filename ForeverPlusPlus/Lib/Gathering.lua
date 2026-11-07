@@ -142,6 +142,8 @@ end
 
 local listeners = {} -- fn -> true
 local pending -- the gather under way: cast but not yet succeeded, or waiting for its loot
+local queued -- a gather still casting when another was cast, in case that one is refused
+local QUEUE_WAIT = 10 -- seconds a gather still casting is kept aside: longer than any gather's cast
 local serial = 0 -- counts gathers, so a timer can tell it's still the one it was set for
 
 local function tell(gather)
@@ -232,6 +234,14 @@ local function onSent(_, unit, target, castGUID, spellID)
         x, y = ahead(mapID, x, y, CAST_YARDS)
     end
     serial = serial + 1
+    -- A gather still casting is kept aside, not dropped: a second press while it casts sends a
+    -- cast the game refuses at once ("Another action is in progress"), and the first one still
+    -- finishes (in game, 2026-11-08).
+    if pending and not pending.succeeded and GetTime() - pending.sent <= QUEUE_WAIT then
+        queued = pending
+    else
+        queued = nil
+    end
     pending = {
         serial = serial,
         name = name,
@@ -250,30 +260,43 @@ local function onSent(_, unit, target, castGUID, spellID)
     }
 end
 
--- Whether an event's cast is the pending gather's: the same cast ID, or the same spell when the
--- client didn't give a readable one.
-local function isPending(castGUID, spellID)
-    if not (pending and not pending.succeeded) then
+-- Whether an event's cast is `gather`'s: the same cast ID, or the same spell when the client
+-- didn't give a readable one.
+local function isCast(gather, castGUID, spellID)
+    if not (gather and not gather.succeeded) then
         return false
     end
-    if pending.castGUID and IsText(castGUID) then
-        return castGUID == pending.castGUID
+    if gather.castGUID and IsText(castGUID) then
+        return castGUID == gather.castGUID
     end
-    return IsNumber(spellID) and spellID == pending.spellID
+    return IsNumber(spellID) and spellID == gather.spellID
+end
+
+-- The gather an event's cast is: the pending one, or the one kept aside while a second press was
+-- refused; nil for neither.
+local function castOf(castGUID, spellID)
+    if isCast(pending, castGUID, spellID) then
+        return pending
+    elseif isCast(queued, castGUID, spellID) then
+        return queued
+    end
 end
 
 local function onSucceeded(_, unit, castGUID, spellID)
     if unit ~= "player" then
         return
     end
-    local mine = isPending(castGUID, spellID)
-    if trace and pending then
-        trace("success", IsNumber(spellID) and spellID or "?", mine and "yes" or "no")
+    local gather = castOf(castGUID, spellID)
+    if trace and (pending or queued) then
+        trace("success", IsNumber(spellID) and spellID or "?", gather and "yes" or "no")
     end
-    if not mine then
+    if not gather then
         return
     end
-    local gather = pending
+    -- The one kept aside finished after all: it's the gather again.
+    if gather == queued then
+        pending, queued = gather, nil
+    end
     gather.succeeded = GetTime()
     -- Its loot came first: told now.
     if gather.looted then
@@ -299,12 +322,19 @@ end
 local failed, failedAt
 
 local function onFailed(_, unit, castGUID, spellID)
-    if unit == "player" and isPending(castGUID, spellID) then
-        failed, failedAt = pending, GetTime()
-        pending = nil
-        if trace then
-            trace("failed", IsNumber(spellID) and spellID or "?")
-        end
+    local gather = unit == "player" and castOf(castGUID, spellID)
+    if not gather then
+        return
+    end
+    failed, failedAt = gather, GetTime()
+    if gather == pending then
+        -- A second press refused while the first still casts: the first is the gather again.
+        pending, queued = queued, nil
+    else
+        queued = nil
+    end
+    if trace then
+        trace("failed", IsNumber(spellID) and spellID or "?")
     end
 end
 
@@ -496,7 +526,7 @@ local function listen(on)
         ns.Off("UI_ERROR_MESSAGE", onError)
         ns.Off("LOOT_OPENED", onLoot)
         ns.Off("LOOT_READY", onLoot)
-        pending, hovered, failed = nil, nil, nil
+        pending, queued, hovered, failed = nil, nil, nil, nil
     end
     -- A tooltip hook can't come off, so it's added once and does nothing while no one listens.
     if on and not tooltipHooked and TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall
