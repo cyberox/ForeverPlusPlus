@@ -18,7 +18,8 @@ ns.changelog = {
                     .. "minimap as the icon of what they give. Gathering one again moves its icon "
                     .. "closer to where it really is. It also remembers the herbs and veins you point "
                     .. "at on the minimap, and with Minimap Node Icons on those it finds there, "
-                    .. "before you gather them. Only My Professions "
+                    .. "before you gather them. A node you just gathered shows as a faint circle for "
+                    .. "a while. Only My Professions "
                     .. "(on by default) shows each character only what it can gather, and Only While "
                     .. "Tracking (on by default) shows herbs only while Find Herbs is on and ore only "
                     .. "while Find Minerals is. On by default." },

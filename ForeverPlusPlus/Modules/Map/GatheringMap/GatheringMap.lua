@@ -7,7 +7,7 @@
 -- the world map and Minimap.lua on the minimap. They share module.internal.
 local _, ns = ...
 
-local pairs, type, time, format = pairs, type, time, string.format
+local pairs, type, time, format, tostring = pairs, type, time, string.format, tostring
 local C_Minimap, C_Map = C_Minimap, C_Map
 
 local L = ns.L
@@ -18,6 +18,8 @@ local module = ns.NewModule("GatheringMap", L.GATHERINGMAP_DESC, {
     onlyMine = true, -- only nodes this character has the profession for
     onlyTracking = true, -- herbs only while Find Herbs is on, ore while Find Minerals is
     sightings = true, -- also remember the nodes Minimap Node Icons sees, not gathered
+    justGathered = "fade", -- a node gathered lately: "fade" (a faint circle), "hide", or "show"
+    justMinutes = 10, -- how long "lately" is
     icon = "item", -- "item" (the node's item's icon, a circle without one) or "circle"
     shape = "round", -- an item icon "round" or "square"
     ring = true, -- the minimap's gold ring around a round icon
@@ -46,6 +48,21 @@ module.options = {
     { key = "onlyMine", name = L.GATHERINGMAP_ONLY_MINE, description = L.GATHERINGMAP_ONLY_MINE_DESC },
     { key = "onlyTracking", name = L.GATHERINGMAP_ONLY_TRACKING, description = L.GATHERINGMAP_ONLY_TRACKING_DESC },
     { key = "sightings", name = L.GATHERINGMAP_SIGHTINGS, description = L.GATHERINGMAP_SIGHTINGS_DESC },
+    {
+        key = "justGathered", name = L.GATHERINGMAP_JUST, description = L.GATHERINGMAP_JUST_DESC,
+        choices = {
+            { "fade", L.GATHERINGMAP_JUST_FADE },
+            { "hide", L.GATHERINGMAP_JUST_HIDE },
+            { "show", L.GATHERINGMAP_JUST_SHOW },
+        },
+    },
+    {
+        key = "justMinutes", name = L.GATHERINGMAP_JUST_MINUTES, description = L.GATHERINGMAP_JUST_MINUTES_DESC,
+        min = 1, max = 30, step = 1, format = ns.Text.Minutes,
+        shown = function(db)
+            return db.justGathered ~= "show"
+        end,
+    },
     {
         key = "icon", name = L.GATHERINGMAP_ICON, description = L.GATHERINGMAP_ICON_DESC, section = LOOK,
         choices = {
@@ -218,15 +235,26 @@ local function itemIcon(node)
     end
 end
 
+---Whether a node was gathered within the last Just Gathered minutes, so it's likely still gone.
+---@param node table
+---@return boolean
+function internal.JustGathered(node)
+    return node.time ~= nil and time() - node.time < module.db.justMinutes * 60
+end
+
+-- How much of its opacity a node just gathered keeps, drawn as a faint circle.
+internal.FADED = 0.35
+
 ---Fills `look` with how a node is drawn, as Lib/MapPins takes it: `texture`, `trim`, `round`,
----`color`, and `ring`.
+---`color`, and `ring`, and `faded` for a node just gathered, drawn as a faint circle.
 ---@param node table
 ---@param look table
 ---@return table look
 function internal.Look(node, look)
     local db = module.db
-    local icon = db.icon == "item" and itemIcon(node)
-    look.atlas = nil
+    local faded = db.justGathered == "fade" and internal.JustGathered(node)
+    local icon = db.icon == "item" and not faded and itemIcon(node)
+    look.atlas, look.faded = nil, faded
     if icon then
         look.texture, look.trim, look.color = icon, true, nil
         look.round = db.shape == "round"
@@ -255,6 +283,9 @@ function internal.Shown(node)
         end
     end
     if db.onlyTracking and TRACKED[kind] and not tracking[kind] then
+        return false
+    end
+    if db.justGathered == "hide" and internal.JustGathered(node) then
         return false
     end
     return true
@@ -407,9 +438,30 @@ local function onGather(gather)
     internal.Changed(mapID)
 end
 
+-- Each step of hearing a gather, while Log Gathers is on, for finding out why one wasn't.
+local TRACE = {
+    cast = L.GATHERINGMAP_TRACE_CAST,
+    success = L.GATHERINGMAP_TRACE_SUCCESS,
+    failed = L.GATHERINGMAP_TRACE_FAILED,
+    loot = L.GATHERINGMAP_TRACE_LOOT,
+}
+
+-- Read at each step rather than when the option changes: the Debug module turning off puts the
+-- option back to its default without telling this one.
+local function traceStep(step, a, b, c)
+    if module.db.log then
+        ns.Print(format(TRACE[step], tostring(a), tostring(b), tostring(c)))
+    end
+end
+
+local function setTrace()
+    Gathering.SetTrace(module.enabled and traceStep or nil)
+end
+
 -- Turning on and off ------------------------------------------------------------------------------
 
 function module:OnEnable()
+    setTrace()
     readTracking()
     Gathering.Listen(onGather, true)
     Gathering.ListenSightings(onSighting, true)
@@ -424,6 +476,7 @@ function module:OnEnable()
 end
 
 function module:OnDisable()
+    Gathering.SetTrace(nil)
     Gathering.Listen(onGather, false)
     Gathering.ListenSightings(onSighting, false)
     Gathering.SetRemembered(nil)

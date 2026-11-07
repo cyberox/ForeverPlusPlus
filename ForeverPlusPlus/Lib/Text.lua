@@ -97,6 +97,13 @@ function Text.Seconds(seconds)
     return seconds == 1 and L.TEXT_ONE_SECOND or format(L.TEXT_SECONDS, seconds)
 end
 
+---A number of minutes for a slider label: "1 Minute", "10 Minutes".
+---@param minutes number
+---@return string
+function Text.Minutes(minutes)
+    return minutes == 1 and L.TEXT_ONE_MINUTE or format(L.TEXT_MINUTES, minutes)
+end
+
 ---A number of hours for a slider label: "1 Hour", "12 Hours".
 ---@param hours number
 ---@return string

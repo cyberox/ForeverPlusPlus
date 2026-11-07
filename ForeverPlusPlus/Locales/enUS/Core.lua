@@ -13,6 +13,8 @@ end
 -- Lib/Text.lua: lengths of time, for slider labels and price lines
 L.TEXT_ONE_SECOND = "1 Second"
 L.TEXT_SECONDS = "%d Seconds" -- number of seconds, more than one
+L.TEXT_ONE_MINUTE = "1 Minute"
+L.TEXT_MINUTES = "%d Minutes" -- minutes
 L.TEXT_ONE_HOUR = "1 Hour"
 L.TEXT_HOURS = "%d Hours" -- hours, more than one
 L.TEXT_AGO_NOW = "just now"

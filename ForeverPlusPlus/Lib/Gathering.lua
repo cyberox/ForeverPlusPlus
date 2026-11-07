@@ -96,6 +96,17 @@ local function targetName(target)
     return nil, "none"
 end
 
+local trace -- fn(step, a, b, c) while a module logs what's heard, for finding out why a gather wasn't
+
+---Has `fn(step, a, b, c)` told each step of hearing a gather, while a module logs them: "cast"
+---(any spell the player casts: its name or ID, the target, and whether it gathers), "success"
+---(spell ID, and whether it was the gather's cast), "failed", and "loot" (the source GUID and
+---how many items). Nil to stop.
+---@param fn? fun(step: string, a: any, b: any, c: any)
+function Gathering.SetTrace(fn)
+    trace = fn
+end
+
 local listeners = {} -- fn -> true
 local pending -- the gather under way: cast but not yet succeeded, or waiting for its loot
 local serial = 0 -- counts gathers, so a timer can tell it's still the one it was set for
@@ -120,6 +131,10 @@ local function onSent(_, unit, target, castGUID, spellID)
         return
     end
     local spell = gatheringSpell(spellID)
+    if trace then
+        trace("cast", IsNumber(spellID) and ((spellName(spellID) or "?") .. " " .. spellID) or "?",
+            IsText(target) and target or "-", spell and spell[2] or "-")
+    end
     if not spell then
         return
     end
@@ -163,7 +178,14 @@ local function isPending(castGUID, spellID)
 end
 
 local function onSucceeded(_, unit, castGUID, spellID)
-    if unit ~= "player" or not isPending(castGUID, spellID) then
+    if unit ~= "player" then
+        return
+    end
+    local mine = isPending(castGUID, spellID)
+    if trace and pending then
+        trace("success", IsNumber(spellID) and spellID or "?", mine and "yes" or "no")
+    end
+    if not mine then
         return
     end
     local gather = pending
@@ -180,6 +202,9 @@ end
 local function onFailed(_, unit, castGUID, spellID)
     if unit == "player" and isPending(castGUID, spellID) then
         pending = nil
+        if trace then
+            trace("failed", IsNumber(spellID) and spellID or "?")
+        end
     end
 end
 
@@ -211,6 +236,11 @@ end
 
 local function onLootOpened()
     local gather = pending
+    if trace then
+        local guid = GetLootSourceInfo and GetLootSourceInfo(1)
+        trace("loot", IsText(guid) and guid or "?", GetNumLootItems(),
+            gather and (gather.succeeded and "after success" or "before success") or "no gather")
+    end
     if not (gather and gather.succeeded and GetTime() - gather.succeeded <= WAIT) then
         return
     end

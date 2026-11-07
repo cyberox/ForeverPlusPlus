@@ -375,6 +375,14 @@ L.GATHERINGMAP_FORGET_SEEN_DESC = "Forget every node only seen on the minimap an
     .. "Nodes you've gathered stay."
 L.GATHERINGMAP_FORGET_SEEN_CONFIRM = "Forget every node you've seen but never gathered?"
 L.GATHERINGMAP_FORGET_SEEN_DONE = "Forgot %d nodes seen but never gathered." -- count
+L.GATHERINGMAP_JUST = "Just Gathered"
+L.GATHERINGMAP_JUST_DESC = "How a node you gathered lately shows while it's likely still gone: as "
+    .. "a faint circle, not at all, or as usual."
+L.GATHERINGMAP_JUST_FADE = "Faint Circle"
+L.GATHERINGMAP_JUST_HIDE = "Hidden"
+L.GATHERINGMAP_JUST_SHOW = "As Usual"
+L.GATHERINGMAP_JUST_MINUTES = "For"
+L.GATHERINGMAP_JUST_MINUTES_DESC = "How long after you gather a node it shows that way."
 -- Smaller headers over its options in Settings
 L.GATHERINGMAP_SECTION_LOOK = "Look"
 L.GATHERINGMAP_SECTION_MINIMAP = "Minimap"
@@ -407,6 +415,11 @@ L.GATHERINGMAP_LOG_DESC = "Print in chat each gather Gathering Map hears of: the
     .. "it, the world object's ID, where you stood, and whether it was saved."
 -- node, kind, what named it (target, softinteract, tooltip, none), object ID, where, result
 L.GATHERINGMAP_LOG_LINE = "Gathering Map: %s (%s, from %s, object %s) at %s: %s"
+-- Each step of hearing a gather, logged too
+L.GATHERINGMAP_TRACE_CAST = "Gathering Map: cast %s at %s (gathers: %s)" -- spell and ID, target, kind or -
+L.GATHERINGMAP_TRACE_SUCCESS = "Gathering Map: cast done, spell %s; the gather's: %s" -- spell ID, yes/no
+L.GATHERINGMAP_TRACE_FAILED = "Gathering Map: the gather's cast failed, spell %s" -- spell ID
+L.GATHERINGMAP_TRACE_LOOT = "Gathering Map: loot from %s, %s items, %s" -- source GUID, count, when
 L.GATHERINGMAP_LOG_NEW = "a new node"
 L.GATHERINGMAP_LOG_AGAIN = "gathered %d times" -- count
 L.GATHERINGMAP_LOG_KIND = "not saved: not a kind it remembers"

@@ -86,7 +86,7 @@ end
 -- Sets a pin's look for `node`: the same as on the world map, at the minimap's size.
 local function style(pin, node, size, alpha)
     internal.Look(node, look)
-    look.alpha = alpha
+    look.alpha = alpha * (look.faded and internal.FADED or 1)
     ns.MapPins.SetArt(pin, look)
     pin:SetSize(size, size)
     if pin.ring then
@@ -148,6 +148,8 @@ local function onUpdate(_, elapsed)
     if due or redraw or v.mapID ~= nearMap then
         sinceRefresh = 0
         findNear(v)
+        -- A node gathered lately fades and, its time up, comes back: look again each second.
+        restyle = true
     end
     draw(v, restyle)
     redraw, restyle = false, false
