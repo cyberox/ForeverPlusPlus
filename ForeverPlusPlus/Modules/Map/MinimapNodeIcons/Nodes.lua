@@ -416,17 +416,14 @@ local function checkHover(v)
     stopProbing()
     for _, entry in ipairs(found) do
         if entry.name == check.name then
-            internal.broken = false
             return
         end
     end
     if not internal.blocked then
-        internal.broken = true
         internal.nodes, internal.pass = {}, nil
-        -- Its name turns red on the Modules page (module:Problem), and its notice says why.
-        if ns.RefreshSetting then
-            ns.RefreshSetting(module.name)
-        end
+        -- Its name turns red on the Modules page (module:Problem), its notice says why, and it
+        -- starts stopped on this build from now on.
+        internal.SetBroken(true)
     end
 end
 

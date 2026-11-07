@@ -61,6 +61,10 @@ local module = ns.NewModule("MinimapNodeIcons", L.MINIMAPNODEICONS_DESC, {
     learned = {},
     -- { space = a key of SPACES }, once a pass has found a node with it. Data, not a setting.
     calibration = {},
+    -- Client build -> true once a check there found the game doesn't answer scans (build 70862,
+    -- 2026-11-07), so on that build the module starts stopped instead of scanning until the
+    -- player points at a dot; a new build is checked again. Data, not a setting.
+    brokenBuilds = {},
 })
 module.title = L.MINIMAPNODEICONS_TITLE
 module.category = "map"
@@ -160,7 +164,29 @@ internal.nodes = {}
 internal.seen = {} -- names the minimap showed that aren't nodes we know, for learning
 internal.tracking = false -- Find Herbs or Find Minerals is on
 internal.blocked = false -- the client refused a probe; stop until /reload
-internal.broken = false -- a probe couldn't read a dot the player's mouse named; stop until /reload
+-- A probe couldn't read a dot the player's mouse named: stopped, on this client build for good
+-- (brokenBuilds), until a new build is checked again.
+internal.broken = false
+
+---This client's build number, as GetBuildInfo gives it ("70862"), or nil.
+---@return string?
+function internal.Build()
+    local build = GetBuildInfo and select(2, GetBuildInfo())
+    return ns.IsText(build) and build or nil
+end
+
+---Marks this build as one the game doesn't answer scans on, or not.
+---@param broken boolean
+function internal.SetBroken(broken)
+    internal.broken = broken
+    local build = internal.Build()
+    if build then
+        module.db.brokenBuilds[build] = broken or nil
+    end
+    if ns.RefreshSetting then
+        ns.RefreshSetting(module.name)
+    end
+end
 internal.findAll = false -- find every dot at the next tick, after a zoom or a reset
 internal.pass = nil -- the finding pass under way (Nodes.lua)
 local nodesMap
@@ -413,6 +439,9 @@ local function live()
 end
 
 function module:OnEnable()
+    -- Found broken on this build before: stopped from the start, red on the Modules page.
+    local build = internal.Build()
+    internal.broken = build ~= nil and self.db.brokenBuilds[build] == true
     ns.Gathering.SetLive(live)
     if not frame then
         frame = CreateFrame("Frame", nil, Minimap)

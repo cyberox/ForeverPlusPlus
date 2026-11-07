@@ -298,8 +298,9 @@ L.MINIMAPNODEICONS_NOTICE_DESC = "The game lists its tracking dots nowhere an ad
 L.MINIMAPNODEICONS_BROKEN = "The game stopped answering this module's scans, so it can't find the dots."
 L.MINIMAPNODEICONS_BROKEN_DESC = "Since the game's update of November 7, 2026, the minimap only says "
     .. "what's under your own mouse, so scanning it finds nothing and the module has stopped. It "
-    .. "checks again after each /reload, so it starts working again by itself if a later update "
-    .. "brings this back. Gathering Map still remembers what you gather and the dots you point at."
+    .. "stays stopped from the start on this version of the game, and checks again after the next "
+    .. "game update, so it starts working again by itself if one brings this back. Gathering Map "
+    .. "still remembers what you gather and the dots you point at."
 -- Its rows on the Profiler page, after "Minimap Node Icons: ".
 L.MINIMAPNODEICONS_PART_VIEW = "reading your spot"
 L.MINIMAPNODEICONS_PART_FOLLOW = "following dots"
