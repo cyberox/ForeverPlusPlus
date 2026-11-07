@@ -29,10 +29,13 @@ local module = ns.NewModule("GatheringMap", L.GATHERINGMAP_DESC, {
     justMinutes = 5, -- nodes were back within 10 (in game, 2026-11-07); GatherLite has no timer
     icon = "item", -- "item" (the node's item's icon, a circle without one) or "circle"
     ring = true, -- the minimap's gold ring around each icon
-    ringAlpha = 50, -- percent: every empty ring, a node near you or just gathered
+    ringAlpha = 50, -- percent: the minimap's empty rings, a node near you or just gathered
     worldMap = true,
     mapSize = 80, -- percent of MAP_PIXELS on the world map
     mapAlpha = 85, -- percent
+    -- percent: the world map's empty rings (a node just gathered), on their own and not times
+    -- mapAlpha, which made them too faint to see (Cameron, 2026-11-08)
+    mapRingAlpha = 100,
     mapContinents = false, -- on continent maps too
     minimap = true,
     minimapSize = 12, -- pixels
@@ -151,10 +154,6 @@ module.options = {
         end,
     },
     {
-        key = "ringAlpha", name = L.GATHERINGMAP_RING_ALPHA, description = L.GATHERINGMAP_RING_ALPHA_DESC,
-        section = LOOK, min = 10, max = 100, step = 5, format = "%d%%",
-    },
-    {
         key = "minimap", name = L.GATHERINGMAP_MINIMAP, description = L.GATHERINGMAP_MINIMAP_DESC,
         section = MINIMAP, slider = "minimapSize",
     },
@@ -164,6 +163,10 @@ module.options = {
     },
     {
         key = "minimapAlpha", name = L.GATHERINGMAP_ALPHA, description = L.GATHERINGMAP_ALPHA_DESC,
+        section = MINIMAP, requires = "minimap", min = 10, max = 100, step = 5, format = "%d%%",
+    },
+    {
+        key = "ringAlpha", name = L.GATHERINGMAP_RING_ALPHA, description = L.GATHERINGMAP_RING_ALPHA_DESC,
         section = MINIMAP, requires = "minimap", min = 10, max = 100, step = 5, format = "%d%%",
     },
     {
@@ -202,6 +205,13 @@ module.options = {
     {
         key = "mapAlpha", name = L.GATHERINGMAP_ALPHA, description = L.GATHERINGMAP_ALPHA_DESC,
         section = WORLD, requires = "worldMap", min = 10, max = 100, step = 5, format = "%d%%",
+    },
+    {
+        key = "mapRingAlpha", name = L.GATHERINGMAP_RING_ALPHA, description = L.GATHERINGMAP_MAP_RING_ALPHA_DESC,
+        section = WORLD, requires = "worldMap", min = 10, max = 100, step = 5, format = "%d%%",
+        shown = function(db)
+            return db.justGathered == "ring"
+        end,
     },
     {
         key = "mapContinents", name = L.GATHERINGMAP_CONTINENTS, description = L.GATHERINGMAP_CONTINENTS_DESC,
@@ -379,19 +389,18 @@ function internal.JustGathered(node)
     return node.time ~= nil and time() - node.time < module.db.justMinutes * 60
 end
 
----Makes `look` an empty ring at Ring Opacity: a node just gathered, or near the player on the
----minimap, where the game's own dot shows inside it when the node is up.
+---Makes `look` an empty ring: a node just gathered, or near the player on the minimap, where the
+---game's own dot shows inside it when the node is up. Each map draws it at its own Empty Ring
+---Opacity, not on top of its icons' Opacity, so a ring stays as solid as that setting says.
 ---@param look table
 ---@return table look
 function internal.Hollow(look)
     look.round, look.ring, look.hollow = true, true, true
-    look.fade = module.db.ringAlpha / 100
     return look
 end
 
 ---Fills `look` with how a node is drawn, as Lib/MapPins takes it: `texture`, `trim`, `round`,
----`color`, `ring`, and `hollow`; and for the maps, `fade`, what its opacity is multiplied by. A
----node is round: its item's icon, or a circle in its kind's color, with the gold ring if that's
+---`color`, `ring`, and `hollow`. A node is round: its item's icon, or a circle in its kind's color, with the gold ring if that's
 ---on; a node just gathered (Just Gathered: Empty Ring) is the ring alone.
 ---@param node table
 ---@param look table
@@ -408,7 +417,7 @@ function internal.Look(node, look)
     else
         look.texture, look.trim, look.color = CIRCLE, false, COLORS[node.kind] or COLORS.herb
     end
-    look.ring, look.hollow, look.fade = db.ring, false, 1
+    look.ring, look.hollow = db.ring, false
     if db.justGathered == "ring" and internal.JustGathered(node) then
         internal.Hollow(look)
     end

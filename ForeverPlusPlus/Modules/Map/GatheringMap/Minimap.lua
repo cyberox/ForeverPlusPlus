@@ -120,7 +120,7 @@ local function style(pin, node, size, alpha, close)
     if close then
         internal.Hollow(look)
     end
-    look.alpha = alpha * look.fade
+    look.alpha = look.hollow and module.db.ringAlpha / 100 or alpha
     ns.MapPins.SetArt(pin, look)
     pin:SetSize(size, size)
     if pin.ring then
