@@ -760,20 +760,7 @@ local DOT_REACH = 24 -- minimap units from the mouse that a dot it names can be
 local addedAt = setmetatable({}, { __mode = "k" }) -- tooltip -> its line count once ours were added
 
 -- The names the game gives for its dots under the mouse, one a row, or nil where there are none.
-local function namesAtCursor()
-    local data = C_TooltipInfo and C_TooltipInfo.GetMinimapMouseover and C_TooltipInfo.GetMinimapMouseover()
-    local lines = data and data.lines
-    local first = type(lines) == "table" and lines[1]
-    local text = type(first) == "table" and first.leftText
-    if not ns.IsText(text, true) then
-        return nil
-    end
-    local names = {}
-    for row in text:gmatch("[^\n]+") do
-        names[#names + 1] = strtrim(ns.Text.Plain(row))
-    end
-    return names
-end
+local namesAtCursor = ns.MinimapPins.MouseoverNames
 
 -- The remembered node under the mouse on the minimap, how far it is from the player, and its map:
 -- with `names` (the game's dots there), the one of those names as far as a dot reaches; without,

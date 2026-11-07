@@ -177,6 +177,24 @@ local function hoverNames(text)
     return names
 end
 
+-- The first line of the game's minimap tooltip for what's under the mouse (its dots' names), or
+-- nil.
+local function mouseoverText()
+    local data = C_TooltipInfo and C_TooltipInfo.GetMinimapMouseover and C_TooltipInfo.GetMinimapMouseover()
+    local lines = data and data.lines
+    local first = type(lines) == "table" and lines[1]
+    local text = type(first) == "table" and first.leftText
+    return ns.IsText(text, true) and text or nil
+end
+
+---The names the game gives for its dots under the mouse on the minimap, one a row (overlapping
+---dots each add one), as plain text, or nil where there are none.
+---@return string[]?
+function MinimapPins.MouseoverNames()
+    local text = mouseoverText()
+    return text and hoverNames(text) or nil
+end
+
 local function flushHover()
     local text = hoverText
     hoverText = nil
@@ -191,11 +209,8 @@ local function flushHover()
 end
 
 local function readHover()
-    local data = C_TooltipInfo and C_TooltipInfo.GetMinimapMouseover and C_TooltipInfo.GetMinimapMouseover()
-    local lines = data and data.lines
-    local first = type(lines) == "table" and lines[1]
-    local text = type(first) == "table" and first.leftText
-    if not ns.IsText(text, true) then
+    local text = mouseoverText()
+    if not text then
         flushHover()
         return
     end

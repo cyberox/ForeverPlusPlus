@@ -188,12 +188,7 @@ end
 -- Where the player stands, on the zone's map, so a node in a cave shows on the zone's map with the
 -- rest: mapID, x, y, any of them nil where it can't be read.
 local function playerSpot()
-    local mapID, x, y = ns.WorldMap.PlayerPosition()
-    local zone = mapID and ns.WorldMap.Zone(mapID)
-    if zone and zone ~= mapID then
-        mapID, x, y = ns.WorldMap.PlayerPosition(zone)
-    end
-    return mapID, x, y
+    return ns.WorldMap.PlayerZonePosition()
 end
 
 -- The spot `yards` in front of the player on `mapID`, or x, y as they are when the facing or the

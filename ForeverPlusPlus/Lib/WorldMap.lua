@@ -240,6 +240,20 @@ function WorldMap.PlayerPosition(mapID)
     return mapID, x, y
 end
 
+---Where the player stands on their zone's map, so a spot in a district or below ground goes on
+---the zone's map with the rest: the zone map ID, x, y, or nil where it can't be read.
+---@return number? mapID
+---@return number? x
+---@return number? y
+function WorldMap.PlayerZonePosition()
+    local mapID, x, y = WorldMap.PlayerPosition()
+    local zone = mapID and WorldMap.Zone(mapID)
+    if zone and zone ~= mapID then
+        return WorldMap.PlayerPosition(zone)
+    end
+    return mapID, x, y
+end
+
 local sizes = {} -- mapID -> { width, height } in yards, or false: a map's size never changes
 
 ---A map's size in yards (C_Map.GetMapWorldSize), or nil when the game can't say, as for a map
