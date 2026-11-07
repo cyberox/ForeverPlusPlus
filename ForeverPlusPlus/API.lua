@@ -115,11 +115,6 @@ export("IsModuleEnabled", function(name)
     return module.enabled and true or false
 end)
 
--- An option's kind, as Settings draws it.
-local function optionKind(option)
-    return ns.OptionKind(option)
-end
-
 -- The module called `name`, when this client gets it.
 local function findModule(name)
     local module = type(name) == "string" and ns.modules[name]
@@ -159,7 +154,7 @@ export("GetModuleInfo", function(name)
             options[#options + 1] = {
                 key = option.key,
                 name = option.name,
-                kind = optionKind(option),
+                kind = ns.OptionKind(option),
                 value = module.db and module.db[option.key],
                 default = module.defaults[option.key],
                 choices = choices,
