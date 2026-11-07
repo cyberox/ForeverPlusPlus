@@ -99,7 +99,7 @@ module.options = {
         description = L.QUESTTRACKER_OPACITY_DESC,
         section = BOX,
         requires = "background",
-        min = 10, max = 100, step = 10, format = "%d%%",
+        min = 10, max = 100, step = 5, format = "%d%%", -- opacity steps by 5, as the Whisper Window's
     },
     {
         key = "border",
@@ -130,7 +130,7 @@ module.options = {
         section = COMBAT,
         requires = "fade",
         added = "0.9.0",
-        min = 0, max = 80, step = 10, format = "%d%%",
+        min = 0, max = 80, step = 5, format = "%d%%",
     },
 }
 
