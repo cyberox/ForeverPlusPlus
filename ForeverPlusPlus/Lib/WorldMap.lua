@@ -248,6 +248,9 @@ local sizes = {} -- mapID -> { width, height } in yards, or false: a map's size 
 ---@return number? width
 ---@return number? height
 function WorldMap.Size(mapID)
+    if mapID == nil then
+        return nil
+    end
     local size = sizes[mapID]
     if size == nil then
         size = false

@@ -114,6 +114,13 @@ local function collect()
                 byName[node.name] = entry
             end
             if entry then
+                -- A pool's icon is the fish it gave most, across all its spots.
+                if entry.kind == "fish" and node.loot then
+                    entry.loot = entry.loot or {}
+                    for item, given in pairs(node.loot) do
+                        entry.loot[item] = (entry.loot[item] or 0) + given
+                    end
+                end
                 entry.spots = entry.spots + 1
                 entry.gathers = entry.gathers + (node.count or 0)
                 if node.time and (not entry.last or node.time > entry.last) then
@@ -220,7 +227,7 @@ end
 
 -- The node's item's icon, or a circle in its kind's color, as the maps draw it.
 local function setIcon(texture, entry)
-    local icon = internal.ItemIcon({ name = entry.name, kind = entry.kind })
+    local icon = internal.ItemIcon({ name = entry.name, kind = entry.kind, loot = entry.loot })
     if icon then
         texture:SetTexture(icon)
         texture:SetTexCoord(0.08, 0.92, 0.08, 0.92)

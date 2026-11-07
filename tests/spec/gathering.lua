@@ -113,6 +113,13 @@ eq(onlyOre, 1, "share: only the nodes kept")
 eq(Gathering.Decode("hello"), nil, "share: not a share string")
 eq(Gathering.Decode("GM1/oCopper Vein/1429:5,1,1,1,1"), nil, "share: a name past the list")
 eq(select(2, Gathering.Decode("GM1//")), 0, "share: nothing shared")
+-- A node off its map is left out; a time ahead of now is taken as now, a huge count capped.
+local odd = Gathering.Decode("GM1/oCopper Vein/1429:0,7pt,1,1,1;0,1,1,zzzzzz,zzzzzz", 1000)
+eq(#odd[1429], 1, "share: a node off its map is left out")
+eq(odd[1429][1].time .. ":" .. odd[1429][1].count, "1000:1000000", "share: future time and huge count")
+local edge = { [1] = { { name = "Copper Vein", kind = "ore", x = 1.02, y = -0.01, count = 1 } } }
+local edged = Gathering.Decode((Gathering.Encode(edge)))
+eq(edged[1][1].x .. ":" .. edged[1][1].y, "1:0", "share: a spot past the edge is kept on it")
 -- Merging: the same vein close by takes the larger count; one far off is added.
 local mine = { { name = "Copper Vein", kind = "ore", x = 0.452, y = 0.671, count = 1, time = 10 } }
 eq(Gathering.Merge(mine, vein, W, H), false, "merge: the same node close by")

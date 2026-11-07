@@ -1,5 +1,7 @@
--- Gathering: the herbs, veins, and chests the player takes, as they take them: what it was, where
--- they stood, and what it gave. Nothing is listened to until a module asks (Gathering.Listen).
+-- Gathering: the herbs, veins, chests, and fishing pools the player takes, as they take them: what
+-- it was, where they stood (or, for a pool, where the line landed), and what it gave; and a herb or
+-- vein their skill is too low for, from the game's error. Nothing is listened to until a module
+-- asks (Gathering.Listen).
 --
 -- A gather starts with UNIT_SPELLCAST_SENT for a gathering spell, which names its target, and
 -- counts only once UNIT_SPELLCAST_SUCCEEDED comes with the same cast ID, so a gather that fails or
@@ -69,9 +71,14 @@ local HOVER_WAIT = 5 -- seconds an object tooltip still names what the player th
 -- the player (Classic's cast lands about 15 yards off; unverified on Forever).
 local FISH_WAIT = 25
 local CAST_YARDS = 15
--- The bobber is a world object too: loot from it is open water, not a pool (Classic's Fishing
--- Bobber, object 35591).
-local BOBBER = 35591
+-- The bobber is a world object too: loot from it is open water, not a pool. Seed: Classic's
+-- Fishing Bobber, object 35591; unverified on Forever.
+local BOBBERS = ns.GameData.New("fishingBobbers", { [35591] = true })
+-- The bobber's name as this client writes it, once a catch from it showed which object was
+-- hovered to click it, and when the last catch came: what the player hovered before then was the
+-- bobber, not the pool the next cast aims at.
+local bobberName
+local lastCatch = 0
 
 -- The object the player last hovered in the world, for a cast that doesn't name its target.
 local hovered, hoveredAt
@@ -82,9 +89,10 @@ local function onObjectTooltip(_, data)
     local text = type(first) == "table" and first.leftText
     if IsText(text, true) then
         hovered, hoveredAt = text, GetTime()
-        -- A locked chest says the Lockpicking it takes under its name.
+        -- A locked chest says the Lockpicking it takes under its name. Not in instances, where
+        -- locked doors and boxes say it too, and nothing there is remembered.
         local skill, rank = ns.GameData.TooltipRequires(data)
-        if skill and Professions.IsLockpicking(skill) then
+        if skill and Professions.IsLockpicking(skill) and not (IsInInstance and IsInInstance()) then
             Professions.LearnChest(ns.Text.Plain(text), rank)
         end
     end
@@ -98,7 +106,8 @@ end
 
 -- What the cast is aimed at: its target, else the soft-target object, else the object hovered
 -- just before. And which of those it was, for a debug log. The last two can name something else
--- (a mailbox hovered on the way), so they count only for a herb or vein Professions knows; the
+-- (a mailbox hovered on the way), so they count only for a herb, vein, chest, or pool Professions
+-- knows; the
 -- hover is used once.
 local function targetName(target)
     if IsText(target, true) then
@@ -171,12 +180,19 @@ end
 -- The spot `yards` in front of the player on `mapID`, or x, y as they are when the facing or the
 -- map's size can't be read. Facing is 0 for north and grows turning left; x grows east, y south.
 local function ahead(mapID, x, y, yards)
-    local facing = GetPlayerFacing and GetPlayerFacing()
-    local width, height = ns.WorldMap.Size(mapID)
-    if not (IsNumber(facing) and width and x) then
+    if not (mapID and x and y) then
         return x, y
     end
-    return x - math.sin(facing) * yards / width, y - math.cos(facing) * yards / height
+    local facing = GetPlayerFacing and GetPlayerFacing()
+    local width, height = ns.WorldMap.Size(mapID)
+    if not (IsNumber(facing) and width) then
+        return x, y
+    end
+    -- Kept on the map: a spot past its edge can't be shared (Gathering.Decode).
+    local function clamp(v)
+        return v < 0 and 0 or v > 1 and 1 or v
+    end
+    return clamp(x - math.sin(facing) * yards / width), clamp(y - math.cos(facing) * yards / height)
 end
 
 local function onSent(_, unit, target, castGUID, spellID)
@@ -205,7 +221,9 @@ local function onSent(_, unit, target, castGUID, spellID)
         if name and not Professions.Pool(name) then
             name, from = nil, "none"
         end
-        if not name and hovered and GetTime() - hoveredAt <= HOVER_WAIT then
+        -- Not the bobber clicked for the last catch, nor a herb, vein, or chest close by.
+        if not name and hovered and GetTime() - hoveredAt <= HOVER_WAIT and hoveredAt > lastCatch
+            and hovered ~= bobberName and not isNode(hovered) then
             aimed = hovered
         end
         x, y = ahead(mapID, x, y, CAST_YARDS)
@@ -415,7 +433,13 @@ local function onLoot(event)
     -- pool the cast was aimed at, what that object was seen as before, or the object hovered just
     -- before casting. Open water's is dropped.
     if gather.kind == "fish" then
-        if objectID == BOBBER or not objectID then
+        local now = GetTime()
+        lastCatch = now
+        if not objectID or BOBBERS:Get(objectID) then
+            -- The object hovered just now was the bobber, clicked to take this.
+            if objectID and hovered and now - hoveredAt <= HOVER_WAIT then
+                bobberName = hovered
+            end
             pending = nil
             return
         end
@@ -521,13 +545,12 @@ end
 ---@return number? yards
 function Gathering.Nearest(list, x, y, width, height, radius, match)
     local best, bestYards
+    -- The distance first: it's cheap, and `match` (names that share a spawn) isn't.
     for i = 1, #list do
         local node = list[i]
-        if not match or match(node) then
-            local yards = Gathering.Distance(x, y, node.x, node.y, width, height)
-            if yards <= radius and (not bestYards or yards < bestYards) then
-                best, bestYards = node, yards
-            end
+        local yards = Gathering.Distance(x, y, node.x, node.y, width, height)
+        if yards <= radius and (not bestYards or yards < bestYards) and (not match or match(node)) then
+            best, bestYards = node, yards
         end
     end
     return best, bestYards
@@ -699,8 +722,10 @@ function Gathering.Encode(maps, keep)
                     i = #names - 1
                     index[key] = i
                 end
-                nodes[#nodes + 1] = concat({ base36(i), base36(node.x * 10000 + 0.5),
-                    base36(node.y * 10000 + 0.5), base36(node.count or 0), base36(node.time or 0) }, ",")
+                local x = node.x < 0 and 0 or node.x > 1 and 1 or node.x
+                local y = node.y < 0 and 0 or node.y > 1 and 1 or node.y
+                nodes[#nodes + 1] = concat({ base36(i), base36(x * 10000 + 0.5),
+                    base36(y * 10000 + 0.5), base36(node.count or 0), base36(node.time or 0) }, ",")
             end
         end
         if #nodes > 0 then
@@ -711,12 +736,16 @@ function Gathering.Encode(maps, keep)
     return HEADER .. "/" .. concat(names, "~") .. "/" .. concat(parts, "/"), count
 end
 
+local MAX_COUNT = 1000000 -- more gathers than anyone makes, so a hand-made count can't be huge
+
 ---The nodes in a line of text Encode made, by zone map ID, each as { name, kind, x, y, count,
----time }; nil when it isn't one.
+---time }; nil when it isn't one. A node off its map is left out. With `now` (time()), a time later
+---than it is taken as now, so a sharer's clock running ahead can't keep a node "just gathered".
 ---@param text string
+---@param now? number
 ---@return table<number, table>? maps
 ---@return number count
-function Gathering.Decode(text)
+function Gathering.Decode(text, now)
     if type(text) ~= "string" then
         return nil, 0
     end
@@ -747,13 +776,20 @@ function Gathering.Decode(text)
             local i, x, y, gathers, when = each:match("^(%w+),(%w+),(%w+),(%w+),(%w+)$")
             local entry = i and names[(tonumber(i, 36) or -1) + 1]
             x, y = x and tonumber(x, 36), y and tonumber(y, 36)
-            if not (entry and x and y and x <= 10000 and y <= 10000) then
+            if not (entry and x and y) then
                 return nil, 0
             end
-            local last = tonumber(when, 36)
-            list[#list + 1] = { name = entry[1], kind = entry[2], x = x / 10000, y = y / 10000,
-                count = tonumber(gathers, 36) or 0, time = last and last > 0 and last or nil }
-            count = count + 1
+            if x <= 10000 and y <= 10000 then
+                local last = tonumber(when, 36)
+                if last and now and last > now then
+                    last = now
+                end
+                local gathered = tonumber(gathers, 36) or 0
+                list[#list + 1] = { name = entry[1], kind = entry[2], x = x / 10000, y = y / 10000,
+                    count = gathered > MAX_COUNT and MAX_COUNT or gathered,
+                    time = last and last > 0 and last or nil }
+                count = count + 1
+            end
         end
     end
     return maps, count
@@ -890,7 +926,7 @@ end
 ---`OnEnable` and stops in `OnDisable`, and nothing is heard while no module listens. `gather` is
 ---`{ name, from, kind, line, spellID, mapID, x, y, objectID, items, succeeded }`: the node's name
 ---as the world writes it (nil when nothing named it) and `from`, what named it ("target",
----"softinteract", "tooltip", or "none"); `kind` ("herb", "ore", "treasure") and `line`, the skill
+---"softinteract", "tooltip", or "none"); `kind` ("herb", "ore", "treasure", "fish") and `line`, the skill
 ---line of the spell; where the player stood when they cast, on their zone's map (`mapID`, `x`,
 ---`y`, nil where it can't be read); the world object's ID from its loot (nil without loot); and `items`, the loot as
 ---`{ id, count, icon }`. A herb or vein the player's skill was too low for is told too, with

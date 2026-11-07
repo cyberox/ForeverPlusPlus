@@ -279,13 +279,14 @@ local function exportNodes()
 end
 
 local function importNodes(text)
-    local maps, count = Gathering.Decode(text)
+    local maps = Gathering.Decode(text, time())
     if not maps then
         ns.Print(L.GATHERINGMAP_IMPORT_BAD)
         return
     end
     local nodes = module.db.nodes
-    local added = 0
+    local added, known = 0, 0
+    -- A map this client has no size for (not in its game) is skipped, and not counted.
     for mapID, list in pairs(maps) do
         local width, height = ns.WorldMap.Size(mapID)
         if width then
@@ -293,12 +294,14 @@ local function importNodes(text)
             for _, node in ipairs(list) do
                 if Gathering.Merge(mine, node, width, height) then
                     added = added + 1
+                else
+                    known = known + 1
                 end
             end
             nodes[mapID] = #mine > 0 and mine or nil
         end
     end
-    ns.Print(format(L.GATHERINGMAP_IMPORTED, added, count - added))
+    ns.Print(format(L.GATHERINGMAP_IMPORTED, added, known))
     internal.NodesChanged(nil)
 end
 
