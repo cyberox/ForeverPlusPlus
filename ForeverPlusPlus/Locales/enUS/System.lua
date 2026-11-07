@@ -82,6 +82,8 @@ L.ADDONSLIST_SETS_DELETE = "Delete Set"
 L.ADDONSLIST_SETS_DELETE_CONFIRM = "Delete the AddOn set \"%s\"?"
 L.ADDONSLIST_SETS_SAVED = "Saved the AddOn set %s."
 L.ADDONSLIST_SETS_MISSING = "Addons in the AddOn set %s that aren't installed: %d."
+L.ADDONSLIST_CHAT_DESC = "Say in chat when a set is saved, and how many of a set's addons aren't "
+    .. "installed when you turn it on."
 
 -- MinimapButton
 L.MINIMAPBUTTON_TITLE = "Minimap Button"

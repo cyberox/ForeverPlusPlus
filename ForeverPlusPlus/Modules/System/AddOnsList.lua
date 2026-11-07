@@ -20,6 +20,7 @@ local module = ns.NewModule("AddOnsList", L.ADDONSLIST_DESC, {
     ungroup = false, -- disabled addons leave their group and sit with the other disabled ones
     notes = true, -- the search box also looks in an addon's notes
     showSets = false, -- the Sets dropdown beside Disable All
+    chat = true, -- say so in chat when a set is saved, or has addons that aren't installed
     -- Saved sets, account-wide: { [set name] = { [addon name] = true } }. By addon name, since an
     -- addon's index changes when addons are added or removed.
     sets = {},
@@ -27,11 +28,17 @@ local module = ns.NewModule("AddOnsList", L.ADDONSLIST_DESC, {
 module.title = L.ADDONSLIST_TITLE
 module.category = "system"
 
+-- What it says in chat is only about sets, so its checkbox sits under AddOn Sets.
+local chat = ns.ChatOption(L.ADDONSLIST_CHAT_DESC)
+chat.requires = "showSets"
+chat.added = "1.2.0"
+
 module.options = {
     { key = "enabledFirst", name = L.ADDONSLIST_ENABLEDFIRST, description = L.ADDONSLIST_ENABLEDFIRST_DESC },
     { key = "ungroup", name = L.ADDONSLIST_UNGROUP, description = L.ADDONSLIST_UNGROUP_DESC },
     { key = "notes", name = L.ADDONSLIST_NOTES, description = L.ADDONSLIST_NOTES_DESC },
     { key = "showSets", name = L.ADDONSLIST_SETS, description = L.ADDONSLIST_SETS_DESC, added = "0.9.0" },
+    chat,
 }
 
 -- Blizzard_AddOnList makes AddonList with a ScrollBox of tree rows (each row's data is
@@ -225,7 +232,7 @@ local function saveSet(name)
         end
     end
     module.db.sets[name] = set
-    ns.Print(format(L.ADDONSLIST_SETS_SAVED, name))
+    module:Print(format(L.ADDONSLIST_SETS_SAVED, name))
 end
 
 ---Turns on the set's addons and turns off the rest, for the character the list shows, like
@@ -255,7 +262,7 @@ local function applySet(name)
     end
     refreshList()
     if missing > 0 then
-        ns.Print(format(L.ADDONSLIST_SETS_MISSING, name, missing))
+        module:Print(format(L.ADDONSLIST_SETS_MISSING, name, missing))
     end
 end
 
