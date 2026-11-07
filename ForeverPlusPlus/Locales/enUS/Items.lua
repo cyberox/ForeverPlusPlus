@@ -398,7 +398,8 @@ L.UPGRADEARROWS_LINE = "Upgrade" -- the Own Line's label
 L.UPGRADEARROWS_EMPTY_SLOT = "empty slot" -- an upgrade over nothing worn, on a client without the arrow art
 L.UPGRADEARROWS_SCORES = "Show Scores"
 L.UPGRADEARROWS_SCORES_DESC = "Also show every piece of gear's score, and the score of what you "
-    .. "wear in its place, to check the weights."
+    .. "wear in its place, to check the weights. With a two-hander on, a one-hander's tooltip also "
+    .. "names the bag item it was paired with."
 L.UPGRADEARROWS_BAGS_DESC = "Mark upgrades in your bags."
 L.UPGRADEARROWS_REAGENT_BAG = "Ignore Reagent Bag"
 L.UPGRADEARROWS_REAGENT_BAG_DESC = "Leave everything in your reagent bag unmarked, since it holds "

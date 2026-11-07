@@ -701,10 +701,9 @@ local function onTooltip(tooltip, data)
         local text, tint = upgradeText(result)
         ItemTooltip.AddInfo(tooltip, L.UPGRADEARROWS_LINE, text, "right", tint)
     end
-    -- The bag item it was judged with, by name, so the percentage makes sense.
+    -- The bag item it was judged with, by name, among the score's details: Show Scores only.
     local partnerName = result.partner and result.partner:match("%[(.-)%]")
-    local marked = result.upgrade or (result.downgrade and module.db.downgrades)
-    if partnerName and (module.db.scores or shown and marked) then
+    if partnerName and module.db.scores then
         ItemTooltip.AddInfo(tooltip, L.UPGRADEARROWS_PAIRED_LINE, partnerName, "right", "gray")
     end
     if shown and result.upgrade and result.later then
