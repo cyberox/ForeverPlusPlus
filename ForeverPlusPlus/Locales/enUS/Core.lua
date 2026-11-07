@@ -130,8 +130,8 @@ L.DEBUG_SECTION_TOOLS = "Tools"
 L.DEBUG_SECTION_PREVIEWS = "Previews"
 L.DEBUG_SECTION_LAYOUT = "Layout"
 L.DEBUG_SECTION_LOGGING = "Logging"
--- The Debug module's own buttons: Reset Seen Version and Reset Welcome in What's New, the rest in
--- Diagnostics
+-- The Debug module's own buttons: Reset Seen Version and Reset Welcome in What's New, Copy Debug
+-- Info and Print Module Events in Diagnostics, Reload UI in Tools
 L.DEBUG_RESET_SEEN = "Reset Seen Version"
 L.DEBUG_RESET_SEEN_BUTTON = "Reset"
 L.DEBUG_RESET_SEEN_DESC = "Forget that you've seen this version, as if you just updated from the "

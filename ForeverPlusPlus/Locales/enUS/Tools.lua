@@ -9,7 +9,7 @@ end
 -- ConsoleVariables
 L.CONSOLEVARIABLES_TITLE = "Console Variables"
 L.DEBUG_DESC = "Show every module's debug options and the testing tools (Self Test, Gear Probe, "
-    .. "Screenshots) below, and turn on their commands."
+    .. "Screenshots) on a Debug page in the Settings sidebar, and turn on their commands."
 L.DEBUG_NOTICE = "Turning Debug off puts every debug option back to its default." -- a gray row atop the module
 L.DEBUG_NOTICE_DESC = "So nothing set here goes on working out of sight."
 L.CONSOLEVARIABLES_DESC ="Browse the game's console variables (CVars) on a page in Settings, and "
