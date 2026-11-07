@@ -53,8 +53,14 @@ local module = ns.NewModule("GatheringMap", L.GATHERINGMAP_DESC, {
     -- Nodes remembered, by zone map ID: a list of { name, kind, x, y, count, time, loot }, where
     -- loot is item ID -> how many it gave in all. For the whole account. Data, not a setting.
     nodes = {},
+    -- What this character doesn't show, from the Gathering Map page (and the world map's filter):
+    -- node name -> true, and kind ("herb", "ore") -> true. Data, saved for each character.
+    hidden = {},
+    hiddenKinds = {},
 })
+module.perCharacter = { hidden = true, hiddenKinds = true }
 module.title = L.GATHERINGMAP_TITLE
+module.pageTitle = L.GATHERINGMAP_PAGE_TITLE
 module.category = "map"
 module.added = "1.2.0"
 module.internal = {}
@@ -297,6 +303,7 @@ local COLORS = {
     fish = { 0.35, 0.65, 1 },
 }
 local CIRCLE = "Interface\\Buttons\\WHITE8X8" -- tinted and drawn round
+internal.COLORS, internal.CIRCLE = COLORS, CIRCLE
 
 local icons = {} -- node name -> its item's icon, once found
 
@@ -317,6 +324,8 @@ local function itemIcon(node)
         return icon
     end
 end
+-- For the Gathering Map page: a node's icon by its name (and loot, when it has some).
+internal.ItemIcon = itemIcon
 
 ---Whether a node was gathered within the last Just Gathered minutes, so it's likely still gone.
 ---@param node table
@@ -361,13 +370,18 @@ end
 -- Herbs and ore need their gathering skill and tracking spell; anyone can open treasure.
 local TRACKED = { herb = true, ore = true }
 
----Whether a node is shown, on either map: with Only My Professions, only while this character
----has the skill that gathers it, and with Only While Tracking, only while its tracking is on.
+---Whether a node is shown, on either map: not while this character turned it or its kind off (the
+---Gathering Map page); with Only My Professions, only while this character has the skill that
+---gathers it; and with Only While Tracking, only while its tracking is on.
 ---@param node table
 ---@return boolean
 function internal.Shown(node)
     local db = module.db
     local kind = node.kind
+    -- Turned off on the Gathering Map page or the world map's filter, for this character.
+    if db.hiddenKinds[kind] or db.hidden[node.name] then
+        return false
+    end
     if db.onlyMine and kind ~= "treasure" then
         local line = Professions.KindLine(kind)
         if not (line and Professions.Rank(line)) then

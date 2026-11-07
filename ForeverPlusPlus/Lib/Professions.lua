@@ -350,6 +350,13 @@ function Professions.Kind(name)
     return node and LINE_KINDS[node[1]]
 end
 
+---Every herb and vein known, seeded and learned: `for name, node in Professions.EachNode()`,
+---with node as Professions.Node gives it. Don't change the tables.
+---@return function iterator
+function Professions.EachNode()
+    return NODES:Pairs()
+end
+
 ---Forgets every herb and vein learned in game; the seed stays.
 function Professions.ForgetNodes()
     NODES:Forget()
