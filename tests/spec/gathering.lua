@@ -65,6 +65,14 @@ node, new = Gathering.Add(far, "Silverleaf", "herb", 0.4, 0.43, W, H, 100)
 eq(new, false, "add: claims a node only seen 30 yards off")
 node, new = Gathering.Add(far, "Silverleaf", "herb", 0.4, 0.46, W, H, 1000)
 eq(new, true, "add: but not one gathered 30 yards off")
+-- Seen again, a dot's other sightings close by fold into the one it matched.
+local spam = {
+    { name = "Tin Vein", kind = "ore", x = 0.6, y = 0.6, count = 0, sightings = 1, seen = 1 },
+    { name = "Tin Vein", kind = "ore", x = 0.6, y = 0.62, count = 0, sightings = 1, seen = 1 },
+    { name = "Tin Vein", kind = "ore", x = 0.6, y = 0.64, count = 2, time = 1 },
+}
+Gathering.See(spam, "Tin Vein", "ore", 0.6, 0.6, W, H, 5000, 30)
+eq(#spam, 2, "see: a nearby copy only seen is folded in, a gathered one isn't")
 -- A sighting wider than the radius, as a hovered dot on a zoomed out minimap, is the same node.
 node, new = Gathering.See(seen, "Peacebloom", "herb", 0.31, 0.307, W, H, 9000, 30)
 eq(new, false, "see: a wider radius finds the same node")

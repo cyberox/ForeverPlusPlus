@@ -271,7 +271,7 @@ local floor, sqrt = math.floor, math.sqrt
 Gathering.RADIUS = 15 -- yards within which a gather is of a node already known
 local WEIGHT = 10 -- the most gathers a spot's average counts, so a node that moved still follows
 local VISIT = 120 -- seconds within which gathering a node again is the same visit
-local SEEN_RADIUS = 40 -- yards within which a gather claims a node only seen, never gathered
+local SEEN_RADIUS = 60 -- yards within which a gather claims a node only seen, never gathered
 
 ---A spot rounded to the 4 places nodes are saved with.
 ---@param v number
@@ -370,7 +370,9 @@ end
 
 ---Adds a sighting of the node `name` at x, y to a map's nodes (seen on the minimap, not gathered):
 ---like Add, but it doesn't count as a gather. The same node within `radius` yards moves toward
----it, once a visit; else it's a new node, gathered 0 times. Returns the node and whether it's new.
+---it, once a visit, if it was never gathered (a gather's spot is closer), and other sightings of
+---it that close are folded into it; else it's a new node, gathered 0 times. Returns the node and
+---whether it's new.
 ---@param list table a map's nodes
 ---@param name string
 ---@param kind string
@@ -387,11 +389,21 @@ function Gathering.See(list, name, kind, x, y, width, height, now, radius)
         return known.name == name
     end)
     if node then
-        if not (node.seen and now - node.seen < VISIT) then
+        -- A node gathered already is where the player stood to gather it, closer than a sighting.
+        if node.count == 0 and not (node.seen and now - node.seen < VISIT) then
             average(node, x, y)
             node.sightings = (node.sightings or 0) + 1
         end
         node.seen = now
+        -- Other sightings of that name this close were the same dot, seen from another side.
+        radius = radius or Gathering.RADIUS
+        for i = #list, 1, -1 do
+            local other = list[i]
+            if other ~= node and other.name == name and other.count == 0
+                and Gathering.Distance(x, y, other.x, other.y, width, height) <= radius then
+                table.remove(list, i)
+            end
+        end
         return node, false
     end
     node = { name = name, kind = kind, x = Gathering.Round(x), y = Gathering.Round(y), count = 0,
