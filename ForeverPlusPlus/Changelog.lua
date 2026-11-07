@@ -10,6 +10,29 @@ local L = ns.L
 
 ns.changelog = {
     {
+        version = L.CHANGELOG_UNRELEASED,
+        sections = {
+            { L.CHANGELOG_ADDED, {
+                "Other addons can read more through ForeverPlusPlusAPI.v1: your talent trees "
+                    .. "(GetTalentTabs), any herb, vein, chest, or fishing pool by name "
+                    .. "(GetWorldNodeInfo, GetFishingPoolByObject), your profession skills "
+                    .. "(GetProfessionSkill), every flight timed (GetFlightTimes), the flight points "
+                    .. "you've learned (GetKnownFlightPoints), what each Gathering Map node has given "
+                    .. "(loot), and callbacks for each gather and each flight (GATHERED, "
+                    .. "FLIGHT_STARTED, FLIGHT_ENDED). GetModuleInfo says when a module is locked.",
+            } },
+            { L.CHANGELOG_FIXED, {
+                { L.GATHERINGMAP_TITLE, "A shared string can't bring colors, textures, or links into "
+                    .. "node names." },
+                { L.WORLDMAP_TITLE, "Ley Lines no longer finishes reading a cast after being turned "
+                    .. "off." },
+                { L.AUTOSCREENSHOT_TITLE, "No longer takes a shot it started after being turned off." },
+                "The public API lists every dungeon and raid, and a callback that registers another "
+                    .. "one no longer upsets the rest.",
+            } },
+        },
+    },
+    {
         version = "1.2.0",
         date = "2026-11-07",
         sections = {

@@ -527,6 +527,15 @@ local function listenForLeyLines(self)
     end
 end
 
+-- What the public API reads while this is on (API.lua's GetKnownFlightPoints, which copies it):
+-- the flight points this character has seen as learned at a flight master, which Forever's own
+-- map list can't say.
+local flightPoints = {
+    Known = function()
+        return module.db.learnedNodes
+    end,
+}
+
 function module:OnEnable()
     layer = layer or ns.MapPins.New(fill)
     layer:Enable()
@@ -539,9 +548,11 @@ function module:OnEnable()
     end)
     self:On("TAXIMAP_CLOSED", function() layer:Refresh() end)
     listenForLeyLines(self)
+    ns.Providers.Set("flightPoints", flightPoints)
 end
 
 function module:OnDisable()
+    ns.Providers.Set("flightPoints", nil)
     layer:Disable()
     ns.MapPins.RefreshMap() -- Blizzard's city icons back
 end

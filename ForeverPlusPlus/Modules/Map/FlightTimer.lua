@@ -88,6 +88,7 @@ end
 -- The flight underway ---------------------------------------------------------------------------
 
 local flight -- { from, to, total, name, asked, started, aborted, warned }, once one is asked for
+local lastFlight -- { from, to, seconds } of the flight that last landed, for the public API
 
 local bar, watcher
 
@@ -155,7 +156,16 @@ local function finish()
             module.db.times[key(flight.from, flight.to)] = floor(elapsed + 0.5)
         end
     end
+    local landed = flight.started and not flight.test
+    if landed then
+        lastFlight = { from = flight.from, to = flight.to,
+            seconds = floor(GetTime() - flight.started + 0.5) }
+    end
     cancel()
+    -- Landed: the public API's FLIGHT_ENDED (Current is nil again).
+    if landed then
+        ns.Providers.Changed("flights")
+    end
 end
 
 -- The ready check's sound on the Master channel, so it's heard with sound effects off and, when
@@ -202,6 +212,8 @@ local function tick()
             if module.db.bar then
                 bar:Show()
             end
+            -- Took off: the public API's FLIGHT_STARTED.
+            ns.Providers.Changed("flights")
         elseif now - flight.asked > WAIT then
             cancel() -- never took off
         end
@@ -354,6 +366,14 @@ local provider = {
         end
         return { from = flight.from, to = flight.to, total = flight.total,
             elapsed = GetTime() - flight.started }
+    end,
+    -- Every flight flown: "from>to" -> seconds.
+    AllTimes = function()
+        return module.db.times
+    end,
+    -- The flight that last landed: from, to, and its seconds, or nil.
+    Last = function()
+        return lastFlight
     end,
 }
 

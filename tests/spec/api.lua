@@ -239,6 +239,58 @@ do
     ns.Providers.Set("gatheringNodes", nil)
     eq(v1.GetGatheringNodes(1436), nil, "api: gone with Gathering Map")
 
+    -- A node's loot comes as a copy.
+    local looted = { [1] = { { name = "Copper Vein", kind = "ore", x = 0.1, y = 0.1, count = 1,
+        loot = { [2770] = 4 } } } }
+    ns.Providers.Set("gatheringNodes", { Maps = function() return looted end })
+    local lootCopy = v1.GetGatheringNodes(1)[1].loot
+    eq(lootCopy[2770], 4, "api: a node's loot")
+    lootCopy[2770] = 99
+    eq(looted[1][1].loot[2770], 4, "api: loot is a copy")
+    ns.Providers.Set("gatheringNodes", nil)
+
+    -- Any node by name: herbs and veins, chests, and fishing pools.
+    eq(v1.GetWorldNodeInfo("Copper Vein").kind, "ore", "api: a vein's kind")
+    eq(v1.GetWorldNodeInfo("Battered Chest").kind, "treasure", "api: a chest")
+    eq(v1.GetWorldNodeInfo("Oily Blackmouth School").kind, "fish", "api: a fishing pool")
+    eq(v1.GetWorldNodeInfo("Mailbox"), nil, "api: not a node")
+    eq(v1.GetFishingPoolByObject(123456), nil, "api: an object never seen")
+
+    -- Every flight flown, and the flight callbacks from Flight Timer's take-off and landing.
+    local flightState = { current = nil, last = nil }
+    ns.Providers.Set("flights", {
+        Time = function() return nil end,
+        Current = function() return flightState.current end,
+        AllTimes = function() return { ["2>1"] = 80, ["1>2"] = 95 } end,
+        Last = function() return flightState.last end,
+    })
+    local times = v1.GetFlightTimes()
+    eq(#times .. ":" .. times[1].fromNodeID .. ">" .. times[1].toNodeID .. "=" .. times[1].seconds,
+        "2:1>2=95", "api: flight times, in order")
+    local flightEvents = {}
+    v1.RegisterCallback("FLIGHT_STARTED", function(_, from, to) flightEvents[#flightEvents + 1] = "up " .. from .. ">" .. to end)
+    v1.RegisterCallback("FLIGHT_ENDED", function(_, from, to, s) flightEvents[#flightEvents + 1] = "down " .. from .. ">" .. to .. " " .. tostring(s) end)
+    flightState.current = { from = 1, to = 2, elapsed = 0 }
+    ns.Providers.Changed("flights")
+    flightState.current, flightState.last = nil, { from = 1, to = 2, seconds = 96 }
+    ns.Providers.Changed("flights")
+    eq(table.concat(flightEvents, ","), "up 1>2,down 1>2 96", "api: flight callbacks")
+    ns.Providers.Set("flights", nil)
+
+    -- Flight points this character has learned, a copy.
+    local learned = { [12] = true, [40] = true }
+    ns.Providers.Set("flightPoints", { Known = function() return learned end })
+    local knownPoints = v1.GetKnownFlightPoints()
+    eq(knownPoints[12] and knownPoints[40], true, "api: known flight points")
+    knownPoints[99] = true
+    eq(learned[99], nil, "api: known flight points are a copy")
+    ns.Providers.Set("flightPoints", nil)
+    eq(v1.GetKnownFlightPoints(), nil, "api: none while Points of Interest is off")
+
+    -- Talents and professions, without the game's data offline.
+    eq(v1.GetTalentTabs(), nil, "api: no talent tabs without the game's data")
+    eq(v1.GetProfessionSkill(186), nil, "api: no profession without the game's data")
+
     -- The map pin.
     local mapPin
     C_Map = {

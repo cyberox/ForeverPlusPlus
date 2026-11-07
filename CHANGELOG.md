@@ -2,6 +2,19 @@
 
 What changed in each release of Forever++. The same notes show in game under Settings > AddOns > Forever++ > Changelog, from [`ForeverPlusPlus/Changelog.lua`](ForeverPlusPlus/Changelog.lua); change both together.
 
+## Unreleased
+
+### Added
+
+- Other addons can read more through `ForeverPlusPlusAPI.v1`: your talent trees (`GetTalentTabs`), any herb, vein, chest, or fishing pool by name (`GetWorldNodeInfo`, `GetFishingPoolByObject`), your profession skills (`GetProfessionSkill`), every flight timed (`GetFlightTimes`), the flight points you've learned (`GetKnownFlightPoints`), what each Gathering Map node has given (`loot`), and callbacks for each gather and each flight (`GATHERED`, `FLIGHT_STARTED`, `FLIGHT_ENDED`). `GetModuleInfo` says when a module is locked.
+
+### Fixed
+
+- **Gathering Map**: a shared string can't bring colors, textures, or links into node names.
+- **World Map**: Ley Lines no longer finishes reading a cast after being turned off.
+- **Auto Screenshot**: no longer takes a shot it started after being turned off.
+- The public API lists every dungeon and raid, and a callback that registers another one no longer upsets the rest.
+
 ## 1.2.0 (2026-11-07)
 
 ### Added

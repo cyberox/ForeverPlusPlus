@@ -395,6 +395,67 @@ export("GetCurrentFlight", function()
     }
 end)
 
+---Every flight this account has flown and timed: a list of { fromNodeID, toNodeID, seconds }, or
+---nil while Flight Timer is off.
+export("GetFlightTimes", function()
+    local flights = ns.Providers.Get("flights")
+    if not (flights and flights.AllTimes) then
+        return nil
+    end
+    local list = {}
+    for route, seconds in pairs(flights.AllTimes()) do
+        local from, to = match(route, "^(%d+)>(%d+)$")
+        if from and type(seconds) == "number" then
+            list[#list + 1] = { fromNodeID = tonumber(from), toNodeID = tonumber(to), seconds = seconds }
+        end
+    end
+    sort(list, function(a, b)
+        if a.fromNodeID ~= b.fromNodeID then
+            return a.fromNodeID < b.fromNodeID
+        end
+        return a.toNodeID < b.toNodeID
+    end)
+    return list
+end)
+
+-- Points of Interest (a part of World Map) ----------------------------------------------------
+
+---The flight points this character has learned, as far as Forever++ has seen at a flight master:
+---a set of the game's node IDs (C_TaxiMap's nodeID) -> true. Forever's own map list can't say which
+---are learned. Nil while World Map's Points of Interest is off.
+export("GetKnownFlightPoints", function()
+    local points = ns.Providers.Get("flightPoints")
+    if not points then
+        return nil
+    end
+    local known = {}
+    for nodeID in pairs(points.Known() or {}) do
+        if type(nodeID) == "number" then
+            known[nodeID] = true
+        end
+    end
+    return known
+end)
+
+-- Talents ----------------------------------------------------------------------------------------
+-- Forever keeps Classic's three talent trees inside the Mainline talent system, so the game has
+-- no "spec" to ask for.
+
+---The player's talent trees in order: a list of { index, name, spent }, and the index of the one
+---with the most points (the first wins a tie). Nil while the game has no talent data yet.
+export("GetTalentTabs", function()
+    local tabs = ns.Talents.Tabs()
+    if not tabs then
+        return nil
+    end
+    local list = {}
+    for i, tab in ipairs(tabs) do
+        list[i] = { index = tab.index, name = tab.name, spent = tab.spent }
+    end
+    local dominant = ns.Talents.Dominant()
+    return list, dominant and dominant.index
+end)
+
 -- Waypoints and maps -----------------------------------------------------------------------------
 -- The waypoint is Blizzard's own map pin (the user waypoint), the one /way and a map click set,
 -- so it shows on the map, in the world, and on Waypoints' arrow. Spots are 0 to 1 across and down
@@ -644,10 +705,65 @@ export("GetGatheringNodes", function(mapID)
     end
     local list = {}
     for _, node in ipairs(nodes.Maps()[mapID] or {}) do
+        local loot = {}
+        for item, count in pairs(node.loot or {}) do
+            if type(item) == "number" and type(count) == "number" then
+                loot[item] = count
+            end
+        end
         list[#list + 1] = { name = node.name, kind = node.kind, x = node.x, y = node.y,
-            timesGathered = node.count or 0, lastGathered = node.time }
+            timesGathered = node.count or 0, lastGathered = node.time, loot = loot }
     end
     return list
+end)
+
+---Any node by the name the world shows: a herb or vein, a treasure chest, or a fishing pool, as
+---{ kind ("herb", "ore", "treasure", "fish"), skillLine, skill (needed), itemID (what it gives),
+---lockpicking (the Lockpicking a locked chest takes) }, any field nil when not known yet. Nil for
+---a name that isn't one Forever++ knows. Learned in play, so names Forever adds fill in.
+export("GetWorldNodeInfo", function(name)
+    if type(name) ~= "string" then
+        return nil
+    end
+    local Professions = ns.Professions
+    local node = Professions.Node(name)
+    if node then
+        return { kind = Professions.LineKind(node[1]), skillLine = node[1], skill = node[2],
+            itemID = node[3] }
+    end
+    local chest, lock = Professions.Chest(name)
+    if chest then
+        return { kind = "treasure", skillLine = lock and Professions.LOCKPICKING or nil,
+            lockpicking = lock }
+    end
+    if Professions.Pool(name) then
+        return { kind = "fish", skillLine = Professions.FISHING }
+    end
+    return nil
+end)
+
+---The fishing pool a world object ID (from a GUID) was seen as, by the name the world shows, or
+---nil.
+export("GetFishingPoolByObject", function(objectID)
+    if type(objectID) ~= "number" then
+        return nil
+    end
+    return ns.Professions.PoolByObject(objectID)
+end)
+
+---The player's skill in a profession by skill line (182 Herbalism, 186 Mining, 356 Fishing, 393
+---Skinning, a crafting one, or 633 Lockpicking for a rogue): rank (with gear and racial bonuses),
+---level (as its window shows it), max (the most its rank allows), and its name. Nil without it.
+export("GetProfessionSkill", function(skillLine)
+    if type(skillLine) ~= "number" then
+        return nil
+    end
+    local rank, name = ns.Professions.Rank(skillLine)
+    if not rank then
+        return nil
+    end
+    local level, max = ns.Professions.Progress(skillLine)
+    return { rank = rank, level = level or rank, max = max, name = name }
 end)
 
 -- Callbacks --------------------------------------------------------------------------------------
@@ -664,6 +780,10 @@ end)
 --   WAYPOINT_CHANGED  the map pin was set, moved, or cleared, by anyone
 --   GATHERING_NODES_UPDATED  Gathering Map's nodes changed: a gather, a forget, an import, or it
 --                     turned on or off (at most twice a second)
+--   GATHERED          gather: the player gathered a herb, vein, chest, or fishing pool, or tried
+--                     one too high for their skill (listened for only once someone registers)
+--   FLIGHT_STARTED    fromNodeID, toNodeID: a flight took off (while Flight Timer is on)
+--   FLIGHT_ENDED      fromNodeID, toNodeID, seconds: it landed
 -- What a game event drives (WAYPOINT_CHANGED) is listened to only once someone registers for it.
 
 local listen = {} -- event -> fn that starts listening, run on the first registration
@@ -676,8 +796,36 @@ listen.WAYPOINT_CHANGED = function()
     end
 end
 
+-- A gather as another addon gets it: a copy, since Lib/Gathering's own table mustn't be kept.
+local function gatherInfo(gather)
+    local items = {}
+    for i, item in ipairs(gather.items or {}) do
+        items[i] = { id = item.id, count = item.count }
+    end
+    return {
+        name = gather.name,
+        kind = gather.kind,
+        skillLine = gather.line,
+        mapID = gather.mapID,
+        x = gather.x,
+        y = gather.y,
+        objectID = gather.objectID,
+        items = items,
+        requires = gather.requires,
+    }
+end
+
+listen.GATHERED = function()
+    ns.Gathering.Listen(function(gather)
+        if gather.name then
+            API.Fire("GATHERED", gatherInfo(gather))
+        end
+    end, true)
+end
+
 local EVENTS = { READY = true, PRICES_UPDATED = true, UPGRADES_UPDATED = true, MODULE_TOGGLED = true,
-    OPTION_CHANGED = true, WAYPOINT_CHANGED = true, GATHERING_NODES_UPDATED = true }
+    OPTION_CHANGED = true, WAYPOINT_CHANGED = true, GATHERING_NODES_UPDATED = true, GATHERED = true,
+    FLIGHT_STARTED = true, FLIGHT_ENDED = true }
 local callbacks = {} -- event -> owner -> fn
 
 ---Calls every function registered for `event`, each wrapped so one failing can't stop the rest.
@@ -733,6 +881,23 @@ ns.Prices.OnChanged(pricesChanged)
 ns.Providers.OnChanged("upgrades", ns.Frames.Coalesce(function()
     API.Fire("UPGRADES_UPDATED")
 end, 0.5))
+
+-- Flight Timer says when a flight takes off and lands; Current tells which it is.
+local flying
+ns.Providers.OnChanged("flights", function()
+    local flights = ns.Providers.Get("flights")
+    local current = flights and flights.Current()
+    if current and not flying then
+        flying = current
+        API.Fire("FLIGHT_STARTED", current.from, current.to)
+    elseif not current and flying then
+        local last = flights and flights.Last and flights.Last()
+        local from, to = flying.from, flying.to
+        flying = nil
+        API.Fire("FLIGHT_ENDED", from, to, last and last.from == from and last.to == to and last.seconds
+            or nil)
+    end
+end)
 
 -- A forget or an import changes many nodes at once.
 ns.Providers.OnChanged("gatheringNodes", ns.Frames.Coalesce(function()
