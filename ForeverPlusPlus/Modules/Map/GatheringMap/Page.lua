@@ -29,11 +29,29 @@ local KINDS = {
 }
 local KIND_LINES = { herb = Professions.HERBALISM, ore = Professions.MINING } -- the skill gathering each
 
--- Wider than the Modules page's list, for names like Ooze Covered Mithril Deposit with the skill and
--- spots beside them; the details need less room.
-local LIST_WIDTH = 300
-local SKILL_WIDTH, COUNT_WIDTH = 30, 24 -- a node row's skill and spots, right-aligned at its end
+-- Wider than the Modules page's list, for names like Ooze Covered Mithril Deposit with the skill in
+-- front and the spots behind; the details need less room.
+local LIST_WIDTH = 240
+local TAG_WIDTH, TAG_HEIGHT = 26, 14 -- a node row's skill tag, in front of its icon
 local ICON, INDENT = 14, 14 -- a node row's icon, and how far node rows sit in from their header
+local TIER_HEIGHT = 18
+
+-- The trainer's ranks a kind's nodes are grouped under, by the skill a node takes (Classic's
+-- ranks, which Forever's trainers teach the same: up to 75, 150, 225, and 300).
+local TIERS = {
+    { below = 75, name = L.GATHERINGMAP_PAGE_APPRENTICE, range = "1-74" },
+    { below = 150, name = L.GATHERINGMAP_PAGE_JOURNEYMAN, range = "75-149" },
+    { below = 225, name = L.GATHERINGMAP_PAGE_EXPERT, range = "150-224" },
+    { name = L.GATHERINGMAP_PAGE_ARTISAN, range = "225+" },
+}
+
+local function tierOf(skill)
+    for i, tier in ipairs(TIERS) do
+        if not tier.below or (skill or 0) < tier.below then
+            return i
+        end
+    end
+end
 local BIG_ICON = 36 -- the selected node's icon
 local ZONE_ROW = 18
 
@@ -238,20 +256,23 @@ local function newNodeRow(list)
     end)
     row.box:SetPoint("LEFT", INDENT + 4, 0)
     hoverWith(row.box, row)
-    row.icon = newRoundIcon(row, ICON)
-    row.icon:SetPoint("LEFT", row.box, "RIGHT", 2, 0)
-    row.count = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    row.count:SetPoint("RIGHT", -6, 0)
-    row.count:SetWidth(COUNT_WIDTH)
-    row.count:SetJustifyH("RIGHT")
-    -- The skill it takes, in the trainer's colors against this character's.
+    -- The skill it takes, in the trainer's colors against this character's, as a small dark tag
+    -- in front of the icon, like a quest's level before its name.
+    row.tag = row:CreateTexture(nil, "BORDER")
+    row.tag:SetSize(TAG_WIDTH, TAG_HEIGHT)
+    row.tag:SetPoint("LEFT", row.box, "RIGHT", 2, 0)
+    row.tag:SetColorTexture(0, 0, 0, 0.5)
     row.skill = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    row.skill:SetPoint("RIGHT", row.count, "LEFT", -4, 0)
-    row.skill:SetWidth(SKILL_WIDTH)
-    row.skill:SetJustifyH("RIGHT")
+    row.skill:SetAllPoints(row.tag)
+    row.skill:SetJustifyH("CENTER")
+    row.icon = newRoundIcon(row, ICON)
+    row.icon:SetPoint("LEFT", row.tag, "RIGHT", 4, 0)
+    -- How many spots are remembered, in gray at the end: "x12".
+    row.count = row:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    row.count:SetPoint("RIGHT", -6, 0)
     row.text = row:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     row.text:SetPoint("LEFT", row.icon, "RIGHT", 4, 0)
-    row.text:SetPoint("RIGHT", row.skill, "LEFT", -4, 0)
+    row.text:SetPoint("RIGHT", row.count, "LEFT", -4, 0)
     row.text:SetJustifyH("LEFT")
     row.text:SetWordWrap(false)
     row:SetScript("OnClick", function()
@@ -269,7 +290,7 @@ local function fillNodeRow(row, entry, kindOn)
     row.text:SetText(entry.name)
     local shown = kindOn and not module.db.hidden[entry.name]
     row.text:SetFontObject(shown and "GameFontHighlight" or "GameFontDisable")
-    row.count:SetText(entry.spots > 0 and entry.spots or "")
+    row.count:SetText(entry.spots > 0 and format(L.GATHERINGMAP_PAGE_COUNT, entry.spots) or "")
     if entry.skill then
         local color = Professions.Difficulty(Professions.Rank(KIND_LINES[entry.kind]), entry.skill)
         row.skill:SetText(entry.skill)
@@ -277,6 +298,25 @@ local function fillNodeRow(row, entry, kindOn)
     else
         row.skill:SetText("")
     end
+    row.tag:SetShown(entry.skill ~= nil)
+end
+
+-- A trainer rank's line among a kind's nodes: its name in gray, the skills it covers after it, and
+-- a faint line under them. It isn't a button: nothing happens on a click.
+local function newTierRow(list)
+    local row = CreateFrame("Frame", nil, list)
+    row:SetSize(LIST_WIDTH, TIER_HEIGHT)
+    row.text = row:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    row.text:SetPoint("BOTTOMLEFT", INDENT + 4, 3)
+    row.range = row:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    row.range:SetPoint("LEFT", row.text, "RIGHT", 6, 0)
+    row.range:SetAlpha(0.7)
+    local line = row:CreateTexture(nil, "ARTWORK")
+    line:SetColorTexture(1, 1, 1, 0.08)
+    line:SetHeight(1)
+    line:SetPoint("BOTTOMLEFT", INDENT + 4, 0)
+    line:SetPoint("BOTTOMRIGHT", -6, 0)
+    return row
 end
 
 -- The selected node -----------------------------------------------------------------------------
@@ -490,7 +530,7 @@ function refresh()
     local lists = collect()
     local stack = ui.list
     stack.entries = {}
-    local used, any = 0, false
+    local used, tiersUsed, any = 0, 0, false
     local listedByKind = {}
     for index, kind in ipairs(KINDS) do
         local kindOn = not module.db.hiddenKinds[kind.kind]
@@ -511,7 +551,22 @@ function refresh()
             Kit.AddEntry(stack, header, nil, index > 1 and 8 or nil)
             any = any or #listed > 0
             if open then
+                -- The list is sorted by skill, so each rank's line comes once, before its nodes.
+                local lastTier
                 for _, entry in ipairs(listed) do
+                    local tier = tierOf(entry.skill)
+                    if tier ~= lastTier then
+                        lastTier = tier
+                        tiersUsed = tiersUsed + 1
+                        local tierRow = ui.tierRows[tiersUsed]
+                        if not tierRow then
+                            tierRow = newTierRow(stack)
+                            ui.tierRows[tiersUsed] = tierRow
+                        end
+                        tierRow.text:SetText(TIERS[tier].name)
+                        tierRow.range:SetText(TIERS[tier].range)
+                        Kit.AddEntry(stack, tierRow)
+                    end
                     used = used + 1
                     local row = ui.rows[used]
                     if not row then
@@ -529,6 +584,9 @@ function refresh()
     for i = used + 1, #ui.rows do
         ui.rows[i]:Hide()
         ui.rows[i].entry = nil
+    end
+    for i = tiersUsed + 1, #ui.tierRows do
+        ui.tierRows[i]:Hide()
     end
     if not any and search ~= "" then
         Kit.AddEntry(stack, ui.empty)
@@ -566,7 +624,7 @@ end
 -- The page --------------------------------------------------------------------------------------
 
 function module:BuildPage(frame)
-    ui = { headers = {}, rows = {}, frame = frame }
+    ui = { headers = {}, rows = {}, tierRows = {}, frame = frame }
     Kit.AddPageTitle(frame, module.pageTitle)
     Kit.AddSearchBox(frame, nil, L.GATHERINGMAP_PAGE_SEARCH, function(text)
         search = lower(text)
