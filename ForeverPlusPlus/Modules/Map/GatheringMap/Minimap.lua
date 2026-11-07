@@ -6,7 +6,7 @@
 -- clicks always go through to the minimap.
 local _, ns = ...
 
-local pairs = pairs
+local pairs, format = pairs, string.format
 local CreateFrame, Minimap, GameTooltip = CreateFrame, Minimap, GameTooltip
 
 local L = ns.L
@@ -81,6 +81,12 @@ local function onEnter(pin)
         return
     end
     local lines = internal.TooltipLines(node)
+    -- How far it is, for seeing where the game starts drawing its own dot (Near You's distance).
+    local v = MinimapPins.View(zoneMap())
+    if v and v.mapID == nearMap then
+        local yards = Distance(node.x, node.y, v.x, v.y, v.width, v.height)
+        lines[#lines + 1] = ns.MapTooltip.Detail(format(L.GATHERINGMAP_AWAY, yards + 0.5))
+    end
     if pin.near then
         lines[#lines + 1] = ns.MapTooltip.Note(L.GATHERINGMAP_NEAR_NOTE)
     end

@@ -391,6 +391,7 @@ L.GATHERINGMAP_NEAR_YARDS = "Within"
 L.GATHERINGMAP_NEAR_YARDS_DESC = "How close a node is to count as near you."
 L.GATHERINGMAP_YARDS = "%d yd" -- yards
 L.GATHERINGMAP_NEAR_ALPHA_DESC = "How solid the empty ring around a node near you is."
+L.GATHERINGMAP_AWAY = "%d yards away" -- yards
 L.GATHERINGMAP_NEAR_NOTE = "Remembered spot; the game's own dot shows whether it's there now."
 L.GATHERINGMAP_TOOLTIPS = "Minimap Tooltips"
 L.GATHERINGMAP_TOOLTIPS_DESC = "Show a node's tooltip when you point at its icon on the minimap."
