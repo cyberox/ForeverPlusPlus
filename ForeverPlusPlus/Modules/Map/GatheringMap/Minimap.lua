@@ -85,7 +85,9 @@ local function onEnter(pin)
     if v and v.mapID == nearMap then
         yards = Distance(node.x, node.y, v.x, v.y, v.width, v.height)
     end
-    ns.MapTooltip.Show(pin, internal.Title(node), internal.TooltipLines(node, yards))
+    -- Where the game's own tooltip for a minimap dot sits, above the minimap's top left, so the
+    -- two read as one (Cameron's screenshot, 2026-11-07).
+    ns.MapTooltip.Show(pin, internal.Title(node), internal.TooltipLines(node, yards), nil, Minimap)
 end
 
 local function onLeave(pin)

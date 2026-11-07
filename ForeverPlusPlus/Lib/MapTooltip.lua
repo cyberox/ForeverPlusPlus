@@ -76,13 +76,22 @@ end
 
 ---Shows the tooltip for a map icon: `title` (white, or a `{ text, color }` table, as a gathering
 ---node's gold name like the minimap's own tooltip), then the lines as AddLines takes them. With
----`kind`, the title has it in gold at the right edge.
+---`kind`, the title has it in gold at the right edge. With `above`, the tooltip sits above that
+---frame's top left, as the game's own minimap tooltip does over the minimap, rather than beside
+---`owner`.
 ---@param owner table the frame the tooltip sits beside
 ---@param title string|table
 ---@param lines (string|table)[]?
 ---@param kind? string
-function MapTooltip.Show(owner, title, lines, kind)
-    GameTooltip:SetOwner(owner, "ANCHOR_RIGHT")
+---@param above? table
+function MapTooltip.Show(owner, title, lines, kind, above)
+    if above then
+        GameTooltip:SetOwner(owner, "ANCHOR_NONE")
+        GameTooltip:ClearAllPoints()
+        GameTooltip:SetPoint("BOTTOMRIGHT", above, "TOPLEFT")
+    else
+        GameTooltip:SetOwner(owner, "ANCHOR_RIGHT")
+    end
     local white, gold = HIGHLIGHT_FONT_COLOR, NORMAL_FONT_COLOR
     local color = white
     if type(title) == "table" then
