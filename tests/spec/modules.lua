@@ -179,6 +179,9 @@ for _, name in ipairs(ns.order or {}) do
         if default == nil and not option.cvar and not (option.toggle and option.choices) then
             problem("%s has no default", key)
         end
+        if option.choices and option.min then
+            problem("%s has both choices and a slider range; it can only be one", key)
+        end
         if option.choices then
             local found = default == nil
             for _, choice in ipairs(option.choices) do

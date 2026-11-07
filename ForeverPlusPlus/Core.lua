@@ -262,6 +262,19 @@ end
 -- (only what the player changed) apart from what it collects, and a version so the steps that
 -- bring an older layout up to date each run once. `module.db` reads and writes both.
 
+---What control an option is: "dropdown" (it has `choices`), "slider" (`min`), or "checkbox".
+---Settings, `/fpp set`, the public API, and the saved-value checks all go by this.
+---@param option table
+---@return string
+function ns.OptionKind(option)
+    if option.choices then
+        return "dropdown"
+    elseif option.min then
+        return "slider"
+    end
+    return "checkbox"
+end
+
 ---A slider option's value brought into its range and onto its steps, or nil when it isn't a
 ---number.
 ---@param option table an option with `min`, `max` and `step`
@@ -282,7 +295,8 @@ end
 local function checkValues(module)
     for _, option in pairs(module.options or {}) do
         local value = module.db[option.key]
-        if option.choices then
+        local kind = ns.OptionKind(option)
+        if kind == "dropdown" then
             local valid = false
             for _, choice in pairs(option.choices) do
                 valid = valid or choice[1] == value
@@ -290,7 +304,7 @@ local function checkValues(module)
             if not valid then
                 module.db[option.key] = nil -- back to the default: the choice is gone
             end
-        elseif option.min then
+        elseif kind == "slider" then
             -- Only a saved value out of range changes; writing every slider would save its
             -- default as if the player chose it.
             local fixed = ns.SliderValue(option, value)

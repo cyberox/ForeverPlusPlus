@@ -14,7 +14,7 @@
 local addonName, ns = ...
 
 local type, pairs, ipairs, pcall, error = type, pairs, ipairs, pcall, error
-local tonumber, tostring, setmetatable, format, floor = tonumber, tostring, setmetatable, string.format, math.floor
+local tonumber, tostring, setmetatable, floor = tonumber, tostring, setmetatable, math.floor
 local match, sort = string.match, table.sort
 local C_Item, InCombatLockdown = C_Item, InCombatLockdown
 
@@ -89,7 +89,7 @@ local function colorValues(color)
     if type(r) ~= "number" or type(g) ~= "number" or type(b) ~= "number" then
         return nil
     end
-    return r, g, b, format("ff%02x%02x%02x", floor(r * 255 + 0.5), floor(g * 255 + 0.5), floor(b * 255 + 0.5))
+    return r, g, b, ns.Colors.Hex(r, g, b)
 end
 
 -- General ----------------------------------------------------------------------------------------
@@ -117,12 +117,7 @@ end)
 
 -- An option's kind, as Settings draws it.
 local function optionKind(option)
-    if option.choices then
-        return "dropdown"
-    elseif option.min then
-        return "slider"
-    end
-    return "checkbox"
+    return ns.OptionKind(option)
 end
 
 -- The module called `name`, when this client gets it.

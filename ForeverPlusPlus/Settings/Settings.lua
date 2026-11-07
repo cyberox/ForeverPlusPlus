@@ -618,9 +618,10 @@ local RESET_SIZE = 20
 -- An option's default as its control shows it: a slider's text, a dropdown's choice, or checked.
 local function defaultText(module, option)
     local value = module.defaults[option.key]
-    if option.min then
+    local kind = ns.OptionKind(option)
+    if kind == "slider" then
         return sliderText(option, value)
-    elseif option.choices then
+    elseif kind == "dropdown" then
         for _, choice in ipairs(option.choices) do
             if choice[1] == value then
                 return choice[2]
@@ -720,9 +721,10 @@ local function addOptionRow(view, module, option, byKey, done, gate)
         text = optionText(option) .. (pair and "\n" .. optionText(pair) or "") }
     view.found[#view.found + 1] = entry
     view.optionRows[option.key] = entry
-    local paired = pair and pair.min
+    local paired = pair and ns.OptionKind(pair) == "slider"
+    local kind = ns.OptionKind(option)
     local box
-    if paired or not (option.min or option.choices) then
+    if paired or kind == "checkbox" then
         box = newCheckbox(row, 30, function(checked) setOption(module, option, checked) end)
         box:SetPoint("LEFT", CONTROL_LEFT, 0)
     end
@@ -756,7 +758,7 @@ local function addOptionRow(view, module, option, byKey, done, gate)
                 slider:SetEnabled(on() and module.db[option.key] and true or false)
             end
         end
-    elseif option.min then
+    elseif kind == "slider" then
         local slider = newSlider(row, module, option, sliderWidth(row, option, room, 6))
         if not slider then
             return -- leave the option at its default without one
@@ -767,7 +769,7 @@ local function addOptionRow(view, module, option, byKey, done, gate)
             slider:SetEnabled(on())
         end
         addTooltip(row, option.name, option.description, slider.Slider)
-    elseif option.choices then
+    elseif kind == "dropdown" then
         local dropdown = newDropdown(row, module, option, controlWidth(room))
         if not dropdown then
             return

@@ -36,6 +36,9 @@ do
         version = "1.0.0",
         OnModuleChanged = function(fn) moduleChanged = fn end,
         HasEvent = function() return true end,
+        OptionKind = function(option) -- Core's: choices, then a range, else a checkbox
+            return option.choices and "dropdown" or option.min and "slider" or "checkbox"
+        end,
         On = function(event, fn) gameEvents[event] = fn end,
         OpenSettings = function(name) return name == "ItemTooltips" end,
         Frames = { Coalesce = function(fn) return fn end }, -- runs at once, so tests see each call

@@ -149,9 +149,10 @@ end
 -- "on", "off", the choice key, or the number, and what it may be set to.
 local function describe(module, option)
     local value = module.db[option.key]
-    if option.min then
+    local kind = ns.OptionKind(option)
+    if kind == "slider" then
         return tostring(value), format("%s-%s", option.min, option.max)
-    elseif not option.choices then
+    elseif kind == "checkbox" then
         return value and "on" or "off", "on, off"
     end
     local keys = {}
@@ -214,9 +215,10 @@ local function set(rest, flip)
         return
     end
     local new
-    if option.min then
+    local kind = ns.OptionKind(option)
+    if kind == "slider" then
         new = ns.SliderValue(option, value)
-    elseif option.choices then
+    elseif kind == "dropdown" then
         for _, choice in ipairs(option.choices) do
             if choice[1]:lower() == value then
                 new = choice[1]

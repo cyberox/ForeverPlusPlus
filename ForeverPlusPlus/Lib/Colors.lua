@@ -21,14 +21,22 @@ local Colors = {
 }
 ns.Colors = Colors
 
+---A color as Blizzard's "ffrrggbb" hex, as color codes and ColorMixin:GenerateHexColor write it.
+---@param r number 0 to 1
+---@param g number
+---@param b number
+---@return string
+function Colors.Hex(r, g, b)
+    return format("ff%02x%02x%02x", floor(r * 255 + 0.5), floor(g * 255 + 0.5), floor(b * 255 + 0.5))
+end
+
 ---The code that starts text in this color; end the colored part with |r.
 ---@param r number 0 to 1
 ---@param g number
 ---@param b number
 ---@return string
 function Colors.Code(r, g, b)
-    return format("|cff%02x%02x%02x", floor(r * 255 + 0.5), floor(g * 255 + 0.5),
-        floor(b * 255 + 0.5))
+    return "|c" .. Colors.Hex(r, g, b)
 end
 
 ---Text in a color, for a color table with `r`, `g` and `b` (Blizzard's, or one of ours).
