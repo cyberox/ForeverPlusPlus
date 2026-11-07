@@ -114,6 +114,13 @@ eq(Professions.LearnChest("Solid Chest"), false, "chests: no lock doesn't undo o
 eq(Professions.LearnChest("Forgotten Coffer", 50), true, "chests: learn a new one")
 eq(Professions.Chest("Forgotten Coffer"), true, "chests: learned")
 eq(Professions.IsLockpicking("Lockpicking"), true, "chests: the skill by its English name")
+-- Fishing pools: seeded by name, a pool's world object learned with it.
+eq(Professions.Pool("Oily Blackmouth School"), true, "pools: from the seed")
+eq(Professions.Pool("Fishing Bobber"), false, "pools: the bobber isn't one")
+eq(Professions.LearnPool("Muddy Churning Waters", 180369), true, "pools: learn a new one")
+eq(Professions.Pool("Muddy Churning Waters"), true, "pools: learned")
+eq(Professions.PoolByObject(180369), "Muddy Churning Waters", "pools: named by its object")
+eq(Professions.PoolByObject(1), nil, "pools: an object never seen")
 Professions.ForgetNodes()
 eq(Professions.Node("Friedenskraut"), nil, "nodes: forget")
 eq(Professions.Node("Copper Vein")[2], 1, "nodes: forget restores the seed")

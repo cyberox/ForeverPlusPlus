@@ -456,6 +456,7 @@ L.GATHERINGMAP_PAGE_SEARCH = "Search nodes"
 L.GATHERINGMAP_PAGE_HERBS = "Herbs"
 L.GATHERINGMAP_PAGE_ORE = "Ore"
 L.GATHERINGMAP_PAGE_TREASURE = "Treasure"
+L.GATHERINGMAP_PAGE_FISH = "Fishing Pools"
 L.GATHERINGMAP_PAGE_KIND_DESC = "Show this kind of node on both maps, for this character."
 L.GATHERINGMAP_PAGE_SHOW = "Show on Maps"
 L.GATHERINGMAP_PAGE_SUMMARY = "%d nodes, %d spots remembered" -- node count, spot count

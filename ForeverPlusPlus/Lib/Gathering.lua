@@ -28,6 +28,7 @@ local SPELLS = {
     { ns.GameData.Spell(2366, "Herb Gathering"), "herb", Professions.HERBALISM },
     { ns.GameData.Spell(3365, "Opening"), "treasure" },
     { ns.GameData.Spell(1804, "Pick Lock"), "treasure", Professions.LOCKPICKING },
+    { ns.GameData.Spell(7620, "Fishing"), "fish", Professions.FISHING },
 }
 
 local byID = {} -- spell ID -> its entry in SPELLS, or false for a spell that doesn't gather
@@ -63,6 +64,14 @@ end
 
 local WAIT = 1.5 -- seconds after a gather for its loot window, before it's told without loot
 local HOVER_WAIT = 5 -- seconds an object tooltip still names what the player then casts at
+-- Fishing: the cast "succeeds" as the line goes out, and the catch comes when the player clicks the
+-- bobber, up to its 20 second channel later. The pool is where the bobber lands, out in front of
+-- the player (Classic's cast lands about 15 yards off; unverified on Forever).
+local FISH_WAIT = 25
+local CAST_YARDS = 15
+-- The bobber is a world object too: loot from it is open water, not a pool (Classic's Fishing
+-- Bobber, object 35591).
+local BOBBER = 35591
 
 -- The object the player last hovered in the world, for a cast that doesn't name its target.
 local hovered, hoveredAt
@@ -82,9 +91,9 @@ local function onObjectTooltip(_, data)
 end
 
 -- Whether a name the cast didn't give itself (the soft target's, a tooltip's) is something worth
--- remembering: a herb or vein, or a chest.
+-- remembering: a herb or vein, a chest, or a fishing pool.
 local function isNode(name)
-    return Professions.Node(name) ~= nil or Professions.Chest(name)
+    return Professions.Node(name) ~= nil or Professions.Chest(name) or Professions.Pool(name)
 end
 
 -- What the cast is aimed at: its target, else the soft-target object, else the object hovered
@@ -159,6 +168,17 @@ local function playerSpot()
     return mapID, x, y
 end
 
+-- The spot `yards` in front of the player on `mapID`, or x, y as they are when the facing or the
+-- map's size can't be read. Facing is 0 for north and grows turning left; x grows east, y south.
+local function ahead(mapID, x, y, yards)
+    local facing = GetPlayerFacing and GetPlayerFacing()
+    local width, height = ns.WorldMap.Size(mapID)
+    if not (IsNumber(facing) and width and x) then
+        return x, y
+    end
+    return x - math.sin(facing) * yards / width, y - math.cos(facing) * yards / height
+end
+
 local function onSent(_, unit, target, castGUID, spellID)
     if unit ~= "player" then
         return
@@ -177,6 +197,19 @@ local function onSent(_, unit, target, castGUID, spellID)
     end
     local name, from = targetName(target)
     local mapID, x, y = playerSpot()
+    local aimed
+    if spell[2] == "fish" then
+        -- Only a pool is worth remembering; open water is everywhere. The object hovered just
+        -- before the cast, a pool this doesn't know yet, names it if the catch comes from a pool:
+        -- the bobber is hovered only after.
+        if name and not Professions.Pool(name) then
+            name, from = nil, "none"
+        end
+        if not name and hovered and GetTime() - hoveredAt <= HOVER_WAIT then
+            aimed = hovered
+        end
+        x, y = ahead(mapID, x, y, CAST_YARDS)
+    end
     serial = serial + 1
     pending = {
         serial = serial,
@@ -187,6 +220,7 @@ local function onSent(_, unit, target, castGUID, spellID)
         spellID = spellID,
         castGUID = IsText(castGUID) and castGUID or nil,
         sent = GetTime(),
+        aimed = aimed,
         mapID = mapID,
         x = x,
         y = y,
@@ -225,10 +259,16 @@ local function onSucceeded(_, unit, castGUID, spellID)
         return
     end
     -- Told when its loot comes, or without it if none does in time (auto loot that found nothing,
-    -- a chest already empty).
-    C_Timer.After(WAIT, function()
+    -- a chest already empty). A cast at a pool is told only with its catch: one that caught
+    -- nothing says nothing about where the pool is.
+    local fishing = gather.kind == "fish"
+    C_Timer.After(fishing and FISH_WAIT or WAIT, function()
         if pending == gather then
-            tell(gather)
+            if fishing then
+                pending = nil
+            else
+                tell(gather)
+            end
         end
     end)
 end
@@ -362,13 +402,30 @@ local function onLoot(event)
             (event or "") .. ", " .. (gather and (gather.succeeded and "after success" or "before success")
                 or "no gather"))
     end
-    if not gather or gather.looted or (gather.succeeded and GetTime() - gather.succeeded > WAIT) then
+    local wait = gather and gather.kind == "fish" and FISH_WAIT or WAIT
+    if not gather or gather.looted or (gather.succeeded and GetTime() - gather.succeeded > wait) then
         return
     end
     -- A creature's loot isn't the gather's. Where the client can't say, it's taken as the gather's.
     local fromObject, objectID = lootSource()
     if fromObject == false then
         return
+    end
+    -- A catch: from a pool when its source is the pool (anything but the bobber), named by the
+    -- pool the cast was aimed at, what that object was seen as before, or the object hovered just
+    -- before casting. Open water's is dropped.
+    if gather.kind == "fish" then
+        if objectID == BOBBER or not objectID then
+            pending = nil
+            return
+        end
+        local name = gather.name or Professions.PoolByObject(objectID) or gather.aimed
+        if not name then
+            pending = nil
+            return
+        end
+        Professions.LearnPool(name, objectID)
+        gather.name = name
     end
     gather.looted = true
     gather.objectID = objectID

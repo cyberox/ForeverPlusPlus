@@ -1,5 +1,5 @@
 -- Gathering Map in the world map's filter menu (the funnel at its top right): a Gathering Map title
--- and a checkbox for Herbs, Ore, and Treasure, after Blizzard's own. They're the same switches as the
+-- and a checkbox for Herbs, Ore, Treasure, and Fishing Pools, after Blizzard's own. They're the same switches as the
 -- kinds' checkboxes on the Gathering Map page, saved for each character. A kind this character
 -- doesn't have the profession for, with Only My Professions on, is greyed out, its tooltip saying
 -- why: checking it would show nothing.
@@ -19,6 +19,7 @@ local KINDS = {
     { kind = "herb", name = L.GATHERINGMAP_PAGE_HERBS, line = Professions.HERBALISM },
     { kind = "ore", name = L.GATHERINGMAP_PAGE_ORE, line = Professions.MINING },
     { kind = "treasure", name = L.GATHERINGMAP_PAGE_TREASURE },
+    { kind = "fish", name = L.GATHERINGMAP_PAGE_FISH, line = Professions.FISHING },
 }
 
 -- Blizzard's tag for the menu (WorldMapTrackingOptionsButtonMixin:SetupMenu,

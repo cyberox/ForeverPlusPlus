@@ -392,6 +392,61 @@ function Professions.LearnChest(name, need)
     return CHESTS:Learn(name, type(need) == "number" and need or true)
 end
 
+-- Fishing pools -----------------------------------------------------------------------------------
+-- The pools in the world, by name, and the world object ID each was seen with, so a pool's loot
+-- (whose source is the pool) names it even when nothing else did. Seed: Classic's pools, from
+-- memory of Classic Era (2026-11-08), unverified on Forever; play teaches more.
+local POOLS = ns.GameData.New("fishingPools", {
+    ["Floating Wreckage"] = true,
+    ["Floating Debris"] = true,
+    ["Oil Spill"] = true,
+    ["Patch of Elemental Water"] = true,
+    ["School of Deviate Fish"] = true,
+    ["Oily Blackmouth School"] = true,
+    ["Firefin Snapper School"] = true,
+    ["Sagefish School"] = true,
+    ["Greater Sagefish School"] = true,
+    ["Stonescale Eel Swarm"] = true,
+    ["Schooner Wreckage"] = true,
+    ["Waterlogged Wreckage"] = true,
+})
+local POOL_OBJECTS = ns.GameData.New("fishingPoolObjects", {}) -- world object ID -> pool name
+
+---Whether `name` is a fishing pool.
+---@param name string
+---@return boolean
+function Professions.Pool(name)
+    return type(name) == "string" and POOLS:Get(name) == true
+end
+
+---Every fishing pool known: `for name in Professions.EachPool()`.
+---@return function iterator
+function Professions.EachPool()
+    return POOLS:Pairs()
+end
+
+---The pool a world object ID was seen as, or nil.
+---@param objectID number
+---@return string? name
+function Professions.PoolByObject(objectID)
+    return type(objectID) == "number" and POOL_OBJECTS:Get(objectID) or nil
+end
+
+---Learns that `name` is a fishing pool, and with `objectID` that its world object is that one.
+---@param name string
+---@param objectID? number
+---@return boolean changed
+function Professions.LearnPool(name, objectID)
+    if type(name) ~= "string" or name == "" then
+        return false
+    end
+    local changed = POOLS:Learn(name, true)
+    if type(objectID) == "number" then
+        changed = POOL_OBJECTS:Learn(objectID, name) or changed
+    end
+    return changed
+end
+
 ---Whether `skill`, as a requirement line names it, is Lockpicking.
 ---@param skill string
 ---@return boolean

@@ -326,7 +326,7 @@ module:OnWhile(function(db)
 end, { SKILL_LINES_CHANGED = onSkills })
 
 -- The kinds of node remembered.
-local RECORDED = { herb = true, ore = true, treasure = true }
+local RECORDED = { herb = true, ore = true, treasure = true, fish = true }
 
 -- Redraws ----------------------------------------------------------------------------------------
 
@@ -369,10 +369,26 @@ local icons = {} -- node name -> its item's icon, once found
 -- icon, as old as the game.
 local CHEST_ICON = "Interface\\Icons\\INV_Box_02"
 
--- The icon of a node's item, or nil. A chest's is the chest icon.
+-- A pool's icon is the fish it gave most, or a fish when it hasn't given any yet.
+local FISH_ICON = "Interface\\Icons\\INV_Misc_Fish_02"
+
+local function poolIcon(node)
+    local best, most
+    for item, count in pairs(node.loot or {}) do
+        if not most or count > most then
+            best, most = item, count
+        end
+    end
+    local icon = best and C_Item.GetItemIconByID(best)
+    return icon and ns.IsReadable(icon) and icon or FISH_ICON
+end
+
+-- The icon of a node's item, or nil. A chest's is the chest icon, and a pool's its fish.
 local function itemIcon(node)
     if node.kind == "treasure" or Professions.Chest(node.name) then
         return CHEST_ICON
+    elseif node.kind == "fish" or Professions.Pool(node.name) then
+        return poolIcon(node)
     end
     local icon = icons[node.name]
     if icon then

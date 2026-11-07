@@ -28,11 +28,12 @@ local KINDS = {
     { kind = "herb", name = L.GATHERINGMAP_PAGE_HERBS, ranked = true },
     { kind = "ore", name = L.GATHERINGMAP_PAGE_ORE, ranked = true },
     { kind = "treasure", name = L.GATHERINGMAP_PAGE_TREASURE },
+    { kind = "fish", name = L.GATHERINGMAP_PAGE_FISH },
 }
 -- The skill gathering each (a chest's is the Lockpicking a locked one takes).
 local KIND_LINES = { herb = Professions.HERBALISM, ore = Professions.MINING,
-    treasure = Professions.LOCKPICKING }
-local LISTED = { herb = true, ore = true, treasure = true }
+    treasure = Professions.LOCKPICKING, fish = Professions.FISHING }
+local LISTED = { herb = true, ore = true, treasure = true, fish = true }
 
 -- Wider than the Modules page's list, for names like Ooze Covered Mithril Deposit with the skill in
 -- front and the spots behind; the details need less room.
@@ -100,6 +101,9 @@ local function collect()
         byName[name] = { name = name, kind = "treasure", skill = type(value) == "number" and value or nil,
             spots = 0, gathers = 0, zones = {} }
     end
+    for name in Professions.EachPool() do
+        byName[name] = { name = name, kind = "fish", spots = 0, gathers = 0, zones = {} }
+    end
     for mapID, list in pairs(module.db.nodes) do
         for _, node in ipairs(list) do
             local entry = byName[node.name]
@@ -127,7 +131,7 @@ local function collect()
             end
         end
     end
-    local lists = { herb = {}, ore = {}, treasure = {} }
+    local lists = { herb = {}, ore = {}, treasure = {}, fish = {} }
     for _, entry in pairs(byName) do
         local zones = {}
         for _, zone in pairs(entry.zones) do

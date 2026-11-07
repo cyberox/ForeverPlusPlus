@@ -13,8 +13,8 @@ ns.changelog = {
         version = L.CHANGELOG_UNRELEASED,
         sections = {
             { L.CHANGELOG_ADDED, {
-                { L.GATHERINGMAP_TITLE, "A new module that remembers every herb, vein, and treasure "
-                    .. "chest you gather or open, for all your characters, and shows them on the world map as the icon "
+                { L.GATHERINGMAP_TITLE, "A new module that remembers every herb, vein, treasure "
+                    .. "chest, and fishing pool you gather, open, or fish, for all your characters, and shows them on the world map as the icon "
                     .. "of what they give, and on the minimap too, where close to you it becomes an "
                     .. "empty ring that the game's own tracking dot shows inside when the node is up. "
                     .. "Gathering one again moves it closer to where it really is. With Minimap Node "
