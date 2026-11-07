@@ -62,8 +62,8 @@ local module = ns.NewModule("MinimapNodeIcons", L.MINIMAPNODEICONS_DESC, {
     -- { space = a key of SPACES }, once a pass has found a node with it. Data, not a setting.
     calibration = {},
     -- Client build -> true once a check there found the game doesn't answer scans (build 70862,
-    -- 2026-11-07), so on that build the module starts stopped instead of scanning until the
-    -- player points at a dot; a new build is checked again. Data, not a setting.
+    -- 2026-11-07) and turned the module off, so it stays red and says why until it's turned on
+    -- again. Data, not a setting.
     brokenBuilds = {},
 })
 module.title = L.MINIMAPNODEICONS_TITLE
@@ -85,14 +85,15 @@ module.notice = {
         text = L.MINIMAPNODEICONS_BROKEN,
         description = L.MINIMAPNODEICONS_BROKEN_DESC,
         shown = function()
-            return internal.broken
+            return module:Problem()
         end,
     },
 }
 
--- Red on the Modules page while the game doesn't answer its scans (the second notice says why).
+-- Red on the Modules page while the game doesn't answer its scans on this client build (the
+-- second notice says why), on or off: finding that turns the module off.
 function module:Problem()
-    return internal.broken
+    return internal.broken or internal.BrokenHere()
 end
 
 module.options = {
@@ -164,8 +165,9 @@ internal.nodes = {}
 internal.seen = {} -- names the minimap showed that aren't nodes we know, for learning
 internal.tracking = false -- Find Herbs or Find Minerals is on
 internal.blocked = false -- the client refused a probe; stop until /reload
--- A probe couldn't read a dot the player's mouse named: stopped, on this client build for good
--- (brokenBuilds), until a new build is checked again.
+-- A probe couldn't read a dot the player's mouse named: stopped, and the module turns itself off,
+-- with this client build saved (brokenBuilds) so it shows why. The player turns it back on to try
+-- again, on this build or after a game update. Nothing is said in chat.
 internal.broken = false
 
 ---This client's build number, as GetBuildInfo gives it ("70862"), or nil.
@@ -175,17 +177,29 @@ function internal.Build()
     return ns.IsText(build) and build or nil
 end
 
----Marks this build as one the game doesn't answer scans on, or not.
----@param broken boolean
-function internal.SetBroken(broken)
-    internal.broken = broken
+---Whether a check on this client build found the game doesn't answer scans.
+---@return boolean
+function internal.BrokenHere()
+    local build = internal.Build()
+    return build ~= nil and module.db.brokenBuilds[build] == true
+end
+
+---The game doesn't answer scans: saved for this build, and the module turns itself off (after
+---this frame, out of the probe that found it).
+function internal.SetBroken()
+    internal.broken = true
     local build = internal.Build()
     if build then
-        module.db.brokenBuilds[build] = broken or nil
+        module.db.brokenBuilds[build] = true
     end
-    if ns.RefreshSetting then
-        ns.RefreshSetting(module.name)
-    end
+    C_Timer.After(0, function()
+        if module.enabled then
+            ns.SetEnabled(module.name, false)
+        end
+        if ns.RefreshSetting then
+            ns.RefreshSetting(module.name)
+        end
+    end)
 end
 internal.findAll = false -- find every dot at the next tick, after a zoom or a reset
 internal.pass = nil -- the finding pass under way (Nodes.lua)
@@ -439,9 +453,13 @@ local function live()
 end
 
 function module:OnEnable()
-    -- Found broken on this build before: stopped from the start, red on the Modules page.
+    -- Turned on (by the player, since finding it broken turns it off): try again, and check at
+    -- the next dot pointed at.
+    internal.broken = false
     local build = internal.Build()
-    internal.broken = build ~= nil and self.db.brokenBuilds[build] == true
+    if build then
+        self.db.brokenBuilds[build] = nil
+    end
     ns.Gathering.SetLive(live)
     if not frame then
         frame = CreateFrame("Frame", nil, Minimap)

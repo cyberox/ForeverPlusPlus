@@ -1152,8 +1152,8 @@ end
 local RED = RED_FONT_COLOR
 
 -- A row of the list: the module's checkbox and its name, white while it's on and grey while it's
--- off, red while it's on but can't work (`module:Problem()`, its notice says why), with a NEW
--- label while it's new. Clicking it selects the module.
+-- off, red while it can't work (`module:Problem()`, its notice says why; on or off, since a module
+-- can turn itself off for it), with a NEW label while it's new. Clicking it selects the module.
 local function newListRow(name)
     local module = ns.modules[name]
     local row = newListButton(page.list, function() return selected == name end)
@@ -1171,9 +1171,10 @@ local function newListRow(name)
     bind(name, function()
         local font = module.db.enabled and GameFontHighlight or GameFontDisable
         text:SetFontObject(font)
-        -- Red only while it's on: off, it's grey like any other. The color is set either way, since
-        -- a color set on the text outlasts a change of font object.
-        if RED and module.db.enabled and module.Problem and module:Problem() then
+        -- Red while it says it can't work, on or off (Minimap Node Icons turns itself off then).
+        -- The color is set either way, since a color set on the text outlasts a change of font
+        -- object.
+        if RED and module.Problem and module:Problem() then
             text:SetTextColor(RED:GetRGB())
         else
             text:SetTextColor(font:GetTextColor())

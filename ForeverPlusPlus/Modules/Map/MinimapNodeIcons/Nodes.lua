@@ -421,9 +421,9 @@ local function checkHover(v)
     end
     if not internal.blocked then
         internal.nodes, internal.pass = {}, nil
-        -- Its name turns red on the Modules page (module:Problem), its notice says why, and it
-        -- starts stopped on this build from now on.
-        internal.SetBroken(true)
+        -- It turns itself off, its name stays red on the Modules page (module:Problem), and its
+        -- notice says why.
+        internal.SetBroken()
     end
 end
 
