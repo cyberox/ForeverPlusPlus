@@ -1,7 +1,6 @@
 -- Minimap Node Icons' learning: the icon of a node gathered, from Lib/Gathering.lua. The library
 -- teaches Lib/Professions.lua the item a herb or vein gives, for every module; what's left here
--- is a node whose item link couldn't be read, which keeps the loot's icon, and forgetting that the
--- minimap showed a name without one.
+-- is a node whose item link couldn't be read, which keeps the loot's icon.
 local _, ns = ...
 
 local Node = ns.Professions.Node
@@ -18,5 +17,4 @@ function internal.onGather(gather)
     if not item.id and item.icon and not (node and node[3]) then
         module.db.learned[name] = item.icon
     end
-    internal.seen[name] = nil
 end

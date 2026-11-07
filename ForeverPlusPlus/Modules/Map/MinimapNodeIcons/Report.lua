@@ -1,4 +1,5 @@
--- Minimap Node Icons' /fpp nodes and /fpp nodes here: what the probes see, and where a dot answers
+-- Minimap Node Icons' /fpp nodes, /fpp nodes here, and /fpp nodes probe (only while the module is
+-- on, which Core checks before running the command): what the probes see, and where a dot answers
 -- against where its icon is, for finding out in game why icons don't show or sit off their dots.
 local _, ns = ...
 
@@ -22,10 +23,6 @@ local NONE = internal.NONE
 local REPORT_NAMES = 4 -- names listed for each space
 
 local function report()
-    if not module:IsAvailable() then
-        ns.Print(L.MINIMAPNODEICONS_REPORT_UNAVAILABLE)
-        return
-    end
     if InCombatLockdown() then
         ns.Print(L.MINIMAPNODEICONS_REPORT_COMBAT)
         return
@@ -233,7 +230,7 @@ end
 
 ns.AddCommand("nodes", "[here|probe]", L.MINIMAPNODEICONS_COMMAND, function(rest)
     if rest and rest:lower():match("^%s*probe") then
-        if not module:IsAvailable() or InCombatLockdown() then
+        if InCombatLockdown() then
             ns.Print(L.MINIMAPNODEICONS_REPORT_COMBAT)
             return
         end
@@ -241,7 +238,7 @@ ns.AddCommand("nodes", "[here|probe]", L.MINIMAPNODEICONS_COMMAND, function(rest
         return
     end
     if rest and rest:lower():match("^%s*here") then
-        if not module:IsAvailable() or InCombatLockdown() then
+        if InCombatLockdown() then
             ns.Print(L.MINIMAPNODEICONS_REPORT_COMBAT)
             return
         end
