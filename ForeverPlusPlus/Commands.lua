@@ -125,7 +125,8 @@ local function list()
     for _, name in ipairs(ns.order) do
         local module = ns.modules[name]
         if not (module.alwaysOn or module.unavailable) then
-            ns.PrintLine(format("  %s  %s  |cff999999%s|r", ns.StateText(module.db.enabled), name,
+            ns.PrintLine(format("  %s  %s  |cff999999%s|r",
+                ns.StateText(module.db.enabled and not module.locked), name,
                 module.description))
         end
     end

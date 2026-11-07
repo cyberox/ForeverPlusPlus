@@ -159,12 +159,22 @@ do
     local coordsHeard = {}
     coords.OnOptionChanged = function(_, key) coordsHeard[#coordsHeard + 1] = key end
 
+    -- A locked module (one the game broke) stays off, even saved as on.
+    local locked = core.NewModule("Locked", "test", { enabled = true })
+    locked.locked = true
+    local lockedEnables = 0
+    function locked:OnEnable() lockedEnables = lockedEnables + 1 end
+
     eq(host.defaults.extra, true, "lifecycle: a checkbox part defaults to on")
     eq(host.defaults.where, "bottom", "lifecycle: a dropdown part keeps its default")
     eq(host.defaults.side, nil, "lifecycle: a dropdown part isn't defaulted to true")
 
     ForeverPlusPlusDB, ForeverPlusPlusCharDB = nil, nil
     core.Start()
+
+    eq(locked.enabled and true or false, false, "lifecycle: a locked module stays off at login")
+    core.SetEnabled("Locked", true)
+    eq(lockedEnables, 0, "lifecycle: a locked module can't be turned on")
 
     -- PartOn: a dropdown's "off" is off, any other choice on.
     for value, want in pairs({ off = false, top = true, [true] = true, [false] = false }) do

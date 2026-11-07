@@ -295,11 +295,11 @@ L.MINIMAPNODEICONS_NOTICE_DESC = "The game lists its tracking dots nowhere an ad
     .. "isn't on the minimap. This should improve over time with optimizations and changes."
 -- Shown once it found the minimap no longer answers its probes, as since the game's patch of
 -- November 7, 2026 (build 70862).
-L.MINIMAPNODEICONS_BROKEN = "The game stopped answering this module's scans, so it turned itself off."
+L.MINIMAPNODEICONS_BROKEN = "Broken by the game's November 7 update, so it's turned off for now."
 L.MINIMAPNODEICONS_BROKEN_DESC = "Since the game's update of November 7, 2026, the minimap only says "
-    .. "what's under your own mouse, so scanning it finds nothing. Once the module sees that, it "
-    .. "turns itself off and its name stays red. Turn it on again to try once more, such as after "
-    .. "a game update that may have brought this back. Gathering Map still remembers what you "
+    .. "what's under your own mouse, so scanning it finds nothing, for every addon that does this. "
+    .. "It isn't known yet whether that's a bug or on purpose. If a later update fixes it, the "
+    .. "module comes back; if not, it will be removed. Gathering Map still remembers what you "
     .. "gather and the dots you point at."
 -- Its rows on the Profiler page, after "Minimap Node Icons: ".
 L.MINIMAPNODEICONS_PART_VIEW = "reading your spot"

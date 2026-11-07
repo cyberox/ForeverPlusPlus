@@ -71,16 +71,17 @@ module.category = "map"
 module.added = "0.9.0"
 module.internal = {}
 local internal = module.internal
--- Honest about what probing costs and misses (see the top of this file); notices with no button.
--- The second shows once a check found probes can't read the dots (Nodes.lua).
+-- Locked off: since build 70862 (2026-11-07) the minimap answers only for the spot under the real
+-- mouse, so scanning finds nothing, for every addon that tried. Not known whether that's a bug or
+-- on purpose; the module stays (its checkbox can't be ticked, its name red, its first notice
+-- saying why) until a fix shows up, or it's removed. Core keeps a locked module off whatever was
+-- saved (Core.lua `locked`), so none of its code runs. Take this line out to bring it back.
+module.locked = true
+
+-- Why it's off first, then what probing costs and misses (see the top of this file); notices
+-- with no button. The broken one also shows if a check finds probes can't read the dots
+-- (Nodes.lua) once it's unlocked.
 module.notice = {
-    {
-        text = L.MINIMAPNODEICONS_NOTICE,
-        description = L.MINIMAPNODEICONS_NOTICE_DESC,
-        shown = function()
-            return true
-        end,
-    },
     {
         text = L.MINIMAPNODEICONS_BROKEN,
         description = L.MINIMAPNODEICONS_BROKEN_DESC,
@@ -88,12 +89,19 @@ module.notice = {
             return module:Problem()
         end,
     },
+    {
+        text = L.MINIMAPNODEICONS_NOTICE,
+        description = L.MINIMAPNODEICONS_NOTICE_DESC,
+        shown = function()
+            return true
+        end,
+    },
 }
 
--- Red on the Modules page while the game doesn't answer its scans on this client build (the
--- second notice says why), on or off: finding that turns the module off.
+-- Red on the Modules page while it's locked, or once the game doesn't answer its scans on this
+-- client build (the first notice says why), on or off: finding that turns the module off.
 function module:Problem()
-    return internal.broken or internal.BrokenHere()
+    return module.locked or internal.broken or internal.BrokenHere()
 end
 
 module.options = {

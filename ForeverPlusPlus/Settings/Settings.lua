@@ -484,11 +484,14 @@ local function setOption(module, option, value)
     ns.RefreshSetting(module.name)
 end
 
--- The module's on/off checkbox, kept in step with its other one.
+-- The module's on/off checkbox, kept in step with its other one. A locked module's (`locked`, one
+-- the game broke) is unchecked and can't be clicked; its notice says why.
 local function newModuleCheck(parent, name, size)
     local box = newCheckbox(parent, size, function(checked) setEnabled(name, checked) end)
     bind(name, function()
-        box:SetChecked(ns.modules[name].db.enabled and true or false)
+        local module = ns.modules[name]
+        box:SetChecked(not module.locked and module.db.enabled and true or false)
+        box:SetEnabled(not module.locked)
     end)
     return box
 end
@@ -682,7 +685,7 @@ local function addOptionRow(view, module, option, byKey, done, gate)
             return false
         end
         -- Off with the module, and with its part's checkbox (`part`) when it's one of a part's.
-        if not module.db.enabled or option.part and not ns.PartOn(module, option.part) then
+        if not module.db.enabled or module.locked or option.part and not ns.PartOn(module, option.part) then
             return false
         end
         -- Off while what it needs isn't there (`available`), such as another addon.
@@ -879,7 +882,7 @@ end
 local function addModuleRows(view, module)
     local name = module.name
     local function on()
-        return module.db.enabled and true or false
+        return module.db.enabled and not module.locked and true or false
     end
     -- A gray row while `shown()` is true (always without one), such as a Blizzard setting the
     -- module needs being off, with a button that fixes it. ns.CVars.OffNotice makes one for a CVar.
@@ -1169,7 +1172,7 @@ local function newListRow(name)
     text:SetText(module.title or name)
     local mark = newMark(row, text, LIST_WIDTH - 26, name, module)
     bind(name, function()
-        local font = module.db.enabled and GameFontHighlight or GameFontDisable
+        local font = module.db.enabled and not module.locked and GameFontHighlight or GameFontDisable
         text:SetFontObject(font)
         -- Red while it says it can't work, on or off (Minimap Node Icons turns itself off then).
         -- The color is set either way, since a color set on the text outlasts a change of font

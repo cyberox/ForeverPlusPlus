@@ -56,10 +56,10 @@ ns.changelog = {
                     .. "icon whose spot was fixed while you stood still stays put as you move off." },
                 { L.MINIMAPNODEICONS_TITLE, "Since the game's update of November 7, the minimap only "
                     .. "answers for the spot under your own mouse, so the module can't find the dots. "
-                    .. "Once it sees that (after you point at a dot), it turns itself off, its name "
-                    .. "stays red in the Modules list, and a note in its settings says why. Turn it on "
-                    .. "again to try once more, such as after a game update. It's no longer part of "
-                    .. "Developer's Defaults. /fpp nodes probe tests what the minimap still answers." },
+                    .. "It's turned off for now: its name is red in the Modules list, its checkbox "
+                    .. "can't be ticked, and a note in its settings says why. It isn't known yet "
+                    .. "whether that's a bug or on purpose; it comes back if a later update fixes it, "
+                    .. "or will be removed. It's no longer part of Developer's Defaults." },
                 { L.UPGRADEARROWS_TITLE, "The arrow is 18 pixels by default instead of 20. A size "
                     .. "you picked stays." },
                 { L.ALREADYKNOWN_TITLE, "The green check is 18 pixels on a bag icon instead of 14, the "

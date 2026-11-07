@@ -999,7 +999,8 @@ function ns.Start()
         end
         -- A module only for some clients (IsAvailable false) stays off and out of sight.
         module.unavailable = module.IsAvailable and not module:IsAvailable() or nil
-        if module.db.enabled and not module.unavailable then
+        -- A locked module (`module.locked`, one the game broke) stays off, whatever was saved.
+        if module.db.enabled and not module.unavailable and not module.locked then
             enable(module)
         end
     end
@@ -1011,8 +1012,9 @@ end
 ---@param on boolean
 function ns.SetEnabled(name, on)
     local module = ns.modules[name]
-    if module.alwaysOn or module.unavailable then
-        return -- a tool that's always there, or a module this client doesn't get
+    if module.alwaysOn or module.unavailable or (module.locked and on) then
+        -- a tool that's always there, a module this client doesn't get, or one that's locked off
+        return
     end
     local was = module.enabled and true or false
     module.db.enabled = on
