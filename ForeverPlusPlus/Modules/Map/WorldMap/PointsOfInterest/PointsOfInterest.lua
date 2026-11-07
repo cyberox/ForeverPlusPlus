@@ -542,6 +542,47 @@ local function listenForLeyLines(self)
     end
 end
 
+-- Debug's Find New Dungeons: every dungeon or raid the game knows that Data.lua doesn't place, so
+-- Forever's new ones can be added. In chat: each entrance the game puts on a zone's map, with its
+-- spot, then each one the dungeon finder lists with no entrance anywhere.
+local function findDungeons()
+    ns.Instances.Refresh()
+    local found, seen = 0, {}
+    if C_EncounterJournal and C_EncounterJournal.GetDungeonEntrancesForMap and C_Map.GetMapInfo then
+        for mapID = 1, 3000 do
+            local info = C_Map.GetMapInfo(mapID)
+            if info and Enum.UIMapType and info.mapType == Enum.UIMapType.Zone then
+                for _, entrance in ipairs(C_EncounterJournal.GetDungeonEntrancesForMap(mapID) or {}) do
+                    local name = entrance.name
+                    if ns.IsText(name, true) and not placedByUs(name) then
+                        local x, y = entrance.position:GetXY()
+                        ns.Print(format(L.POI_FIND_ENTRANCE, name, info.name or mapID, x * 100, y * 100))
+                        seen[name] = true
+                        found = found + 1
+                    end
+                end
+            end
+        end
+    end
+    for _, instance in pairs(ns.Instances.byKey) do
+        local name = ns.Instances.Name(instance)
+        if name and not seen[name] and not placedByUs(name) then
+            ns.Print(format(L.POI_FIND_FINDER, name, ns.Instances.Levels(instance)))
+            found = found + 1
+        end
+    end
+    if found == 0 then
+        ns.Print(L.POI_FIND_NONE)
+    end
+end
+
+ns.modules.WorldMap.debugActions = {
+    {
+        name = L.POI_FIND, button = L.POI_FIND_BUTTON, description = L.POI_FIND_DESC,
+        section = L.DEBUG_SECTION_TOOLS, whileOff = true, fn = findDungeons,
+    },
+}
+
 -- What the public API reads while this is on (API.lua's GetKnownFlightPoints, which copies it):
 -- the flight points this character has seen as learned at a flight master, which Forever's own
 -- map list can't say.

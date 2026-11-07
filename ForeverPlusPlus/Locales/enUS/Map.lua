@@ -21,6 +21,14 @@ L.WORLDMAP_DESC = "Add to the world map: points of interest, a zone info panel, 
 -- PointsOfInterest. Place names on the map come from the game, or from Data.lua.
 L.WORLDMAP_FILTER_TRAVEL = "Boats and Zeppelins" -- one checkbox for both, in the world map's filter menu
 L.POI_TITLE = "Points of Interest"
+-- Debug's button that lists the dungeons the map doesn't place yet
+L.POI_FIND = "Find New Dungeons"
+L.POI_FIND_BUTTON = "Find"
+L.POI_FIND_DESC = "List in chat every dungeon and raid the game knows that the map doesn't show "
+    .. "yet: entrances the game places, with their spot, and ones only the dungeon finder lists."
+L.POI_FIND_ENTRANCE = "Entrance: %s, %s %.1f, %.1f" -- dungeon, zone, x, y
+L.POI_FIND_FINDER = "In the dungeon finder, no entrance known: %s (%s)" -- dungeon, levels
+L.POI_FIND_NONE = "Every dungeon and raid the game knows is on the map already."
 -- Smaller headers over its options in Settings
 L.POI_SECTION_INSTANCES = "Dungeons and Raids"
 L.POI_SECTION_TRAVEL = "Cities and Travel"
