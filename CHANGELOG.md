@@ -6,13 +6,14 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 ### Added
 
-- **Gathering Map**: a new module that remembers every herb and vein you gather, for all your characters, and shows them on the world map and the minimap as the icon of what they give. Gathering one again moves its icon closer to where it really is. Only My Professions (on by default) shows each character only what it can gather. On by default.
+- **Gathering Map**: a new module that remembers every herb and vein you gather, for all your characters, and shows them on the world map and the minimap as the icon of what they give. Gathering one again moves its icon closer to where it really is. With Minimap Node Icons on, it also remembers the nodes it finds on the minimap before you gather them. Only My Professions (on by default) shows each character only what it can gather, and Only While Tracking (on by default) shows herbs only while Find Herbs is on and ore only while Find Minerals is. On by default.
 - **Appearance Icons**: a new module: gear whose appearance you haven't collected gets Blizzard's transmogrifier icon in a corner of its icon, top right by default, in your bags and bank, at merchants, in the auction house, and in loot, and so does a recipe that makes it, on its row in the professions window (at the right end by default). A corner Upgrade Arrows or Already Known also uses gets a warning. On by default.
 - **Already Known**: Corner, Check Size, and Padding for the green check, like Upgrade Arrows' arrow. A corner Upgrade Arrows also uses gets a warning.
 - **Spell Ranks**: Corner, Badge Size, and Padding for the warning badge.
 
 ### Changed
 
+- **Minimap Node Icons**: with Gathering Map on, a dot found while you move gets the spot remembered for it right away instead of sliding into place, and an icon whose spot was fixed while you stood still stays put as you move off.
 - **Upgrade Arrows**: the arrow is 18 pixels by default instead of 20. A size you picked stays.
 - **Already Known**: the green check is 18 pixels on a bag icon instead of 14, the same as the other marks.
 - **Spell Ranks**: the warning badge is 18 pixels instead of 16, the same as the other marks.

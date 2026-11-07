@@ -46,6 +46,20 @@ eq(found, nil, "nearest: nothing matches")
 found = Gathering.Nearest(list, 0.509, 0.505, W, H, 5)
 eq(found and found.x, 0.51, "nearest: the closest within the radius")
 
+-- Sightings: a node seen on the minimap, not gathered.
+local seen = {}
+node, new = Gathering.See(seen, "Peacebloom", "herb", 0.3, 0.3, W, H, 1000)
+eq(new, true, "see: a first sighting is a new node")
+eq(node.count .. ":" .. node.sightings, "0:1", "see: seen, never gathered")
+node = Gathering.See(seen, "Peacebloom", "herb", 0.3, 0.31, W, H, 1030)
+eq(node.sightings .. ":" .. node.y, "1:0.3", "see: seen again on the same visit changes nothing")
+node = Gathering.See(seen, "Peacebloom", "herb", 0.3, 0.31, W, H, 2000)
+eq(node.sightings .. ":" .. node.y, "2:0.305", "see: a later visit moves it")
+node, new = Gathering.Add(seen, "Peacebloom", "herb", 0.3, 0.305, W, H, 2100)
+eq(new, false, "see: gathering a node seen is the same node")
+eq(node.count, 1, "see: and counts its first gather")
+eq(#seen, 1, "see: one node")
+
 -- The average counts at most ten gathers, so a node that moved still follows.
 local moved = { { name = "Peacebloom", kind = "herb", x = 0.2, y = 0.2, count = 50, time = 1 } }
 node = Gathering.Add(moved, "Peacebloom", "herb", 0.2055, 0.2, W, H, 1000)

@@ -17,6 +17,7 @@ local module = ns.NewModule("GatheringMap", L.GATHERINGMAP_DESC, {
     enabled = true,
     onlyMine = true, -- only nodes this character has the profession for
     onlyTracking = true, -- herbs only while Find Herbs is on, ore while Find Minerals is
+    sightings = true, -- also remember the nodes Minimap Node Icons sees, not gathered
     icon = "item", -- "item" (the node's item's icon, a circle without one) or "circle"
     shape = "round", -- an item icon "round" or "square"
     ring = true, -- the minimap's gold ring around a round icon
@@ -44,6 +45,7 @@ local LOOK, MINIMAP, WORLD = L.GATHERINGMAP_SECTION_LOOK, L.GATHERINGMAP_SECTION
 module.options = {
     { key = "onlyMine", name = L.GATHERINGMAP_ONLY_MINE, description = L.GATHERINGMAP_ONLY_MINE_DESC },
     { key = "onlyTracking", name = L.GATHERINGMAP_ONLY_TRACKING, description = L.GATHERINGMAP_ONLY_TRACKING_DESC },
+    { key = "sightings", name = L.GATHERINGMAP_SIGHTINGS, description = L.GATHERINGMAP_SIGHTINGS_DESC },
     {
         key = "icon", name = L.GATHERINGMAP_ICON, description = L.GATHERINGMAP_ICON_DESC, section = LOOK,
         choices = {
@@ -238,7 +240,11 @@ end
 ---@return table lines
 function internal.TooltipLines(node)
     local lines = { internal.KIND_NAMES[node.kind] or node.kind }
-    lines[#lines + 1] = ns.MapTooltip.Detail(format(L.GATHERINGMAP_GATHERED, node.count))
+    if node.count > 0 then
+        lines[#lines + 1] = ns.MapTooltip.Detail(format(L.GATHERINGMAP_GATHERED, node.count))
+    else
+        lines[#lines + 1] = ns.MapTooltip.Detail(L.GATHERINGMAP_SEEN)
+    end
     if node.time then
         lines[#lines + 1] = ns.MapTooltip.Note(format(L.GATHERINGMAP_LAST, ns.Text.Ago(time() - node.time)))
     end
@@ -259,6 +265,54 @@ local function log(gather, result)
         gather.objectID or "-", where, result))
 end
 
+-- The list of a map's nodes and its size in yards, the list made when `make` is set; nil where
+-- the map has no size.
+local function mapNodes(mapID, make)
+    local width, height = ns.WorldMap.Size(mapID)
+    if not width then
+        return nil
+    end
+    local nodes = module.db.nodes
+    local list = nodes[mapID]
+    if not list and make then
+        list = {}
+        nodes[mapID] = list
+    end
+    return list, width, height
+end
+
+-- A node Minimap Node Icons saw where it really is, while the player stood still.
+local function onSighting(sighting)
+    if not (module.db.sightings and RECORDED[sighting.kind]) then
+        return
+    end
+    local list, width, height = mapNodes(sighting.mapID, true)
+    if not list then
+        return
+    end
+    local _, new = Gathering.See(list, sighting.name, sighting.kind, sighting.x, sighting.y, width,
+        height, time())
+    if new then
+        internal.Changed(sighting.mapID)
+    end
+end
+
+local LOOKUP = 25 -- yards from a dot first seen while moving to the node remembered for it
+
+-- For Minimap Node Icons: the spot of the node remembered nearest where it saw a dot.
+local function rememberedSpot(name, mapID, x, y)
+    local list, width, height = mapNodes(mapID)
+    if not list then
+        return nil
+    end
+    local node = Gathering.Nearest(list, x, y, width, height, LOOKUP, function(known)
+        return known.name == name
+    end)
+    if node then
+        return node.x, node.y
+    end
+end
+
 local function onGather(gather)
     if not RECORDED[gather.kind] then
         log(gather, L.GATHERINGMAP_LOG_KIND)
@@ -268,19 +322,13 @@ local function onGather(gather)
         return
     end
     local mapID = gather.mapID
-    local width, height
+    local list, width, height
     if mapID then
-        width, height = ns.WorldMap.Size(mapID)
+        list, width, height = mapNodes(mapID, true)
     end
-    if not width then
+    if not list then
         log(gather, L.GATHERINGMAP_LOG_NOWHERE)
         return
-    end
-    local nodes = module.db.nodes
-    local list = nodes[mapID]
-    if not list then
-        list = {}
-        nodes[mapID] = list
     end
     local node, new = Gathering.Add(list, gather.name, gather.kind, gather.x, gather.y, width, height, time())
     for _, item in pairs(gather.items) do
@@ -298,6 +346,8 @@ end
 function module:OnEnable()
     readTracking()
     Gathering.Listen(onGather, true)
+    Gathering.ListenSightings(onSighting, true)
+    Gathering.SetRemembered(rememberedSpot)
     if internal.EnableMap then
         internal.EnableMap()
     end
@@ -308,6 +358,8 @@ end
 
 function module:OnDisable()
     Gathering.Listen(onGather, false)
+    Gathering.ListenSightings(onSighting, false)
+    Gathering.SetRemembered(nil)
     if internal.DisableMap then
         internal.DisableMap()
     end

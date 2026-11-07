@@ -34,7 +34,22 @@ local function zoneMap()
     return ns.WorldMap.Zone(best) or best
 end
 
--- The nodes within NEAR radii of the player on view `v`'s map.
+local LIVE_YARDS = 10 -- a remembered node this close to a live icon of its name is that node
+
+-- Whether Minimap Node Icons draws `node` on its live dot now, so ours would sit under it.
+local function isLive(node, liveList, v)
+    for i = 1, #liveList do
+        local other = liveList[i]
+        if other.name == node.name and other.x
+            and ns.Gathering.Distance(node.x, node.y, other.x, other.y, v.width, v.height) <= LIVE_YARDS then
+            return true
+        end
+    end
+    return false
+end
+
+-- The nodes within NEAR radii of the player on view `v`'s map, but for those Minimap Node Icons
+-- draws on their live dots already.
 local function findNear(v)
     local count = 0
     local list = module.db.nodes[v.mapID]
@@ -42,8 +57,12 @@ local function findNear(v)
         local reach = v.half * NEAR
         local reach2 = reach * reach
         local shown = internal.Shown
+        local liveMap, liveList = ns.Gathering.Live()
+        if liveMap ~= v.mapID or not liveList or #liveList == 0 then
+            liveList = nil
+        end
         for _, node in pairs(list) do
-            if shown(node) then
+            if shown(node) and not (liveList and isLive(node, liveList, v)) then
                 local right, up = ToMinimap(v, node.x, node.y)
                 if right * right + up * up <= reach2 then
                     count = count + 1

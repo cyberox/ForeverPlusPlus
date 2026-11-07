@@ -341,6 +341,10 @@ L.GATHERINGMAP_ONLY_MINE_DESC = "Show herbs only on a character with Herbalism a
 L.GATHERINGMAP_ONLY_TRACKING = "Only While Tracking"
 L.GATHERINGMAP_ONLY_TRACKING_DESC = "Show herbs only while Find Herbs is on and ore only while Find "
     .. "Minerals is on. With Gathering Tracking swapping between the two, they come and go with it."
+L.GATHERINGMAP_SIGHTINGS = "Remember Nodes Seen"
+L.GATHERINGMAP_SIGHTINGS_DESC = "With Minimap Node Icons on, also remember the herbs and veins it "
+    .. "finds on the minimap, so they show here before you gather them. Gathering them later counts "
+    .. "them too."
 -- Smaller headers over its options in Settings
 L.GATHERINGMAP_SECTION_LOOK = "Look"
 L.GATHERINGMAP_SECTION_MINIMAP = "Minimap"
@@ -386,3 +390,4 @@ L.GATHERINGMAP_KIND_FISH = "Fishing Pool"
 -- A node's tooltip
 L.GATHERINGMAP_GATHERED = "Gathered %d times" -- count
 L.GATHERINGMAP_LAST = "Last gathered %s" -- "3h ago"
+L.GATHERINGMAP_SEEN = "Seen on the minimap, not gathered yet"

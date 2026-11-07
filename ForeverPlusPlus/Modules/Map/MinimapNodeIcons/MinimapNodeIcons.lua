@@ -391,7 +391,13 @@ end
 
 -- Turning on and off ------------------------------------------------------------------------------
 
+-- The nodes with an icon now, for Gathering Map not to draw its own under them.
+local function live()
+    return nodesMap, internal.nodes
+end
+
 function module:OnEnable()
+    ns.Gathering.SetLive(live)
     if not frame then
         frame = CreateFrame("Frame", nil, Minimap)
         frame:SetAllPoints(Minimap)
@@ -418,6 +424,7 @@ function module:OnDisable()
         frame:Hide()
     end
     ns.Gathering.Listen(internal.onGather, false)
+    ns.Gathering.SetLive(nil)
     internal.nodes, nodesMap, internal.pass = {}, nil, nil
 end
 

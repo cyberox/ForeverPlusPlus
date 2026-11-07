@@ -311,6 +311,17 @@ function Gathering.Nearest(list, x, y, width, height, radius, match)
     return best, bestYards
 end
 
+-- Moves a node's spot toward x, y, by one part in as many as the gathers and sightings it has
+-- (up to WEIGHT).
+local function average(node, x, y)
+    local weight = node.count + (node.sightings or 0)
+    if weight > WEIGHT then
+        weight = WEIGHT
+    end
+    node.x = Gathering.Round((node.x * weight + x) / (weight + 1))
+    node.y = Gathering.Round((node.y * weight + y) / (weight + 1))
+end
+
 ---Adds a gather of the node `name` at x, y to a map's nodes: the same node within `radius` yards
 ---counts it once more and moves its spot toward this one (unless it was gathered in the last two
 ---minutes, the same visit); else it's a new node. Returns the node
@@ -335,9 +346,7 @@ function Gathering.Add(list, name, kind, x, y, width, height, now, radius)
         node.time = now
         return node, false
     elseif node then
-        local weight = node.count < WEIGHT and node.count or WEIGHT
-        node.x = Gathering.Round((node.x * weight + x) / (weight + 1))
-        node.y = Gathering.Round((node.y * weight + y) / (weight + 1))
+        average(node, x, y)
         node.count = node.count + 1
         node.kind = kind
         node.time = now
@@ -346,6 +355,141 @@ function Gathering.Add(list, name, kind, x, y, width, height, now, radius)
     node = { name = name, kind = kind, x = Gathering.Round(x), y = Gathering.Round(y), count = 1, time = now }
     list[#list + 1] = node
     return node, true
+end
+
+---Adds a sighting of the node `name` at x, y to a map's nodes (seen on the minimap, not gathered):
+---like Add, but it doesn't count as a gather. The same node within `radius` yards moves toward
+---it, once a visit; else it's a new node, gathered 0 times. Returns the node and whether it's new.
+---@param list table a map's nodes
+---@param name string
+---@param kind string
+---@param x number
+---@param y number
+---@param width number the map's size in yards
+---@param height number
+---@param now number time()
+---@param radius? number yards, Gathering.RADIUS by default
+---@return table node
+---@return boolean new
+function Gathering.See(list, name, kind, x, y, width, height, now, radius)
+    local node = Gathering.Nearest(list, x, y, width, height, radius or Gathering.RADIUS, function(known)
+        return known.name == name
+    end)
+    if node then
+        if not (node.seen and now - node.seen < VISIT) then
+            average(node, x, y)
+            node.sightings = (node.sightings or 0) + 1
+        end
+        node.seen = now
+        return node, false
+    end
+    node = { name = name, kind = kind, x = Gathering.Round(x), y = Gathering.Round(y), count = 0,
+        sightings = 1, seen = now }
+    list[#list + 1] = node
+    return node, true
+end
+
+-- Sightings and remembered spots ------------------------------------------------------------------
+-- What one module that sees nodes (Minimap Node Icons, reading the minimap's dots) and one that
+-- remembers them (Gathering Map) tell each other, through here so neither reaches into the other.
+-- Either works alone; each is better with the other on.
+
+local sightListeners = {} -- fn -> true
+local remembered -- fn(name, mapID, x, y): the spot of a node remembered near there, or nil
+
+-- A spot on `mapID` as one on its zone's map (a cave's spot on the zone around it).
+local function onZone(mapID, x, y)
+    local zone = ns.WorldMap.Zone(mapID)
+    if not zone or zone == mapID then
+        return mapID, x, y
+    end
+    x, y = ns.MapPins.Translate(mapID, zone, x, y)
+    if x then
+        return zone, x, y
+    end
+end
+
+---Calls `fn(sighting)` each time a module sees a herb or vein where it really is, without the
+---player gathering it, while `on`. `sighting` is `{ name, kind, mapID, x, y }`, on the zone's map.
+---@param fn fun(sighting: table)
+---@param on boolean
+function Gathering.ListenSightings(fn, on)
+    sightListeners[fn] = on and true or nil
+end
+
+---Tells the modules listening that the herb or vein `name` is at x, y on `mapID`: a spot known to
+---be the node's own (as a minimap dot's, read while the player stood still), not where the
+---player stood. Does nothing for a name that isn't a node known by its kind.
+---@param name string
+---@param mapID number
+---@param x number
+---@param y number
+function Gathering.Sighted(name, mapID, x, y)
+    if not next(sightListeners) then
+        return
+    end
+    local kind = Professions.Kind(name)
+    if not kind then
+        return
+    end
+    mapID, x, y = onZone(mapID, x, y)
+    if not mapID then
+        return
+    end
+    local sighting = { name = name, kind = kind, mapID = mapID, x = x, y = y }
+    for fn in pairs(sightListeners) do
+        fn(sighting)
+    end
+end
+
+---Sets where remembered nodes are looked up: `fn(name, mapID, x, y)` gives the spot on the zone's
+---map `mapID` of the node `name` remembered nearest x, y, or nil. Nil to stop, when the module
+---that remembers them turns off.
+---@param fn? fun(name: string, mapID: number, x: number, y: number): number?, number?
+function Gathering.SetRemembered(fn)
+    remembered = fn
+end
+
+---The spot of the node `name` remembered nearest x, y on `mapID` (any map; a cave's is looked up
+---on its zone's), on `mapID`, or nil when none is remembered there or nothing remembers nodes.
+---@param name string
+---@param mapID number
+---@param x number
+---@param y number
+---@return number? x
+---@return number? y
+function Gathering.Remembered(name, mapID, x, y)
+    if not remembered then
+        return nil
+    end
+    local zone, zx, zy = onZone(mapID, x, y)
+    if not zone then
+        return nil
+    end
+    local rx, ry = remembered(name, zone, zx, zy)
+    if not rx or zone == mapID then
+        return rx, ry
+    end
+    return ns.MapPins.Translate(zone, mapID, rx, ry)
+end
+
+local live -- fn(): the map ID and the nodes with an icon on the minimap's live dots now
+
+---Sets where the nodes drawn on the minimap's own dots right now are read: `fn()` gives a map ID
+---and a list of `{ name, x, y }` on it. Nil to stop, when the module that draws them turns off.
+---@param fn? fun(): number?, table?
+function Gathering.SetLive(fn)
+    live = fn
+end
+
+---The map ID and the nodes drawn on the minimap's own dots right now (`{ name, x, y }` on it), so
+---a module drawing remembered nodes can leave those be. Nil when nothing draws them.
+---@return number? mapID
+---@return table? nodes
+function Gathering.Live()
+    if live then
+        return live()
+    end
 end
 
 ---Calls `fn(gather)` each time the player gathers something, while `on`: a module listens in

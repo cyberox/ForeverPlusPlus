@@ -10,6 +10,7 @@ local L = ns.L
 local Professions = ns.Professions
 local Requires = ns.GameData.Requires
 local Profiler = ns.Profiler
+local Gathering = ns.Gathering
 
 local module = ns.modules.MinimapNodeIcons
 local internal = module.internal
@@ -181,12 +182,23 @@ local function followAll(v, space)
                     -- Standing still the answer is where the dot is. A node without a spot yet
                     -- (found with no view) takes this one, trail and all, until the player stops.
                     moveNode(node, fromMinimap(v, foundR, foundU))
+                    if trusted then
+                        node.exact = true
+                        -- Where the node really is, for Gathering Map to remember (once a node).
+                        if not node.reported then
+                            node.reported = true
+                            Gathering.Sighted(node.name, v.mapID, node.x, node.y)
+                        end
+                    end
                 else
                     noteLag(foundR - right, foundU - up)
                     -- Moving, the answer less the trail is where the dot is, give or take: the
                     -- spot creeps toward it each round, so there's little left to fix on stopping.
-                    local x, y = fromMinimap(v, foundR - lagR, foundU - lagU)
-                    moveNode(node, node.x + (x - node.x) * NUDGE, node.y + (y - node.y) * NUDGE)
+                    -- A spot known exactly (fixed standing still, or remembered) stays put.
+                    if not node.exact then
+                        local x, y = fromMinimap(v, foundR - lagR, foundU - lagU)
+                        moveNode(node, node.x + (x - node.x) * NUDGE, node.y + (y - node.y) * NUDGE)
+                    end
                 end
             end
         else
@@ -243,7 +255,8 @@ end
 
 -- Adds a node for a dot that answered at a spot. Moving, the trail is taken off before the spot
 -- is placed on the map: the one measured now, or else the last one measured, which is closer than
--- none; following corrects it from there.
+-- none; following corrects it from there. Better still, a node Gathering Map remembers near there
+-- takes its remembered spot right away.
 local function addNode(name, icon, right, up, gray, v)
     local node = { name = name, icon = icon, right = right, up = up, level = gray, misses = 0,
         standing = internal.standing(name) }
@@ -253,6 +266,12 @@ local function addNode(name, icon, right, up, gray, v)
             placeR, placeU = right - lagR, up - lagU
         end
         node.x, node.y = fromMinimap(v, placeR, placeU)
+        if not still() then
+            local x, y = Gathering.Remembered(name, v.mapID, node.x, node.y)
+            if x then
+                node.x, node.y, node.exact = x, y, true
+            end
+        end
     end
     local nodes = internal.nodes
     nodes[#nodes + 1] = node
