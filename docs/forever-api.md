@@ -330,6 +330,7 @@ From the Gear Probe tool (the Debug module's settings, `/fpp gearprobe`), run on
     - The bobber is object 35591 on Forever too. **[in-game]** (2026-11-08)
     - Five catches all came from the bobber (`GetLootSourceInfo`). Whether any of them landed in a pool is unknown, so it's still open whether a pool's catch ever comes from the pool itself. **[in-game]** (2026-11-08)
     - So a catch from the bobber counts as a pool's only when a known pool's name was seen around the cast: hovered just before, or its tooltip seen while the line was out. A catch from any other world object is taken as that pool's.
+    - Hovering Floating Debris and fishing it saved the pool. A cast in open water saved nothing and learned the bobber's name ("Fishing Bobber"). **[in-game]** (2026-11-08)
   - **Pool names:** named by the pool hovered before the cast, or by the object ID seen with that name before.
   - **Pool spot:** estimated as 15 yards in front of the player (`GetPlayerFacing`).
   - **Catch timing:** a catch has to come within 25 seconds of the cast, which assumes Classic's 20 second channel.
