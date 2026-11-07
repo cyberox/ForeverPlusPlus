@@ -36,7 +36,7 @@ end
 ---@param module table
 ---@param names string|string[] the CVar, or its names newest first
 ---@param text string the row's short gray label
----@param description string its tooltip: what doesn't work and where else to turn it on
+---@param description string its tooltip: what doesn't work while the CVar is off
 ---@return table notice for `module.notice`
 function CVars.OffNotice(module, names, text, description)
     return {

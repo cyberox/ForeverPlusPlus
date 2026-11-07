@@ -309,7 +309,7 @@ function FriendlyPlates.Options(barDescription, options)
     })
     table.insert(options, 5, {
         key = "buffs", name = L.PLATES_BUFFS, description = L.PLATES_BUFFS_DESC,
-        -- Sharing a side with the level is fine: the buffs go past it (placeBuffs).
+        -- Sharing a side with the level is fine: the buffs go past it (Plates:PlaceBuffs).
         choices = PlateLabel.BUFF_CHOICES, section = L.PLATES_SECTION_GENERAL,
     })
     return options

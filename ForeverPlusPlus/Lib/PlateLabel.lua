@@ -307,7 +307,7 @@ local function createLabel(frame)
     -- Empty frames to center on: the bar's row (see placeRow), and the cast bar's (placeSubtitle).
     label.row = CreateFrame("Frame", nil, label)
     label.castRow = CreateFrame("Frame", nil, label)
-    -- Debug (Show Plate Center): a thin line down the middle of the row, on a frame of its own so
+    -- Debug (Show Player or NPC Plate Center): a thin line down the middle of the row, on a frame of its own so
     -- it shows with or without the bar.
     label.debugFrame = CreateFrame("Frame", nil, frame)
     label.debugFrame:SetAllPoints(frame)
@@ -594,7 +594,7 @@ function PlateLabel.Layout(label, record, unit, style)
     matchFont(label, record.name, (style.db.nameSize or 100) / 100)
     label.name:SetTextColor(style.NameColor(unit))
     -- Out from the name on each side: the class icon, then the level (or the other way round, with
-    -- Class Icon Order on Past the Level), then the other icons, on whichever side each one's
+    -- Icon and Level on Icon Past Level), then the other icons, on whichever side each one's
     -- setting puts it. The name then shifts by half the difference, so the whole row is centered
     -- over the bar. The subtitle stays centered.
     local db = style.db
