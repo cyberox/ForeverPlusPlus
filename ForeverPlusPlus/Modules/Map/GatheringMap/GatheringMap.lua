@@ -44,9 +44,10 @@ local module = ns.NewModule("GatheringMap", L.GATHERINGMAP_DESC, {
     -- inside it when the node is there, since the game draws dots out to about the minimap's edge:
     -- a Silver Vein ~200 yards off, in game, 2026-11-07), or within nearYards of the player "ring"
     -- (an empty ring) or "hide"; else, and with "show", its icon. Rings at ringAlpha.
-    -- GatherMate2's way by default: icons far off, empty rings within 100 yards.
+    -- GatherMate2's way by default: icons far off, empty rings close (150 yards, Cameron's pick;
+    -- GatherMate2 uses 100).
     nearby = "ring",
-    nearYards = 100,
+    nearYards = 150,
     log = false, -- print each gather in chat (Debug)
     -- Nodes remembered, by zone map ID: a list of { name, kind, x, y, count, time, loot }, where
     -- loot is item ID -> how many it gave in all. For the whole account. Data, not a setting.
