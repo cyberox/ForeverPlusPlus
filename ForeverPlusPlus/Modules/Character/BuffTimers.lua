@@ -1,18 +1,22 @@
 -- Buff Timers: the time left under your buff and debuff icons as a clock (1:23) instead of
 -- Blizzard's rounded "2 m". Blizzard's text keeps running underneath at no alpha and ours sits on
 -- top, so when a time can't be read (a secret value in combat) Blizzard's shows again as it was.
+-- Sort Buffs moves Blizzard's buff buttons between the places Blizzard laid them out in.
 local _, ns = ...
 
 local ipairs, pairs, type, setmetatable, floor = ipairs, pairs, type, setmetatable, math.floor
+local sort, huge = table.sort, math.huge
 local GetCVarBool = C_CVar and C_CVar.GetCVarBool or GetCVarBool
 
 local L = ns.L
 local readable = ns.IsReadable
 local clock = ns.Text.Clock
+local Frames = ns.Frames
 
 local module = ns.NewModule("BuffTimers", L.BUFFTIMERS_DESC, {
     enabled = true,
     limit = "10m", -- "1m", "10m", "hour", or "all": which auras get a clock
+    sort = "off", -- "off", "left", or "right": where the buff that runs out next sits
 })
 module.title = L.BUFFTIMERS_TITLE
 module.category = "character"
@@ -22,6 +26,10 @@ module.added = "0.8.0"
 module.notice = {
     ns.CVars.OffNotice(module, "buffDurations", L.BUFFTIMERS_BLIZZARD_OFF, L.BUFFTIMERS_BLIZZARD_OFF_DESC),
     { text = L.BUFFTIMERS_NOTICE, description = L.BUFFTIMERS_NOTICE_DESC },
+    {
+        text = L.BUFFTIMERS_SORT_NOTICE, description = L.BUFFTIMERS_SORT_NOTICE_DESC,
+        shown = function() return module.db.sort ~= "off" end,
+    },
 }
 
 module.options = {
@@ -33,6 +41,15 @@ module.options = {
             { "10m", L.BUFFTIMERS_LIMIT_10M },
             { "hour", L.BUFFTIMERS_LIMIT_1H },
             { "all", L.BUFFTIMERS_LIMIT_ALL },
+        },
+    },
+    {
+        key = "sort", name = L.BUFFTIMERS_SORT, description = L.BUFFTIMERS_SORT_DESC,
+        added = "1.2.0",
+        choices = {
+            { "off", L.BUFFTIMERS_SORT_OFF },
+            { "left", L.BUFFTIMERS_SORT_LEFT },
+            { "right", L.BUFFTIMERS_SORT_RIGHT },
         },
     },
 }
@@ -134,6 +151,103 @@ local function afterAuraButtons(frame)
     end
 end
 
+-- Sort Buffs. Blizzard gives BuffFrame.auraFrames[i] the i-th buff and lays the buttons out in
+-- that order (AuraContainerMixin:UpdateGridLayout, Blizzard_BuffFrame/BuffFrame.lua on the
+-- `forever` branch). Sorting Blizzard's auraInfo would taint the buttonInfo a right-click cancels
+-- with, so instead we keep the places Blizzard put each button in and move the buttons between
+-- them: SetPoint only, on plain buttons that aren't protected, so right-click still cancels.
+local slots = {} -- i -> the anchor points Blizzard gave auraFrames[i]
+local placed = setmetatable({}, weak) -- button -> the slot it's in now, while not its own
+
+-- Read right after Blizzard laid the buttons out, when each is in its own place.
+local function readSlots()
+    slots = {}
+    for i, button in ipairs(BuffFrame and BuffFrame.auraFrames or {}) do
+        slots[i] = Frames.GetPoints(button)
+    end
+    for button in pairs(placed) do
+        placed[button] = nil
+    end
+end
+
+local function place(button, i, own)
+    local points = slots[i]
+    if (placed[button] or own) ~= i and points and points[1] then
+        Frames.SetPoints(button, points)
+        placed[button] = i ~= own and i or nil
+    end
+end
+
+-- Every button back in Blizzard's place.
+local function unsort()
+    for i, button in ipairs(BuffFrame and BuffFrame.auraFrames or {}) do
+        place(button, i, i)
+    end
+end
+
+-- When a buff runs out: never (0 or no time) sorts after every timed one.
+local function endsAt(info)
+    local duration, expires = info.duration, info.expirationTime
+    if not (readable(duration) and readable(expires)) then
+        return nil
+    end
+    if type(expires) ~= "number" or expires <= 0 or duration == 0 then
+        return huge
+    end
+    return expires
+end
+
+local function sortBuffs()
+    local frames = BuffFrame and BuffFrame.auraFrames
+    local container = BuffFrame and BuffFrame.AuraContainer
+    local side = module.db.sort
+    if not (frames and container) or side == "off" then
+        unsort()
+        return
+    end
+    -- Blizzard's shown buttons come first, in its order; Edit Mode's examples stay as they are.
+    local list, ends, order = {}, {}, {}
+    for i, button in ipairs(frames) do
+        if not button.hasValidInfo or button.isExample then
+            break
+        end
+        local at = button.buttonInfo and endsAt(button.buttonInfo)
+        if not at then
+            unsort() -- a secret time (in combat): Blizzard's order until it can be read
+            return
+        end
+        list[i], ends[button], order[button] = button, at, i
+    end
+    sort(list, function(a, b)
+        if ends[a] ~= ends[b] then
+            return ends[a] < ends[b]
+        end
+        return order[a] < order[b]
+    end)
+    -- Slot 1 is the corner the buffs grow from: the right end unless Edit Mode's Icon Direction
+    -- says right, and the top of a vertical bar unless it says up.
+    local leftFirst
+    if container.isHorizontal then
+        leftFirst = container.addIconsToRight and true or false
+    else
+        leftFirst = not container.addIconsToTop
+    end
+    local n = #list
+    local reverse = (side == "left") ~= leftFirst
+    for k, button in ipairs(list) do
+        place(button, reverse and n + 1 - k or k, order[button])
+    end
+    for i = n + 1, #frames do
+        place(frames[i], i, i)
+    end
+end
+
+-- Blizzard just put every button back in its own place, maybe new ones (Edit Mode's settings).
+local function afterGridLayout()
+    readSlots()
+    sortBuffs()
+end
+
 function module:OnEnable()
     readCVar()
     self:On("CVAR_UPDATE", onCVarUpdate)
@@ -145,10 +259,23 @@ function module:OnEnable()
     end
     self:Hook(BuffFrame, "UpdateAuraButtons", afterAuraButtons)
     self:Hook(DebuffFrame, "UpdateAuraButtons", afterAuraButtons)
+    if BuffFrame and BuffFrame.auraFrames and BuffFrame.AuraContainer then
+        self:Hook(BuffFrame.AuraContainer, "UpdateGridLayout", afterGridLayout)
+        self:Hook(BuffFrame, "UpdateAuraButtons", sortBuffs)
+        readSlots() -- off until now, so every button is where Blizzard put it
+        sortBuffs()
+    end
+end
+
+function module:OnOptionChanged(key)
+    if key == "sort" then
+        sortBuffs()
+    end
 end
 
 function module:OnDisable()
     for button in pairs(texts) do
         restore(button)
     end
+    unsort()
 end

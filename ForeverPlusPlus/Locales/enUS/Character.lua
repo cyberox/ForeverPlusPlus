@@ -199,6 +199,15 @@ L.BUFFTIMERS_LIMIT_1M = "Under 1 Minute"
 L.BUFFTIMERS_LIMIT_10M = "Under 10 Minutes"
 L.BUFFTIMERS_LIMIT_1H = "Under 1 Hour"
 L.BUFFTIMERS_LIMIT_ALL = "Always"
+L.BUFFTIMERS_SORT = "Sort Buffs"
+L.BUFFTIMERS_SORT_DESC = "Order your buffs by time left, so the next to run out sits at one end "
+    .. "and buffs that never run out at the other. In a vertical bar, left is the top."
+L.BUFFTIMERS_SORT_OFF = "Off"
+L.BUFFTIMERS_SORT_LEFT = "Shortest on the Left"
+L.BUFFTIMERS_SORT_RIGHT = "Shortest on the Right"
+L.BUFFTIMERS_SORT_NOTICE = "In combat, buffs may go back to Blizzard's order." -- a gray row atop the module
+L.BUFFTIMERS_SORT_NOTICE_DESC = "In combat the game may hide buff times from addons. A buff gained or "
+    .. "lost then puts your buffs back in Blizzard's order until the times can be read again."
 
 -- XPBarText
 L.XPBARTEXT_TITLE = "XP Bar Text"
