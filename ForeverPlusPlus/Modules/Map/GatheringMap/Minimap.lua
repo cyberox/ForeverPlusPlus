@@ -86,8 +86,9 @@ end
 -- Sets a pin's look for `node`: the same as on the world map, at the minimap's size.
 local function style(pin, node, size, alpha)
     internal.Look(node, look)
-    look.alpha = alpha * (look.faded and internal.FADED or 1)
+    look.alpha = alpha * look.fade
     ns.MapPins.SetArt(pin, look)
+    size = size * look.scale
     pin:SetSize(size, size)
     if pin.ring then
         MinimapPins.PlaceRing(pin.ring, pin, size)

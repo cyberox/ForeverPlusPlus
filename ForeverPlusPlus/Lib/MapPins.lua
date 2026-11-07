@@ -223,6 +223,8 @@ function MapPins.SetArt(pin, info)
     local color = info.color
     texture:SetVertexColor(color and color[1] or 1, color and color[2] or 1, color and color[3] or 1)
     texture:SetDesaturated(info.desaturated or false)
+    -- Hollow: the ring alone, nothing inside it.
+    texture:SetShown(not info.hollow)
     pin:SetAlpha(info.alpha or 1)
     if info.ring then
         pin.ring = pin.ring or ns.MinimapPins.NewRing(pin)
@@ -330,7 +332,8 @@ end
 ---under the title, as `ns.MapTooltip.Show` takes them; desaturated to gray the icon). In place of
 ---`atlas`, `texture` (a file ID or path, such as an item icon) with `trim` to cut off an item
 ---icon's edge. Any pin can also have `round` (drawn round), `color` ({ r, g, b } it's tinted),
----`alpha`, and `ring` (the minimap's gold ring around it). Call `layer:Enable()` to show it and
+---`alpha`, `ring` (the minimap's gold ring around it), and `hollow` (only the ring, its art
+---hidden). Call `layer:Enable()` to show it and
 ---`layer:Disable()` to take it off.
 ---@param fill fun(mapID: number, add: fun(x: number, y: number, info: table))
 ---@return table layer

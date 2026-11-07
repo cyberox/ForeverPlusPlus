@@ -18,8 +18,11 @@ local module = ns.NewModule("GatheringMap", L.GATHERINGMAP_DESC, {
     onlyMine = true, -- only nodes this character has the profession for
     onlyTracking = true, -- herbs only while Find Herbs is on, ore while Find Minerals is
     sightings = true, -- also remember the nodes Minimap Node Icons sees, not gathered
-    justGathered = "fade", -- a node gathered lately: "fade" (a faint circle), "hide", or "show"
-    justMinutes = 10, -- how long "lately" is
+    -- A node gathered lately: "ring" (an empty ring), "gray" (its icon gray), "dot" (a small dot),
+    -- "hide", or "show" (as usual). How long "lately" is, and the first three's opacity.
+    justGathered = "ring",
+    justMinutes = 10,
+    justAlpha = 60, -- percent
     icon = "item", -- "item" (the node's item's icon, a circle without one) or "circle"
     shape = "round", -- an item icon "round" or "square"
     ring = true, -- the minimap's gold ring around a round icon
@@ -51,7 +54,9 @@ module.options = {
     {
         key = "justGathered", name = L.GATHERINGMAP_JUST, description = L.GATHERINGMAP_JUST_DESC,
         choices = {
-            { "fade", L.GATHERINGMAP_JUST_FADE },
+            { "ring", L.GATHERINGMAP_JUST_RING },
+            { "gray", L.GATHERINGMAP_JUST_GRAY },
+            { "dot", L.GATHERINGMAP_JUST_DOT },
             { "hide", L.GATHERINGMAP_JUST_HIDE },
             { "show", L.GATHERINGMAP_JUST_SHOW },
         },
@@ -61,6 +66,14 @@ module.options = {
         min = 1, max = 30, step = 1, format = ns.Text.Minutes,
         shown = function(db)
             return db.justGathered ~= "show"
+        end,
+    },
+    {
+        key = "justAlpha", name = L.GATHERINGMAP_ALPHA, description = L.GATHERINGMAP_JUST_ALPHA_DESC,
+        min = 10, max = 100, step = 5, format = "%d%%",
+        shown = function(db)
+            local style = db.justGathered
+            return style == "ring" or style == "gray" or style == "dot"
         end,
     },
     {
@@ -242,19 +255,22 @@ function internal.JustGathered(node)
     return node.time ~= nil and time() - node.time < module.db.justMinutes * 60
 end
 
--- How much of its opacity a node just gathered keeps, drawn as a faint circle.
-internal.FADED = 0.35
+local DOT = 0.5 -- a Small Dot's size, against the icon's
 
 ---Fills `look` with how a node is drawn, as Lib/MapPins takes it: `texture`, `trim`, `round`,
----`color`, and `ring`, and `faded` for a node just gathered, drawn as a faint circle.
+---`color`, `ring`, `hollow`, and `desaturated`; and for the maps, `fade` (what its opacity is
+---multiplied by) and `scale` (its size against the icon size). A node just gathered is drawn in
+---the Just Gathered style: an empty ring, its icon gray, or a small dot, at that opacity.
 ---@param node table
 ---@param look table
 ---@return table look
 function internal.Look(node, look)
     local db = module.db
-    local faded = db.justGathered == "fade" and internal.JustGathered(node)
-    local icon = db.icon == "item" and not faded and itemIcon(node)
-    look.atlas, look.faded = nil, faded
+    local style = db.justGathered
+    local just = (style == "ring" or style == "gray" or style == "dot") and internal.JustGathered(node)
+    -- A small dot is always its kind's color.
+    local icon = db.icon == "item" and not (just and style == "dot") and itemIcon(node) or nil
+    look.atlas = nil
     if icon then
         look.texture, look.trim, look.color = icon, true, nil
         look.round = db.shape == "round"
@@ -263,6 +279,17 @@ function internal.Look(node, look)
         look.round = true
     end
     look.ring = db.ring and look.round or false
+    look.hollow, look.desaturated, look.fade, look.scale = false, false, 1, 1
+    if just then
+        look.fade = db.justAlpha / 100
+        if style == "ring" then
+            look.round, look.ring, look.hollow = true, true, true
+        elseif style == "gray" then
+            look.desaturated = true
+        else
+            look.ring, look.scale = false, DOT
+        end
+    end
     return look
 end
 
@@ -365,36 +392,9 @@ function internal.ZoneMap()
     return ns.WorldMap.Zone(best) or best
 end
 
--- A dot the player pointed at on the minimap (Lib/MinimapPins.lua, once a hover, at the middle of
--- where the mouse named it): the herbs and veins it names are there. The only way left to learn
--- a node without gathering it since build 70862 stopped the minimap answering Minimap Node Icons'
--- scans (docs/forever-api.md).
--- How far apart, in minimap units, two hovers of one dot can land: the minimap names a dot from a
--- little way off it, so a hover from one side and one from the other are up to twice that apart
--- (four sightings of one vein about 12 units apart, in game, 2026-11-07).
-local HOVER_PIXELS = 24
-
-local function onHover(names, right, up)
-    if not module.db.sightings then
-        return
-    end
-    local v = ns.MinimapPins.View(internal.ZoneMap())
-    if not v then
-        return
-    end
-    local x, y = ns.MinimapPins.FromMinimap(v, right, up)
-    -- Anywhere around the dot is the same node: that many yards at this zoom.
-    local radius = HOVER_PIXELS / v.scale
-    if radius < Gathering.RADIUS then
-        radius = Gathering.RADIUS
-    end
-    for _, name in pairs(names) do
-        local kind = Professions.Kind(name)
-        if kind then
-            onSighting({ name = name, kind = kind, mapID = v.mapID, x = x, y = y, radius = radius })
-        end
-    end
-end
+-- Nodes the player only hovers on the minimap aren't remembered: a hover says only roughly where
+-- the dot is, so the node it saved sat off the vein, and mining the vein made another beside it
+-- (in game, 2026-11-07).
 
 local LOOKUP = 25 -- yards from a dot first seen while moving to the node remembered for it
 
@@ -470,7 +470,6 @@ function module:OnEnable()
     Gathering.Listen(onGather, true)
     Gathering.ListenSightings(onSighting, true)
     Gathering.SetRemembered(rememberedSpot)
-    ns.MinimapPins.OnHover(onHover, true)
     if internal.EnableMap then
         internal.EnableMap()
     end
@@ -484,7 +483,6 @@ function module:OnDisable()
     Gathering.Listen(onGather, false)
     Gathering.ListenSightings(onSighting, false)
     Gathering.SetRemembered(nil)
-    ns.MinimapPins.OnHover(onHover, false)
     if internal.DisableMap then
         internal.DisableMap()
     end

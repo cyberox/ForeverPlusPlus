@@ -39,8 +39,8 @@ local function infoFor(i, node, size)
         infos[i] = info
     end
     internal.Look(node, info)
-    info.size = size
-    info.alpha = module.db.mapAlpha / 100 * (info.faded and internal.FADED or 1)
+    info.size = size * info.scale
+    info.alpha = module.db.mapAlpha / 100 * info.fade
     info.title = node.name
     info.lines = internal.TooltipLines(node)
     return info
