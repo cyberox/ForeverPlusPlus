@@ -30,20 +30,21 @@
 -- (N)" line where the minimap's tooltip shows one under its name (or Profession Tooltips sees one);
 -- until then it's never tinted. Ideas from NodeSight; none of its code.
 --
--- This file holds the module, its options, reading the view, and drawing the icons. Probe.lua
+-- This file holds the module, its options, and drawing the icons, with the view and its math from
+-- Lib/MinimapPins.lua. Probe.lua
 -- asks the minimap what is under a spot, Nodes.lua follows and finds the dots, Learn.lua learns
 -- a node's item from gathering it, and Report.lua has /fpp nodes. They share module.internal.
 local _, ns = ...
 
-local ipairs, type, sin, cos = ipairs, type, math.sin, math.cos
+local ipairs, type = ipairs, type
 local CreateFrame, Minimap, GetTime = CreateFrame, Minimap, GetTime
-local GetPlayerFacing, GetCVarBool, GetUnitSpeed = GetPlayerFacing, GetCVarBool, GetUnitSpeed
-local C_Map, C_Minimap, C_TooltipInfo, C_Item = C_Map, C_Minimap, C_TooltipInfo, C_Item
+local C_Minimap, C_TooltipInfo, C_Item = C_Minimap, C_TooltipInfo, C_Item
 
 local L = ns.L
-local readable = ns.IsReadable
 local Professions = ns.Professions
 local Node = Professions.Node
+local MinimapPins = ns.MinimapPins
+local toMinimap = MinimapPins.ToMinimap
 
 local module = ns.NewModule("MinimapNodeIcons", L.MINIMAPNODEICONS_DESC, {
     enabled = false,
@@ -174,68 +175,14 @@ internal.standing = standing
 
 -- The view ----------------------------------------------------------------------------------------
 
--- What the minimap shows right now: the player's zone map and spot on it, the map's size in
--- yards, minimap units per yard, and the angle the minimap is turned by (0 unless it rotates).
--- Nil when any of it can't be read, as in an instance.
-local view = {}
-local worldSizes = {} -- mapID -> { width, height }: a map's size never changes
-local rotating -- the rotateMinimap setting, read again when a setting changes
-
-local function readView()
-    local mapID, x, y = ns.WorldMap.PlayerPosition()
-    if not mapID then
-        return nil
-    end
-    local size = worldSizes[mapID]
-    if not size then
-        local width, height = C_Map.GetMapWorldSize(mapID)
-        if not (width and height and readable(width) and readable(height) and width > 0 and height > 0) then
-            return nil
-        end
-        size = { width, height }
-        worldSizes[mapID] = size
-    end
-    local width, height = size[1], size[2]
-    local radius = C_Minimap.GetViewRadius and C_Minimap.GetViewRadius()
-    if not (radius and ns.IsNumber(radius) and radius > 0) then
-        return nil
-    end
-    local angle = 0
-    if rotating == nil then
-        rotating = GetCVarBool("rotateMinimap") and true or false
-    end
-    if rotating then
-        angle = GetPlayerFacing and GetPlayerFacing()
-        if not (angle and readable(angle)) then
-            return nil
-        end
-    end
-    view.mapID, view.x, view.y, view.width, view.height = mapID, x, y, width, height
-    view.half = Minimap:GetWidth() / 2
-    view.scale = view.half / radius -- minimap units per yard
-    view.angle = angle
-    return view
-end
+-- What the minimap shows right now and spots on it, from Lib/MinimapPins.lua: nil where the view
+-- can't be read, as in an instance.
+local readView = MinimapPins.View
 internal.readView = readView
-
--- A spot on the zone map as minimap units right and up of its center.
-local function toMinimap(v, x, y)
-    local east = (x - v.x) * v.width * v.scale
-    local north = (v.y - y) * v.height * v.scale
-    local c, s = cos(v.angle), sin(v.angle)
-    return east * c + north * s, north * c - east * s
-end
-
--- Minimap units right and up of its center as a spot on the zone map.
-function internal.fromMinimap(v, right, up)
-    local c, s = cos(v.angle), sin(v.angle)
-    local east, north = right * c - up * s, right * s + up * c
-    return v.x + east / (v.width * v.scale), v.y - north / (v.height * v.scale)
-end
+internal.fromMinimap = MinimapPins.FromMinimap
 
 local function inside(right, up)
-    local radius = Minimap:GetWidth() / 2 - EDGE
-    return right * right + up * up <= radius * radius
+    return MinimapPins.Inside(right, up, EDGE)
 end
 internal.inside = inside
 
@@ -409,26 +356,12 @@ local function draw(v)
 end
 
 local redraw = true -- something changed that the next frame must draw (a zoom, an option)
-local lastFacing
 
 -- Whether the icons could have moved since the last frame: the player is moving or turning. While
 -- they stand still the icons are where they were, so the view is read and they're drawn only on
 -- each tick (which also follows the dots, so a gathered node still goes within one) and when
 -- something else changed. On a boat the speed reads 0; the ticks still follow it, less smoothly.
-local function mayHaveMoved()
-    local speed = GetUnitSpeed and GetUnitSpeed("player")
-    if not (ns.IsNumber(speed) and speed == 0) then
-        return true
-    end
-    if rotating then
-        local facing = GetPlayerFacing and GetPlayerFacing()
-        if not (facing and readable(facing)) or facing ~= lastFacing then
-            lastFacing = facing
-            return true
-        end
-    end
-    return false
-end
+local mayHaveMoved = MinimapPins.NewMotion()
 
 local function onUpdate(_, elapsed)
     sinceTick = sinceTick + elapsed
@@ -476,7 +409,7 @@ function module:OnEnable()
         frame:SetFrameLevel(Minimap:GetFrameLevel() + 5)
     end
     frame:SetScript("OnUpdate", ns.Profiler.Wrap(self, onUpdate)) -- timed while the Profiler records
-    rotating, redraw = nil, true -- rotation may have changed while the module was off
+    redraw = true
     readTracking() -- shows the frame while tracking is on
     internal.findAll = true
     self:On("MINIMAP_UPDATE_TRACKING", readTracking)
@@ -488,8 +421,9 @@ function module:OnEnable()
     end
     self:On("SKILL_LINES_CHANGED", onSkill)
     self:On("MINIMAP_UPDATE_ZOOM", onZoom)
+    -- Rotate Minimap may have changed; Lib/MinimapPins.lua reads it again by itself.
     self:On("CVAR_UPDATE", function()
-        rotating, redraw = nil, true
+        redraw = true
     end)
 end
 

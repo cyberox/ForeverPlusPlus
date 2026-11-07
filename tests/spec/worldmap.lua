@@ -56,6 +56,23 @@ game.secret = 0.25
 eq(WorldMap.PlayerPosition(), nil, "PlayerPosition while secret")
 game.secret = nil
 
+-- A map's size in yards, asked once per map.
+local asked = 0
+C_Map.GetMapWorldSize = function(id)
+    asked = asked + 1
+    if id == 1411 then
+        return 5000, 3000
+    end
+    return 0, 0
+end
+local width, height = WorldMap.Size(1411)
+eq(width == 5000 and height == 3000, true, "Size")
+WorldMap.Size(1411)
+eq(asked, 1, "Size asks once")
+eq(WorldMap.Size(12), nil, "Size of a map with none")
+WorldMap.Size(12)
+eq(asked, 2, "Size remembers a map with none")
+
 -- Zones by name, under the root above the player's map, and the map pin.
 maps[1413] = { mapID = 1413, name = "The Barrens", mapType = 3, parentMapID = 12 }
 maps[1412] = { mapID = 1412, name = "Durotar", mapType = 5, parentMapID = 12 } -- not a zone

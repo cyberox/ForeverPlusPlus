@@ -227,6 +227,31 @@ function WorldMap.PlayerPosition(mapID)
     return mapID, x, y
 end
 
+local sizes = {} -- mapID -> { width, height } in yards, or false: a map's size never changes
+
+---A map's size in yards (C_Map.GetMapWorldSize), or nil when the game can't say, as for a map
+---with no place in the world. Asked once per map.
+---@param mapID number
+---@return number? width
+---@return number? height
+function WorldMap.Size(mapID)
+    local size = sizes[mapID]
+    if size == nil then
+        size = false
+        local width, height
+        if C_Map and C_Map.GetMapWorldSize then
+            width, height = C_Map.GetMapWorldSize(mapID)
+        end
+        if ns.IsNumber(width) and ns.IsNumber(height) and width > 0 and height > 0 then
+            size = { width, height }
+        end
+        sizes[mapID] = size
+    end
+    if size then
+        return size[1], size[2]
+    end
+end
+
 -- Directions ----------------------------------------------------------------------------------
 
 ---How far and which way one spot on a map is from another, for an arrow. Spots are 0 to 1 across
