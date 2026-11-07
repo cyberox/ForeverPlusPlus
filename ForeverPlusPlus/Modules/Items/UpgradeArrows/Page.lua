@@ -100,7 +100,7 @@ local function treeChoices(class)
     return list
 end
 
--- The Tree dropdown's value for a class: the Profile setting for the character's own, else
+-- The Tree dropdown's value for a class: the character's saved tree choice for its own, else
 -- what was picked here.
 local function treeValue(class)
     if class == playerClass() then
@@ -186,7 +186,7 @@ local function addResetButton(row, stat)
     return button
 end
 
--- Blizzard's slider with steppers, 0 to 20 by 0.05, its value shown at its right. Probe:
+-- Blizzard's slider with steppers, 0 to MAX_WEIGHT by STEP, its value shown at its right. Probe:
 -- Mainline's; without it the row shows the value as text only.
 local function addSlider(row, stat)
     if not (MinimalSliderWithSteppersMixin and Settings and Settings.CreateSliderOptions) then
