@@ -119,7 +119,7 @@ Open Game Menu > Options > AddOns > Forever++ (or type `/fpp`). It opens on the 
 | `/fpp ranks` | Lists the spells on your action bars that have a higher rank you know (Spell Ranks). |
 | `/fpp scan` | Scans the open auction house now. |
 | `/fpp resetprices` | Forgets the saved auction prices. |
-| `/fpp nodes [here]` | Checks what Minimap Node Icons sees on the minimap now: whether tracking is on and which herbs and veins it can read. With `here`, point at a dot and it says where the dot is against where a scan puts it. |
+| `/fpp nodes [here\|probe]` | Checks what Minimap Node Icons sees on the minimap now: whether tracking is on and which herbs and veins it can read. With `here`, point at a dot and it says where the dot is against where a scan puts it. With `probe`, point at a dot, then move the mouse away, and it says which ways of scanning still read that dot. |
 
 Settings are saved per account in `ForeverPlusPlusDB`, players seen (for Chat Levels and Whisper Window) per account in `ForeverPlusPlusPlayersDB`, and what belongs to one character (talent plans, learned flight points, Quest Tracker's zone-hidden quests) in `ForeverPlusPlusCharDB`.
 

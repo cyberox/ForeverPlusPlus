@@ -310,6 +310,21 @@ L.MINIMAPNODEICONS_HERE_ICON = "Its icon is at %.1f, %.1f; it last answered at %
 -- trail right and up, standing still (yes/no)
 L.MINIMAPNODEICONS_HERE_LAG = "Trail while moving: %.1f, %.1f. Standing still: %s."
 L.MINIMAPNODEICONS_HERE_MISSED = "No icon for it yet."
+-- /fpp nodes probe: which ways of probing a spot still read the dot there.
+L.MINIMAPNODEICONS_PROBE_START = "Point at a dot on the minimap and hold still; reading it in %d seconds." -- seconds
+L.MINIMAPNODEICONS_PROBE_MOVE = "Got %s at %.0f, %.0f. Now move the mouse off the minimap; probing in %d seconds." -- name, x, y, seconds
+L.MINIMAPNODEICONS_PROBE_API = "API: SetUsingSoftCursor %s, UpdateMouseoverAtPoint %s, UpdateBlips %s, GamePadEnable %s, scale %.2f." -- yes/no x3, CVar, scale
+L.MINIMAPNODEICONS_PROBE_RESULT = "%s: %s" -- way, what it read
+L.MINIMAPNODEICONS_PROBE_NOTHING = "nothing"
+L.MINIMAPNODEICONS_PROBE_ERROR = "error: %s"
+L.MINIMAPNODEICONS_PROBE_DONE = "Done. Paste these lines to the developer."
+L.MINIMAPNODEICONS_PROBE_SOFT = "1 soft cursor, screen pixels, read now"
+L.MINIMAPNODEICONS_PROBE_PLAIN = "2 no soft cursor, screen pixels, read now"
+L.MINIMAPNODEICONS_PROBE_UNITS = "3 soft cursor, UI units, read now"
+L.MINIMAPNODEICONS_PROBE_BLIPS = "4 soft cursor, after UpdateBlips, read now"
+L.MINIMAPNODEICONS_PROBE_NEXT = "5 soft cursor kept on, read next frame"
+L.MINIMAPNODEICONS_PROBE_LATER = "6 soft cursor kept on, read after 0.2 s"
+L.MINIMAPNODEICONS_PROBE_HOVER = "7 soft cursor off, point left there, read after 0.2 s"
 L.MINIMAPNODEICONS_REPORT_UNAVAILABLE = "This client can't check the minimap for nodes."
 L.MINIMAPNODEICONS_REPORT_COMBAT = "Can't check the minimap in combat."
 L.MINIMAPNODEICONS_REPORT_YES = "yes"

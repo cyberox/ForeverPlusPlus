@@ -134,7 +134,7 @@ Everything is on by default except where noted. Each module can be turned off, a
 - `/fpp ranks`: Lists the spells on your action bars that have a higher rank you know (Spell Ranks).
 - `/fpp scan`: Scans the open auction house now.
 - `/fpp resetprices`: Forgets the saved auction prices.
-- `/fpp nodes [here]`: Checks what Minimap Node Icons sees on the minimap now: whether tracking is on and which herbs and veins it can read. With `here`, point at a dot and it says where the dot is against where a scan puts it.
+- `/fpp nodes [here|probe]`: Checks what Minimap Node Icons sees on the minimap now: whether tracking is on and which herbs and veins it can read. With `here`, point at a dot and it says where the dot is against where a scan puts it. With `probe`, point at a dot, then move the mouse away, and it says which ways of scanning still read that dot.
 
 ## Install
 

@@ -4,7 +4,7 @@ local _, ns = ...
 
 local ipairs, floor, tostring, format = ipairs, math.floor, tostring, string.format
 local min, concat = math.min, table.concat
-local Minimap, C_Timer = Minimap, C_Timer
+local Minimap, C_Timer, UIParent, GetCVar = Minimap, C_Timer, UIParent, GetCVar
 local GetCursorPosition, InCombatLockdown = GetCursorPosition, InCombatLockdown
 
 local L = ns.L
@@ -122,7 +122,124 @@ local function measure()
         internal.still() and L.MINIMAPNODEICONS_REPORT_YES or L.MINIMAPNODEICONS_REPORT_NO))
 end
 
-ns.AddCommand("nodes", "[here]", L.MINIMAPNODEICONS_COMMAND, function(rest)
+-- /fpp nodes probe: which ways of probing still read a dot, for when probes stop reading anything
+-- (build 70862). The dot's spot is taken from the real cursor while the player points at it,
+-- then probed in each way once the mouse is off the minimap, so only a probe can read it.
+
+local function readNames()
+    local list = internal.readMouseover()
+    if not list then
+        return L.MINIMAPNODEICONS_PROBE_NOTHING
+    end
+    local names = {}
+    for i, entry in ipairs(list) do
+        names[i] = entry.name
+    end
+    return concat(names, ", ")
+end
+
+local function say(way, text)
+    ns.Print(format(L.MINIMAPNODEICONS_PROBE_RESULT, way, text))
+end
+
+local function soft(on)
+    if Minimap.SetUsingSoftCursor then
+        pcall(Minimap.SetUsingSoftCursor, Minimap, on)
+    end
+end
+
+local function away()
+    pcall(Minimap.UpdateMouseoverAtPoint, Minimap, -10000, -10000)
+end
+
+-- Runs one way that reads right away: `fn` returns what it read; an error is shown instead.
+local function try(way, fn)
+    local ok, result = pcall(fn)
+    say(way, ok and result or format(L.MINIMAPNODEICONS_PROBE_ERROR, tostring(result)))
+    away()
+    soft(false)
+end
+
+local function yesNo(value)
+    return value and L.MINIMAPNODEICONS_REPORT_YES or L.MINIMAPNODEICONS_REPORT_NO
+end
+
+local function probeWays(x, y)
+    local scale = UIParent:GetEffectiveScale()
+    ns.Print(format(L.MINIMAPNODEICONS_PROBE_API, yesNo(Minimap.SetUsingSoftCursor),
+        yesNo(Minimap.UpdateMouseoverAtPoint), yesNo(Minimap.UpdateBlips),
+        tostring(GetCVar and GetCVar("GamePadEnable")), scale))
+    try(L.MINIMAPNODEICONS_PROBE_SOFT, function()
+        soft(true)
+        Minimap:UpdateMouseoverAtPoint(x, y)
+        return readNames()
+    end)
+    try(L.MINIMAPNODEICONS_PROBE_PLAIN, function()
+        Minimap:UpdateMouseoverAtPoint(x, y)
+        return readNames()
+    end)
+    try(L.MINIMAPNODEICONS_PROBE_UNITS, function()
+        soft(true)
+        Minimap:UpdateMouseoverAtPoint(x / scale, y / scale)
+        return readNames()
+    end)
+    try(L.MINIMAPNODEICONS_PROBE_BLIPS, function()
+        soft(true)
+        if Minimap.UpdateBlips then
+            Minimap:UpdateBlips()
+        end
+        Minimap:UpdateMouseoverAtPoint(x, y)
+        return readNames()
+    end)
+    -- Whether the answer now comes a frame or more later rather than right away.
+    soft(true)
+    pcall(Minimap.UpdateMouseoverAtPoint, Minimap, x, y)
+    C_Timer.After(0, function()
+        say(L.MINIMAPNODEICONS_PROBE_NEXT, readNames())
+        C_Timer.After(0.2, function()
+            say(L.MINIMAPNODEICONS_PROBE_LATER, readNames())
+            away()
+            soft(false)
+            pcall(Minimap.UpdateMouseoverAtPoint, Minimap, x, y)
+            C_Timer.After(0.2, function()
+                say(L.MINIMAPNODEICONS_PROBE_HOVER, readNames())
+                away()
+                ns.Print(L.MINIMAPNODEICONS_PROBE_DONE)
+            end)
+        end)
+    end)
+end
+
+local function probeTest()
+    ns.Print(format(L.MINIMAPNODEICONS_PROBE_START, HERE_WAIT))
+    C_Timer.After(HERE_WAIT, function()
+        local x, y = GetCursorPosition()
+        local under = internal.readMouseover()
+        local first = under and under[1]
+        if not first then
+            ns.Print(L.MINIMAPNODEICONS_HERE_NONE)
+            return
+        end
+        ns.Print(format(L.MINIMAPNODEICONS_PROBE_MOVE, first.name, x, y, HERE_WAIT))
+        C_Timer.After(HERE_WAIT, function()
+            if InCombatLockdown() then
+                ns.Print(L.MINIMAPNODEICONS_REPORT_COMBAT)
+                return
+            end
+            probeWays(x, y)
+        end)
+    end)
+end
+
+ns.AddCommand("nodes", "[here|probe]", L.MINIMAPNODEICONS_COMMAND, function(rest)
+    if rest and rest:lower():match("^%s*probe") then
+        if not module:IsAvailable() or InCombatLockdown() then
+            ns.Print(L.MINIMAPNODEICONS_REPORT_COMBAT)
+            return
+        end
+        probeTest()
+        return
+    end
     if rest and rest:lower():match("^%s*here") then
         if not module:IsAvailable() or InCombatLockdown() then
             ns.Print(L.MINIMAPNODEICONS_REPORT_COMBAT)
