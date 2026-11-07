@@ -31,8 +31,8 @@ local KIND_LINES = { herb = Professions.HERBALISM, ore = Professions.MINING } --
 
 -- Wider than the Modules page's list, for names like Ooze Covered Mithril Deposit with the skill in
 -- front and the spots behind; the details need less room.
-local LIST_WIDTH = 240
-local TAG_WIDTH, TAG_HEIGHT = 26, 14 -- a node row's skill tag, in front of its icon
+local LIST_WIDTH = 270
+local SKILL_WIDTH = 22 -- a node row's skill, in front of its icon (up to "300")
 local ICON, INDENT = 14, 14 -- a node row's icon, and how far node rows sit in from their header
 local TIER_HEIGHT = 18
 
@@ -62,7 +62,16 @@ local MASK = "Interface\\CharacterFrame\\TempPortraitAlphaMask"
 local ui -- the page's frames, once built
 local search = "" -- the search box's text, lowered
 local selected -- { kind = "herb" } or { name = "Peacebloom" }
-local folded = {} -- kind -> true while its nodes are folded away (for this session)
+-- kind -> true while its nodes are folded away, false while open, for this session. Until the
+-- player folds or opens one, a kind is folded while this character can't gather it.
+local folded = {}
+
+local function isFolded(kind)
+    if folded[kind] ~= nil then
+        return folded[kind]
+    end
+    return not Professions.Rank(KIND_LINES[kind])
+end
 local entries = {} -- node name -> its entry, from the last collect()
 
 -- Data ------------------------------------------------------------------------------------------
@@ -239,7 +248,7 @@ local function newHeader(list, kind)
     -- Clicking a header folds or unfolds it and shows the kind on the right.
     row:SetScript("OnClick", function()
         if search == "" then
-            folded[kind.kind] = not folded[kind.kind] or nil
+            folded[kind.kind] = not isFolded(kind.kind)
         end
         choose({ kind = kind.kind })
     end)
@@ -256,17 +265,14 @@ local function newNodeRow(list)
     end)
     row.box:SetPoint("LEFT", INDENT + 4, 0)
     hoverWith(row.box, row)
-    -- The skill it takes, in the trainer's colors against this character's, as a small dark tag
-    -- in front of the icon, like a quest's level before its name.
-    row.tag = row:CreateTexture(nil, "BORDER")
-    row.tag:SetSize(TAG_WIDTH, TAG_HEIGHT)
-    row.tag:SetPoint("LEFT", row.box, "RIGHT", 2, 0)
-    row.tag:SetColorTexture(0, 0, 0, 0.5)
+    -- The skill it takes, in the trainer's colors against this character's, in front of the icon
+    -- like a quest's level before its name, right-aligned so the icons line up.
     row.skill = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    row.skill:SetAllPoints(row.tag)
-    row.skill:SetJustifyH("CENTER")
+    row.skill:SetSize(SKILL_WIDTH, ICON)
+    row.skill:SetPoint("LEFT", row.box, "RIGHT", 0, 0)
+    row.skill:SetJustifyH("RIGHT")
     row.icon = newRoundIcon(row, ICON)
-    row.icon:SetPoint("LEFT", row.tag, "RIGHT", 4, 0)
+    row.icon:SetPoint("LEFT", row.skill, "RIGHT", 4, 0)
     -- How many spots are remembered, in gray at the end: "x12".
     row.count = row:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     row.count:SetPoint("RIGHT", -6, 0)
@@ -298,7 +304,6 @@ local function fillNodeRow(row, entry, kindOn)
     else
         row.skill:SetText("")
     end
-    row.tag:SetShown(entry.skill ~= nil)
 end
 
 -- A trainer rank's line among a kind's nodes: its name in gray, the skills it covers after it, and
@@ -543,7 +548,7 @@ function refresh()
         end
         listedByKind[kind.kind] = listed
         -- A search shows every kind open, and only kinds it finds something in.
-        local open = search ~= "" or not folded[kind.kind]
+        local open = search ~= "" or not isFolded(kind.kind)
         if search == "" or #listed > 0 then
             header.box:SetChecked(kindOn)
             header.fold:SetTexture(open and MINUS or PLUS)
