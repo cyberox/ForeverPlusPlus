@@ -133,13 +133,10 @@ end
 
 local function checkSettings()
     section("settings api")
-    present("settings.functions", { "Settings.RegisterProxySetting", "Settings.NotifyUpdate",
-        "CreateSettingsButtonInitializer", "CreateSettingsCheckboxWithButtonInitializer",
-        "CreateSettingsListSectionHeaderInitializer", "Settings.RegisterVerticalLayoutSubcategory",
-        "Settings.RegisterCanvasLayoutSubcategory" })
-    info("settings.checkbox-button", "CreateSettingsCheckboxWithButtonInitializer is "
-        .. (get("CreateSettingsCheckboxWithButtonInitializer") and "there" or "missing")
-        .. " (its fourth argument is still unknown: try it by hand)")
+    -- The ones Settings/ draws its pages with (canvas pages, drawn by the addon itself).
+    present("settings.functions", { "Settings.RegisterCanvasLayoutCategory",
+        "Settings.RegisterCanvasLayoutSubcategory", "Settings.RegisterAddOnCategory",
+        "Settings.OpenToCategory", "Settings.CreateSliderOptions" })
 end
 
 local function checkFrames()
@@ -463,7 +460,7 @@ local function checkPlayers()
     end
     if strict then
         if #bad == 0 then
-            pass("events.names", "every event we listen to is known to the client")
+            pass("events.names", "every event probed is known to the client")
         else
             fail("events.names", "unknown: " .. tconcat(bad, ", "))
         end
