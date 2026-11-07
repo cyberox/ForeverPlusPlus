@@ -457,8 +457,8 @@ end
 -- them, so a node has one tooltip wherever the mouse is on it. Blizzard fills that tooltip every
 -- frame while the mouse is on the minimap (Minimap_OnUpdate: SetOwner to the cursor, then
 -- SetMinimapMouseover); a hook on that call adds our lines under the game's for its dot, arrow
--- for another level and all, or, where the game has no dot (the node is gone), fills it with ours.
--- A general tooltip hook missed some of those frames (in game, 2026-11-07).
+-- for another level and all. A general tooltip hook missed some of those frames (in game,
+-- 2026-11-07).
 local DOT_REACH = 24 -- minimap units from the mouse that a dot it names can be
 local addedAt = setmetatable({}, { __mode = "k" }) -- tooltip -> its line count once ours were added
 
@@ -500,7 +500,8 @@ local function nodeAtCursor(names)
             end
         end
     else
-        local reach = (module.db.minimapSize / 2 + 2) / v.scale
+        -- Anywhere on the icon or the gold ring around it, which reaches past the icon's edge.
+        local reach = module.db.minimapSize / v.scale
         node = Gathering.Nearest(list, x, y, v.width, v.height, reach, internal.Shown)
     end
     if node then
@@ -517,18 +518,14 @@ local function onMinimapTooltip(tooltip)
         return
     end
     addedAt[tooltip] = nil
+    -- Only under the game's own lines: where it has no dot (the node is gone) there's no tooltip,
+    -- as without the addon; the empty ring says so, and the world map has the node's history.
     local names = namesAtCursor()
     local node, yards = nodeAtCursor(names)
-    if not node then
+    if not (names and node) then
         return
     end
-    if names then
-        ns.MapTooltip.AddLines(tooltip, internal.TooltipLines(node, yards, true))
-    else
-        local title = internal.Title(node)
-        tooltip:SetText(title[1], title[2].r, title[2].g, title[2].b)
-        ns.MapTooltip.AddLines(tooltip, internal.TooltipLines(node, yards))
-    end
+    ns.MapTooltip.AddLines(tooltip, internal.TooltipLines(node, yards, true))
     tooltip:Show()
     addedAt[tooltip] = tooltip:NumLines()
 end

@@ -401,7 +401,7 @@ L.GATHERINGMAP_NEAR_YARDS_DESC = "How close a node is to count as near you; fart
 L.GATHERINGMAP_YARDS = "%d yd" -- yards
 L.GATHERINGMAP_TOOLTIPS = "Minimap Tooltips"
 L.GATHERINGMAP_TOOLTIPS_DESC = "Add a remembered node's lines to the minimap's own tooltip when you "
-    .. "point at it, and show them on their own for a node that's gone (its ring is empty)."
+    .. "point at its dot. A node that's gone has no dot, so no tooltip; the world map has its lines."
 -- A node's tooltip: the lines, each a label and its value as Blizzard's Sell Price line
 L.GATHERINGMAP_REQUIRES = "Requires %s (%d)" -- profession, skill; Blizzard's ITEM_MIN_SKILL when it has one
 L.GATHERINGMAP_TIP_GATHERED = "Gathered:"
