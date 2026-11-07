@@ -6,32 +6,29 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 ### Added
 
-- **Gathering Map**: a new module that remembers every herb, vein, treasure chest, and fishing pool you gather, open, or fish, for all your characters, and shows them on the world map as the icon of what they give, and on the minimap too, where close to you it becomes an empty ring that the game's own tracking dot shows inside when the node is up. Gathering one again moves it closer to where it really is. With Minimap Node Icons on, it also remembers the nodes it finds on the minimap before you gather them. A node you just gathered shows for a while as an empty ring on the minimap and faded on the world map, and one your skill is too low for is gray, including one you tried to gather before your skill was high enough. Its own page in Settings, and the world map's filter, show or hide nodes for each character. Export and Import share remembered nodes as a line of text. Only My Professions (on by default) shows each character only what it can gather, and Only While Tracking (on by default) shows herbs only while Find Herbs is on and ore only while Find Minerals is. On by default.
-- **AddOns List**: a Chat Messages checkbox (on by default) under AddOn Sets, to stop it saying in chat that a set was saved or has addons that aren't installed.
-- **Buff Timers**: a new Sort Buffs option (off by default) orders your buffs by time left, the next to run out on the left or right, and buffs that never run out at the other end.
-- **Appearance Icons**: a new module: gear whose appearance you haven't collected gets Blizzard's transmogrifier icon in a corner of its icon, top right by default, in your bags and bank, at merchants, in the auction house, and in loot, and so does a recipe that makes it, on its row in the professions window (at the right end by default). A corner Upgrade Arrows or Already Known also uses gets a warning. On by default.
-- **Already Known**: Corner, Check Size, and Padding for the green check, like Upgrade Arrows' arrow. A corner Upgrade Arrows also uses gets a warning.
+- **Gathering Map**: a new module, on by default. It remembers every herb, vein, treasure chest, and fishing pool you gather, for all your characters, and shows them on the world map and the minimap as the icon of what they give. Near you on the minimap a node is an empty ring the game's own tracking dot shows inside when it's up. One you just gathered is a ring on the minimap and faded on the world map, and one your skill is too low for is gray. Its page in Settings shows or hides each node for each character and map, and Export and Import share nodes as a line of text.
+- **Appearance Icons**: a new module, on by default. Gear whose appearance you haven't collected gets Blizzard's transmogrifier icon in a corner, in your bags and bank, at merchants, in the auction house, and in loot, and so does a recipe that makes it.
+- **Buff Timers**: Sort Buffs (off by default) orders your buffs by time left, the next to run out on the left or right.
+- **Already Known**: Corner, Check Size, and Padding for the green check.
 - **Spell Ranks**: Corner, Badge Size, and Padding for the warning badge.
-- Other addons can read Gathering Map's remembered nodes through `ForeverPlusPlusAPI.v1` (`GetGatheringMaps`, `GetGatheringNodes`), and get the `GATHERING_NODES_UPDATED` callback when they change.
+- **AddOns List**: a Chat Messages checkbox, to stop it saying in chat that a set was saved or is missing addons.
+- Other addons can read Gathering Map's nodes through `ForeverPlusPlusAPI.v1` (`GetGatheringMaps`, `GetGatheringNodes`, and the `GATHERING_NODES_UPDATED` callback).
 
 ### Changed
 
-- **Debug**: its tools and every module's debug options are on a Debug page of their own in the Settings sidebar again, while it's on, instead of at the bottom of the Modules list.
-- **Minimap Node Icons**: with Gathering Map on, a dot found while you move gets the spot remembered for it right away instead of sliding into place, and an icon whose spot was fixed while you stood still stays put as you move off.
-- **Minimap Node Icons**: since the game's update of November 7, the minimap only answers for the spot under your own mouse, so the module can't find the dots. It's turned off for now: its name is red in the Modules list, its checkbox can't be ticked, and a note in its settings says why. It isn't known yet whether that's a bug or on purpose; it comes back if a later update fixes it, or will be removed. It's no longer part of Developer's Defaults.
-- **Upgrade Arrows**: the arrow is 18 pixels by default instead of 20. A size you picked stays.
-- **Already Known**: the green check is 18 pixels on a bag icon instead of 14, the same as the other marks.
-- **Spell Ranks**: the warning badge is 18 pixels instead of 16, the same as the other marks.
-- **Upgrade Arrows**, **Already Known**, **Spell Ranks**: a mark keeps in proportion to the icon it's on, so it's the same size against a loot roll's, a merchant's, or the auction house's icon as against a bag icon's.
-- **Quest Nameplates**: the quest icon and its count grow and shrink with the game's nameplate size, as the plate's name and health bar do.
-- **Quest Nameplates**: Size is 90% by default instead of 100%. A size you picked stays.
+- **Minimap Node Icons**: turned off for now. Since the game's update of November 7, the minimap only says what's under your own mouse, so the module can't find the dots, and the same goes for every addon that works this way. It shows a padlock and a red name in the Modules list, and its settings say why. It comes back if a later update fixes this, or will be removed. Gathering Map still remembers the nodes you gather.
+- **Debug**: its tools and every module's debug options are on a Debug page of their own in the Settings sidebar again, while it's on.
+- **Upgrade Arrows**: the arrow is 18 pixels by default instead of 20, and keeps in proportion to the icon it's on. A size you picked stays.
+- **Already Known**: the check is 18 pixels by default instead of 14, and keeps in proportion to the icon it's on.
+- **Spell Ranks**: the badge is 18 pixels by default instead of 16, and keeps in proportion to the button it's on.
+- **Quest Nameplates**: the quest icon grows and shrinks with the game's nameplate size, and Size is 90% by default instead of 100%. A size you picked stays.
 
 ### Fixed
 
-- **Upgrade Arrows**: with a two-hander on, a one-hander or off hand is judged together with the best hand item in your bags for the other hand, as the game's own comparison pairs them, instead of against that bag item (a cutlass showed +1898%). With Show Scores on, the tooltip says which item it was paired with.
-- **Upgrade Arrows**: Higher Level Gear marks gear you're a few levels too low for again. The game's "can use" check counts the level too, so it skipped all of it; now only another red line in the tooltip, like an armor type you can't wear, does.
-- **Upgrade Arrows**: with Show Scores on, gear you wear shows its own score too, in its tooltip and the Equipped one, and scores show up to two decimals instead of whole numbers. The tooltip's percentage shows two decimals (-9.35%).
-- **Spell Ranks**: a spell the game itself says is the highest rank you know is never marked, such as one that shares its name with another spell.
+- **Upgrade Arrows**: with a two-hander on, a one-hander or off hand is judged together with the best item in your bags for the other hand, as the game's own comparison does, instead of on its own (a cutlass showed +1898%). With Show Scores on, the tooltip says which item it was paired with.
+- **Upgrade Arrows**: Higher Level Gear marks gear you're a few levels too low for again.
+- **Upgrade Arrows**: with Show Scores on, gear you wear shows its own score too, and scores and percentages show two decimals.
+- **Spell Ranks**: a spell the game says is the highest rank you know is never marked, such as one that shares its name with another spell.
 
 ## 1.1.0 (2026-11-06)
 
