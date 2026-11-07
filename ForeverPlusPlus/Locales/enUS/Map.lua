@@ -462,6 +462,8 @@ L.GATHERINGMAP_PAGE_ZONES = "Zones"
 L.GATHERINGMAP_PAGE_FORGET = "Forget Spots"
 L.GATHERINGMAP_PAGE_FORGET_CONFIRM = "Forget every remembered spot of %s, for all your characters?" -- node name
 L.GATHERINGMAP_PAGE_COUNT = "\195\151%d" -- spots remembered, in a list row: "x12" with a times sign
+L.GATHERINGMAP_PAGE_LEGEND = "The number in front of a node is the skill it takes, in your "
+    .. "trainer's colors. The \195\151 number after it is how many of its spots are remembered."
 L.GATHERINGMAP_PAGE_APPRENTICE = "Apprentice"
 L.GATHERINGMAP_PAGE_JOURNEYMAN = "Journeyman"
 L.GATHERINGMAP_PAGE_EXPERT = "Expert"

@@ -306,18 +306,18 @@ local function fillNodeRow(row, entry, kindOn)
     end
 end
 
--- A trainer rank's line among a kind's nodes: its name in gray, the skills it covers after it, and
--- a faint line under them. It isn't a button: nothing happens on a click.
+-- A trainer rank's line among a kind's nodes: its name in light gray, the skills it covers after it
+-- in gray, and a faint line under them. It isn't a button: nothing happens on a click.
 local function newTierRow(list)
     local row = CreateFrame("Frame", nil, list)
     row:SetSize(LIST_WIDTH, TIER_HEIGHT)
-    row.text = row:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    row.text = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     row.text:SetPoint("BOTTOMLEFT", INDENT + 4, 3)
+    row.text:SetTextColor(0.8, 0.8, 0.8)
     row.range = row:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     row.range:SetPoint("LEFT", row.text, "RIGHT", 6, 0)
-    row.range:SetAlpha(0.7)
     local line = row:CreateTexture(nil, "ARTWORK")
-    line:SetColorTexture(1, 1, 1, 0.08)
+    line:SetColorTexture(1, 1, 1, 0.15)
     line:SetHeight(1)
     line:SetPoint("BOTTOMLEFT", INDENT + 4, 0)
     line:SetPoint("BOTTOMRIGHT", -6, 0)
@@ -469,7 +469,7 @@ end
 
 local function newKindView(parent, width)
     local view = CreateFrame("Frame", nil, parent)
-    view:SetSize(width, 260)
+    view:SetSize(width, 320)
     view.title = view:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     view.title:SetPoint("TOPLEFT", 0, -4)
     view.summary = view:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
@@ -502,8 +502,15 @@ local function newKindView(parent, width)
     end)
     view.hideAll:SetPoint("LEFT", view.showAll, "RIGHT", 8, 0)
 
+    -- What the list's numbers mean: the skill in front of a node, and its spots after it.
+    view.legend = view:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    view.legend:SetPoint("TOPLEFT", view.showAll, "BOTTOMLEFT", 0, -16)
+    view.legend:SetWidth(width)
+    view.legend:SetJustifyH("LEFT")
+    view.legend:SetText(L.GATHERINGMAP_PAGE_LEGEND)
+
     view.note = view:CreateFontString(nil, "OVERLAY", "GameFontDisable")
-    view.note:SetPoint("TOPLEFT", view.showAll, "BOTTOMLEFT", 0, -16)
+    view.note:SetPoint("TOPLEFT", view.legend, "BOTTOMLEFT", 0, -10)
     view.note:SetWidth(width)
     view.note:SetJustifyH("LEFT")
     view.note:SetText(L.GATHERINGMAP_PAGE_NOTE)

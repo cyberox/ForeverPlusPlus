@@ -31,7 +31,7 @@ local module = ns.NewModule("GatheringMap", L.GATHERINGMAP_DESC, {
     ring = true, -- the minimap's gold ring around each icon
     ringAlpha = 50, -- percent: the minimap's empty rings, a node near you or just gathered
     worldMap = true,
-    mapSize = 80, -- percent of MAP_PIXELS on the world map
+    mapSize = 70, -- percent of MAP_PIXELS on the world map
     mapAlpha = 85, -- percent
     -- percent: the world map's empty rings (a node just gathered), on their own and not times
     -- mapAlpha, which made them too faint to see (Cameron, 2026-11-08)
