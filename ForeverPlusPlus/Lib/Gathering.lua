@@ -73,7 +73,18 @@ local function onObjectTooltip(_, data)
     local text = type(first) == "table" and first.leftText
     if IsText(text, true) then
         hovered, hoveredAt = text, GetTime()
+        -- A locked chest says the Lockpicking it takes under its name.
+        local skill, rank = ns.GameData.TooltipRequires(data)
+        if skill and Professions.IsLockpicking(skill) then
+            Professions.LearnChest(ns.Text.Plain(text), rank)
+        end
     end
+end
+
+-- Whether a name the cast didn't give itself (the soft target's, a tooltip's) is something worth
+-- remembering: a herb or vein, or a chest.
+local function isNode(name)
+    return Professions.Node(name) ~= nil or Professions.Chest(name)
 end
 
 -- What the cast is aimed at: its target, else the soft-target object, else the object hovered
@@ -88,12 +99,12 @@ local function targetName(target)
     -- have it.
     if UnitExists and UnitName and UnitExists("softinteract") then
         local name = UnitName("softinteract")
-        if IsText(name, true) and Professions.Node(name) then
+        if IsText(name, true) and isNode(name) then
             return name, "softinteract"
         end
     end
     local name = hovered
-    if name and GetTime() - hoveredAt <= HOVER_WAIT and Professions.Node(name) then
+    if name and GetTime() - hoveredAt <= HOVER_WAIT and isNode(name) then
         hovered = nil
         return name, "tooltip"
     end

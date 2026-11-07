@@ -326,7 +326,7 @@ module:OnWhile(function(db)
 end, { SKILL_LINES_CHANGED = onSkills })
 
 -- The kinds of node remembered.
-local RECORDED = { herb = true, ore = true }
+local RECORDED = { herb = true, ore = true, treasure = true }
 
 -- Redraws ----------------------------------------------------------------------------------------
 
@@ -365,8 +365,15 @@ internal.COLORS, internal.CIRCLE = COLORS, CIRCLE
 
 local icons = {} -- node name -> its item's icon, once found
 
--- The icon of a node's item, or nil.
+-- A chest gives something different each time, so it's drawn as a chest: Blizzard's small chest
+-- icon, as old as the game.
+local CHEST_ICON = "Interface\\Icons\\INV_Box_02"
+
+-- The icon of a node's item, or nil. A chest's is the chest icon.
 local function itemIcon(node)
+    if node.kind == "treasure" or Professions.Chest(node.name) then
+        return CHEST_ICON
+    end
     local icon = icons[node.name]
     if icon then
         return icon
@@ -520,6 +527,16 @@ local function requiresLine(node)
     local known = Professions.Node(node.name)
     local line, need = known and known[1], known and known[2]
     local skill = line and Professions.LineName(line)
+    -- A locked chest: the Lockpicking it takes, against a rogue's (red for anyone else).
+    if not known then
+        local _, lock = Professions.Chest(node.name)
+        if lock then
+            local rank, name = Professions.Rank(Professions.LOCKPICKING)
+            line, need, skill = Professions.LOCKPICKING, lock, name or L.GATHERINGMAP_LOCKPICKING
+            return { format(ITEM_MIN_SKILL or L.GATHERINGMAP_REQUIRES, skill, need),
+                Professions.Difficulty(rank, need) }
+        end
+    end
     if not (skill and need) then
         return nil
     end
@@ -746,6 +763,10 @@ local function onGather(gather)
         return
     elseif not gather.name then
         log(gather, L.GATHERINGMAP_LOG_UNNAMED)
+        return
+    elseif gather.kind == "treasure" and not Professions.Chest(gather.name) then
+        -- Opening opens quest objects and crates too; only chests are treasure.
+        log(gather, L.GATHERINGMAP_LOG_NOT_CHEST)
         return
     end
     local mapID = gather.mapID

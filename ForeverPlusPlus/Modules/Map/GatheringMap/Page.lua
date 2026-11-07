@@ -22,12 +22,17 @@ local Professions = ns.Professions
 local module = ns.modules.GatheringMap
 local internal = module.internal
 
--- The kinds the page lists, in order.
+-- The kinds the page lists, in order. Herbs and ore sort under the trainer's ranks (`ranked`);
+-- chests have none.
 local KINDS = {
-    { kind = "herb", name = L.GATHERINGMAP_PAGE_HERBS },
-    { kind = "ore", name = L.GATHERINGMAP_PAGE_ORE },
+    { kind = "herb", name = L.GATHERINGMAP_PAGE_HERBS, ranked = true },
+    { kind = "ore", name = L.GATHERINGMAP_PAGE_ORE, ranked = true },
+    { kind = "treasure", name = L.GATHERINGMAP_PAGE_TREASURE },
 }
-local KIND_LINES = { herb = Professions.HERBALISM, ore = Professions.MINING } -- the skill gathering each
+-- The skill gathering each (a chest's is the Lockpicking a locked one takes).
+local KIND_LINES = { herb = Professions.HERBALISM, ore = Professions.MINING,
+    treasure = Professions.LOCKPICKING }
+local LISTED = { herb = true, ore = true, treasure = true }
 
 -- Wider than the Modules page's list, for names like Ooze Covered Mithril Deposit with the skill in
 -- front and the spots behind; the details need less room.
@@ -64,22 +69,24 @@ local ui -- the page's frames, once built
 local search = "" -- the search box's text, lowered
 local selected -- { kind = "herb" } or { name = "Peacebloom" }
 -- kind -> true while its nodes are folded away, false while open, for this session. Until the
--- player folds or opens one, a kind is folded while this character can't gather it.
+-- player folds or opens one, herbs or ore are folded while this character can't gather them;
+-- anyone opens chests.
 local folded = {}
 
 local function isFolded(kind)
     if folded[kind] ~= nil then
         return folded[kind]
     end
-    return not Professions.Rank(KIND_LINES[kind])
+    return kind ~= "treasure" and not Professions.Rank(KIND_LINES[kind])
 end
 local entries = {} -- node name -> its entry, from the last collect()
 
 -- Data ------------------------------------------------------------------------------------------
 
--- Every node of each kind: the herbs and veins Lib/Professions knows, and any remembered under a
--- name it doesn't, each as { name, kind, skill, spots, gathers, last, zones }, where zones is a
--- list of { mapID, spots, last }. Sorted by skill and then name.
+-- Every node of each kind: the herbs, veins, and chests Lib/Professions knows, and any remembered
+-- under a name it doesn't, each as { name, kind, skill, spots, gathers, last, zones }, where zones
+-- is a list of { mapID, spots, last }. Sorted by skill and then name. A chest's skill is the
+-- Lockpicking it takes, when it's locked.
 local function collect()
     local byName = {}
     for name, node in Professions.EachNode() do
@@ -89,10 +96,14 @@ local function collect()
                 zones = {} }
         end
     end
+    for name, value in Professions.EachChest() do
+        byName[name] = { name = name, kind = "treasure", skill = type(value) == "number" and value or nil,
+            spots = 0, gathers = 0, zones = {} }
+    end
     for mapID, list in pairs(module.db.nodes) do
         for _, node in ipairs(list) do
             local entry = byName[node.name]
-            if not entry and (node.kind == "herb" or node.kind == "ore") then
+            if not entry and LISTED[node.kind] then
                 local known = Professions.Node(node.name)
                 entry = { name = node.name, kind = node.kind, skill = known and known[2], spots = 0,
                     gathers = 0, zones = {} }
@@ -116,7 +127,7 @@ local function collect()
             end
         end
     end
-    local lists = { herb = {}, ore = {} }
+    local lists = { herb = {}, ore = {}, treasure = {} }
     for _, entry in pairs(byName) do
         local zones = {}
         for _, zone in pairs(entry.zones) do
@@ -205,7 +216,7 @@ end
 
 -- The node's item's icon, or a circle in its kind's color, as the maps draw it.
 local function setIcon(texture, entry)
-    local icon = internal.ItemIcon({ name = entry.name })
+    local icon = internal.ItemIcon({ name = entry.name, kind = entry.kind })
     if icon then
         texture:SetTexture(icon)
         texture:SetTexCoord(0.08, 0.92, 0.08, 0.92)
@@ -649,8 +660,8 @@ function refresh()
                 -- The list is sorted by skill, so each rank's line comes once, before its nodes.
                 local lastTier
                 for _, entry in ipairs(listed) do
-                    local tier = tierOf(entry.skill)
-                    if tier ~= lastTier then
+                    local tier = kind.ranked and tierOf(entry.skill)
+                    if tier and tier ~= lastTier then
                         lastTier = tier
                         tiersUsed = tiersUsed + 1
                         local tierRow = ui.tierRows[tiersUsed]

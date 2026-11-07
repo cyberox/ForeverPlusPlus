@@ -1,5 +1,5 @@
 -- Gathering Map in the world map's filter menu (the funnel at its top right): a Gathering Map title
--- and a checkbox for Herbs and one for Ore, after Blizzard's own. They're the same switches as the
+-- and a checkbox for Herbs, Ore, and Treasure, after Blizzard's own. They're the same switches as the
 -- kinds' checkboxes on the Gathering Map page, saved for each character. A kind this character
 -- doesn't have the profession for, with Only My Professions on, is greyed out, its tooltip saying
 -- why: checking it would show nothing.
@@ -13,10 +13,12 @@ local Professions = ns.Professions
 local module = ns.modules.GatheringMap
 local internal = module.internal
 
--- The kinds the menu lists, in order, with the skill line that gathers each.
+-- The kinds the menu lists, in order, with the skill line that gathers each. Anyone can open a
+-- chest.
 local KINDS = {
     { kind = "herb", name = L.GATHERINGMAP_PAGE_HERBS, line = Professions.HERBALISM },
     { kind = "ore", name = L.GATHERINGMAP_PAGE_ORE, line = Professions.MINING },
+    { kind = "treasure", name = L.GATHERINGMAP_PAGE_TREASURE },
 }
 
 -- Blizzard's tag for the menu (WorldMapTrackingOptionsButtonMixin:SetupMenu,
@@ -38,7 +40,7 @@ local function addEntries(_, root)
             internal.Changed(nil)
         end)
         -- Greyed while Only My Professions hides it anyway, for a character without the skill.
-        local usable = not db.onlyMine or Professions.Rank(kind.line) ~= nil
+        local usable = not (db.onlyMine and kind.line) or Professions.Rank(kind.line) ~= nil
         if not usable and box.SetEnabled then
             box:SetEnabled(false)
             if box.SetTooltip then

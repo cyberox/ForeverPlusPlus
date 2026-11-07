@@ -333,6 +333,72 @@ for line, kind in pairs(LINE_KINDS) do
     KIND_LINES[kind] = line
 end
 
+-- Chests ----------------------------------------------------------------------------------------
+-- The chests in the world, by name: true, or the Lockpicking a locked one takes once its "Requires
+-- Lockpicking (N)" line was read. The Opening spell opens much besides chests (quest objects, crates
+-- a quest asks for), so only these count as treasure. Seed: Classic's world chests, from memory of
+-- Classic Era (2026-11-08), unverified on Forever; a world object's Lockpicking line teaches more.
+-- (Pick Lock doesn't: it's cast on lockboxes in the bags too.)
+local CHESTS = ns.GameData.New("treasureNodes", {
+    ["Battered Chest"] = true,
+    ["Tattered Chest"] = true,
+    ["Solid Chest"] = true,
+    ["Large Battered Chest"] = true,
+    ["Large Iron Bound Chest"] = true,
+    ["Large Solid Chest"] = true,
+    ["Large Mithril Bound Chest"] = true,
+    ["Dented Footlocker"] = true,
+    ["Mossy Footlocker"] = true,
+    ["Waterlogged Footlocker"] = true,
+    ["Buccaneer's Strongbox"] = true,
+    ["Box of Assorted Parts"] = true,
+    ["Burial Chest"] = true,
+})
+
+local LOCK = Professions.LOCKPICKING
+
+---Whether `name` is a chest, and the Lockpicking a locked one takes when that's known.
+---@param name string
+---@return boolean chest
+---@return number? need
+function Professions.Chest(name)
+    local value = type(name) == "string" and CHESTS:Get(name)
+    if not value then
+        return false
+    end
+    return true, type(value) == "number" and value or nil
+end
+
+---Every chest known, seeded and learned: `for name, value in Professions.EachChest()`, value as
+---the set keeps it (true, or the Lockpicking a locked one takes).
+---@return function iterator
+function Professions.EachChest()
+    return CHESTS:Pairs()
+end
+
+---Learns that `name` is a chest, and with `need` the Lockpicking it takes: from its "Requires
+---Lockpicking (N)" line.
+---@param name string
+---@param need? number
+---@return boolean changed
+function Professions.LearnChest(name, need)
+    if type(name) ~= "string" or name == "" then
+        return false
+    end
+    local _, known = Professions.Chest(name)
+    if Professions.Chest(name) and (known or not need) then
+        return false
+    end
+    return CHESTS:Learn(name, type(need) == "number" and need or true)
+end
+
+---Whether `skill`, as a requirement line names it, is Lockpicking.
+---@param skill string
+---@return boolean
+function Professions.IsLockpicking(skill)
+    return skill == "Lockpicking" or skill == select(2, Professions.Rank(LOCK))
+end
+
 ---The kind of node a skill line gathers ("herb", "ore", "treasure", "fish"), or nil.
 ---@param line number
 ---@return string? kind

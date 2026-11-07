@@ -104,6 +104,16 @@ local function itemSkill(id)
     return line and (line .. ":" .. skill) or "nil"
 end
 eq(itemSkill(2770), Professions.MINING .. ":5", "items: a learned requirement reaches the item")
+-- Chests: seeded by name, a locked one's Lockpicking learned from its tooltip line.
+eq(Professions.Chest("Battered Chest"), true, "chests: from the seed")
+eq(Professions.Chest("Ancient Statuette"), false, "chests: a quest object isn't one")
+eq(select(2, Professions.Chest("Solid Chest")), nil, "chests: no lock known yet")
+eq(Professions.LearnChest("Solid Chest", 175), true, "chests: learn a lock")
+eq(select(2, Professions.Chest("Solid Chest")), 175, "chests: the lock is kept")
+eq(Professions.LearnChest("Solid Chest"), false, "chests: no lock doesn't undo one")
+eq(Professions.LearnChest("Forgotten Coffer", 50), true, "chests: learn a new one")
+eq(Professions.Chest("Forgotten Coffer"), true, "chests: learned")
+eq(Professions.IsLockpicking("Lockpicking"), true, "chests: the skill by its English name")
 Professions.ForgetNodes()
 eq(Professions.Node("Friedenskraut"), nil, "nodes: forget")
 eq(Professions.Node("Copper Vein")[2], 1, "nodes: forget restores the seed")

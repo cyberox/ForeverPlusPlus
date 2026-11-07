@@ -168,8 +168,10 @@ local function draw(v, restyle)
     for i = 1, #near do
         local node = near[i]
         local right, up = ToMinimap(v, node.x, node.y)
-        local close = nearby == "all" or (nearby ~= "show"
-            and Distance(node.x, node.y, v.x, v.y, v.width, v.height) <= nearYards)
+        -- A chest keeps its icon close up: the game draws no dot for it to show in a ring (only
+        -- a dwarf's Find Treasure does).
+        local close = node.kind ~= "treasure" and (nearby == "all" or (nearby ~= "show"
+            and Distance(node.x, node.y, v.x, v.y, v.width, v.height) <= nearYards))
         local inside = Inside(right, up, inset)
         -- Keep at the Edge: a node past the minimap's edge sits on it, toward where it is.
         if not inside and edge and not close then
