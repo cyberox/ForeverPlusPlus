@@ -13,6 +13,8 @@ ns.changelog = {
         version = L.CHANGELOG_UNRELEASED,
         sections = {
             { L.CHANGELOG_ADDED, {
+                { L.WORLDMAP_TITLE, "Quick checkboxes in the world map's filter menu for Dungeons, "
+                    .. "Raids, Flight Masters, Boats and Zeppelins, Unexplored Areas, and Zone Info." },
                 "Other addons can read more through ForeverPlusPlusAPI.v1: your talent trees "
                     .. "(GetTalentTabs), any herb, vein, chest, or fishing pool by name "
                     .. "(GetWorldNodeInfo, GetFishingPoolByObject), your profession skills "

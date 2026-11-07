@@ -160,6 +160,7 @@ Modules\Map\WorldMap\PointsOfInterest\Data.lua
 Modules\Map\WorldMap\PointsOfInterest\Flights.lua
 Modules\Map\WorldMap\PointsOfInterest\LeyLines.lua
 Modules\Map\WorldMap\PointsOfInterest\BlizzardIcons.lua
+Modules\Map\WorldMap\Filter.lua
 Modules\Map\FlightTimer.lua
 Modules\Map\HideFilterReset.lua
 Modules\Map\Waypoints.lua

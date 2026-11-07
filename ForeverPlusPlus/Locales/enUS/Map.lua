@@ -19,6 +19,7 @@ L.WORLDMAP_DESC = "Add to the world map: points of interest, a zone info panel, 
     .. "and coordinates. Each has its own Enabled checkbox below."
 
 -- PointsOfInterest. Place names on the map come from the game, or from Data.lua.
+L.WORLDMAP_FILTER_TRAVEL = "Boats and Zeppelins" -- one checkbox for both, in the world map's filter menu
 L.POI_TITLE = "Points of Interest"
 -- Smaller headers over its options in Settings
 L.POI_SECTION_INSTANCES = "Dungeons and Raids"
