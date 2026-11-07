@@ -55,6 +55,13 @@ L.TOOLTIPS_HIDE_IN_COMBAT_DESC = "Don't show player and NPC tooltips while you'r
     .. "and spell tooltips still show."
 L.TOOLTIPS_HIDE_HEALTH_BAR = "Hide Health Bar"
 L.TOOLTIPS_HIDE_HEALTH_BAR_DESC = "Hide the green health bar under player and NPC tooltips."
+L.TOOLTIPS_QUEST_LINES = "Quest Lines"
+L.TOOLTIPS_QUEST_LINES_DESC = "Show or hide the quest lines (a quest's name, its objectives like "
+    .. "\"- Boars slain: 0/8\", and in a group whose they are) on player and NPC tooltips, and on "
+    .. "objects such as chests."
+L.TOOLTIPS_QUEST_LINES_SHOW = "Show"
+L.TOOLTIPS_QUEST_LINES_UNITS = "Hide on Players and NPCs"
+L.TOOLTIPS_QUEST_LINES_ALL = "Hide on Players, NPCs, and Objects"
 
 -- RecipeColors
 L.RECIPECOLORS_TITLE = "Recipe Colors"

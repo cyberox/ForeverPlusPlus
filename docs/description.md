@@ -64,7 +64,7 @@ Everything is on by default except where noted. Each module can be turned off, a
 - **Combat Alert**: Floats a red "Entering Combat" or green "Leaving Combat" line up and away from the middle of the screen, each with its own checkbox, plus how long it stays and an optional sound (move and resize it in Edit Mode). Off by default.
 - **Currency Bar**: Shows your gold in a small tooltip-styled box, all three coins always, and optionally the currencies you tick Show on Backpack. Hovering it lists your gold and currencies with what this session gained or spent and your gold per hour. Options for the tooltip, the session figures, and a column layout (move and resize it in Edit Mode). Off by default.
 - **Movable Windows**: Hold the move key (Shift by default, or none) and drag Blizzard's windows, like your character, spellbook, professions, friends, and bags, to put them where you want. Remember Position keeps them there always, only until you log out or reload, or never (back to their usual place when they close), and Reset puts every window back. Ctrl+Right-click a window to put just that one back (pick the click and key, or turn it off). Windows with protected parts move only out of combat. Off by default.
-- **Tooltips**: Colors unit and item tooltips by class, reaction, or quality, colors the Horde or Alliance line red or blue, colors friends' tooltips in the friends list the same way, and adds player titles and who a unit is targeting. Can hide the health bar under unit tooltips (off by default).
+- **Tooltips**: Colors unit and item tooltips by class, reaction, or quality, colors the Horde or Alliance line red or blue, colors friends' tooltips in the friends list the same way, and adds player titles and who a unit is targeting. Can hide the health bar under unit tooltips (off by default), and the quest lines (a quest's name and objectives) on player and NPC tooltips, or on objects such as chests too (shown by default).
 
 ### Items
 
@@ -95,7 +95,6 @@ Everything is on by default except where noted. Each module can be turned off, a
 - **Forever Quest Icons**: Marks quests that are new to Forever (not in original Classic) with an infinity sign, or the Forever logo, after their name in the quest log on the world map, the objective tracker, a quest giver's list of quests, and the title of a quest's details, each with its own checkbox and icon size slider. On by default.
 - **Quest Levels**: Shows a quest's level before its name, like the quest log's [12] (with a + for elite quests), in a quest giver's list and at the top of the quest's details. On by default. Its Color by Difficulty option (off by default) colors the level gray through red by how it compares with yours.
 - **Quest Nameplates**: Shows a quest icon that matches the objective (kill, item, or interact) and your progress (3/8, or how many are left) beside the health bar of creatures you need for a quest. In a party it can count everyone's progress added up, or the member furthest from done.
-- **Hide Quest Tooltips**: Takes the quest lines (the quest's name and its objectives, like "- Item 0/8") off the tooltips of creatures, players, and, by default, objects such as chests. Off by default.
 
 ### System
 

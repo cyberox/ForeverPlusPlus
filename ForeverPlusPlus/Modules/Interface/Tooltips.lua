@@ -4,11 +4,12 @@
 -- says who the unit is targeting. Ideas from ManiaTip; none of its code.
 --
 -- Every change is made after Blizzard builds the tooltip (TooltipDataProcessor post calls), on
--- Blizzard's own lines. Unit data can be secret, mostly in combat and instances: text we'd have
--- to read is left alone then, and colors that come back secret go straight to the setters.
+-- Blizzard's own lines, except Quest Lines, which leaves the quest lines out as it's built (line
+-- pre calls). Unit data can be secret, mostly in combat and instances: text we'd have to read is
+-- left alone then, and colors that come back secret go straight to the setters.
 local _, ns = ...
 
-local _G, type, setmetatable = _G, type, setmetatable
+local _G, type, setmetatable, ipairs = _G, type, setmetatable, ipairs
 local find, sub, byte, format = string.find, string.sub, string.byte, string.format
 local Enum, C_Item = Enum, C_Item
 local UnitExists, UnitClass, UnitLevel, UnitName = UnitExists, UnitClass, UnitLevel, UnitName
@@ -39,6 +40,7 @@ local module = ns.NewModule("Tooltips", L.TOOLTIPS_DESC, {
     hideInCombat = false, -- hide unit tooltips while in combat
     anchorCursor = false, -- tooltips at the mouse instead of the bottom right
     hideHealthBar = false, -- hide the health bar under unit tooltips
+    questLines = "show", -- "show", "units" (hidden on unit tooltips), "all" (and on objects)
 })
 module.title = L.TOOLTIPS_TITLE
 module.category = "interface"
@@ -83,6 +85,15 @@ module.options = {
         section = L.TOOLTIPS_SECTION_BEHAVIOR },
     { key = "hideHealthBar", name = L.TOOLTIPS_HIDE_HEALTH_BAR,
         description = L.TOOLTIPS_HIDE_HEALTH_BAR_DESC, section = L.TOOLTIPS_SECTION_BEHAVIOR, added = "0.9.0" },
+    {
+        key = "questLines", name = L.TOOLTIPS_QUEST_LINES, description = L.TOOLTIPS_QUEST_LINES_DESC,
+        section = L.TOOLTIPS_SECTION_BEHAVIOR, added = "1.3.0",
+        choices = {
+            { "show", L.TOOLTIPS_QUEST_LINES_SHOW },
+            { "units", L.TOOLTIPS_QUEST_LINES_UNITS },
+            { "all", L.TOOLTIPS_QUEST_LINES_ALL },
+        },
+    },
 }
 
 local GUILDMATE_COLOR = ns.Colors.GUILD_GREEN -- as on Player Nameplates
@@ -100,6 +111,21 @@ local function lineText(data, i)
     local text = lineData and lineData.leftText
     if ns.IsText(text) then
         return text
+    end
+end
+
+-- The tooltip's left font string for data line `i`. Blizzard numbers each line it adds
+-- (lineData.lineIndex); after a line left out (Quest Lines, or another addon's line pre call),
+-- the tooltip's lines no longer match their place in the data. When the first line has a number
+-- and this one hasn't, it was left out: nil.
+local function dataLine(tooltip, data, i)
+    local lineData, first = data.lines[i], data.lines[1]
+    local index = lineData and lineData.lineIndex
+    if ns.IsNumber(index) then
+        return leftLine(tooltip, index)
+    end
+    if lineData and not (first and ns.IsNumber(first.lineIndex)) then
+        return leftLine(tooltip, i)
     end
 end
 
@@ -250,7 +276,7 @@ local function colorGuild(tooltip, data, unit)
             elseif mode == "all" then
                 color = GUILD_COLOR
             end
-            local line = color and leftLine(tooltip, i)
+            local line = color and dataLine(tooltip, data, i)
             if line then
                 line:SetTextColor(color[1], color[2], color[3])
             end
@@ -287,14 +313,14 @@ local function colorLevelLine(tooltip, data, unit, guildLine)
                 changed = changed or found
                 local nextText = not found and lineText(data, i + 1)
                 if nextText then
-                    local nextLine = leftLine(tooltip, i + 1)
+                    local nextLine = dataLine(tooltip, data, i + 1)
                     nextText, found = colorMatch(nextText, nil, r, g, b, classWord)
                     if found and nextLine then
                         nextLine:SetText(nextText)
                     end
                 end
             end
-            local line = changed and leftLine(tooltip, i)
+            local line = changed and dataLine(tooltip, data, i)
             if line then
                 line:SetText(text)
             end
@@ -308,7 +334,7 @@ local function colorFaction(tooltip, data)
     for i = 2, #data.lines do
         local text = lineText(data, i)
         local side = text and (text == FACTION_HORDE and "H" or text == FACTION_ALLIANCE and "A")
-        local line = side and leftLine(tooltip, i)
+        local line = side and dataLine(tooltip, data, i)
         if line then
             local color = ns.Colors.Faction(side)
             line:SetTextColor(color.r, color.g, color.b)
@@ -501,7 +527,30 @@ local function fadeHealthBar(hide)
     end
 end
 
+-- Quest Lines: true leaves a quest line (its title, an objective, or whose they are in a group) out
+-- of a unit's tooltip, or an object's too, as the tooltip is built. Idea from NoQuestTooltips and
+-- cyberox's Hide Quest Tooltips. Only the tooltip skips them: the data keeps them, so what reads
+-- it (Quest Nameplates, through C_TooltipInfo) still sees them. The tooltip's type is never secret,
+-- since Blizzard keys its own callback tables by it.
+local QUEST_LINES = { "QuestTitle", "QuestObjective", "QuestPlayer" }
+
+local function skipQuestLine(tooltip)
+    local mode = module.db.questLines
+    if mode == "show" or not tooltip.GetProcessingTooltipInfo then
+        return false
+    end
+    local info = tooltip:GetProcessingTooltipInfo()
+    local kind = info and info.tooltipData and info.tooltipData.type
+    local types = Enum.TooltipDataType
+    return kind == types.Unit or (mode == "all" and kind == types.Object)
+end
+
 function module:OnEnable()
+    -- Probe: line types and line pre calls are Mainline's.
+    local lineTypes = Enum.TooltipDataLineType
+    for _, name in ipairs(lineTypes and QUEST_LINES or {}) do
+        self:TooltipLinePreCall(lineTypes[name], skipQuestLine)
+    end
     self:TooltipPostCall(Enum.TooltipDataType.Unit, onUnit)
     self:TooltipPostCall(Enum.TooltipDataType.Item, onItem)
     -- The friends list's tooltip has no tooltip data for a post call, so after it shows.

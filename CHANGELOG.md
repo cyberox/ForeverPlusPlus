@@ -6,6 +6,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 ### Added
 
+- **Tooltips**: Quest Lines hides the quest lines (a quest's name and its objectives) on player and NPC tooltips, or on objects such as chests too. Shown by default. Thanks to cyberox.
 - **World Map**: quick checkboxes in the world map's filter menu for Dungeons, Raids, Flight Masters, Boats and Zeppelins, Unexplored Areas, and Zone Info.
 - **World Map**: Forever's new dungeons: The Drowned City, Blackmaw Hold, and The Shaper's Terrace on the map, and with Krol'dok Stronghold and Alcaz Prison in their zones' info.
 - Other addons can read more through `ForeverPlusPlusAPI.v1`: your talent trees (`GetTalentTabs`), any herb, vein, chest, or fishing pool by name (`GetWorldNodeInfo`, `GetFishingPoolByObject`), your profession skills (`GetProfessionSkill`), every flight timed (`GetFlightTimes`), the flight points you've learned (`GetKnownFlightPoints`), what each Gathering Map node has given (`loot`), and callbacks for each gather and each flight (`GATHERED`, `FLIGHT_STARTED`, `FLIGHT_ENDED`). `GetModuleInfo` says when a module is locked.

@@ -60,14 +60,6 @@ L.QUESTLEVELS_COLOR = "Color by Difficulty"
 L.QUESTLEVELS_COLOR_DESC = "Color the level gray through red by how it compares with yours, like "
     .. "the quest log's colors."
 
--- HideQuestTooltips
-L.HIDEQUESTTOOLTIPS_TITLE = "Hide Quest Tooltips"
-L.HIDEQUESTTOOLTIPS_DESC = "Hide the quest lines (the quest's name and its objectives, like "
-    .. "\"- Item 0/8\") on the tooltips of creatures and players."
-L.HIDEQUESTTOOLTIPS_OBJECTS = "Objects Too"
-L.HIDEQUESTTOOLTIPS_OBJECTS_DESC = "Also hide the quest lines on the tooltips of objects, such as "
-    .. "chests and crates."
-
 -- ForeverQuestIcons
 L.FOREVERQUESTICONS_TITLE = "Forever Quest Icons"
 L.FOREVERQUESTICONS_DESC = "Mark quests that are new to Forever, the ones that weren't in original "

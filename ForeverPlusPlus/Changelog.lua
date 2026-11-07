@@ -13,10 +13,9 @@ ns.changelog = {
         version = L.CHANGELOG_UNRELEASED,
         sections = {
             { L.CHANGELOG_ADDED, {
-                { L.HIDEQUESTTOOLTIPS_TITLE, "A new module that takes the quest lines (the quest's "
-                    .. "name and its objectives, like \"- Item 0/8\") off the tooltips of creatures and "
-                    .. "players. Objects Too (on by default) does the same for objects such as chests. "
-                    .. "Off by default." },
+                { L.TOOLTIPS_TITLE, "Quest Lines hides the quest lines (a quest's name and its "
+                    .. "objectives) on player and NPC tooltips, or on objects such as chests too. "
+                    .. "Shown by default. Thanks to cyberox." },
                 { L.WORLDMAP_TITLE, "Quick checkboxes in the world map's filter menu for Dungeons, "
                     .. "Raids, Flight Masters, Boats and Zeppelins, Unexplored Areas, and Zone Info." },
                 { L.WORLDMAP_TITLE, "Forever's new dungeons: The Drowned City, Blackmaw Hold, and "
