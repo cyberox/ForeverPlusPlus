@@ -379,6 +379,7 @@ L.GATHERINGMAP_FORGET_ALL_CONFIRM = "Forget every node Gathering Map remembers, 
 L.GATHERINGMAP_FORGOT = "Forgot %d nodes." -- count
 L.GATHERINGMAP_FORGOT_ONE = "Forgot %s." -- node name
 L.GATHERINGMAP_FORGET_HINT = "Shift+right-click to forget it."
+L.GATHERINGMAP_MAP_HINT = "Shift+click for a map pin, Shift+right-click to forget it."
 L.GATHERINGMAP_JUST = "Just Gathered"
 L.GATHERINGMAP_JUST_DESC = "How a node you just gathered shows on both maps while it's likely "
     .. "still gone: as an empty ring, hidden, or as usual."
@@ -425,8 +426,9 @@ L.GATHERINGMAP_TIP_ALSO_DESC = "The other vein a spot has spawned (Silver where 
     .. "gathers of it."
 L.GATHERINGMAP_TIP_DISTANCE_NAME = "Distance"
 L.GATHERINGMAP_TIP_DISTANCE_DESC = "How far the node is from you, on the minimap."
-L.GATHERINGMAP_TIP_FORGET_NAME = "Forget Hint"
-L.GATHERINGMAP_TIP_FORGET_DESC = "A reminder that Shift+right-click forgets the node."
+L.GATHERINGMAP_TIP_FORGET_NAME = "Click Hints"
+L.GATHERINGMAP_TIP_FORGET_DESC = "A reminder that Shift+right-click forgets the node, and on the world "
+    .. "map that Shift+click puts the map pin on it."
 -- Smaller headers over its options in Settings
 L.GATHERINGMAP_SECTION_LOOK = "Look"
 L.GATHERINGMAP_TOO_HIGH = "Too High for You"

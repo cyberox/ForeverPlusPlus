@@ -32,11 +32,16 @@ end
 -- The tables pins are given, kept from one draw to the next: pin i shows infos[i].
 local infos = {}
 
--- Shift+right-click forgets the node.
+-- Shift+click puts Blizzard's map pin on the node; Shift+right-click forgets it.
 local function forget(pin, button)
     local info = pin.info
-    if button == "RightButton" and info and info.node then
+    if not (info and info.node) then
+        return
+    end
+    if button == "RightButton" then
         internal.Forget(info.zone, info.node)
+    elseif button == "LeftButton" then
+        ns.WorldMap.SetWaypoint(info.zone, info.node.x, info.node.y)
     end
 end
 
