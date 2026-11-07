@@ -19,7 +19,6 @@ L.ERRORCATCHER_CLEAR_NAME = "Saved Errors"
 L.ERRORCATCHER_CLEAR_DESC = "Forget every saved error, from every session."
 L.ERRORCATCHER_CLEAR_CONFIRM = "Forget every saved error?"
 L.ERRORCATCHER_COMMAND = "show the caught Lua errors"
-L.ERRORCATCHER_OFF = "Error Catcher is off. Turn it on in /fpp."
 L.ERRORCATCHER_CAUGHT = "Caught an error: %s Type /fpp errors to see it." -- first line of the error
 L.ERRORCATCHER_CAUGHT_LOADING = "Caught %d errors while logging in. Type /fpp errors to see them."
 L.ERRORCATCHER_OTHER_HANDLER = "Another addon, such as BugGrabber, is catching Lua errors, so "

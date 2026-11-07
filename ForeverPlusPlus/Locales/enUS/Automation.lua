@@ -218,7 +218,7 @@ L.FISHINGCAST_LOUDER_DESC = "While you fish, turn sound effects up and music dow
 
 -- AutoWeaponBuff
 L.AUTOWEAPONBUFF_TITLE = "Auto Weapon Buff"
-L.AUTOWEAPONBUFF_DESC = "Right-click a sharpening stone, oil, poison, or lure in your bags, or use one from an "
+L.AUTOWEAPONBUFF_DESC = "Right-click a sharpening stone, weightstone, oil, poison, or lure in your bags, or use one from an "
     .. "action bar, to put it straight on your weapon: the main hand, or the off hand when only "
     .. "it fits."
 L.AUTOWEAPONBUFF_NOTICE = "Works only out of combat." -- a gray row atop the module
@@ -234,7 +234,7 @@ L.AUTOWEAPONBUFF_PRINT_DESC = "Print in chat, each time you use a weapon buff fr
     .. "which kind of item it is and which weapon slot was picked, and each time it learns a weapon "
     .. "an item goes on."
 -- debug codes: item link, item kind (sharp, blunt, melee, pole, learned), slot picked (16, 17, or nil)
-L.AUTOWEAPONBUFF_PRINT_LINE = "Weapon buff: %s kind=%s -> slot %s"
+L.AUTOWEAPONBUFF_PRINT_LINE = "Weapon buff: %s kind=%s -> slot %s" -- item link or name, kind, slot
 L.AUTOWEAPONBUFF_LEARNED_LINE = "Weapon buff learned: %s goes on %s." -- item name, weapon type
 
 -- ComprehendScrolls
