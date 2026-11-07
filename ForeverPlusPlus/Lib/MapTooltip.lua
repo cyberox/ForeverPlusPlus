@@ -54,31 +54,45 @@ function MapTooltip.Pair(label, value)
     return { label, HIGHLIGHT_FONT_COLOR, right = value }
 end
 
----Shows the tooltip for a map icon. A line is a string, gold, or the table one of the helpers
----above makes; text with color codes keeps them. Lines wrap, but for a Pair. With `kind`, the
----title has it in gold at the right edge (a node's "Ore").
----@param owner table the frame the tooltip sits beside
----@param title string
+---Adds lines to a tooltip already showing, such as Blizzard's own for a minimap dot: each a
+---string (gold), or the table one of the helpers above makes. Lines wrap, but for a Pair. Call
+---`tooltip:Show()` after, so it fits them.
+---@param tooltip table
 ---@param lines (string|table)[]?
----@param kind? string
-function MapTooltip.Show(owner, title, lines, kind)
-    GameTooltip:SetOwner(owner, "ANCHOR_RIGHT")
+function MapTooltip.AddLines(tooltip, lines)
     local white, gold = HIGHLIGHT_FONT_COLOR, NORMAL_FONT_COLOR
-    if kind then
-        GameTooltip:AddDoubleLine(title, kind, white.r, white.g, white.b, gold.r, gold.g, gold.b)
-    else
-        GameTooltip:SetText(title, white:GetRGB())
-    end
     for _, line in ipairs(lines or {}) do
         local text, color = line, gold
         if type(line) == "table" then
             text, color = line[1], line[2]
         end
         if type(line) == "table" and line.right then
-            GameTooltip:AddDoubleLine(text, line.right, color.r, color.g, color.b, white.r, white.g, white.b)
+            tooltip:AddDoubleLine(text, line.right, color.r, color.g, color.b, white.r, white.g, white.b)
         else
-            GameTooltip:AddLine(text, color.r, color.g, color.b, true)
+            tooltip:AddLine(text, color.r, color.g, color.b, true)
         end
     end
+end
+
+---Shows the tooltip for a map icon: `title` (white, or a `{ text, color }` table, as a gathering
+---node's gold name like the minimap's own tooltip), then the lines as AddLines takes them. With
+---`kind`, the title has it in gold at the right edge.
+---@param owner table the frame the tooltip sits beside
+---@param title string|table
+---@param lines (string|table)[]?
+---@param kind? string
+function MapTooltip.Show(owner, title, lines, kind)
+    GameTooltip:SetOwner(owner, "ANCHOR_RIGHT")
+    local white, gold = HIGHLIGHT_FONT_COLOR, NORMAL_FONT_COLOR
+    local color = white
+    if type(title) == "table" then
+        title, color = title[1], title[2]
+    end
+    if kind then
+        GameTooltip:AddDoubleLine(title, kind, color.r, color.g, color.b, gold.r, gold.g, gold.b)
+    else
+        GameTooltip:SetText(title, color.r, color.g, color.b)
+    end
+    MapTooltip.AddLines(GameTooltip, lines)
     GameTooltip:Show()
 end

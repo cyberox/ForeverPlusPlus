@@ -403,6 +403,7 @@ L.GATHERINGMAP_TOOLTIPS = "Minimap Tooltips"
 L.GATHERINGMAP_TOOLTIPS_DESC = "Show a node's tooltip when you point at its icon on the minimap. It's "
     .. "also what lets Shift+right-click forget a node there."
 -- A node's tooltip: the lines, each a label and its value as Blizzard's Sell Price line
+L.GATHERINGMAP_REQUIRES = "Requires %s (%d)" -- profession, skill; Blizzard's ITEM_MIN_SKILL when it has one
 L.GATHERINGMAP_TIP_GATHERED = "Gathered:"
 L.GATHERINGMAP_TIP_ONCE = "Once"
 L.GATHERINGMAP_TIP_TIMES = "%d times" -- count, more than one

@@ -85,7 +85,7 @@ local function onEnter(pin)
     if v and v.mapID == nearMap then
         yards = Distance(node.x, node.y, v.x, v.y, v.width, v.height)
     end
-    ns.MapTooltip.Show(pin, node.name, internal.TooltipLines(node, yards), internal.KindName(node))
+    ns.MapTooltip.Show(pin, internal.Title(node), internal.TooltipLines(node, yards))
 end
 
 local function onLeave(pin)

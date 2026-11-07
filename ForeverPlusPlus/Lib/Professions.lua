@@ -217,6 +217,14 @@ local function lineName(line)
     end
 end
 
+---A gathering skill line's name in the client's language ("Mining"), or the English one when the
+---client can't say.
+---@param line number
+---@return string?
+function Professions.LineName(line)
+    return lineName(line) or ENGLISH[line]
+end
+
 ---The gathering skill line (Herbalism or Mining) named `skill` in the client's language, or nil.
 ---@param skill string
 ---@return number? line

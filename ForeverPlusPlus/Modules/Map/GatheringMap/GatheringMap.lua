@@ -9,6 +9,8 @@ local _, ns = ...
 
 local pairs, type, time, format, tostring = pairs, type, time, string.format, tostring
 local C_Minimap, C_Map, IsShiftKeyDown = C_Minimap, C_Map, IsShiftKeyDown
+local Minimap, GameTooltip, strtrim, NORMAL_FONT_COLOR = Minimap, GameTooltip, strtrim, NORMAL_FONT_COLOR
+local ITEM_MIN_SKILL = ITEM_MIN_SKILL
 
 local L = ns.L
 local Gathering = ns.Gathering
@@ -389,22 +391,41 @@ local function wants(key)
     return when == "always" or (when == "shift" and IsShiftKeyDown())
 end
 
----The kind of a node as its tooltip's title shows it at the right ("Ore").
+---A node's name as its tooltip's title: gold, as the minimap's own tooltip names a node.
 ---@param node table
----@return string
-function internal.KindName(node)
-    return internal.KIND_NAMES[node.kind] or node.kind
+---@return table title
+function internal.Title(node)
+    return { node.name, NORMAL_FONT_COLOR }
+end
+
+-- Blizzard's "Requires Mining (75)" under the name, as the minimap's own tooltip has it, in the
+-- trainer's colors against the player's skill; nil for a node whose skill isn't known.
+local function requiresLine(node)
+    local known = Professions.Node(node.name)
+    local line, need = known and known[1], known and known[2]
+    local skill = line and Professions.LineName(line)
+    if not (skill and need) then
+        return nil
+    end
+    return { format(ITEM_MIN_SKILL or L.GATHERINGMAP_REQUIRES, skill, need),
+        Professions.Difficulty(Professions.Rank(line), need) }
 end
 
 ---The lines under a node's name in its tooltip, as Blizzard's Sell Price line lays them out: a
 ---label and its value, each line shown always, with Shift held, or never as its option says.
----`yards` is how far the node is, where that's known (the minimap).
+---`yards` is how far the node is, where that's known (the minimap). With `onDot`, the lines added
+---to Blizzard's own tooltip for the game's dot, which has its requirement already and can't be
+---Shift+right-clicked.
 ---@param node table
 ---@param yards? number
+---@param onDot? boolean
 ---@return table lines
-function internal.TooltipLines(node, yards)
+function internal.TooltipLines(node, yards, onDot)
     local Tip = ns.MapTooltip
     local lines = {}
+    if not onDot then
+        lines[#lines + 1] = requiresLine(node)
+    end
     if node.count == 0 then
         lines[#lines + 1] = Tip.Detail(L.GATHERINGMAP_SEEN)
     elseif wants("tipGathered") then
@@ -426,10 +447,46 @@ function internal.TooltipLines(node, yards)
     if yards and wants("tipDistance") then
         lines[#lines + 1] = Tip.Pair(L.GATHERINGMAP_TIP_DISTANCE, format(L.GATHERINGMAP_YARDS, yards + 0.5))
     end
-    if wants("tipForget") then
+    if not onDot and wants("tipForget") then
         lines[#lines + 1] = Tip.Note(L.GATHERINGMAP_FORGET_HINT)
     end
     return lines
+end
+
+-- The game's own tooltip for a dot on the minimap (where none of our icons is over it): the node
+-- remembered there of the name it gives gets our lines under Blizzard's, so the tooltip reads the
+-- same either way. Looked for around the mouse, as far as a dot reaches at this zoom.
+local DOT_REACH = 12 -- minimap units around the mouse
+
+local function onMinimapTooltip(tooltip, data)
+    if tooltip ~= GameTooltip or not (module.db.minimapTooltips and Minimap:IsMouseOver()) then
+        return
+    end
+    local lines = data and data.lines
+    local first = type(lines) == "table" and lines[1]
+    local text = type(first) == "table" and first.leftText
+    if not ns.IsText(text, true) then
+        return
+    end
+    local v = ns.MinimapPins.View(internal.ZoneMap())
+    local list = v and module.db.nodes[v.mapID]
+    if not list then
+        return
+    end
+    local x, y = ns.MinimapPins.FromMinimap(v, ns.MinimapPins.CursorOffset())
+    local reach = DOT_REACH / v.scale
+    for row in text:gmatch("[^\n]+") do
+        local name = strtrim(ns.Text.Plain(row))
+        local node = Gathering.Nearest(list, x, y, v.width, v.height, reach, function(known)
+            return Professions.SharesSpawn(known.name, name)
+        end)
+        if node and internal.Shown(node) then
+            local yards = Gathering.Distance(node.x, node.y, v.x, v.y, v.width, v.height)
+            ns.MapTooltip.AddLines(tooltip, internal.TooltipLines(node, yards, true))
+            tooltip:Show()
+            return
+        end
+    end
 end
 
 -- Remembering gathers ---------------------------------------------------------------------------
@@ -563,6 +620,10 @@ end
 function module:OnEnable()
     setTrace()
     readTracking()
+    -- Probe: MinimapMouseover is Mainline's tooltip type for minimap dots.
+    if Enum and Enum.TooltipDataType and Enum.TooltipDataType.MinimapMouseover then
+        self:TooltipPostCall(Enum.TooltipDataType.MinimapMouseover, onMinimapTooltip)
+    end
     Gathering.Listen(onGather, true)
     Gathering.ListenSightings(onSighting, true)
     Gathering.SetRemembered(rememberedSpot)
