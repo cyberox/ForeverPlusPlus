@@ -397,7 +397,7 @@ L.UPGRADEARROWS_AUCTION = "Auction House"
 L.UPGRADEARROWS_AUCTION_DESC = "Mark upgrades in the auction house's search results. An item with a "
     .. "random suffix is judged without the suffix's stats there."
 L.UPGRADEARROWS_PERCENT = "%+.0f%%" -- the upgrade on an item's icon, such as +12%
-L.UPGRADEARROWS_PERCENT_TOOLTIP = "%+.1f%%" -- the upgrade in a tooltip, such as +12.4%
+L.UPGRADEARROWS_PERCENT_TOOLTIP = "%+.2f%%" -- the upgrade in a tooltip, such as +12.43%
 L.UPGRADEARROWS_SCORE_LINE = "Score"
 L.UPGRADEARROWS_SCORE_VALUE = "%s (worn %s)" -- the item's score, the score of what it would replace (4.6)
 L.UPGRADEARROWS_SCORE_NONE = "%s (nothing worn)"
