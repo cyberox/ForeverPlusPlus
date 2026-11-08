@@ -35,6 +35,13 @@ forever-agent t3 tools     # what T3 offers
 forever-agent t3 call t3_thread_list '{"allProjects":true,"limit":5}'
 ```
 
+What T3 did when checked by hand (0.1.8-nightly.20261107, on a throwaway thread):
+
+- `t3_thread_send` with `mode: "queue"` starts an idle thread (`delivery: "started"`) and queues behind a running turn (`delivery: "queued"`, with that run's id). A queued run starts by itself when the turn before it ends.
+- `t3_queue` `list` gives `items` of `{ queuedRunId, text, truncated }`. `promote_to_steer` with `queuedRunId` and the running turn's id as `targetRunId` (`thread.activeRunId` in `t3_thread_read`) hands the message to the running turn: the agent answered it mid-turn and then went on with the turn.
+- Threads can't be deleted through MCP; `t3_thread_organize` `archive` hides one.
+- A thread in a scratch folder needs a provider named in `modelSelection` when the default one is off for it.
+
 The sign-in uses T3's standard MCP OAuth (registration, PKCE, scopes `orchestration:read` and `orchestration:operate`) and is saved in `%LOCALAPPDATA%\ForeverPlusPlus\Agent\t3.json`. T3 gives no refresh token, so sign in again when it runs out. `--t3` picks another T3 server; the default is the one in `~/.t3/userdata/server-runtime.json`.
 
 ## Tests
