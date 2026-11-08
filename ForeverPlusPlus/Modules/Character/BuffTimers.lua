@@ -224,10 +224,11 @@ local function readTracking()
     end
 end
 
--- Whether a buff button shows a tracking spell, or nil when the game won't say (a secret, in
--- combat). Blizzard's button keeps the aura's instance, not its spell, so the spell is looked up.
-local function isTracking(button)
-    local id = button.buttonInfo and button.buttonInfo.auraInstanceID
+-- Whether one of Blizzard's buff infos (a button's buttonInfo, or BuffFrame.auraInfo) is a tracking
+-- spell, or nil when the game won't say (a secret, in combat). The info keeps the aura's instance,
+-- not its spell, so the spell is looked up.
+local function isTracking(info)
+    local id = info and info.auraInstanceID
     if not id then
         return false -- a weapon enchant
     end
@@ -242,12 +243,45 @@ local function isTracking(button)
     return spellID and trackingSpells[spellID] or false
 end
 
+-- Blizzard's arrow folds away buffs that never run out or have long left, and shows while there
+-- are any. When those are only tracking buffs we hide, it has nothing to fold, so it goes too.
+local arrowHidden = false
+
+local function showArrow(shown)
+    local arrow = BuffFrame and BuffFrame.CollapseAndExpandButton
+    if not arrow or shown == not arrowHidden then
+        return
+    end
+    arrowHidden = not shown
+    arrow:SetAlpha(shown and 1 or 0)
+    arrow:EnableMouse(shown)
+end
+
+-- Whether every buff the arrow would fold is a tracking buff; false while any can't be read.
+local function onlyTrackingFolds()
+    local any = false
+    for _, info in ipairs(BuffFrame and BuffFrame.auraInfo or {}) do
+        local folds = info.hideUnlessExpanded
+        if not readable(folds) then
+            return false
+        end
+        if folds then
+            if not isTracking(info) then
+                return false
+            end
+            any = true
+        end
+    end
+    return any
+end
+
 -- Every button back in Blizzard's place, and shown.
 local function unsort()
     for i, button in ipairs(BuffFrame and BuffFrame.auraFrames or {}) do
         unhide(button)
         place(button, i, i)
     end
+    showArrow(true)
 end
 
 -- When a buff runs out: never (0 or no time) sorts after every timed one.
@@ -286,7 +320,7 @@ local function layout()
             sorting = ends[button] ~= nil
         end
         if hiding then
-            tracked[button] = isTracking(button)
+            tracked[button] = isTracking(button.buttonInfo)
             -- Which is which is secret (in combat): show them all until it can be read.
             hiding = tracked[button] ~= nil
         end
@@ -333,6 +367,7 @@ local function layout()
         unhide(frames[i])
         place(frames[i], i, i)
     end
+    showArrow(not (hiding and onlyTrackingFolds()))
 end
 
 local function onSpellsChanged()
