@@ -7,51 +7,61 @@
 -- at once to its AddOns.txt by C_AddOns.SaveAddOns(); the program watches that file. In: the
 -- program writes the reply into a load-on-demand helper addon (a slot), and this loads it with
 -- C_AddOns.LoadAddOn, which runs its Data.lua: that sets ForeverPlusPlusAgentInbox, read and
--- cleared at once. A slot loads once per UI session. Before loading, this waits for the slot's
--- ready files, which the program creates only once the reply is written (see PROBES). The
--- helpers exist only once the program installs them, so
--- without it the module isn't offered at all.
+-- cleared at once. A slot loads once per UI session.
+--
+-- A signal says the reply is written, so the slot loads only then: a sound file in the
+-- FPPAgentSignals helper, which the program makes after the reply. PlaySoundFile answers whether
+-- it's there, with game sound off too. The game knows only files that existed when it started
+-- (the program makes them all while it's closed, and deletes them at each hello), and once it
+-- has found one it remembers it until it restarts, so each signal works once per game launch.
+-- Requests take the next one that reads as missing, from where the last left off (saved, so a
+-- /reload goes on from there). With none, or no program, a slot loads after LOAD_AFTER anyway.
+-- The helpers exist only once the program installs them, so without it the module isn't
+-- offered at all. What the tests showed is in docs/forever-api.md.
 local _, ns = ...
 
-local _G, ipairs, format, type, tostring, floor, random, wipe = _G, ipairs, format, type, tostring,
-    math.floor, math.random, wipe
-local tremove = table.remove
-local pcall = pcall
-local C_AddOns, UnitGUID, GetTimePreciseSec, PlaySoundFile, StopSound, CreateFrame =
-    C_AddOns, UnitGUID, GetTimePreciseSec, PlaySoundFile, StopSound, CreateFrame
+local _G, ipairs, format, type, tostring, tonumber, floor, random, wipe = _G, ipairs, format, type,
+    tostring, tonumber, math.floor, math.random, wipe
+local tremove, min = table.remove, math.min
+local C_AddOns, UnitGUID, GetTimePreciseSec, PlaySoundFile, StopSound =
+    C_AddOns, UnitGUID, GetTimePreciseSec, PlaySoundFile, StopSound
 
 local L = ns.L
 local AgentLink = ns.AgentLink
 
-local BIT, SLOT = "FPPAgentBit%03d", "FPPAgentSlot%03d"
+local BIT, SLOT, SIGNALS = "FPPAgentBit%03d", "FPPAgentSlot%03d", "FPPAgentSignals"
+local SIGNAL = "Interface\\AddOns\\FPPAgentSignals\\%04d.wav"
 local INBOX = "ForeverPlusPlusAgentInbox"
 local HOLD = 0.1 -- seconds each frame stays written, so the program reads every one
 local PROBE_EVERY = 0.05
-local LOAD_AFTER = 1 -- load a slot this long after sending even if neither ready file showed up
+local LOAD_AFTER = 1 -- load a slot this long after sending when there's no signal to wait for
 local MAX_SLOTS = 999
+local MAX_SCAN = 200 -- signals checked per request before giving up on one
 local MAX_TEXT = 200
 
-local module = ns.NewModule("AgentChat", L.AGENTCHAT_DESC, { enabled = true })
+local module = ns.NewModule("AgentChat", L.AGENTCHAT_DESC, {
+    enabled = true,
+    link = {}, -- signal: the next ready signal to try
+})
 module.title = L.AGENTCHAT_TITLE
 module.category = "chat"
 module.added = "1.3.0"
 
 -- Only with the program's helper addons installed.
 function module:IsAvailable()
-    return C_AddOns and C_AddOns.DoesAddOnExist and C_AddOns.DoesAddOnExist(BIT:format(0))
-        and C_AddOns.DoesAddOnExist(SLOT:format(0)) or false
+    local exists = C_AddOns and C_AddOns.DoesAddOnExist
+    return exists and exists(BIT:format(0)) and exists(SLOT:format(0)) and exists(SIGNALS) or false
 end
 
 local sendTimer = ns.Frames.Timer(module)
 local probeTimer = ns.Frames.Timer(module)
 
-local character, session, slots
+local character, session, slots, signals
 local seq = 0
 local bits = {} -- helper index -> whether it's on, as last written; nil until written
 local queue = {} -- frames waiting: { frame = bytes, sent = fn(time) on a message's last frame }
 local pending -- the ping waiting for its reply
 local pings = 0
-local probeString
 
 -- Sending ------------------------------------------------------------------------------------------
 
@@ -107,53 +117,32 @@ local function freeSlot()
     end
 end
 
+-- Whether signal i reads as there. The sound is silent and stopped at once.
+local function signalThere(i)
+    local willPlay, handle = PlaySoundFile(SIGNAL:format(i), "Master")
+    if willPlay and handle then
+        StopSound(handle)
+    end
+    return willPlay and true or false
+end
+
+-- The next signal that reads as missing, or -1. Ones that read as there were used earlier this
+-- game launch (or the program isn't running to clear them).
+local function freeSignal()
+    local link = module.db.link
+    local start = tonumber(link.signal) or 0
+    for n = 0, min(signals, MAX_SCAN) - 1 do
+        local i = (start + n) % signals
+        if not signalThere(i) then
+            link.signal = (i + 1) % signals
+            return i
+        end
+    end
+    return -1
+end
+
 local function ms(seconds)
     return floor(seconds * 1000 + 0.5)
-end
-
--- Ways to see whether a slot's reply is written, without loading the slot. The game only knows
--- files that existed when it started (it checks those on disk each time, but never finds a name
--- made later), so each slot has fixed ready files the program arms before the game starts.
--- ready.wav and ready.ttf are deleted while the slot is empty and made when it's filled;
--- check.ttf always exists, empty until filled. Which of these the game notices, with game sound
--- on and off, is what the test is for.
-local function probeFont()
-    if not probeString then
-        local holder = CreateFrame("Frame")
-        holder:Hide()
-        probeString = holder:CreateFontString()
-    end
-    return probeString
-end
-
-local PROBES = {
-    { name = "sound made (ready.wav)", check = function(base)
-        local willPlay, handle = PlaySoundFile(base .. "ready.wav", "Master")
-        if willPlay and handle then
-            StopSound(handle)
-        end
-        return willPlay
-    end },
-    { name = "font made (ready.ttf)", check = function(base)
-        return probeFont():SetFont(base .. "ready.ttf", 12, "")
-    end },
-    { name = "font filled (check.ttf)", check = function(base)
-        return probeFont():SetFont(base .. "check.ttf", 12, "")
-    end },
-}
-
-local function check(probe, base)
-    local ok, ready = pcall(probe.check, base)
-    return ok and ready and true or false
-end
-
-local function probeText(before, at, sentAt)
-    if before then
-        return L.AGENTCHAT_PROBE_EARLY
-    elseif at then
-        return format(L.AGENTCHAT_PROBE_AT, ms(at - sentAt))
-    end
-    return L.AGENTCHAT_PROBE_NEVER
 end
 
 local function finish(p, now)
@@ -173,26 +162,26 @@ local function finish(p, now)
     else
         ns.Print(format(L.AGENTCHAT_STALE, p.name, ms(now - p.sentAt)))
     end
-    for i, probe in ipairs(PROBES) do
-        ns.PrintLine(format(L.AGENTCHAT_PROBE, probe.name, probeText(p.before[i], p.at[i], p.sentAt)))
+    if p.signal < 0 then
+        ns.PrintLine(L.AGENTCHAT_SIGNAL_NONE)
+    elseif p.signalAt then
+        ns.PrintLine(format(L.AGENTCHAT_SIGNAL_AT, p.signal, ms(p.signalAt - p.sentAt)))
+    else
+        ns.PrintLine(format(L.AGENTCHAT_SIGNAL_NEVER, p.signal))
     end
 end
 
--- Loads the slot once any check that saw nothing before sees its file, or after LOAD_AFTER.
+-- Loads the slot once its signal reads as there, or after LOAD_AFTER.
 local function probe()
     local p = pending
     if not p then
         return
     end
     local now = GetTimePreciseSec()
-    local ready = false
-    for i, entry in ipairs(PROBES) do
-        if not p.at[i] and check(entry, p.base) then
-            p.at[i] = now
-        end
-        ready = ready or (p.at[i] and not p.before[i])
+    if p.signal >= 0 and signalThere(p.signal) then
+        p.signalAt = now
     end
-    if ready or now - p.sentAt >= LOAD_AFTER then
+    if p.signalAt or now - p.sentAt >= LOAD_AFTER then
         finish(p, now)
     else
         probeTimer:Start(PROBE_EVERY, probe)
@@ -211,17 +200,9 @@ local function ping(text)
     end
     text = text ~= "" and text:sub(1, MAX_TEXT) or "ping"
     pings = pings + 1
-    local id = tostring(pings)
-    local p = {
-        id = id, name = name, start = GetTimePreciseSec(), before = {}, at = {},
-        base = format("Interface\\AddOns\\%s\\", name),
-    }
-    -- A missing file must not read as there; if one does, that check can't tell anything.
-    for i, entry in ipairs(PROBES) do
-        p.before[i] = check(entry, p.base)
-    end
+    local p = { id = tostring(pings), name = name, start = GetTimePreciseSec(), signal = freeSignal() }
     pending = p
-    send(format("P|%s|%d|%s|%s", session, slot, p.id, text), function(at)
+    send(format("P|%s|%d|%d|%s|%s", session, slot, p.signal, p.id, text), function(at)
         p.sentAt = at
         probe()
     end)
@@ -234,7 +215,8 @@ local function status()
             used = used + 1
         end
     end
-    ns.Print(format(L.AGENTCHAT_STATUS, tostring(character), tostring(session), slots - used, slots, #queue))
+    ns.Print(format(L.AGENTCHAT_STATUS, tostring(session), slots - used, slots,
+        tonumber(module.db.link.signal) or 0, signals, #queue))
 end
 
 ns.AddCommand("agent", L.AGENTCHAT_COMMAND_USAGE, L.AGENTCHAT_COMMAND, function(rest)
@@ -252,7 +234,8 @@ end, "AgentChat")
 -- Lifecycle ------------------------------------------------------------------------------------------
 
 -- A UI session starts with the idle frame, which tells the program to start reading afresh, and
--- a hello, which has it clear every slot: loaded ones can't load again until a /reload anyway.
+-- a hello, which has it clear every slot (loaded ones can't load again until a /reload anyway)
+-- and every signal (so the ones this launch hasn't used read as missing).
 function module:OnEnable()
     -- Blizzard's AddOns list names the character by GUID too; a name alone changes nothing.
     character = UnitGUID("player")
@@ -260,12 +243,16 @@ function module:OnEnable()
     while slots < MAX_SLOTS and C_AddOns.DoesAddOnExist(SLOT:format(slots)) do
         slots = slots + 1
     end
+    signals = tonumber(C_AddOns.GetAddOnMetadata(SIGNALS, "X-Signals")) or 0
+    if signals < 1 then
+        signals = 1
+    end
     session = format("%04x%04x", random(0, 65535), random(0, 65535))
     wipe(bits)
     wipe(queue)
     seq, pending = 0, nil
     queue[1] = { frame = AgentLink.Idle() }
-    send(format("H|%s|%d", session, slots))
+    send("H|" .. session)
 end
 
 function module:OnDisable()

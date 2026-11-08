@@ -36,6 +36,7 @@ func main() {
 	game := flags.String("game", defaultGame(), "the game's client folder (or set WOW_DIR)")
 	data := flags.String("data", wow.DefaultData(), "where the helper addons live")
 	slots := flags.Int("slots", 100, "reply slots: replies per UI session before a /reload")
+	signals := flags.Int("signals", 2000, "ready signals: replies per game launch told of at once")
 	iface := flags.Int("interface", 16001, "the TOC Interface number")
 	flags.Usage = func() {
 		fmt.Fprint(os.Stderr, usage)
@@ -47,7 +48,7 @@ func main() {
 	}
 	command := os.Args[1]
 	flags.Parse(os.Args[2:])
-	in := wow.Install{Game: *game, Data: *data, Slots: *slots, Interface: *iface}
+	in := wow.Install{Game: *game, Data: *data, Slots: *slots, Signals: *signals, Interface: *iface}
 	log.SetFlags(log.Ltime | log.Lmicroseconds)
 
 	var err error
@@ -55,7 +56,8 @@ func main() {
 	case "install":
 		err = in.Run()
 		if err == nil {
-			fmt.Printf("Installed %d bit and %d slot helpers.\nRestart the game (not /reload) so it finds them.\n", link.Bits, in.Slots)
+			fmt.Printf("Installed %d bit and %d slot helpers, and %d signals.\nRestart the game (not /reload) so it finds them.\n",
+				link.Bits, in.Slots, in.Signals)
 		}
 	case "uninstall":
 		err = in.Uninstall()
@@ -82,20 +84,19 @@ func defaultGame() string {
 }
 
 func run(in wow.Install) error {
-	in.Slots = in.InstalledSlots()
-	if in.Slots == 0 {
-		return errors.New("not installed: run `forever-agent install` first")
+	if !in.Load() {
+		return errors.New("not installed, or installed by an older version: run `forever-agent install`")
 	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 
-	// The game learns the ready files' names only when it starts, so they must all exist then:
-	// arm them now if it isn't running, and again each time it closes.
+	// The game learns the signals' names only when it starts, so they must all exist then: arm
+	// them now if it isn't running, and again each time it closes.
 	running := wow.GameRunning(in.Game)
 	if !running {
 		arm(in)
 	} else {
-		log.Println("The game is running. Its ready files are armed when it closes.")
+		log.Println("The game is running. The signals are armed when it closes.")
 	}
 	go func() {
 		tick := time.NewTicker(2 * time.Second)
@@ -131,42 +132,53 @@ func run(in wow.Install) error {
 	}
 }
 
-// handle answers one message. H|session|slots starts a UI session: every slot is cleared, since
-// the game starts again at slot 0. P|session|slot|id|text is a ping: the pong goes into the slot.
+// handle answers one message. H|session starts a UI session: every slot and signal is cleared,
+// since the game starts again at slot 0 and looks for the signals it hasn't used.
+// P|session|slot|signal|id|text is a ping: the pong goes into the slot, then the signal (-1 for
+// none, when the game has used them all) is made.
 func handle(in wow.Install, m wow.Message) {
 	char := characterOf(m.File)
-	parts := strings.SplitN(string(m.Data), "|", 5)
+	parts := strings.SplitN(string(m.Data), "|", 6)
 	switch parts[0] {
 	case "H":
-		if len(parts) < 3 {
+		if len(parts) < 2 {
 			break
 		}
-		count, _ := strconv.Atoi(parts[2])
-		for i := 0; i < count; i++ {
+		for i := 0; i < in.Slots; i++ {
 			if err := wow.ClearSlot(in.SlotDir(i)); err != nil {
 				log.Printf("clearing slot %d: %v", i, err)
 			}
 		}
-		log.Printf("%s: session %s started, %d slots cleared", char, parts[1], count)
+		if err := wow.ClearSignals(in.SignalsDir(), in.Signals); err != nil {
+			log.Printf("clearing the signals: %v", err)
+		}
+		log.Printf("%s: session %s started; %d slots and %d signals cleared", char, parts[1], in.Slots, in.Signals)
 		return
 	case "P":
-		if len(parts) < 5 {
+		if len(parts) < 6 {
 			break
 		}
 		slot, err := strconv.Atoi(parts[2])
-		if err != nil || slot < 0 {
+		if err != nil || slot < 0 || slot >= in.Slots {
+			break
+		}
+		sig, err := strconv.Atoi(parts[3])
+		if err != nil || sig >= in.Signals {
 			break
 		}
 		start := time.Now()
 		err = wow.FillSlot(in.SlotDir(slot), map[string]any{
-			"kind": "pong", "session": parts[1], "id": parts[3], "text": parts[4],
+			"kind": "pong", "session": parts[1], "id": parts[4], "text": parts[5],
 		})
+		if err == nil && sig >= 0 {
+			err = wow.MakeSignal(in.SignalsDir(), sig)
+		}
 		if err != nil {
-			log.Printf("%s: ping %s: writing slot %d: %v", char, parts[3], slot, err)
+			log.Printf("%s: ping %s: %v", char, parts[4], err)
 			return
 		}
-		log.Printf("%s: ping %s %q -> slot %d (written in %s)", char, parts[3], parts[4], slot,
-			time.Since(start).Round(time.Microsecond))
+		log.Printf("%s: ping %s %q -> slot %d, signal %d (written in %s)", char, parts[4], parts[5],
+			slot, sig, time.Since(start).Round(time.Microsecond))
 		return
 	}
 	log.Printf("%s: unknown message %q", char, m.Data)
@@ -174,10 +186,10 @@ func handle(in wow.Install, m wow.Message) {
 
 func arm(in wow.Install) {
 	if err := in.Arm(); err != nil {
-		log.Println("arming the ready files:", err)
+		log.Println("arming the signals:", err)
 		return
 	}
-	log.Printf("Armed %d slots' ready files for the next game start.", in.Slots)
+	log.Printf("Armed %d signals for the next game start.", in.Signals)
 }
 
 // characterOf is "Realm/Character" from a path ending in Account\<acct>\<realm>\<char>\AddOns.txt.

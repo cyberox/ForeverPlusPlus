@@ -13,20 +13,18 @@ L.AGENTCHAT_DESC = "Talk to your coding agents from inside the game, through the
 L.AGENTCHAT_COMMAND = "Test the link to the Forever Agent program, or show its state."
 L.AGENTCHAT_COMMAND_USAGE = "ping <text> | status"
 L.AGENTCHAT_COMMAND_UNKNOWN = "Unknown agent command: %s. Try ping or status." -- what was typed
-L.AGENTCHAT_STATUS = "Agent link: %s, session %s, %d of %d reply slots left, %d frames waiting."
-    -- character, session id, slots left, slots, frames queued
+L.AGENTCHAT_STATUS = "Agent link: session %s, %d of %d reply slots left, next signal %d of %d, "
+    .. "%d frames waiting." -- session id, slots left, slots, next signal, signals, frames queued
 L.AGENTCHAT_BUSY = "A ping is still waiting for its reply."
 L.AGENTCHAT_NO_SLOTS = "Every reply slot is used for this session. Type /reload to start again."
 L.AGENTCHAT_PONG = "Reply \"%s\" in %d ms: sent in %d ms, ready %d ms later, loaded in %d ms."
     -- the text, total, sending, waiting for the slot, loading it (all milliseconds)
-L.AGENTCHAT_STALE = "%s loaded %d ms after sending but held no reply. Check the program's "
-    .. "window: if it got the ping, the game doesn't read a slot written after it started."
+L.AGENTCHAT_STALE = "%s loaded %d ms after sending but held no reply. Is the program running?"
     -- slot addon name, milliseconds
 L.AGENTCHAT_LOAD_FAILED = "Couldn't load %s: %s." -- slot addon name, the game's reason
-L.AGENTCHAT_PROBE = "  %s: %s" -- ready file name, what the test saw
-L.AGENTCHAT_PROBE_AT = "showed up %d ms after sending" -- milliseconds
-L.AGENTCHAT_PROBE_NEVER = "never showed up"
-L.AGENTCHAT_PROBE_EARLY = "read as there before it was written, so it can't tell"
+L.AGENTCHAT_SIGNAL_AT = "  Signal %d showed up %d ms after sending." -- signal number, milliseconds
+L.AGENTCHAT_SIGNAL_NEVER = "  Signal %d never showed up, so it waited." -- signal number
+L.AGENTCHAT_SIGNAL_NONE = "  No unused signal was left this game launch, so it waited."
 
 -- ChatCopy
 L.CHATCOPY_TITLE = "Chat Copy"

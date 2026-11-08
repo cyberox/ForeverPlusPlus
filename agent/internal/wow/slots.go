@@ -7,90 +7,68 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
-	"sync"
 )
 
 // A reply reaches the game through a slot: a load-on-demand helper addon whose Data.lua the
 // program writes, and which the game then loads with C_AddOns.LoadAddOn. Each slot loads once
-// per UI session.
+// per UI session; LoadAddOn reads the file as it is then.
 //
-// The ready files are how the game learns a slot is filled without loading it. The game knows
-// only the files that existed when it started: it checks those on disk each time it asks (so
-// one deleted later reads as missing, and back when it's made again), but never finds a name
-// made later. So each slot has fixed ready files, and every one of them must exist when the
-// game starts: Arm makes them all, at install and whenever the game closes. Three kinds, while
-// the ping test finds which the game notices, with game sound on and off:
-//   - ready.wav, a sound, deleted by Clear and made by Fill;
-//   - ready.ttf, a font, the same;
-//   - check.ttf, a font that always exists: empty after Clear, a real font after Fill.
+// A signal tells the game a reply is written, without loading anything: a tiny sound file in
+// the FPPAgentSignals helper, which the program makes once the reply is written.
+// PlaySoundFile says whether it's there, with game sound off too. What the game showed in tests
+// (build 70862):
+//   - It knows only files that existed when it started, and never finds a name made later. So
+//     every signal must exist when the game starts: Arm makes them all while it's closed.
+//   - It checks those on disk each time it asks, across /reload too: one deleted reads as
+//     missing, and as there again once made.
+//   - Once it has found one, it remembers it until it restarts, even after it's deleted.
+// So each signal works once per game launch. The game skips any that already read as there.
 
 const (
 	dataFile  = "Data.lua"
-	readyWAV  = "ready.wav"
-	readyTTF  = "ready.ttf"
-	checkTTF  = "check.ttf"
 	emptyData = "-- Written by the Forever Agent program. Empty until a reply is waiting.\n"
 )
-
-// font is a small font every Windows has, for the font checks.
-var font = sync.OnceValue(func() []byte {
-	data, _ := os.ReadFile(filepath.Join(os.Getenv("WINDIR"), "Fonts", "marlett.ttf"))
-	return data
-})
 
 func write(dir, name string, data []byte) error {
 	return os.WriteFile(filepath.Join(dir, name), data, 0o644)
 }
 
-func remove(dir, name string) error {
-	if err := os.Remove(filepath.Join(dir, name)); err != nil && !os.IsNotExist(err) {
-		return err
-	}
-	return nil
-}
-
-// ArmSlot makes every ready file exist, so the game knows them when it next starts. The slot
-// reads as ready until the game's first hello clears it.
-func ArmSlot(dir string) error {
-	old, _ := filepath.Glob(filepath.Join(dir, "ready_*")) // an earlier test's per-reply names
-	for _, f := range old {
-		os.Remove(f)
-	}
-	if err := write(dir, readyWAV, silentWAV()); err != nil {
-		return err
-	}
-	if err := write(dir, readyTTF, font()); err != nil {
-		return err
-	}
-	return write(dir, checkTTF, nil)
-}
-
-// ClearSlot empties a slot: no reply, not ready.
+// ClearSlot empties a slot.
 func ClearSlot(dir string) error {
-	if err := write(dir, dataFile, []byte(emptyData)); err != nil {
-		return err
+	old, _ := filepath.Glob(filepath.Join(dir, "*")) // anything but Data.lua and the TOC is from an earlier test
+	for _, f := range old {
+		base := filepath.Base(f)
+		if base != dataFile && filepath.Ext(base) != ".toc" {
+			os.Remove(f)
+		}
 	}
-	for _, name := range []string{readyWAV, readyTTF} {
-		if err := remove(dir, name); err != nil {
+	return write(dir, dataFile, []byte(emptyData))
+}
+
+// FillSlot writes a reply into a slot. fields become the global ForeverPlusPlusAgentInbox
+// table the game reads right after loading the slot.
+func FillSlot(dir string, fields map[string]any) error {
+	return write(dir, dataFile, []byte(luaInbox(fields)))
+}
+
+// SignalFile is signal i's file name.
+func SignalFile(i int) string {
+	return fmt.Sprintf("%04d.wav", i)
+}
+
+// MakeSignal makes signal i there.
+func MakeSignal(dir string, i int) error {
+	return write(dir, SignalFile(i), silentWAV())
+}
+
+// ClearSignals deletes every signal, so the ones the game hasn't found yet read as missing.
+func ClearSignals(dir string, count int) error {
+	for i := 0; i < count; i++ {
+		if err := os.Remove(filepath.Join(dir, SignalFile(i))); err != nil && !os.IsNotExist(err) {
 			return err
 		}
 	}
-	return write(dir, checkTTF, nil)
-}
-
-// FillSlot writes a reply into a slot, then marks it ready. fields become the global
-// ForeverPlusPlusAgentInbox table the game reads right after loading the slot.
-func FillSlot(dir string, fields map[string]any) error {
-	if err := write(dir, dataFile, []byte(luaInbox(fields))); err != nil {
-		return err
-	}
-	if err := write(dir, readyWAV, silentWAV()); err != nil {
-		return err
-	}
-	if err := write(dir, readyTTF, font()); err != nil {
-		return err
-	}
-	return write(dir, checkTTF, font())
+	return nil
 }
 
 func luaInbox(fields map[string]any) string {

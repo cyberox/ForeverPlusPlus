@@ -22,8 +22,12 @@ type Install struct {
 	Game      string // the client folder, e.g. D:\...\_forever_
 	Data      string // the program's own folder for the helper addons
 	Slots     int    // reply slots: how many replies a UI session can take before a /reload
+	Signals   int    // ready signals: how many replies a game launch can be told of at once
 	Interface int    // the TOC Interface number
 }
+
+// SignalsName is the helper addon that holds the ready signals. Its TOC says how many there are.
+const SignalsName = "FPPAgentSignals"
 
 // DefaultData is %LOCALAPPDATA%\ForeverPlusPlus\Agent.
 func DefaultData() string {
@@ -44,9 +48,15 @@ func (in Install) SlotDir(i int) string {
 	return filepath.Join(in.addonsDir(), link.SlotName(i))
 }
 
-// names is every helper addon, bits then slots.
+// SignalsDir is where the signals are.
+func (in Install) SignalsDir() string {
+	return filepath.Join(in.addonsDir(), SignalsName)
+}
+
+// names is every helper addon: bits, slots, and the signals.
 func (in Install) names() []string {
-	names := make([]string, 0, link.Bits+in.Slots)
+	names := make([]string, 0, 1+link.Bits+in.Slots)
+	names = append(names, SignalsName)
 	for i := 0; i < link.Bits; i++ {
 		names = append(names, link.BitName(i))
 	}
@@ -82,11 +92,14 @@ func (in Install) Run() error {
 		if err := os.MkdirAll(dir, 0o755); err != nil {
 			return err
 		}
-		var files []string
-		if strings.HasPrefix(name, "FPPAgentSlot") {
-			files = []string{"Data.lua"}
+		var lines []string
+		switch {
+		case strings.HasPrefix(name, "FPPAgentSlot"):
+			lines = []string{"Data.lua"}
+		case name == SignalsName:
+			lines = []string{fmt.Sprintf("## X-Signals: %d", in.Signals)}
 		}
-		if err := os.WriteFile(filepath.Join(dir, name+".toc"), []byte(in.toc(name, files...)), 0o644); err != nil {
+		if err := os.WriteFile(filepath.Join(dir, name+".toc"), []byte(in.toc(name, lines...)), 0o644); err != nil {
 			return err
 		}
 		if err := in.link(name, dir); err != nil {
@@ -101,26 +114,39 @@ func (in Install) Run() error {
 	return in.Arm()
 }
 
-// Arm makes every slot's ready files exist, for the game to know them when it starts. Only
-// while the game isn't running: a running game would read every slot as ready.
+// Arm makes every signal exist, for the game to know them when it starts. Only while the game
+// isn't running: a running game would read every signal as a reply waiting.
 func (in Install) Arm() error {
-	for i := 0; i < in.Slots; i++ {
-		if err := ArmSlot(in.SlotDir(i)); err != nil {
+	if err := os.MkdirAll(in.SignalsDir(), 0o755); err != nil {
+		return err
+	}
+	for i := 0; i < in.Signals; i++ {
+		if err := MakeSignal(in.SignalsDir(), i); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-// InstalledSlots counts the slots in Data.
-func (in Install) InstalledSlots() int {
-	n := 0
+// Load fills in Slots and Signals from what's installed. ok is false when nothing is.
+func (in *Install) Load() (ok bool) {
+	in.Slots = 0
 	for {
-		if _, err := os.Stat(in.SlotDir(n)); err != nil {
-			return n
+		if _, err := os.Stat(in.SlotDir(in.Slots)); err != nil {
+			break
 		}
-		n++
+		in.Slots++
 	}
+	toc, err := os.ReadFile(filepath.Join(in.SignalsDir(), SignalsName+".toc"))
+	if err != nil {
+		return false
+	}
+	for _, line := range strings.Split(string(toc), "\n") {
+		if v, found := strings.CutPrefix(strings.TrimSpace(line), "## X-Signals:"); found {
+			fmt.Sscan(strings.TrimSpace(v), &in.Signals)
+		}
+	}
+	return in.Slots > 0 && in.Signals > 0
 }
 
 // link makes the game's Interface\AddOns\<name> a junction to dir, unless it already is one.
