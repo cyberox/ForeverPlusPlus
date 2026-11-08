@@ -122,20 +122,32 @@ func WaitForExit(pid int, wait time.Duration) {
 }
 
 // Spawn starts the program with args, without a window when hidden, and doesn't wait for it.
+//
+// A hidden copy breaks away from the job this one runs in, if any: a terminal or tool that
+// started the first copy can close its job, which ends every process in it, and a background
+// copy should outlive that. A job that doesn't allow it refuses the start, so it's then
+// started inside the job after all.
 func Spawn(exe string, args []string, hidden bool) error {
-	cmd := exec.Command(exe, args...)
-	if hidden {
-		cmd.SysProcAttr = &syscall.SysProcAttr{
-			HideWindow:    true,
-			CreationFlags: windows.CREATE_NO_WINDOW | windows.CREATE_NEW_PROCESS_GROUP,
+	start := func(flags uint32) error {
+		cmd := exec.Command(exe, args...)
+		if hidden {
+			cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true, CreationFlags: flags}
+		} else {
+			cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr // the same console, which it keeps using
 		}
-	} else {
-		cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr // the same console, which it keeps using
+		if err := cmd.Start(); err != nil {
+			return err
+		}
+		return cmd.Process.Release()
 	}
-	if err := cmd.Start(); err != nil {
-		return err
+	if !hidden {
+		return start(0)
 	}
-	return cmd.Process.Release()
+	flags := uint32(windows.CREATE_NO_WINDOW | windows.CREATE_NEW_PROCESS_GROUP)
+	if err := start(flags | windows.CREATE_BREAKAWAY_FROM_JOB); err == nil {
+		return nil
+	}
+	return start(flags)
 }
 
 // startupCommand is what Windows runs at sign-in. The program is a console program, which Windows

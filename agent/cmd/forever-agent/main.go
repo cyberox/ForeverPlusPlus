@@ -14,6 +14,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"runtime/debug"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -272,6 +273,8 @@ func logToFile(data string) (*os.File, error) {
 		return nil, err
 	}
 	log.SetOutput(f)
+	// A crash would print to a console nobody sees; it goes in the log instead.
+	debug.SetCrashOutput(f, debug.CrashOptions{})
 	return f, nil
 }
 
