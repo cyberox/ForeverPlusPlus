@@ -1036,9 +1036,15 @@ local function newWindow()
         refreshWorking(internal.selected and byId(internal.selected))
     end)))
 
-    f.messages = newMessages(details)
-    f.messages:SetPoint("TOPLEFT", line, "BOTTOMLEFT", 4, -4)
-    f.messages:SetPoint("BOTTOMRIGHT", f.working, "TOPRIGHT", -2, 4)
+    -- The messages, in a frame that clips them: a message frame draws its top line whole even
+    -- when only part of it fits, over the line under the heading.
+    local clip = CreateFrame("Frame", nil, details)
+    clip:SetPoint("TOPLEFT", line, "BOTTOMLEFT", 4, -2)
+    clip:SetPoint("BOTTOMRIGHT", f.working, "TOPRIGHT", -2, 4)
+    clip:SetClipsChildren(true)
+    f.messages = newMessages(clip)
+    f.messages:SetPoint("TOPLEFT", 0, -2)
+    f.messages:SetPoint("BOTTOMRIGHT")
 
     -- How the link is doing, beside the heading.
     f.status = f:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
