@@ -118,6 +118,9 @@ type thread struct {
 	active  string // the running turn's id, for steering into; "" when idle
 	pending int    // requests waiting for the player: questions and approvals
 	started int64  // when the running turn started (Unix seconds), 0 when idle or unknown
+
+	steps    map[int]*step // position -> what the agent did there (steps.go)
+	activity []int         // positions read from the activity view, oldest first
 }
 
 // New returns a Bridge for an install.
@@ -676,6 +679,26 @@ func (b *Bridge) threadNews(ctx context.Context, id string) ([]map[string]any, i
 	}
 	var out []map[string]any
 	versions := map[int]string{}
+	// What the agent did between the messages shown: from the first one on.
+	from := -1
+	if len(t.order) > 0 {
+		from = t.order[start] - 1
+	}
+	if err := b.readSteps(ctx, id, t, from); err != nil {
+		b.Log("T3 activity: %v", err) // the messages still show without them
+	}
+	for pos, s := range t.steps {
+		if pos <= from && seen == nil {
+			continue
+		}
+		v := fmt.Sprintf("step|%s|%s|%v", s.Kind, s.Detail, s.Failed)
+		if seen != nil && seen[pos] == v {
+			continue
+		}
+		out = append(out, map[string]any{"pos": pos, "role": "step", "kind": s.Kind, "text": s.Detail,
+			"failed": s.Failed})
+		versions[pos] = v
+	}
 	for _, pos := range t.order[start:] {
 		it := t.items[pos]
 		v := fmt.Sprintf("%s|%d|%v|%d|%d|%v", it.Status, len(it.Text), it.Truncated, it.Images, it.Files, final[pos])

@@ -47,6 +47,7 @@ local module = ns.NewModule("AgentChat", L.AGENTCHAT_DESC, {
     sound = true,
     chat = true,
     chatButton = true,
+    steps = true,
     link = {}, -- signal: the next signal to try
     layout = {}, -- where the window was left, and the list's tab
     seen = {}, -- thread id -> its updated time when last read, for unread marks
@@ -58,6 +59,7 @@ module.added = "1.3.0"
 -- When a thread finishes, fails, or needs you: a line in chat and a sound, window open or not.
 module.options = {
     { key = "chatButton", name = L.AGENTCHAT_BUTTON, description = L.AGENTCHAT_BUTTON_DESC },
+    { key = "steps", name = L.AGENTCHAT_STEPS, description = L.AGENTCHAT_STEPS_DESC },
     { key = "sound", name = L.AGENTCHAT_SOUND, description = L.AGENTCHAT_SOUND_DESC },
     ns.ChatOption(L.AGENTCHAT_CHAT_DESC),
 }
@@ -158,6 +160,8 @@ end
 function module:OnOptionChanged(key)
     if key == "chatButton" then
         showButton()
+    elseif key == "steps" and internal.Refresh then
+        internal.Refresh("thread")
     end
 end
 

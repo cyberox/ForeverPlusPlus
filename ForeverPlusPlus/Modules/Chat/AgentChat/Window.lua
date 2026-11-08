@@ -575,6 +575,29 @@ local function refreshAsk(thread)
     f.ask:SetHeight(-y + 2)
 end
 
+-- A step, what the agent did along the way, as the words for its kind around its detail: a
+-- command in Markdown's code green, a file or tool name as it is.
+local STEPS = {
+    ran = L.AGENTCHAT_STEP_RAN, edited = L.AGENTCHAT_STEP_EDITED, created = L.AGENTCHAT_STEP_CREATED,
+    read = L.AGENTCHAT_STEP_READ, searched = L.AGENTCHAT_STEP_SEARCHED, web = L.AGENTCHAT_STEP_WEB,
+    used = L.AGENTCHAT_STEP_USED,
+}
+local CODE = "|cffa8dca8"
+
+local function stepLine(item)
+    local detail = plain(item.text)
+    if item.kind == "ran" or item.kind == "searched" then
+        detail = CODE .. detail .. "|r"
+    end
+    local text = format(STEPS[item.kind] or L.AGENTCHAT_STEP_USED, detail)
+    return item.failed and format(L.AGENTCHAT_STEP_FAILED, text) or text
+end
+
+-- Indented under the agent's name, in gray, with a dot like a list's.
+local function addStep(messages, text)
+    messages:AddMessage("   \194\183 " .. text, NOTE[1], NOTE[2], NOTE[3])
+end
+
 -- A speaker's name, with the time of their first message in gray.
 local function speaker(messages, name, color, at)
     local when = clock(at)
@@ -631,34 +654,62 @@ local function refreshThread()
     if conversation.older > 0 then
         messages:AddMessage(format(L.AGENTCHAT_OLDER, conversation.older), NOTE[1], NOTE[2], NOTE[3])
     end
-    -- Messages in a row from the same side go under one name: yours, or the agent's turn.
+    -- Messages in a row from the same side go under one name: yours, or the agent's turn, with
+    -- what it did along the way (its steps) among its messages.
     local agent = agentName(thread.model)
+    local showSteps = module.db.steps
     local last
+    local stepText, stepCount = nil, 0
+    local function flushSteps()
+        if stepText then
+            addStep(messages, stepCount > 1 and format(L.AGENTCHAT_STEP_TIMES, stepText, stepCount) or stepText)
+        end
+        stepText, stepCount = nil, 0
+    end
     for _, pos in ipairs(conversation.order) do
         local item = conversation.items[pos]
-        local you = item.role == "user"
-        if item.role ~= last then
-            local name = you and L.AGENTCHAT_YOU or (item.role == "assistant" and agent) or item.role
-            speaker(messages, name, you and YOU or AGENT, item.at)
-            last = item.role
-        end
-        -- The game can't show them, so say they're there (the program guesses from T3's folder).
-        local images, files = tonumber(item.images) or 0, tonumber(item.files) or 0
-        if images > 0 then
-            messages:AddMessage(images == 1 and L.AGENTCHAT_IMAGE or format(L.AGENTCHAT_IMAGES, images),
-                NOTE[1], NOTE[2], NOTE[3])
-        end
-        if files > 0 then
-            messages:AddMessage(files == 1 and L.AGENTCHAT_FILE or format(L.AGENTCHAT_FILES, files),
-                NOTE[1], NOTE[2], NOTE[3])
-        end
-        -- The agent's notes along the way are dimmed; its last message in a turn is the answer.
-        local progress = item.role == "assistant" and item.final == false
-        addMarkdown(messages, item.text, progress and PROGRESS or TEXT)
-        if item.cut then
-            messages:AddMessage(L.AGENTCHAT_CUT, NOTE[1], NOTE[2], NOTE[3])
+        if item.role == "step" then
+            if showSteps then
+                if last ~= "assistant" then
+                    flushSteps()
+                    speaker(messages, agent, AGENT, item.at)
+                    last = "assistant"
+                end
+                local text = stepLine(item)
+                if text == stepText then
+                    stepCount = stepCount + 1 -- the same again: one line, counted
+                else
+                    flushSteps()
+                    stepText, stepCount = text, 1
+                end
+            end
+        else
+            flushSteps()
+            local you = item.role == "user"
+            if item.role ~= last then
+                local name = you and L.AGENTCHAT_YOU or (item.role == "assistant" and agent) or item.role
+                speaker(messages, name, you and YOU or AGENT, item.at)
+                last = item.role
+            end
+            -- The game can't show them, so say they're there (the program guesses from T3's folder).
+            local images, files = tonumber(item.images) or 0, tonumber(item.files) or 0
+            if images > 0 then
+                messages:AddMessage(images == 1 and L.AGENTCHAT_IMAGE or format(L.AGENTCHAT_IMAGES, images),
+                    NOTE[1], NOTE[2], NOTE[3])
+            end
+            if files > 0 then
+                messages:AddMessage(files == 1 and L.AGENTCHAT_FILE or format(L.AGENTCHAT_FILES, files),
+                    NOTE[1], NOTE[2], NOTE[3])
+            end
+            -- The agent's notes along the way are dimmed; its last message in a turn is the answer.
+            local progress = item.role == "assistant" and item.final == false
+            addMarkdown(messages, item.text, progress and PROGRESS or TEXT)
+            if item.cut then
+                messages:AddMessage(L.AGENTCHAT_CUT, NOTE[1], NOTE[2], NOTE[3])
+            end
         end
     end
+    flushSteps()
     -- What the player sent that T3 hasn't taken yet, or turned down.
     for _, sent in ipairs(internal.sending) do
         if sent.threadId == thread.id then

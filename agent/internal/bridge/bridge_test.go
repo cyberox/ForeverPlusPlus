@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -24,6 +25,7 @@ type fakeT3 struct {
 	reject   string           // when set, t3_thread_send fails with it
 	pending  int              // the thread's pendingRequestCount
 	requests []string         // question requests waiting
+	activity []map[string]any // what the activity view has besides the messages
 }
 
 func (f *fakeT3) Close() error { return nil }
@@ -44,7 +46,12 @@ func (f *fakeT3) Call(_ context.Context, name string, args any) (json.RawMessage
 			after = v.(int)
 		}
 		var out []map[string]any
-		for _, it := range f.items {
+		all := f.items
+		if args.(map[string]any)["view"] == "activity" {
+			all = append(append([]map[string]any{}, f.items...), f.activity...)
+			sort.Slice(all, func(i, j int) bool { return all[i]["position"].(int) < all[j]["position"].(int) })
+		}
+		for _, it := range all {
 			if it["position"].(int) > after {
 				out = append(out, it)
 			}
@@ -336,6 +343,33 @@ func TestAttachments(t *testing.T) {
 	if got := read(0); !strings.Contains(got, `files=1,final=false,images=1,pos=0`) ||
 		!strings.Contains(got, `files=0,final=true,images=0,pos=3`) {
 		t.Fatalf("attachments not counted:\n%s", got)
+	}
+}
+
+func TestSteps(t *testing.T) {
+	b, fake, read := setup(t)
+	ctx := context.Background()
+	fake.activity = []map[string]any{
+		{"position": 1, "type": "command_execution", "text": "$ go test ./...", "status": "running"},
+		{"position": 2, "type": "reasoning", "title": "Thinking", "text": "hmm", "status": "completed"},
+	}
+	b.Handle(ctx, "c", []byte("H|s1"))
+	b.Handle(ctx, "c", []byte("O|s1|0|0"))
+	b.Handle(ctx, "c", []byte("V|s1|1|1"))
+	got := read(0)
+	if !strings.Contains(got, `kind="ran",pos=1,role="step",text="go test ./..."`) || strings.Contains(got, "pos=2") {
+		t.Fatalf("no step, or thinking came as one:\n%s", got)
+	}
+	// The command fails, and a file is made: both go, nothing else again.
+	fake.activity[0]["status"] = "failed"
+	fake.activity = append(fake.activity, map[string]any{"position": 4, "type": "file_change",
+		"text": "C:\\a\\new.go\n--- /dev/null", "status": "completed"})
+	b.Handle(ctx, "c", []byte("O|s1|1|1"))
+	b.Poll(ctx, true)
+	got = read(1)
+	if !strings.Contains(got, `failed=true,kind="ran",pos=1`) || !strings.Contains(got, `kind="created",pos=4`) ||
+		strings.Contains(got, "make it") {
+		t.Fatalf("steps not updated:\n%s", got)
 	}
 }
 
