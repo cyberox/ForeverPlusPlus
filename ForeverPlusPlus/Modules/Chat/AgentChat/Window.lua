@@ -103,7 +103,7 @@ local function initRow(row, thread)
     row.thread = thread
     row.name:SetText(plain(thread.title ~= "" and thread.title or L.AGENTCHAT_UNTITLED))
     row.info:SetText(statusText(thread))
-    row.preview:SetText(plain(joinNonEmpty(thread.project, thread.model)))
+    row.preview:SetText(joinNonEmpty(plain(thread.project), plain(thread.model)))
     row.selected:SetShown(thread.id == internal.selected)
 end
 
