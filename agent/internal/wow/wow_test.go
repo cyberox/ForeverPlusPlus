@@ -40,23 +40,31 @@ func TestInstallFillUninstall(t *testing.T) {
 		t.Errorf("slot toc:\n%s", toc)
 	}
 
-	if err := FillSlot(in.SlotDir(1), "ready_s_7", map[string]any{"kind": "pong", "id": "7", "text": "hi"}); err != nil {
+	size := func(slot int, name string) int64 {
+		info, err := os.Stat(filepath.Join(in.SlotDir(slot), name))
+		if err != nil {
+			return -1
+		}
+		return info.Size()
+	}
+	if size(2, readyWAV) <= 0 || size(2, readyTTF) <= 0 || size(2, checkTTF) != 0 {
+		t.Error("install doesn't leave every slot armed")
+	}
+	if err := ClearSlot(in.SlotDir(1)); err != nil {
+		t.Fatal(err)
+	}
+	if size(1, readyWAV) != -1 || size(1, readyTTF) != -1 || size(1, checkTTF) != 0 {
+		t.Error("a cleared slot still reads as ready")
+	}
+	if err := FillSlot(in.SlotDir(1), map[string]any{"kind": "pong", "id": "7", "text": "hi"}); err != nil {
 		t.Fatal(err)
 	}
 	data, _ := os.ReadFile(filepath.Join(game, "Interface", "AddOns", link.SlotName(1), "Data.lua"))
 	if !strings.Contains(string(data), `text = "hi",`) {
 		t.Errorf("Data.lua:\n%s", data)
 	}
-	for _, f := range []string{"ready_s_7.wav", "ready_s_7_m.ttf", "ready_s_7_a.ttf"} {
-		if info, err := os.Stat(filepath.Join(in.SlotDir(1), f)); err != nil || info.Size() == 0 {
-			t.Errorf("no %s after filling", f)
-		}
-	}
-	if err := ClearSlot(in.SlotDir(1)); err != nil {
-		t.Fatal(err)
-	}
-	if left, _ := filepath.Glob(filepath.Join(in.SlotDir(1), "ready*")); len(left) != 0 {
-		t.Errorf("clearing left %v", left)
+	if size(1, readyWAV) <= 0 || size(1, readyTTF) <= 0 || size(1, checkTTF) <= 0 {
+		t.Error("a filled slot doesn't read as ready")
 	}
 
 	if err := in.Uninstall(); err != nil {

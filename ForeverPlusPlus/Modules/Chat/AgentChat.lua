@@ -17,8 +17,8 @@ local _G, ipairs, format, type, tostring, floor, random, wipe = _G, ipairs, form
     math.floor, math.random, wipe
 local tremove = table.remove
 local pcall = pcall
-local C_AddOns, UnitGUID, GetTimePreciseSec, PlaySoundFile, StopSound, CreateFrame, GetFileIDFromPath =
-    C_AddOns, UnitGUID, GetTimePreciseSec, PlaySoundFile, StopSound, CreateFrame, GetFileIDFromPath
+local C_AddOns, UnitGUID, GetTimePreciseSec, PlaySoundFile, StopSound, CreateFrame =
+    C_AddOns, UnitGUID, GetTimePreciseSec, PlaySoundFile, StopSound, CreateFrame
 
 local L = ns.L
 local AgentLink = ns.AgentLink
@@ -111,10 +111,12 @@ local function ms(seconds)
     return floor(seconds * 1000 + 0.5)
 end
 
--- Ways to see whether a ready file exists yet, without loading the slot. The game looks loose
--- files up on disk each time, so each reply's ready files get a new name (`base`) and nothing a
--- check saw before can linger. Which of these work, and with game sound off, is what the test is
--- for: a sound only answers while sound is on, so fonts and file IDs are tried too.
+-- Ways to see whether a slot's reply is written, without loading the slot. The game only knows
+-- files that existed when it started (it checks those on disk each time, but never finds a name
+-- made later), so each slot has fixed ready files the program arms before the game starts.
+-- ready.wav and ready.ttf are deleted while the slot is empty and made when it's filled;
+-- check.ttf always exists, empty until filled. Which of these the game notices, with game sound
+-- on and off, is what the test is for.
 local function probeFont()
     if not probeString then
         local holder = CreateFrame("Frame")
@@ -125,22 +127,18 @@ local function probeFont()
 end
 
 local PROBES = {
-    { name = "sound (.wav)", check = function(base)
-        local willPlay, handle = PlaySoundFile(base .. ".wav", "Master")
+    { name = "sound made (ready.wav)", check = function(base)
+        local willPlay, handle = PlaySoundFile(base .. "ready.wav", "Master")
         if willPlay and handle then
             StopSound(handle)
         end
         return willPlay
     end },
-    { name = "font, Marlett (_m.ttf)", check = function(base)
-        return probeFont():SetFont(base .. "_m.ttf", 12, "")
+    { name = "font made (ready.ttf)", check = function(base)
+        return probeFont():SetFont(base .. "ready.ttf", 12, "")
     end },
-    { name = "font, Arial (_a.ttf)", check = function(base)
-        return probeFont():SetFont(base .. "_a.ttf", 12, "")
-    end },
-    { name = "file ID (.wav)", check = function(base)
-        local id = GetFileIDFromPath and GetFileIDFromPath(base .. ".wav")
-        return id and id ~= 0
+    { name = "font filled (check.ttf)", check = function(base)
+        return probeFont():SetFont(base .. "check.ttf", 12, "")
     end },
 }
 
@@ -216,7 +214,7 @@ local function ping(text)
     local id = tostring(pings)
     local p = {
         id = id, name = name, start = GetTimePreciseSec(), before = {}, at = {},
-        base = format("Interface\\AddOns\\%s\\ready_%s_%s", name, session, id),
+        base = format("Interface\\AddOns\\%s\\", name),
     }
     -- A missing file must not read as there; if one does, that check can't tell anything.
     for i, entry in ipairs(PROBES) do

@@ -98,7 +98,29 @@ func (in Install) Run() error {
 			return err
 		}
 	}
+	return in.Arm()
+}
+
+// Arm makes every slot's ready files exist, for the game to know them when it starts. Only
+// while the game isn't running: a running game would read every slot as ready.
+func (in Install) Arm() error {
+	for i := 0; i < in.Slots; i++ {
+		if err := ArmSlot(in.SlotDir(i)); err != nil {
+			return err
+		}
+	}
 	return nil
+}
+
+// InstalledSlots counts the slots in Data.
+func (in Install) InstalledSlots() int {
+	n := 0
+	for {
+		if _, err := os.Stat(in.SlotDir(n)); err != nil {
+			return n
+		}
+		n++
+	}
 }
 
 // link makes the game's Interface\AddOns\<name> a junction to dir, unless it already is one.

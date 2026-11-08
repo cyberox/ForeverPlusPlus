@@ -82,11 +82,37 @@ func defaultGame() string {
 }
 
 func run(in wow.Install) error {
-	if _, err := os.Stat(in.SlotDir(0)); err != nil {
+	in.Slots = in.InstalledSlots()
+	if in.Slots == 0 {
 		return errors.New("not installed: run `forever-agent install` first")
 	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
+
+	// The game learns the ready files' names only when it starts, so they must all exist then:
+	// arm them now if it isn't running, and again each time it closes.
+	running := wow.GameRunning()
+	if !running {
+		arm(in)
+	} else {
+		log.Println("The game is running. Its ready files are armed when it closes.")
+	}
+	go func() {
+		tick := time.NewTicker(2 * time.Second)
+		defer tick.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-tick.C:
+				now := wow.GameRunning()
+				if running && !now {
+					arm(in)
+				}
+				running = now
+			}
+		}
+	}()
 
 	messages := make(chan wow.Message, 16)
 	done := make(chan error, 1)
@@ -132,9 +158,7 @@ func handle(in wow.Install, m wow.Message) {
 			break
 		}
 		start := time.Now()
-		// The game looks for this reply's ready files by this name.
-		ready := "ready_" + parts[1] + "_" + parts[3]
-		err = wow.FillSlot(in.SlotDir(slot), ready, map[string]any{
+		err = wow.FillSlot(in.SlotDir(slot), map[string]any{
 			"kind": "pong", "session": parts[1], "id": parts[3], "text": parts[4],
 		})
 		if err != nil {
@@ -146,6 +170,14 @@ func handle(in wow.Install, m wow.Message) {
 		return
 	}
 	log.Printf("%s: unknown message %q", char, m.Data)
+}
+
+func arm(in wow.Install) {
+	if err := in.Arm(); err != nil {
+		log.Println("arming the ready files:", err)
+		return
+	}
+	log.Printf("Armed %d slots' ready files for the next game start.", in.Slots)
 }
 
 // characterOf is "Realm/Character" from a path ending in Account\<acct>\<realm>\<char>\AddOns.txt.
