@@ -404,16 +404,19 @@ func run(in wow.Install, data string, quiet bool, after int) error {
 	if after > 0 && b.Resume() {
 		log.Println("Carried on with the game's session from the copy before.")
 	}
+	// However the loop ends: stopping also ends the watcher, and either case below can come first.
+	defer func() {
+		if updated.Load() {
+			if err := b.SaveHandoff(); err != nil {
+				log.Println("handing over to the new build:", err)
+			}
+		}
+	}()
 	tick := time.NewTicker(time.Second)
 	defer tick.Stop()
 	for {
 		select {
 		case <-ctx.Done():
-			if updated.Load() {
-				if err := b.SaveHandoff(); err != nil {
-					log.Println("handing over to the new build:", err)
-				}
-			}
 			return nil
 		case err := <-done:
 			return err
