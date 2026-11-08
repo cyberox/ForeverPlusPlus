@@ -154,13 +154,15 @@ func (b *Bridge) statusEvents(list []map[string]any) []map[string]any {
 		if first || !seen || before == status || (b.open && t["h"] == b.view) {
 			continue
 		}
+		// Waiting on the player is part of a turn: it can still end done or failed.
+		busy := working[before] || before == "waiting"
 		kind := ""
 		switch {
 		case status == "waiting":
 			kind = "waiting"
-		case status == "failed" && working[before]:
+		case status == "failed" && busy:
 			kind = "failed"
-		case working[before] && !working[status]:
+		case busy && !working[status]:
 			kind = "done"
 		}
 		if kind != "" {
@@ -421,6 +423,19 @@ func (b *Bridge) handle(id string) int {
 	return len(b.ids)
 }
 
+// asking says whether a thread's agent waits on a question to the player. T3's thread list doesn't
+// say, so this asks for each working thread; an error reads as no.
+func (b *Bridge) asking(ctx context.Context, id string) bool {
+	raw, err := b.client.Call(ctx, "t3_pending_request", map[string]any{"action": "list", "threadId": id})
+	if err != nil {
+		return false
+	}
+	var res struct {
+		RequestIDs []string `json:"requestIds"`
+	}
+	return json.Unmarshal(raw, &res) == nil && len(res.RequestIDs) > 0
+}
+
 // list reads the thread list for the game, and a signature of what it shows.
 func (b *Bridge) list(ctx context.Context) ([]map[string]any, string, error) {
 	if time.Since(b.projectsRead) > projectEvery {
@@ -460,6 +475,10 @@ func (b *Bridge) list(ctx context.Context) ([]map[string]any, string, error) {
 	list := make([]map[string]any, 0, len(res.Threads))
 	sig := fnv.New64a()
 	for _, t := range res.Threads {
+		// T3 calls a thread whose agent asks the player something "running"; it needs them.
+		if working[t.Status] && b.asking(ctx, t.ThreadID) {
+			t.Status = "waiting"
+		}
 		updated := int64(0)
 		if at, err := time.Parse(time.RFC3339Nano, t.UpdatedAt); err == nil {
 			updated = at.Unix()

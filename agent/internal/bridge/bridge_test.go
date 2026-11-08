@@ -265,6 +265,28 @@ func TestNotices(t *testing.T) {
 	}
 }
 
+func TestQuestionNeedsYou(t *testing.T) {
+	b, fake, read := setup(t)
+	ClosedEvery = 0
+	t.Cleanup(func() { ClosedEvery = 5 * time.Second })
+	ctx := context.Background()
+	b.Handle(ctx, "c", []byte("H|s1"))
+	b.Handle(ctx, "c", []byte("O|s1|0|0")) // closed: learns the thread runs
+	fake.requests = []string{"r1"}         // T3 still calls it running
+	b.Poll(ctx, false)
+	if !strings.Contains(read(0), `kind="waiting"`) {
+		t.Fatalf("no needs-you notice for a question:\n%s", read(0))
+	}
+	b.Handle(ctx, "c", []byte("O|s1|1|1"))
+	fake.requests = nil // answered, and the turn goes on
+	b.Poll(ctx, false)
+	fake.status = "idle"
+	b.Poll(ctx, false)
+	if got := read(1); !strings.Contains(got, `kind="done"`) || strings.Contains(got, `kind="waiting"`) {
+		t.Fatalf("no done notice after the answer:\n%s", got)
+	}
+}
+
 func TestPingWithoutWindow(t *testing.T) {
 	b, fake, read := setup(t)
 	ctx := context.Background()
