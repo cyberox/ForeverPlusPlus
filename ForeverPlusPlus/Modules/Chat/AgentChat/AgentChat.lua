@@ -530,11 +530,14 @@ local function check()
     refresh("status")
     local inbox = _G[INBOX]
     _G[INBOX] = nil
-    local empty = type(inbox) == "table"
-    for key in pairs(empty and inbox or {}) do
-        if key ~= "session" then
-            empty = false
-            break
+    -- Nothing in it for this session: a slot the program never filled leaves no inbox at all.
+    local empty = true
+    if type(inbox) == "table" and inbox.session == session then
+        for key in pairs(inbox) do
+            if key ~= "session" then
+                empty = false
+                break
+            end
         end
     end
     if o.signal < 0 then
