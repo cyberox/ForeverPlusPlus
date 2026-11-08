@@ -311,6 +311,76 @@ func TestQuestionNeedsYou(t *testing.T) {
 	}
 }
 
+// A program that restarted mid-session learns from the offer that the window is open, and tells
+// the game to send its view again.
+func TestJoinsWithWindowOpen(t *testing.T) {
+	b, _, read := setup(t)
+	ctx := context.Background()
+	b.Handle(ctx, "c", []byte("O|s1|2|3|1")) // no hello: the game's session was already going
+	got := read(2)
+	if !strings.Contains(got, `title="Agent Chat"`) || !strings.Contains(got, "rejoined = true") {
+		t.Fatalf("expected the list and a rejoin:\n%s", got)
+	}
+	b.Handle(ctx, "c", []byte("O|s1|3|4|1"))
+	b.Poll(ctx, false)
+	if strings.Contains(read(3), "rejoined") {
+		t.Fatalf("told of the rejoin twice:\n%s", read(3))
+	}
+}
+
+// The game says an offer again until it loads it; one already filled stays as it was.
+func TestOfferSaidAgain(t *testing.T) {
+	b, fake, read := setup(t)
+	ctx := context.Background()
+	b.Handle(ctx, "c", []byte("H|s1"))
+	b.Handle(ctx, "c", []byte("O|s1|0|0|1"))
+	first := read(0)
+	if !strings.Contains(first, `title="Agent Chat"`) {
+		t.Fatalf("the list didn't come:\n%s", first)
+	}
+	fake.status = "idle"
+	b.Handle(ctx, "c", []byte("O|s1|0|0|1")) // said again before the game loaded it
+	b.Poll(ctx, false)
+	if read(0) != first {
+		t.Fatalf("a filled inbox was filled again:\n%s", read(0))
+	}
+	b.Handle(ctx, "c", []byte("O|s1|1|1|1"))
+	if !strings.Contains(read(1), `status="idle"`) {
+		t.Fatalf("the change didn't come in the next inbox:\n%s", read(1))
+	}
+}
+
+// A new build carries on with the old one's session: the inbox offered, the handles, the view.
+func TestHandoff(t *testing.T) {
+	b, _, read := setup(t)
+	ctx := context.Background()
+	b.Handle(ctx, "c", []byte("H|s1"))
+	b.Handle(ctx, "c", []byte("O|s1|0|0|1"))
+	b.Handle(ctx, "c", []byte("V|s1|1|1"))
+	b.Handle(ctx, "c", []byte("O|s1|1|1|1")) // the thread goes
+	b.Handle(ctx, "c", []byte("O|s1|2|2|1")) // nothing new: the inbox stays offered
+	if strings.Contains(read(2), "session") {
+		t.Fatalf("filled with nothing new:\n%s", read(2))
+	}
+	if err := b.SaveHandoff(); err != nil {
+		t.Fatal(err)
+	}
+
+	next := New(b.In, b.Data, "test")
+	next.Log, next.Dial, next.Attachments = t.Logf, b.Dial, b.Attachments
+	if !next.Resume() {
+		t.Fatal("didn't carry on")
+	}
+	if next.Resume() {
+		t.Fatal("the handoff was used twice")
+	}
+	next.Poll(ctx, false)
+	got := read(2)
+	if !strings.Contains(got, `text="On it"`) || !strings.Contains(got, "h=1") || strings.Contains(got, "rejoined") {
+		t.Fatalf("expected the shown thread in the offered inbox:\n%s", got)
+	}
+}
+
 func TestPingWithoutWindow(t *testing.T) {
 	b, fake, read := setup(t)
 	ctx := context.Background()
@@ -586,8 +656,12 @@ func TestProgramStartedLate(t *testing.T) {
 	ctx := context.Background()
 	// No hello: the game's session is taken up as it is.
 	b.Handle(ctx, "c", []byte("O|s9|2|1"))
-	b.Handle(ctx, "c", []byte("P|s9|1|x"))
-	if !strings.Contains(read(2), `session = "s9"`) || !strings.Contains(read(2), `text="x"`) {
+	if !strings.Contains(read(2), `session = "s9"`) || !strings.Contains(read(2), "rejoined = true") {
 		t.Fatalf("got:\n%s", read(2))
+	}
+	b.Handle(ctx, "c", []byte("O|s9|3|2"))
+	b.Handle(ctx, "c", []byte("P|s9|1|x"))
+	if !strings.Contains(read(3), `text="x"`) {
+		t.Fatalf("got:\n%s", read(3))
 	}
 }

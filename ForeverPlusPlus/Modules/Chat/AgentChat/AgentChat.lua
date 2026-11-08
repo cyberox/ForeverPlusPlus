@@ -38,6 +38,7 @@ local CHECK_OPEN, CHECK_CLOSED = 0.1, 0.5 -- how often the signal is checked
 local LOAD_AFTER = 1 -- with no signal, load the slot this long after offering it
 local LOAD_AFTER_MOST = 5 -- doubling up to this while those loads find nothing new
 local GIVE_UP = 30 -- while the window is open, load an offer this long unanswered and offer again
+local RESAY_OPEN, RESAY_CLOSED = 5, 30 -- how often an unanswered offer is said again
 local MAX_SLOTS = 999
 local MAX_SCAN = 200 -- signals checked per offer before going without one
 local MAX_TEXT = 200
@@ -397,6 +398,11 @@ local function receive(inbox, now)
         return
     end
     internal.heard = true
+    if inbox.rejoined then
+        -- The program restarted and lost which thread is shown: send it again, with the handle
+        -- the new list gives it (below), or when the window next opens.
+        viewSent = nil
+    end
     if inbox.note ~= nil then
         internal.note = inbox.note ~= "" and inbox.note or nil
         refresh("status")
@@ -485,6 +491,12 @@ end
 
 local offerNext
 
+-- The O message for an offer, with whether the window is open: a program that restarted knows it
+-- at once, without a V.
+local function offerMessage(o)
+    return format("O|%s|%d|%d|%d", session, o.slot, o.signal, internal.IsShown() and 1 or 0)
+end
+
 -- Loads the offered slot once its signal is there (or, with none, a second after offering).
 local function check()
     local o = offer
@@ -501,6 +513,12 @@ local function check()
         ready = now - o.offeredAt >= loadAfter
     end
     if not ready then
+        -- Say the offer again now and then, which spends no slot: a program that restarted
+        -- without hearing it learns of it this way instead of after GIVE_UP, or never while closed.
+        if o.signal >= 0 and now - o.saidAt >= (internal.IsShown() and RESAY_OPEN or RESAY_CLOSED) then
+            o.saidAt = now
+            send(offerMessage(o))
+        end
         checkTimer:Start(internal.IsShown() and CHECK_OPEN or CHECK_CLOSED, check)
         return
     end
@@ -554,8 +572,8 @@ function offerNext()
     end
     local o = { slot = slot, name = name, signal = signal }
     offer = o
-    send(format("O|%s|%d|%d", session, slot, signal), function(at)
-        o.offeredAt = at
+    send(offerMessage(o), function(at)
+        o.offeredAt, o.saidAt = at, at
         check()
     end)
 end

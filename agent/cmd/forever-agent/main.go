@@ -401,11 +401,19 @@ func run(in wow.Install, data string, quiet bool, after int) error {
 	// Everything that touches the bridge runs here, one thing at a time: the game's messages,
 	// and a check of T3 every second while the window is open.
 	b := bridge.New(in, data, version)
+	if after > 0 && b.Resume() {
+		log.Println("Carried on with the game's session from the copy before.")
+	}
 	tick := time.NewTicker(time.Second)
 	defer tick.Stop()
 	for {
 		select {
 		case <-ctx.Done():
+			if updated.Load() {
+				if err := b.SaveHandoff(); err != nil {
+					log.Println("handing over to the new build:", err)
+				}
+			}
 			return nil
 		case err := <-done:
 			return err

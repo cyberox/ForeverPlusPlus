@@ -5,7 +5,8 @@
 // with news, so a slot is spent only when something changed. Messages from the game:
 //
 //	H|session                  a UI session starts: forget what was sent, clear slots and signals
-//	O|session|slot|signal      an inbox to fill (signal -1: none left; the game loads it in a second)
+//	O|session|slot|signal|open an inbox to fill (signal -1: none left; the game loads it in a second),
+//	                           and whether the window is open, for a program that just joined
 //	V|session|handle|open      the thread shown (0 for none) and whether the window is open
 //	P|session|id|text          a ping, answered in the next inbox
 //
@@ -96,8 +97,9 @@ type Bridge struct {
 
 	session string
 	inbox   *inbox
-	view    int  // handle of the thread shown, 0 for none
-	open    bool // whether the window is open
+	filled  inbox // the inbox last filled, so the game saying it again is ignored
+	view    int   // handle of the thread shown, 0 for none
+	open    bool  // whether the window is open
 
 	handles map[string]int // thread id -> handle
 	ids     []string       // handle-1 -> thread id
@@ -114,6 +116,7 @@ type Bridge struct {
 	asks         []*ask            // a-1 -> a question request, for the program's life
 	note         string            // what the game should show about the link, when it changes
 	sentNote     string
+	rejoined     bool              // joined a session it missed: the game should send its view again
 	urgent       bool              // the next fill answers the player, so it doesn't wait for MinGap
 	lastFill     time.Time         // when an inbox was last filled
 	statuses     map[string]string // thread id -> its state at the last read, for notices
@@ -241,7 +244,13 @@ func (b *Bridge) Handle(ctx context.Context, char string, data []byte) {
 		if err1 != nil || err2 != nil || slot < 0 || slot >= b.In.Slots || signal >= b.In.Signals {
 			break
 		}
+		if b.filled == (inbox{slot, signal}) {
+			return // the game says an offer again until it loads it; this one's filled already
+		}
 		b.inbox = &inbox{slot, signal}
+		if len(parts) >= 5 {
+			b.open = parts[4] == "1" // so a program that just joined knows without a V
+		}
 		if signal < 0 {
 			b.Poll(ctx, true) // it loads in a second whatever is there
 		} else {
@@ -270,6 +279,7 @@ func (b *Bridge) Handle(ctx context.Context, char string, data []byte) {
 
 func (b *Bridge) start(session string, clear bool) {
 	b.session, b.inbox, b.view, b.open = session, nil, 0, false
+	b.filled = inbox{-1, -1}
 	b.sentList, b.sentNote = "", ""
 	b.delivered = map[string]map[int]string{}
 	b.sentQueue = map[string]string{}
@@ -278,6 +288,9 @@ func (b *Bridge) start(session string, clear bool) {
 	b.sessionStart, b.sentReload, b.reloadCheck = time.Now(), time.Time{}, time.Time{}
 	b.sentWaiting, b.sentProjects, b.sentModels = 0, "", "" // the game starts at none needing the player
 	b.pongs, b.acks = nil, nil
+	// Joining a session it missed, the program doesn't know the game's handles or what's shown:
+	// the game is told, so it sends its view again once it has the new list.
+	b.rejoined = !clear
 	// Signals the game hasn't found yet should read as missing; ones it has found read as there
 	// to it anyway, so clearing is safe even mid-session. Slots are cleared only at a hello: one
 	// filled but not yet loaded would be lost.
@@ -389,6 +402,9 @@ func (b *Bridge) Poll(ctx context.Context, force bool) {
 	if b.note != b.sentNote {
 		payload["note"], news = b.note, true
 	}
+	if b.rejoined {
+		payload["rejoined"], news = true, true
+	}
 	// A new sign-in (forever-agent login) is used once the old one fails, but its date counts now.
 	if b.Dial == nil && time.Since(b.expiresRead) >= time.Minute {
 		b.expiresRead = time.Now()
@@ -438,6 +454,7 @@ func (b *Bridge) Poll(ctx context.Context, force bool) {
 		}
 	}
 	b.sentNote = b.note
+	b.rejoined = false
 	if !reload.IsZero() {
 		b.sentReload = reload
 		b.Log("told the game Forever++ changed")
@@ -463,7 +480,7 @@ func (b *Bridge) Poll(ctx context.Context, force bool) {
 	b.acks = nil
 	what := []string{}
 	for _, k := range []string{"threads", "thread", "queue", "asks", "counts", "projects", "models", "events", "pongs",
-		"acks", "note", "reload"} {
+		"acks", "note", "reload", "rejoined"} {
 		if _, ok := payload[k]; ok {
 			what = append(what, k)
 		}
@@ -471,6 +488,7 @@ func (b *Bridge) Poll(ctx context.Context, force bool) {
 	b.Log("-> slot %d, signal %d: %s (%s)", b.inbox.slot, b.inbox.signal, strings.Join(what, ", "),
 		time.Since(start).Round(time.Microsecond))
 	b.pongs = nil
+	b.filled = *b.inbox
 	b.inbox = nil
 	b.urgent = false
 	b.lastFill = time.Now()
