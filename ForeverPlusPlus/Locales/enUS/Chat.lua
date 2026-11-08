@@ -6,6 +6,27 @@ if not L then
     return
 end
 
+-- AgentChat
+L.AGENTCHAT_TITLE = "Agent Chat"
+L.AGENTCHAT_DESC = "Talk to your coding agents from inside the game, through the Forever Agent "
+    .. "program on this PC. For now only its link test: /fpp agent ping."
+L.AGENTCHAT_COMMAND = "Test the link to the Forever Agent program, or show its state."
+L.AGENTCHAT_COMMAND_USAGE = "ping <text> | status"
+L.AGENTCHAT_COMMAND_UNKNOWN = "Unknown agent command: %s. Try ping or status." -- what was typed
+L.AGENTCHAT_STATUS = "Agent link: %s, session %s, %d of %d reply slots left, %d frames waiting."
+    -- character, session id, slots left, slots, frames queued
+L.AGENTCHAT_BUSY = "A ping is still waiting for its reply."
+L.AGENTCHAT_NO_SLOTS = "Every reply slot is used for this session. Type /reload to start again."
+L.AGENTCHAT_PONG = "Reply \"%s\" in %d ms: sent in %d ms, ready %d ms later, loaded in %d ms."
+    -- the text, total, sending, waiting for the slot, loading it (all milliseconds)
+L.AGENTCHAT_STALE = "%s loaded %d ms after sending but held no reply. Is the program running?"
+    -- slot addon name, milliseconds
+L.AGENTCHAT_LOAD_FAILED = "Couldn't load %s: %s." -- slot addon name, the game's reason
+L.AGENTCHAT_PROBE = "  %s: %s" -- ready file name, what the test saw
+L.AGENTCHAT_PROBE_AT = "turned valid %d ms after sending" -- milliseconds
+L.AGENTCHAT_PROBE_NEVER = "never turned valid"
+L.AGENTCHAT_PROBE_EARLY = "already read as valid while empty, so it can't tell"
+
 -- ChatCopy
 L.CHATCOPY_TITLE = "Chat Copy"
 L.CHATCOPY_DESC = "Add a button beside the chat window that opens the chat as text you can "
