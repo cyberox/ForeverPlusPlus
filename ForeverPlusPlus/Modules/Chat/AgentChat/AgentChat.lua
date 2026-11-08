@@ -24,8 +24,8 @@ local _, ns = ...
 local _G, ipairs, format, type, tostring, tonumber, floor, random, wipe, min = _G, ipairs, format,
     type, tostring, tonumber, math.floor, math.random, wipe, math.min
 local tremove = table.remove
-local C_AddOns, UnitGUID, GetTimePreciseSec, PlaySoundFile, StopSound =
-    C_AddOns, UnitGUID, GetTimePreciseSec, PlaySoundFile, StopSound
+local C_AddOns, UnitGUID, GetTimePreciseSec, PlaySoundFile, StopSound, PlaySound =
+    C_AddOns, UnitGUID, GetTimePreciseSec, PlaySoundFile, StopSound, PlaySound
 
 local L = ns.L
 local AgentLink = ns.AgentLink
@@ -43,12 +43,41 @@ local MAX_TEXT = 200
 
 local module = ns.NewModule("AgentChat", L.AGENTCHAT_DESC, {
     enabled = true,
+    sound = true,
+    chat = true,
     link = {}, -- signal: the next signal to try
     layout = {}, -- where the window was left
 })
 module.title = L.AGENTCHAT_TITLE
 module.category = "chat"
 module.added = "1.3.0"
+
+-- When a thread finishes, fails, or needs you: a line in chat and a sound, window open or not.
+module.options = {
+    { key = "sound", name = L.AGENTCHAT_SOUND, description = L.AGENTCHAT_SOUND_DESC },
+    ns.ChatOption(L.AGENTCHAT_CHAT_DESC),
+}
+
+local NOTICES = {
+    done = L.AGENTCHAT_NOTICE_DONE,
+    waiting = L.AGENTCHAT_NOTICE_WAITING,
+    failed = L.AGENTCHAT_NOTICE_FAILED,
+}
+
+local function notify(events)
+    local any = false
+    for _, event in ipairs(events) do
+        local text = NOTICES[event.kind]
+        if text then
+            any = true
+            local title = tostring(event.title or ""):gsub("|", "||")
+            module:Print(format(text, title ~= "" and title or L.AGENTCHAT_UNTITLED))
+        end
+    end
+    if any and module.db.sound and PlaySound and SOUNDKIT and SOUNDKIT.TELL_MESSAGE then
+        PlaySound(SOUNDKIT.TELL_MESSAGE)
+    end
+end
 
 local internal = {}
 module.internal = internal
@@ -233,6 +262,9 @@ local function receive(inbox, now)
         if applyThread(inbox.thread) == internal.selected then
             refresh("thread")
         end
+    end
+    if type(inbox.events) == "table" then
+        notify(inbox.events)
     end
     if type(inbox.queue) == "table" and inbox.queue.id then
         internal.queues[inbox.queue.id] = inbox.queue

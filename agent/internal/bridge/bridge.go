@@ -59,16 +59,18 @@ type Bridge struct {
 	handles map[string]int // thread id -> handle
 	ids     []string       // handle-1 -> thread id
 
-	sentList  string                    // the list as last sent this session
-	delivered map[string]map[int]string // thread id -> position -> version sent this session
-	pongs     []map[string]any
-	acks      []map[string]any  // how the player's sends, steers, and stops went
-	sentQueue map[string]string // thread id -> its queue as last sent this session
-	queued    []queued          // q-1 -> a queued message, for the program's life
-	note      string            // what the game should show about the link, when it changes
-	sentNote  string
-	urgent    bool      // the next fill answers the player, so it doesn't wait for MinGap
-	lastFill  time.Time // when an inbox was last filled
+	sentList    string                    // the list as last sent this session
+	delivered   map[string]map[int]string // thread id -> position -> version sent this session
+	pongs       []map[string]any
+	acks        []map[string]any  // how the player's sends, steers, and stops went
+	sentQueue   map[string]string // thread id -> its queue as last sent this session
+	queued      []queued          // q-1 -> a queued message, for the program's life
+	note        string            // what the game should show about the link, when it changes
+	sentNote    string
+	urgent      bool              // the next fill answers the player, so it doesn't wait for MinGap
+	lastFill    time.Time         // when an inbox was last filled
+	statuses    map[string]string // thread id -> its state at the last read, for notices
+	closedCheck time.Time         // when the states were last read with the window closed
 
 	threads      map[string]*thread // what's been read of each thread, for the program's life
 	projects     map[string]string  // project id -> title
@@ -110,7 +112,46 @@ func New(in wow.Install, data, version string) *Bridge {
 // Busy says whether the bridge should check T3 on its own, every second or so: the window is
 // open, or a ping or note waits.
 func (b *Bridge) Busy() bool {
-	return b.inbox != nil && (b.open || len(b.pongs) > 0 || len(b.acks) > 0 || b.note != b.sentNote)
+	return b.inbox != nil // closed, Poll reads only the states, every ClosedEvery
+}
+
+// ClosedEvery is how often the threads' states are read while the window is closed, for notices.
+var ClosedEvery = 5 * time.Second
+
+// working is a thread state where its agent is busy.
+var working = map[string]bool{"running": true, "starting": true, "preparing": true, "queued": true}
+
+// statusEvents compares the threads' states with the last read, and returns a notice for each
+// that finished, failed, or now waits for the player; not for the thread the player is reading.
+// The first read only learns where things stand.
+func (b *Bridge) statusEvents(list []map[string]any) []map[string]any {
+	first := b.statuses == nil
+	if first {
+		b.statuses = map[string]string{}
+	}
+	var events []map[string]any
+	for _, t := range list {
+		id, _ := t["id"].(string)
+		status, _ := t["status"].(string)
+		before, seen := b.statuses[id]
+		b.statuses[id] = status
+		if first || !seen || before == status || (b.open && t["h"] == b.view) {
+			continue
+		}
+		kind := ""
+		switch {
+		case status == "waiting":
+			kind = "waiting"
+		case status == "failed" && working[before]:
+			kind = "failed"
+		case working[before] && !working[status]:
+			kind = "done"
+		}
+		if kind != "" {
+			events = append(events, map[string]any{"id": id, "title": t["title"], "kind": kind})
+		}
+	}
+	return events
 }
 
 // Handle takes one message from the game, then answers what it can.
@@ -205,6 +246,17 @@ func (b *Bridge) Poll(ctx context.Context, force bool) {
 	var queueSig string
 	var threadID string
 
+	// With the window closed, only the threads' states are read, now and then, for notices.
+	if !b.open && time.Since(b.closedCheck) >= ClosedEvery {
+		b.closedCheck = time.Now()
+		if b.connect(ctx) == nil {
+			if list, _, err := b.list(ctx); err != nil {
+				b.fail(err)
+			} else if events := b.statusEvents(list); len(events) > 0 {
+				payload["events"], news = events, true
+			}
+		}
+	}
 	if b.open {
 		if err := b.connect(ctx); err != nil {
 			b.note = err.Error()
@@ -212,6 +264,9 @@ func (b *Bridge) Poll(ctx context.Context, force bool) {
 			b.fail(err)
 		} else {
 			b.note = ""
+			if events := b.statusEvents(list); len(events) > 0 {
+				payload["events"], news = events, true
+			}
 			if sig != b.sentList {
 				payload["threads"], listSig, news = list, sig, true
 			}
@@ -276,7 +331,7 @@ func (b *Bridge) Poll(ctx context.Context, force bool) {
 	}
 	b.acks = nil
 	what := []string{}
-	for _, k := range []string{"threads", "thread", "queue", "pongs", "acks", "note"} {
+	for _, k := range []string{"threads", "thread", "queue", "events", "pongs", "acks", "note"} {
 		if _, ok := payload[k]; ok {
 			what = append(what, k)
 		}

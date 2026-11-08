@@ -209,6 +209,44 @@ func TestSendQueueSteerStop(t *testing.T) {
 	}
 }
 
+func TestNotices(t *testing.T) {
+	b, fake, read := setup(t)
+	ClosedEvery = 0
+	t.Cleanup(func() { ClosedEvery = 5 * time.Second })
+	ctx := context.Background()
+	b.Handle(ctx, "c", []byte("H|s1"))
+	b.Handle(ctx, "c", []byte("O|s1|0|0")) // closed: learns the thread runs, nothing to say
+	if strings.Contains(read(0), "events") {
+		t.Fatalf("a notice from the first look:\n%s", read(0))
+	}
+	fake.status = "idle"
+	b.Poll(ctx, false)
+	if got := read(0); !strings.Contains(got, `kind="done"`) || !strings.Contains(got, `title="Agent Chat"`) ||
+		strings.Contains(got, "threads =") {
+		t.Fatalf("no done notice, or the list came with the window closed:\n%s", got)
+	}
+
+	b.Handle(ctx, "c", []byte("O|s1|1|1"))
+	fake.status = "waiting"
+	b.Poll(ctx, false)
+	if !strings.Contains(read(1), `kind="waiting"`) {
+		t.Fatalf("no needs-you notice:\n%s", read(1))
+	}
+
+	// Reading the thread: no notice for it.
+	b.Handle(ctx, "c", []byte("O|s1|2|2"))
+	b.Handle(ctx, "c", []byte("V|s1|1|1"))
+	b.Handle(ctx, "c", []byte("O|s1|3|3"))
+	fake.status = "running"
+	b.Poll(ctx, true)
+	b.Handle(ctx, "c", []byte("O|s1|0|4"))
+	fake.status = "completed"
+	b.Poll(ctx, true)
+	if strings.Contains(read(0), "events") {
+		t.Fatalf("a notice for the thread being read:\n%s", read(0))
+	}
+}
+
 func TestPingWithoutWindow(t *testing.T) {
 	b, fake, read := setup(t)
 	ctx := context.Background()
@@ -218,8 +256,10 @@ func TestPingWithoutWindow(t *testing.T) {
 	if !strings.Contains(read(0), `text="hello|there"`) || !strings.Contains(read(0), `id="7"`) {
 		t.Fatalf("no pong:\n%s", read(0))
 	}
-	if len(fake.calls) != 0 {
-		t.Errorf("asked T3 with the window closed: %v", fake.calls)
+	for _, call := range fake.calls {
+		if call == "t3_thread_read" || call == "t3_queue" {
+			t.Errorf("read a thread with the window closed: %v", fake.calls)
+		}
 	}
 }
 
