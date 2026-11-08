@@ -184,6 +184,9 @@ internal.threads = {} -- the list, newest first: { h, id, title, status, model, 
 internal.projects = {} -- T3's projects, by title: { id, title }, for starting a thread in one
 internal.counts = { waiting = 0, working = 0 } -- threads needing the player and working, for the button
 internal.composing = nil -- a new thread being written: { project, name, id, text, error }
+-- T3's providers with their models: { name, instance, models = { { id, label }... } }
+internal.models = {}
+internal.slotsUsed, internal.slotsTotal = 0, 0 -- reply slots this UI session has loaded, of all
 internal.conversations = {} -- thread id -> { items = { [pos] = item }, order = { pos... }, older }
 internal.queues = {} -- thread id -> { active, items = { { q, text }... } }: its queued messages
 internal.sending = {} -- what the player sent that T3 hasn't taken yet: { id, threadId, text, error }
@@ -405,6 +408,9 @@ local function receive(inbox, now)
         internal.counts = inbox.counts
         updateButton()
     end
+    if type(inbox.models) == "table" then
+        internal.models = inbox.models
+    end
     if type(inbox.projects) == "table" then
         internal.projects = inbox.projects
     end
@@ -501,6 +507,8 @@ local function check()
     offer = nil
     _G[INBOX] = nil
     C_AddOns.LoadAddOn(o.name)
+    internal.slotsUsed = internal.slotsUsed + 1
+    refresh("status")
     local inbox = _G[INBOX]
     _G[INBOX] = nil
     if o.signal < 0 then
@@ -585,6 +593,34 @@ function internal.IsUnread(thread)
     return seen ~= nil and (tonumber(thread.updated) or 0) > seen and thread.id ~= internal.selected
 end
 
+---The model new threads start on, as the player picked it in "+ New": its provider instance and
+---model id, or nil for T3's own choice (also when the picked one is gone from T3's list).
+---@return string? instance
+---@return string? model
+function internal.NewThreadModel()
+    local picked = module.db.layout.newModel
+    if type(picked) ~= "table" then
+        return nil
+    end
+    for _, provider in ipairs(internal.models) do
+        if provider.instance == picked.instance then
+            for _, model in ipairs(type(provider.models) == "table" and provider.models or {}) do
+                if model.id == picked.model then
+                    return picked.instance, picked.model
+                end
+            end
+        end
+    end
+end
+
+---Picks the model new threads start on (nil for T3's own choice).
+---@param instance string?
+---@param model string?
+function internal.PickNewThreadModel(instance, model)
+    module.db.layout.newModel = model and { instance = instance, model = model } or nil
+    refresh("thread")
+end
+
 ---Starts writing a new thread in a project (its T3 id, "" for none), shown in place of a thread
 ---until its first message is sent and T3 has it.
 ---@param project string
@@ -634,7 +670,9 @@ function internal.Send(text)
         end
         sends = sends + 1
         composing.id, composing.text, composing.error = "g" .. sends, text, nil
-        send(format("N|%s|%s|%s|%s", session, composing.id, composing.project, text))
+        local instance, model = internal.NewThreadModel()
+        send(format("N|%s|%s|%s|%s|%s|%s", session, composing.id, composing.project, instance or "", model or "",
+            text))
         offerNext()
         refresh("thread")
         return true
@@ -818,6 +856,14 @@ function module:OnEnable()
     seq, offer, viewSent, noSignal = 0, nil, nil, 0
     internal.heard, internal.note, internal.outOfSlots = false, nil, false
     internal.counts, internal.composing = { waiting = 0, working = 0 }, nil
+    -- Slots this UI session has loaded already (a module turned off and on keeps them used).
+    internal.slotsUsed = 0
+    for i = 0, slots - 1 do
+        if C_AddOns.IsAddOnLoaded(SLOT:format(i)) then
+            internal.slotsUsed = internal.slotsUsed + 1
+        end
+    end
+    internal.slotsTotal = slots
     showButton()
     queue[1] = { frame = AgentLink.Idle() }
     send("H|" .. session, function()

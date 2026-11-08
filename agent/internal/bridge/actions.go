@@ -17,8 +17,10 @@ import (
 //	D|session|q                cancel queued message q
 //	X|session|handle           stop the thread's running turn
 //	A|session|a|answers        answer a question the agent asked (asks.go)
-//	N|session|id|project|text  start a thread in a project (its T3 id, or none for a scratch
-//	                           folder) with text as its first message; the ack has its id
+//	N|session|id|project|instance|model|text
+//	                           start a thread in a project (its T3 id, or none for a scratch
+//	                           folder) on a provider's model (none: T3's choice), with text as
+//	                           its first message; the ack has its id
 //
 // Each is answered in the next inbox, as an ack ({ id, ok, error }) for a send and a note for the
 // rest when they fail. Queued messages go to the game with a small number, q, like threads.
@@ -48,9 +50,13 @@ func (b *Bridge) act(ctx context.Context, char, kind string, parts []string) boo
 			b.Log("%s: %s %d failed: %v", char, kind, q, err)
 		}
 	case kind == "N" && len(parts) >= 5:
-		id, project, text := parts[2], parts[3], parts[4]
+		id, project := parts[2], parts[3]
+		rest := strings.SplitN(parts[4], "|", 3) // instance|model|text; the text may hold | itself
+		if len(rest) < 3 {
+			break
+		}
 		ack := map[string]any{"id": id, "ok": true}
-		if thread, err := b.launch(ctx, project, text); err != nil {
+		if thread, err := b.launch(ctx, project, rest[0], rest[1], rest[2]); err != nil {
 			ack["ok"], ack["error"] = false, err.Error()
 			b.Log("%s: new thread failed: %v", char, err)
 		} else {
@@ -124,7 +130,7 @@ const titleLength = 60
 
 // launch starts a thread with a first message and returns its id. T3 needs a title up front; the
 // first line stands in, and T3 is then asked for a proper one, as it gives threads started in it.
-func (b *Bridge) launch(ctx context.Context, project, text string) (string, error) {
+func (b *Bridge) launch(ctx context.Context, project, instance, model, text string) (string, error) {
 	if strings.TrimSpace(text) == "" {
 		return "", fmt.Errorf("write the first message")
 	}
@@ -140,6 +146,9 @@ func (b *Bridge) launch(ctx context.Context, project, text string) (string, erro
 		args["scratch"] = true
 	} else {
 		args["projectId"] = project
+	}
+	if model != "" {
+		args["modelSelection"] = map[string]any{"instanceId": instance, "model": model}
 	}
 	raw, err := b.client.Call(ctx, "t3_thread_launch", args)
 	if err != nil {

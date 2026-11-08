@@ -43,6 +43,31 @@ const (
 // MinGap is the least time between two updates the player didn't ask for.
 var MinGap = 2 * time.Second
 
+// GrowGap is the least time between updates that only make messages the game has longer.
+var GrowGap = 5 * time.Second
+
+// onlyGrowth says whether a payload brings nothing but messages the game already has, longer.
+func (b *Bridge) onlyGrowth(payload map[string]any, threadID string, sent map[int]string) bool {
+	for k := range payload {
+		if k != "session" && k != "thread" && k != "counts" {
+			return false
+		}
+	}
+	if c, ok := payload["counts"].(map[string]any); ok && c["waiting"] != b.sentWaiting {
+		return false // the chat button's count changed: that goes at once
+	}
+	if _, ok := payload["thread"]; !ok || len(sent) == 0 {
+		return false
+	}
+	seen := b.delivered[threadID]
+	for pos := range sent {
+		if seen[pos] == "" {
+			return false // something new, not just longer
+		}
+	}
+	return true
+}
+
 // Bridge is the program's side of Agent Chat.
 type Bridge struct {
 	In      wow.Install
@@ -60,6 +85,10 @@ type Bridge struct {
 	expires     time.Time // when the T3 sign-in runs out, zero if it doesn't say
 	sentExpires time.Time // as last sent this session
 	expiresRead time.Time // when the saved sign-in was last read for it
+
+	models     []map[string]any // T3's providers and their models (models.go)
+	modelsRead time.Time
+	sentModels string
 
 	sessionStart time.Time // when this UI session began (or the program joined it), for reload.go
 	reloadCheck  time.Time
@@ -247,7 +276,7 @@ func (b *Bridge) start(session string, clear bool) {
 	b.sentAsks = map[string]string{}
 	b.sentExpires = time.Time{}
 	b.sessionStart, b.sentReload, b.reloadCheck = time.Now(), time.Time{}, time.Time{}
-	b.sentWaiting, b.sentProjects = 0, "" // the game starts at none needing the player
+	b.sentWaiting, b.sentProjects, b.sentModels = 0, "", "" // the game starts at none needing the player
 	b.pongs, b.acks = nil, nil
 	// Signals the game hasn't found yet should read as missing; ones it has found read as there
 	// to it anyway, so clearing is safe even mid-session. Slots are cleared only at a hello: one
@@ -280,7 +309,7 @@ func (b *Bridge) Poll(ctx context.Context, force bool) {
 	news := false
 	var listSig string
 	var sentItems map[int]string
-	var queueSig, asksSig, projectsSig string
+	var queueSig, asksSig, projectsSig, modelsSig string
 	var threadID string
 	// How many threads need the player and how many work, for the chat button, open or closed.
 	// They go with whatever is sent, and on their own only when the number needing the player
@@ -324,6 +353,10 @@ func (b *Bridge) Poll(ctx context.Context, force bool) {
 			takeCounts(list)
 			if projects, sig := b.projectList(); sig != b.sentProjects {
 				payload["projects"], projectsSig, news = projects, sig, true
+			}
+			b.readModels(ctx)
+			if models, sig := b.modelsNews(); sig != b.sentModels && len(models) > 0 {
+				payload["models"], modelsSig, news = models, sig, true
 			}
 			if b.view > 0 && b.view <= len(b.ids) {
 				threadID = b.ids[b.view-1]
@@ -373,6 +406,11 @@ func (b *Bridge) Poll(ctx context.Context, force bool) {
 	if !news && !force {
 		return
 	}
+	// A message still being written grows with every look; it goes at most every GrowGap, since
+	// each fill spends one of the game's slots for the session.
+	if !force && !b.urgent && time.Since(b.lastFill) < GrowGap && b.onlyGrowth(payload, threadID, sentItems) {
+		return
+	}
 
 	start := time.Now()
 	if err := wow.FillSlot(b.In.SlotDir(b.inbox.slot), payload); err != nil {
@@ -419,10 +457,13 @@ func (b *Bridge) Poll(ctx context.Context, force bool) {
 	if projectsSig != "" {
 		b.sentProjects = projectsSig
 	}
+	if modelsSig != "" {
+		b.sentModels = modelsSig
+	}
 	b.acks = nil
 	what := []string{}
-	for _, k := range []string{"threads", "thread", "queue", "asks", "counts", "projects", "events", "pongs", "acks",
-		"note"} {
+	for _, k := range []string{"threads", "thread", "queue", "asks", "counts", "projects", "models", "events", "pongs",
+		"acks", "note", "reload"} {
 		if _, ok := payload[k]; ok {
 			what = append(what, k)
 		}

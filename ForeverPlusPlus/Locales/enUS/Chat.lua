@@ -48,6 +48,14 @@ L.AGENTCHAT_BUTTON_HIDDEN_DESC = "Blizzard's buttons beside the chat window are 
     .. "another chat addon, and the Chat Button sits with them. Open the window with /fpp agent."
 L.AGENTCHAT_BUTTON_TIP = "Open your T3 Code threads."
 L.AGENTCHAT_BUTTON_COUNTS = "%d need you, %d working" -- threads needing you, threads working
+L.AGENTCHAT_USAGE = "%d of %d updates left" -- updates left, all this session has
+L.AGENTCHAT_USAGE_TIP = "Each update the window gets uses one, and /reload gives them all back. A "
+    .. "message the agent is still writing updates every few seconds."
+L.AGENTCHAT_MODEL = "Model: %s" -- a model's name
+L.AGENTCHAT_MODEL_DEFAULT = "T3's default"
+L.AGENTCHAT_CHANGED_ONE = "Changed %s" -- a file name
+L.AGENTCHAT_CHANGED = "Changed %d files: %s" -- how many, their names
+L.AGENTCHAT_CHANGED_MORE = "%s, and %d more" -- some file names, how many more
 L.AGENTCHAT_NEW = "+ New"
 L.AGENTCHAT_NEW_TIP = "Start a thread in one of your T3 Code projects."
 L.AGENTCHAT_NEW_IN = "Start a thread in"

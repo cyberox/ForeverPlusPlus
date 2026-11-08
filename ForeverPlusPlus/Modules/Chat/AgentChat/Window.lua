@@ -114,6 +114,25 @@ local function agentName(model)
     return lower ~= "" and modelName(model) or L.AGENTCHAT_AGENT
 end
 
+-- The name of the model new threads start on, with its provider (Claude has several sign-ins).
+local function newModelName()
+    local instance, model = internal.NewThreadModel()
+    if not model then
+        return L.AGENTCHAT_MODEL_DEFAULT
+    end
+    for _, provider in ipairs(internal.models) do
+        if provider.instance == instance then
+            for _, m in ipairs(type(provider.models) == "table" and provider.models or {}) do
+                if m.id == model then
+                    local label = m.label ~= nil and m.label ~= "" and m.label or modelName(m.id)
+                    return format("%s (%s)", label, tostring(provider.name))
+                end
+            end
+        end
+    end
+    return modelName(model)
+end
+
 local MODES = {
     ["full-access"] = L.AGENTCHAT_MODE_FULL,
     auto = L.AGENTCHAT_MODE_AUTO,
@@ -593,6 +612,23 @@ local function stepLine(item)
     return item.failed and format(L.AGENTCHAT_STEP_FAILED, text) or text
 end
 
+-- "Changed 3 files: a.lua, b.go, c.md", naming the first few.
+local CHANGED_NAMED = 4
+local function changedLine(files)
+    if #files == 1 then
+        return format(L.AGENTCHAT_CHANGED_ONE, plain(files[1]))
+    end
+    local names = {}
+    for i = 1, min(#files, CHANGED_NAMED) do
+        names[i] = plain(files[i])
+    end
+    local list = table.concat(names, ", ")
+    if #files > CHANGED_NAMED then
+        list = format(L.AGENTCHAT_CHANGED_MORE, list, #files - CHANGED_NAMED)
+    end
+    return format(L.AGENTCHAT_CHANGED, #files, list)
+end
+
 -- Indented under the agent's name, in gray, with a dot like a list's.
 local function addStep(messages, text)
     messages:AddMessage("   \194\183 " .. text, NOTE[1], NOTE[2], NOTE[3])
@@ -617,7 +653,7 @@ local function refreshThread()
     if composing then
         -- A new thread: where it goes, and its first message once sent (or why T3 turned it down).
         f.name:SetText(L.AGENTCHAT_UNTITLED)
-        f.details:SetText(plain(composing.name or L.AGENTCHAT_NO_PROJECT))
+        f.details:SetText(joinNonEmpty(plain(composing.name or L.AGENTCHAT_NO_PROJECT), plain(newModelName())))
         messages:Clear()
         if composing.text then
             messages:AddMessage(" ")
@@ -677,9 +713,23 @@ local function refreshThread()
         end
         stepText, stepCount = nil, 0
     end
+    -- The files the agent's turn changed, said once at its end, with Show Steps off too.
+    local turnFiles, turnSeen = {}, {}
+    local function flushFiles()
+        if #turnFiles > 0 and last == "assistant" then
+            gapBefore("text")
+            messages:AddMessage(changedLine(turnFiles), NOTE[1], NOTE[2], NOTE[3])
+        end
+        turnFiles, turnSeen = {}, {}
+    end
     for _, pos in ipairs(conversation.order) do
         local item = conversation.items[pos]
         if item.role == "step" then
+            local file = (item.kind == "edited" or item.kind == "created") and tostring(item.text or "")
+            if file and file ~= "" and not turnSeen[file] then
+                turnSeen[file] = true
+                turnFiles[#turnFiles + 1] = file
+            end
             if showSteps then
                 if last ~= "assistant" then
                     flushSteps()
@@ -697,6 +747,9 @@ local function refreshThread()
         else
             flushSteps()
             local you = item.role == "user"
+            if you then
+                flushFiles() -- the agent's turn ends where the player writes again
+            end
             if item.role ~= last then
                 local name = you and L.AGENTCHAT_YOU or (item.role == "assistant" and agent) or item.role
                 speaker(messages, name, you and YOU or AGENT, item.at)
@@ -722,6 +775,7 @@ local function refreshThread()
         end
     end
     flushSteps()
+    flushFiles()
     -- What the player sent that T3 hasn't taken yet, or turned down.
     for _, sent in ipairs(internal.sending) do
         if sent.threadId == thread.id then
@@ -754,6 +808,21 @@ local function refreshStatus()
     end
     window.status:SetText(text)
     window.status:SetTextColor(color[1], color[2], color[3])
+
+    -- Gray while plenty are left, gold under a sixth, red under a twentieth.
+    local total = tonumber(internal.slotsTotal) or 0
+    local left = max(0, total - (tonumber(internal.slotsUsed) or 0))
+    local usage = window.usage
+    usage:SetShown(total > 0)
+    usage.text:SetText(format(L.AGENTCHAT_USAGE, left, total))
+    if left <= total / 20 then
+        usage.text:SetTextColor(1, 0.3, 0.3)
+    elseif left <= total / 6 then
+        usage.text:SetTextColor(1, 0.82, 0)
+    else
+        usage.text:SetTextColor(NOTE[1], NOTE[2], NOTE[3])
+    end
+    usage:SetWidth(usage.text:GetStringWidth() + 2)
 end
 
 ---Draws again what changed: "list", "thread", or "status".
@@ -866,8 +935,30 @@ local function projectMenu(_, root)
     end
 end
 
--- "+ New"'s menu: where to start the thread, a scratch folder or one of T3's projects.
+-- "+ New"'s menu: the model to start on, then where: a scratch folder or one of T3's projects.
 local function newThreadMenu(_, root)
+    if #internal.models > 0 then
+        local models = root:CreateButton(format(L.AGENTCHAT_MODEL, plain(newModelName())))
+        models:CreateRadio(L.AGENTCHAT_MODEL_DEFAULT, function()
+            return internal.NewThreadModel() == nil
+        end, function()
+            internal.PickNewThreadModel(nil, nil)
+        end)
+        for _, provider in ipairs(internal.models) do
+            models:CreateDivider()
+            models:CreateTitle(plain(provider.name))
+            for _, m in ipairs(type(provider.models) == "table" and provider.models or {}) do
+                local label = m.label ~= nil and m.label ~= "" and m.label or modelName(m.id)
+                models:CreateRadio(plain(label), function()
+                    local instance, model = internal.NewThreadModel()
+                    return instance == provider.instance and model == m.id
+                end, function()
+                    internal.PickNewThreadModel(provider.instance, m.id)
+                end)
+            end
+        end
+        root:CreateDivider()
+    end
     root:CreateTitle(L.AGENTCHAT_NEW_IN)
     root:CreateButton(L.AGENTCHAT_NO_PROJECT, function()
         internal.NewThread("", nil)
@@ -1231,10 +1322,24 @@ local function newWindow()
     f.messages:SetPoint("TOPLEFT", 0, -2)
     f.messages:SetPoint("BOTTOMRIGHT")
 
-    -- How the link is doing, beside the heading.
+    -- At the top right, the updates this session has left (a frame, for its tooltip), and how the
+    -- link is doing beside it.
+    f.usage = CreateFrame("Frame", nil, f)
+    f.usage:SetPoint("TOPRIGHT", -12, -36) -- level with the heading beside the portrait
+    f.usage:SetHeight(16)
+    f.usage.text = f.usage:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    f.usage.text:SetPoint("RIGHT")
+    f.usage:EnableMouse(true)
+    f.usage:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
+        GameTooltip:SetText(self.text:GetText() or "")
+        GameTooltip:AddLine(L.AGENTCHAT_USAGE_TIP, 1, 1, 1, true)
+        GameTooltip:Show()
+    end)
+    f.usage:SetScript("OnLeave", GameTooltip_Hide)
     f.status = f:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     f.status:SetPoint("LEFT", f.summary, "RIGHT", 16, 0)
-    f.status:SetPoint("RIGHT", -12, 0)
+    f.status:SetPoint("RIGHT", f.usage, "LEFT", -16, 0)
     f.status:SetJustifyH("RIGHT")
     f.status:SetWordWrap(false)
 

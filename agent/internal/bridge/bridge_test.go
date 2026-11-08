@@ -90,6 +90,12 @@ func (f *fakeT3) Call(_ context.Context, name string, args any) (json.RawMessage
 		}
 		f.sent = append(f.sent, args.(map[string]any))
 		return json.RawMessage(`{}`), nil
+	case "orchestrator_capabilities":
+		return json.RawMessage(`{"providers":[
+			{"displayName":"Claude Direct","providerInstanceId":"claudeAgent","constraints":[],
+			 "models":[{"id":"claude-opus-5-5","label":"Claude Opus 5.5"}]},
+			{"displayName":"Off API","providerInstanceId":"off","constraints":["Provider instance is disabled."],
+			 "models":[{"id":"x"}]}]}`), nil
 	case "t3_thread_launch":
 		f.sent = append(f.sent, args.(map[string]any))
 		return json.RawMessage(`{"threadId":"t9","status":"preparing"}`), nil
@@ -108,8 +114,8 @@ func msg(pos int, kind, text, status string) map[string]any {
 }
 
 func setup(t *testing.T) (*Bridge, *fakeT3, func(slot int) string) {
-	MinGap = 0
-	t.Cleanup(func() { MinGap = 2 * time.Second })
+	MinGap, GrowGap = 0, 0
+	t.Cleanup(func() { MinGap, GrowGap = 2*time.Second, 5*time.Second })
 	in := wow.Install{Game: t.TempDir(), Data: t.TempDir(), Slots: 4, Signals: 8, Interface: 16001}
 	for i := 0; i < in.Slots; i++ {
 		os.MkdirAll(in.SlotDir(i), 0o755)
@@ -346,6 +352,55 @@ func TestAttachments(t *testing.T) {
 	}
 }
 
+func TestGrowthWaits(t *testing.T) {
+	b, fake, read := setup(t)
+	ctx := context.Background()
+	b.Handle(ctx, "c", []byte("H|s1"))
+	b.Handle(ctx, "c", []byte("O|s1|0|0"))
+	b.Handle(ctx, "c", []byte("V|s1|1|1"))
+	GrowGap = time.Hour
+	b.Handle(ctx, "c", []byte("O|s1|1|1"))
+	fake.items[1]["text"] = "On it, more" // the running message grows
+	b.Poll(ctx, false)
+	if strings.Contains(read(1), "more") {
+		t.Fatal("a growing message didn't wait")
+	}
+	fake.items = append(fake.items, msg(5, "assistant_message", "a new one", "running"))
+	b.Poll(ctx, false)
+	if !strings.Contains(read(1), "a new one") || !strings.Contains(read(1), "On it, more") {
+		t.Fatalf("a new message waited, or the growth didn't come with it:\n%s", read(1))
+	}
+}
+
+func TestModelsAndNewThreadModel(t *testing.T) {
+	b, fake, read := setup(t)
+	ctx := context.Background()
+	b.Handle(ctx, "c", []byte("H|s1"))
+	b.Handle(ctx, "c", []byte("O|s1|0|0"))
+	b.Handle(ctx, "c", []byte("V|s1|0|1"))
+	if got := read(0); !strings.Contains(got, `instance="claudeAgent"`) || !strings.Contains(got, `label="Claude Opus 5.5"`) ||
+		strings.Contains(got, "Off API") {
+		t.Fatalf("no models, or a turned-off provider's:\n%s", got)
+	}
+	b.Handle(ctx, "c", []byte("O|s1|1|1"))
+	b.Handle(ctx, "c", []byte("N|s1|g5|p1|claudeAgent|claude-opus-5-5|Hello | there"))
+	var launch map[string]any
+	for _, s := range fake.sent {
+		if s["title"] != nil {
+			launch = s
+		}
+	}
+	sel, _ := launch["modelSelection"].(map[string]any)
+	if launch["message"] != "Hello | there" || sel["instanceId"] != "claudeAgent" || sel["model"] != "claude-opus-5-5" {
+		t.Fatalf("launched %v", launch)
+	}
+	b.Handle(ctx, "c", []byte("O|s1|2|2"))
+	b.Handle(ctx, "c", []byte("N|s1|g6|p1|||T3 picks"))
+	if last := fake.sent[len(fake.sent)-2]; last["modelSelection"] != nil || last["message"] != "T3 picks" {
+		t.Fatalf("a model was picked when none was asked for: %v", last)
+	}
+}
+
 func TestSteps(t *testing.T) {
 	b, fake, read := setup(t)
 	ctx := context.Background()
@@ -452,7 +507,7 @@ func TestNewThreadCountsProjects(t *testing.T) {
 	}
 
 	b.Handle(ctx, "c", []byte("O|s1|1|1"))
-	b.Handle(ctx, "c", []byte("N|s1|g3|p1|Make a | thing\nwith details"))
+	b.Handle(ctx, "c", []byte("N|s1|g3|p1|||Make a | thing\nwith details"))
 	var launch, rename map[string]any
 	for _, s := range fake.sent {
 		if s["message"] != nil {
@@ -471,7 +526,7 @@ func TestNewThreadCountsProjects(t *testing.T) {
 	}
 
 	b.Handle(ctx, "c", []byte("O|s1|2|2"))
-	b.Handle(ctx, "c", []byte("N|s1|g4||Scratch it"))
+	b.Handle(ctx, "c", []byte("N|s1|g4||||Scratch it"))
 	if last := fake.sent[len(fake.sent)-2]; last["scratch"] != true || last["projectId"] != nil {
 		t.Fatalf("no scratch folder: %v", last)
 	}
