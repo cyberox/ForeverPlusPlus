@@ -93,7 +93,7 @@ func luaValue(v any) string {
 	case nil:
 		return "nil"
 	case string:
-		return LuaString(v)
+		return LuaString(GameText(v))
 	case bool:
 		return fmt.Sprint(v)
 	case int, int64, float64:
@@ -128,6 +128,42 @@ func luaValue(v any) string {
 	default:
 		return LuaString(fmt.Sprint(v))
 	}
+}
+
+// GameText drops what the game's fonts can't draw and would show as an empty box: emoji, and
+// the joiners, variation selectors, and tags emoji are built from. A space left doubled by a
+// dropped emoji goes too, and so does one it leaves at the start.
+func GameText(s string) string {
+	var b strings.Builder
+	dropped := false
+	for _, r := range s {
+		if noGlyph(r) {
+			dropped = true
+			continue
+		}
+		if r == ' ' && dropped && (b.Len() == 0 || strings.HasSuffix(b.String(), " ")) {
+			continue
+		}
+		if r != ' ' {
+			dropped = false
+		}
+		b.WriteRune(r)
+	}
+	return b.String()
+}
+
+func noGlyph(r rune) bool {
+	switch {
+	case r >= 0x1F000 && r <= 0x1FAFF: // emoji, pictographs, flags, skin tones
+		return true
+	case r >= 0x2600 && r <= 0x27BF: // symbols and dingbats drawn as emoji
+		return true
+	case r >= 0x2B00 && r <= 0x2BFF: // arrows and stars drawn as emoji
+		return true
+	case r >= 0xFE00 && r <= 0xFE0F, r == 0x200D, r == 0x20E3, r >= 0xE0000 && r <= 0xE007F:
+		return true
+	}
+	return false
 }
 
 // LuaString quotes s as a Lua 5.1 string literal: printable ASCII as is, everything else as a

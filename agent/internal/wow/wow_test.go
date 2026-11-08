@@ -20,6 +20,20 @@ func TestLuaString(t *testing.T) {
 	}
 }
 
+func TestGameTextDropsEmoji(t *testing.T) {
+	cases := map[string]string{
+		"Hello! \U0001F44B Everything's fine": "Hello! Everything's fine",
+		"Done ✅":                         "Done ",
+		"\U0001F468‍\U0001F4BB code":     "code",
+		"café — a | b":              "café — a | b",
+	}
+	for in, want := range cases {
+		if got := GameText(in); got != want {
+			t.Errorf("GameText(%q) = %q, want %q", in, got, want)
+		}
+	}
+}
+
 func TestInstallFillUninstall(t *testing.T) {
 	game := t.TempDir()
 	if err := os.MkdirAll(filepath.Join(game, "Interface", "AddOns", "ForeverPlusPlus"), 0o755); err != nil {
