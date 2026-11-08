@@ -91,7 +91,7 @@ func run(in wow.Install) error {
 
 	// The game learns the ready files' names only when it starts, so they must all exist then:
 	// arm them now if it isn't running, and again each time it closes.
-	running := wow.GameRunning()
+	running := wow.GameRunning(in.Game)
 	if !running {
 		arm(in)
 	} else {
@@ -105,7 +105,7 @@ func run(in wow.Install) error {
 			case <-ctx.Done():
 				return
 			case <-tick.C:
-				now := wow.GameRunning()
+				now := wow.GameRunning(in.Game)
 				if running && !now {
 					arm(in)
 				}
