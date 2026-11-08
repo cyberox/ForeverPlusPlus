@@ -1,7 +1,6 @@
-// Forever Agent: the program on the PC that Forever++'s Agent Chat talks to.
-//
-// For now it only answers the link test: the game sends a ping through its AddOns.txt, and this
-// writes the pong into a reply slot the game loads. See agent/README.md.
+// Forever Agent: the program on the PC that Forever++'s Agent Chat talks to. It reads what the
+// game writes through its AddOns.txt, asks T3 Code, and writes the answers into reply slots the
+// game loads. See agent/README.md.
 package main
 
 import (
@@ -16,8 +15,10 @@ import (
 	"os/signal"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"time"
 
+	"github.com/xIGBClutchIx/ForeverPlusPlus/agent/internal/background"
 	"github.com/xIGBClutchIx/ForeverPlusPlus/agent/internal/bridge"
 	"github.com/xIGBClutchIx/ForeverPlusPlus/agent/internal/link"
 	"github.com/xIGBClutchIx/ForeverPlusPlus/agent/internal/t3"
@@ -29,7 +30,11 @@ const usage = `Usage: forever-agent <command> [flags]
 Commands:
   install     make the helper addons and link them into the game (restart the game after)
   uninstall   remove the links and the helper addons
-  run         answer the game
+  run         answer the game, in this window
+  start       answer the game in the background, with no window (its log: agent.log)
+  stop        stop the copy running in the background
+  status      say whether it runs, and whether it starts at sign-in
+  startup on|off   start it in the background when you sign in to Windows
   login       sign in to T3 Code (approve it in the browser)
   t3 tools    list T3's tools and what they take
   t3 call <tool> [json]   call one of T3's tools and print what it returns
@@ -45,6 +50,8 @@ func main() {
 	signals := flags.Int("signals", 2000, "ready signals: replies per game launch told of at once")
 	iface := flags.Int("interface", 16001, "the TOC Interface number")
 	server := flags.String("t3", t3.DefaultServer(), "the T3 Code server, for login")
+	quiet := flags.Bool("background", false, "run with no window, logging to agent.log (what start does)")
+	after := flags.Int("after", 0, "wait for this process to end first (an update taking over)")
 	flags.Usage = func() {
 		fmt.Fprint(os.Stderr, usage)
 		flags.PrintDefaults()
@@ -72,7 +79,18 @@ func main() {
 			fmt.Println("Removed. Restart the game to drop them from its list.")
 		}
 	case "run":
-		err = run(in, *data)
+		err = run(in, *data, *quiet, *after)
+	case "start":
+		err = start()
+	case "stop":
+		err = background.Stop(15 * time.Second)
+		if err == nil {
+			fmt.Println("Stopped.")
+		}
+	case "status":
+		status(*data)
+	case "startup":
+		err = startup(flags.Args())
 	case "login":
 		err = login(*data, *server)
 	case "t3":
@@ -87,7 +105,7 @@ func main() {
 	}
 }
 
-const version = "0.1.0"
+const version = "0.2.0"
 
 func login(data, server string) error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
@@ -165,12 +183,181 @@ func defaultGame() string {
 	return `D:\BattleNet\World of Warcraft\_forever_`
 }
 
-func run(in wow.Install, data string) error {
+// start runs the program again in the background, with no window, and returns.
+func start() error {
+	if background.Running() {
+		return background.ErrRunning
+	}
+	exe, err := os.Executable()
+	if err != nil {
+		return err
+	}
+	if err := background.Spawn(exe, append([]string{"run", "-background"}, passedFlags()...), true); err != nil {
+		return err
+	}
+	for end := time.Now().Add(5 * time.Second); time.Now().Before(end); time.Sleep(100 * time.Millisecond) {
+		if background.Running() {
+			fmt.Println("Running in the background. forever-agent stop ends it.")
+			return nil
+		}
+	}
+	return errors.New("it didn't start; see agent.log in " + wow.DefaultData())
+}
+
+func status(data string) {
+	if background.Running() {
+		fmt.Println("Running.")
+	} else {
+		fmt.Println("Not running.")
+	}
+	if on, exe := background.Startup(); on {
+		fmt.Println("Starts when you sign in to Windows, from " + exe)
+	} else {
+		fmt.Println("Doesn't start at sign-in (forever-agent startup on).")
+	}
+	fmt.Println("Log: " + logPath(data))
+}
+
+func startup(args []string) error {
+	if len(args) != 1 || (args[0] != "on" && args[0] != "off") {
+		return errors.New("startup on, or startup off")
+	}
+	exe, err := os.Executable()
+	if err != nil {
+		return err
+	}
+	if err := background.SetStartup(args[0] == "on", exe); err != nil {
+		return err
+	}
+	if args[0] == "on" {
+		fmt.Println("It starts in the background when you sign in to Windows, from " + exe)
+	} else {
+		fmt.Println("It no longer starts at sign-in.")
+	}
+	return nil
+}
+
+// passedFlags is the flags this copy was started with (not -background or -after), for the copy
+// that takes over after an update.
+func passedFlags() []string {
+	var out []string
+	args := os.Args[2:]
+	for i := 0; i < len(args); i++ {
+		a := strings.TrimLeft(args[i], "-")
+		name := strings.SplitN(a, "=", 2)[0]
+		switch {
+		case name == "background":
+		case name == "after":
+			if !strings.Contains(a, "=") {
+				i++ // its value
+			}
+		default:
+			out = append(out, args[i])
+		}
+	}
+	return out
+}
+
+func logPath(data string) string { return filepath.Join(data, "agent.log") }
+
+// logToFile sends the log to agent.log, starting it afresh past a few megabytes (the last one kept
+// as agent.old.log).
+func logToFile(data string) (*os.File, error) {
+	path := logPath(data)
+	if info, err := os.Stat(path); err == nil && info.Size() > 4<<20 {
+		os.Rename(path, filepath.Join(data, "agent.old.log"))
+	}
+	f, err := os.OpenFile(path, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o600)
+	if err != nil {
+		return nil, err
+	}
+	log.SetOutput(f)
+	return f, nil
+}
+
+// watchForUpdate calls update once the program file is replaced (go build writes a new one where
+// it was) and the new one has stopped changing.
+func watchForUpdate(ctx context.Context, exe string, update func()) {
+	first, err := os.Stat(exe)
+	if err != nil {
+		return
+	}
+	var last os.FileInfo
+	tick := time.NewTicker(2 * time.Second)
+	defer tick.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-tick.C:
+		}
+		info, err := os.Stat(exe)
+		if err != nil || (info.ModTime().Equal(first.ModTime()) && info.Size() == first.Size()) {
+			last = nil
+			continue
+		}
+		// Changed: wait for two looks the same, so a build still writing it isn't started.
+		if last != nil && info.ModTime().Equal(last.ModTime()) && info.Size() == last.Size() {
+			update()
+			return
+		}
+		last = info
+	}
+}
+
+func run(in wow.Install, data string, quiet bool, after int) error {
+	if quiet {
+		f, err := logToFile(data)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+	}
 	if !in.Load() {
 		return errors.New("not installed, or installed by an older version: run `forever-agent install`")
 	}
+	if after > 0 {
+		background.WaitForExit(after, 15*time.Second) // the copy this update replaces
+	}
+	lock, err := background.Acquire()
+	if err != nil {
+		return err
+	}
+	defer lock.Release()
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
+	go func() {
+		select {
+		case <-lock.Stopped():
+			log.Println("Asked to stop.")
+			stop()
+		case <-ctx.Done():
+		}
+	}()
+
+	// A new build of the program file takes over: it starts once this copy has gone, and picks up
+	// the game's session as it is, as when the program starts after the game.
+	var updated atomic.Bool
+	if exe, err := os.Executable(); err == nil {
+		go watchForUpdate(ctx, exe, func() {
+			args := append([]string{"run", "-after", fmt.Sprint(os.Getpid())}, passedFlags()...)
+			if quiet {
+				args = append(args, "-background")
+			}
+			if err := background.Spawn(exe, args, quiet); err != nil {
+				log.Println("starting the new build:", err)
+				return
+			}
+			log.Println("A new build is in place; it takes over now.")
+			updated.Store(true)
+			stop()
+		})
+	}
+	defer func() {
+		if !updated.Load() {
+			log.Println("Stopped.")
+		}
+	}()
 
 	// The game learns the signals' names only when it starts, so they must all exist then: arm
 	// them now if it isn't running, and again each time it closes.
@@ -202,7 +389,11 @@ func run(in wow.Install, data string) error {
 	go func() {
 		done <- wow.Watch(ctx, in.Game, messages, func(s string) { log.Println("warning:", s) })
 	}()
-	log.Printf("Watching %s. Ctrl+C to stop.", filepath.Join(in.Game, "WTF"))
+	if quiet {
+		log.Printf("Watching %s in the background (version %s).", filepath.Join(in.Game, "WTF"), version)
+	} else {
+		log.Printf("Watching %s (version %s). Ctrl+C to stop.", filepath.Join(in.Game, "WTF"), version)
+	}
 
 	// Everything that touches the bridge runs here, one thing at a time: the game's messages,
 	// and a check of T3 every second while the window is open.
@@ -211,6 +402,8 @@ func run(in wow.Install, data string) error {
 	defer tick.Stop()
 	for {
 		select {
+		case <-ctx.Done():
+			return nil
 		case err := <-done:
 			return err
 		case m := <-messages:

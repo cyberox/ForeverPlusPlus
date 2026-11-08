@@ -18,12 +18,20 @@ The helper addons live in `%LOCALAPPDATA%\ForeverPlusPlus\Agent\addons`. The gam
 cd agent
 go build -o forever-agent.exe ./cmd/forever-agent
 forever-agent install    # once, then restart the game fully (not /reload)
-forever-agent run        # leave it running
+forever-agent start      # runs in the background, with no window
 ```
 
 In game: `/fpp agent ping hello`. Chat shows the reply and how long each step took, and whether the game noticed each ready file change.
 
-`--game` (or `WOW_DIR`) points at another client folder; the default is `D:\BattleNet\World of Warcraft\_forever_`. `--slots` sets the number of reply slots (100). `forever-agent uninstall` removes the junctions and the helpers.
+`--game` (or `WOW_DIR`) points at another client folder; the default is `D:\BattleNet\World of Warcraft\_forever_`. `--slots` sets the number of reply slots (300). `forever-agent uninstall` removes the junctions and the helpers.
+
+## Running it
+
+- `forever-agent start` runs it in the background with no window, logging to `agent.log` beside the helpers. `forever-agent stop` ends it, and `forever-agent status` says whether it runs.
+- `forever-agent run` runs it in the current window instead, logging there (Ctrl+C ends it).
+- `forever-agent startup on` starts it in the background when you sign in to Windows (`off` stops that). It's a value in your user's `Run` key that starts it through `conhost.exe --headless`, so a console program gets no window.
+- Only one copy runs at a time: a second `run` or `start` says one already does.
+- Building it again (`go build`) is enough to update it. The running copy notices its program file changed, starts the new build, and quits; the new one waits for it to go, then picks up the game's session as it is. It works for `run` too, in the same window.
 
 ## T3 Code
 
