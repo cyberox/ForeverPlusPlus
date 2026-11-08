@@ -5,7 +5,7 @@ local _, ns = ...
 
 local ipairs, format, time, type, pcall, tostring, tonumber, select, unpack = ipairs, string.format, time,
     type, pcall, tostring, tonumber, select, unpack
-local max, min = math.max, math.min
+local max, min, abs = math.max, math.min, math.abs
 local CreateFrame, UIParent, GameTooltip = CreateFrame, UIParent, GameTooltip
 
 local L = ns.L
@@ -161,11 +161,135 @@ local function refreshQueue(thread)
     f.queue:SetHeight(shown > 0 and shown * QUEUE_ROW_HEIGHT + 4 or 1)
     f.stop:SetEnabled(active and true or false)
     f.edit:SetEnabled(thread ~= nil)
-    if thread then
-        f.edit.hint:SetText(L.AGENTCHAT_SEND_HINT)
-    else
+    if not thread then
         f.edit.hint:SetText("")
+    elseif internal.ShownAsk() then
+        f.edit.hint:SetText(L.AGENTCHAT_ANSWER_HINT)
+    else
+        f.edit.hint:SetText(L.AGENTCHAT_SEND_HINT)
     end
+end
+
+-- What the agent asks, above the queue: each question with its options as buttons to pick (one, or
+-- several where it takes several), and Answer. Typed text answers a question with nothing picked.
+-- Approvals can't be given from here (T3 doesn't offer it), so they only get a line.
+local OPTION_HEIGHT = 22
+
+local function askText(f, n)
+    local text = f.askTexts[n]
+    if not text then
+        text = f.ask:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+        text:SetJustifyH("LEFT")
+        f.askTexts[n] = text
+    end
+    text:Show()
+    return text
+end
+
+local function optionButton(f, n)
+    local button = f.askButtons[n]
+    if not button then
+        button = Frames.Button(f.ask, nil, 60)
+        button:SetScript("OnClick", function(self)
+            internal.Pick(self.a, self.q, self.o)
+        end)
+        button:SetHeight(OPTION_HEIGHT - 2)
+        button:HookScript("OnEnter", function(self)
+            if self.tip and self.tip ~= "" then
+                GameTooltip:SetOwner(self, "ANCHOR_TOP")
+                GameTooltip:SetText(self:GetText())
+                GameTooltip:AddLine(self.tip, 1, 1, 1, true)
+                GameTooltip:Show()
+            end
+        end)
+        button:HookScript("OnLeave", GameTooltip_Hide)
+        f.askButtons[n] = button
+    end
+    button:Show()
+    return button
+end
+
+local function refreshAsk(thread)
+    local f = window
+    for _, text in ipairs(f.askTexts) do
+        text:Hide()
+    end
+    for _, button in ipairs(f.askButtons) do
+        button:Hide()
+    end
+    local asks = thread and internal.asks[thread.id]
+    local request = thread and internal.ShownAsk()
+    local approvals = asks and tonumber(asks.approvals) or 0
+    if not request and approvals <= 0 then
+        f.ask:SetHeight(1)
+        f.ask.line:Hide()
+        f.answer:Hide()
+        return
+    end
+    f.ask.line:Show()
+    local width = f.ask:GetWidth()
+    if width < 100 then
+        width = 400 -- not laid out yet; OnSizeChanged draws it again
+    end
+    local y, texts, buttons = -6, 0, 0
+    if request then
+        local picks = internal.picks[request.a] or {}
+        for q, question in ipairs(type(request.questions) == "table" and request.questions or {}) do
+            texts = texts + 1
+            local text = askText(f, texts)
+            text:SetWidth(width)
+            text:SetPoint("TOPLEFT", 0, y)
+            local header = plain(question.header)
+            text:SetText((header ~= "" and Colors.Code(1, 0.82, 0) .. header .. "|r  " or "") .. plain(question.question))
+            y = y - text:GetStringHeight() - 4
+            local x = 0
+            for o, option in ipairs(type(question.options) == "table" and question.options or {}) do
+                buttons = buttons + 1
+                local button = optionButton(f, buttons)
+                button.a, button.q, button.o, button.tip = request.a, q, o, plain(option.description)
+                button:SetText(plain(option.label))
+                local w = min(width, max(60, button:GetFontString():GetStringWidth() + 24))
+                button:SetWidth(w)
+                if x > 0 and x + w > width then
+                    x, y = 0, y - OPTION_HEIGHT
+                end
+                button:ClearAllPoints()
+                button:SetPoint("TOPLEFT", x, y)
+                local picked = picks[q] and picks[q][o]
+                if picked then
+                    button:LockHighlight()
+                    button:GetFontString():SetTextColor(1, 1, 1)
+                else
+                    button:UnlockHighlight()
+                    button:GetFontString():SetTextColor(1, 0.82, 0)
+                end
+                x = x + w + 4
+            end
+            y = y - OPTION_HEIGHT - 4
+        end
+        f.answer:Show()
+        f.answer:ClearAllPoints()
+        f.answer:SetPoint("TOPRIGHT", 0, y)
+        f.answer:SetEnabled(not internal.answering[request.a])
+        texts = texts + 1
+        local hint = askText(f, texts)
+        hint:SetWidth(width - f.answer:GetWidth() - 8)
+        hint:SetPoint("TOPLEFT", 0, y - 4)
+        hint:SetText(Colors.Code(NOTE[1], NOTE[2], NOTE[3]) .. L.AGENTCHAT_ANSWER_HOW .. "|r")
+        y = y - OPTION_HEIGHT - 2
+    else
+        f.answer:Hide()
+    end
+    if approvals > 0 then
+        texts = texts + 1
+        local text = askText(f, texts)
+        text:SetWidth(width)
+        text:SetPoint("TOPLEFT", 0, y)
+        text:SetText(Colors.Code(1, 0.82, 0) .. (approvals == 1 and L.AGENTCHAT_APPROVAL
+            or format(L.AGENTCHAT_APPROVALS, approvals)) .. "|r")
+        y = y - text:GetStringHeight() - 4
+    end
+    f.ask:SetHeight(-y + 2)
 end
 
 local function refreshThread()
@@ -173,6 +297,7 @@ local function refreshThread()
     local messages = f.messages
     local thread = internal.selected and byId(internal.selected)
     refreshQueue(thread)
+    refreshAsk(thread)
     if not thread then
         f.name:SetText(internal.selected and "" or L.AGENTCHAT_PICK)
         f.details:SetText("")
@@ -441,9 +566,36 @@ local function newWindow()
         f.queueRows[i] = row
     end
 
+    -- What the agent asks, above the queue.
+    f.ask = CreateFrame("Frame", nil, details)
+    f.ask:SetPoint("BOTTOMLEFT", f.queue, "TOPLEFT", 0, 0)
+    f.ask:SetPoint("BOTTOMRIGHT", f.queue, "TOPRIGHT", 0, 0)
+    f.ask:SetHeight(1)
+    f.ask.line = f.ask:CreateTexture(nil, "ARTWORK")
+    f.ask.line:SetColorTexture(1, 1, 1, 0.1)
+    f.ask.line:SetHeight(1)
+    f.ask.line:SetPoint("TOPLEFT")
+    f.ask.line:SetPoint("TOPRIGHT")
+    f.ask.line:Hide()
+    f.askTexts, f.askButtons = {}, {}
+    f.answer = Frames.Button(f.ask, L.AGENTCHAT_ANSWER, 80, function()
+        if internal.Answer(f.edit:GetText()) then
+            f.edit:SetText("")
+        end
+    end)
+    f.answer:SetHeight(OPTION_HEIGHT - 2)
+    f.answer:Hide()
+    local lastWidth = 0
+    f.ask:SetScript("OnSizeChanged", function(self, width)
+        if abs(width - lastWidth) >= 1 then -- only the width changes the layout
+            lastWidth = width
+            refreshAsk(internal.selected and byId(internal.selected))
+        end
+    end)
+
     f.messages = newMessages(details)
     f.messages:SetPoint("TOPLEFT", line, "BOTTOMLEFT", 4, -4)
-    f.messages:SetPoint("BOTTOMRIGHT", f.queue, "TOPRIGHT", -2, 4)
+    f.messages:SetPoint("BOTTOMRIGHT", f.ask, "TOPRIGHT", -2, 4)
 
     -- How the link is doing, beside the heading.
     f.status = f:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
@@ -464,7 +616,14 @@ local function newWindow()
     edit:SetMaxLetters(MAX_SEND)
     edit:SetFontObject(ChatFontNormal)
     edit:SetScript("OnEnterPressed", function(self)
-        if internal.Send(self:GetText()) then
+        -- While the agent asks something, Enter answers it.
+        local sent
+        if internal.ShownAsk() then
+            sent = internal.Answer(self:GetText())
+        else
+            sent = internal.Send(self:GetText())
+        end
+        if sent then
             self:SetText("")
         else
             self:ClearFocus()

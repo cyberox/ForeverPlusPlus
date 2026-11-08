@@ -71,6 +71,8 @@ type Bridge struct {
 	acks        []map[string]any  // how the player's sends, steers, and stops went
 	sentQueue   map[string]string // thread id -> its queue as last sent this session
 	queued      []queued          // q-1 -> a queued message, for the program's life
+	sentAsks    map[string]string // thread id -> its questions as last sent this session
+	asks        []*ask            // a-1 -> a question request, for the program's life
 	note        string            // what the game should show about the link, when it changes
 	sentNote    string
 	urgent      bool              // the next fill answers the player, so it doesn't wait for MinGap
@@ -103,10 +105,11 @@ type item struct {
 }
 
 type thread struct {
-	items  map[int]*item
-	order  []int  // positions, oldest first
-	read   bool   // read to the end at least once
-	active string // the running turn's id, for steering into; "" when idle
+	items   map[int]*item
+	order   []int  // positions, oldest first
+	read    bool   // read to the end at least once
+	active  string // the running turn's id, for steering into; "" when idle
+	pending int    // requests waiting for the player: questions and approvals
 }
 
 // New returns a Bridge for an install.
@@ -224,6 +227,7 @@ func (b *Bridge) start(session string, clear bool) {
 	b.sentList, b.sentNote = "", ""
 	b.delivered = map[string]map[int]string{}
 	b.sentQueue = map[string]string{}
+	b.sentAsks = map[string]string{}
 	b.pongs, b.acks = nil, nil
 	// Signals the game hasn't found yet should read as missing; ones it has found read as there
 	// to it anyway, so clearing is safe even mid-session. Slots are cleared only at a hello: one
@@ -256,7 +260,7 @@ func (b *Bridge) Poll(ctx context.Context, force bool) {
 	news := false
 	var listSig string
 	var sentItems map[int]string
-	var queueSig string
+	var queueSig, asksSig string
 	var threadID string
 
 	// With the window closed, only the threads' states are read, now and then, for notices.
@@ -296,6 +300,11 @@ func (b *Bridge) Poll(ctx context.Context, force bool) {
 					b.Log("T3 queue: %v", err) // the conversation still shows without it
 				} else if sig != b.sentQueue[threadID] {
 					payload["queue"], queueSig, news = queue, sig, true
+				}
+				if asks, sig, err := b.asksNews(ctx, threadID); err != nil {
+					b.Log("T3 questions: %v", err)
+				} else if sig != b.sentAsks[threadID] {
+					payload["asks"], asksSig, news = asks, sig, true
 				}
 			}
 		}
@@ -342,9 +351,12 @@ func (b *Bridge) Poll(ctx context.Context, force bool) {
 	if queueSig != "" {
 		b.sentQueue[threadID] = queueSig
 	}
+	if asksSig != "" {
+		b.sentAsks[threadID] = asksSig
+	}
 	b.acks = nil
 	what := []string{}
-	for _, k := range []string{"threads", "thread", "queue", "events", "pongs", "acks", "note"} {
+	for _, k := range []string{"threads", "thread", "queue", "asks", "events", "pongs", "acks", "note"} {
 		if _, ok := payload[k]; ok {
 			what = append(what, k)
 		}
@@ -498,13 +510,15 @@ func (b *Bridge) threadNews(ctx context.Context, id string) ([]map[string]any, i
 				UpdatedAt     time.Time `json:"updatedAt"`
 			} `json:"items"`
 			Thread *struct {
-				ActiveRunID *string `json:"activeRunId"`
+				ActiveRunID         *string `json:"activeRunId"`
+				PendingRequestCount int     `json:"pendingRequestCount"`
 			} `json:"thread"`
 		}
 		if err := json.Unmarshal(raw, &res); err != nil {
 			return nil, 0, nil, err
 		}
 		if res.Thread != nil {
+			t.pending = res.Thread.PendingRequestCount
 			t.active = ""
 			if res.Thread.ActiveRunID != nil {
 				t.active = *res.Thread.ActiveRunID

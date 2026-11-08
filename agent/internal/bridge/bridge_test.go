@@ -15,13 +15,15 @@ import (
 
 // fakeT3 answers the two calls the bridge makes, from a thread it can change.
 type fakeT3 struct {
-	status string
-	active string // the running turn
-	items  []map[string]any
-	queue  []map[string]any
-	calls  []string
-	sent   []map[string]any // what t3_thread_send, t3_queue writes, and t3_thread_interrupt got
-	reject string           // when set, t3_thread_send fails with it
+	status   string
+	active   string // the running turn
+	items    []map[string]any
+	queue    []map[string]any
+	calls    []string
+	sent     []map[string]any // what t3_thread_send, t3_queue writes, and t3_thread_interrupt got
+	reject   string           // when set, t3_thread_send fails with it
+	pending  int              // the thread's pendingRequestCount
+	requests []string         // question requests waiting
 }
 
 func (f *fakeT3) Close() error { return nil }
@@ -51,7 +53,22 @@ func (f *fakeT3) Call(_ context.Context, name string, args any) (json.RawMessage
 		if f.active != "" {
 			active = f.active
 		}
-		return json.Marshal(map[string]any{"hasMore": false, "items": out, "thread": map[string]any{"activeRunId": active}})
+		return json.Marshal(map[string]any{"hasMore": false, "items": out,
+			"thread": map[string]any{"activeRunId": active, "pendingRequestCount": f.pending}})
+	case "t3_pending_request":
+		a := args.(map[string]any)
+		switch a["action"] {
+		case "list":
+			return json.Marshal(map[string]any{"requestIds": f.requests})
+		case "read":
+			return json.RawMessage(`{"requestId":"r1","questions":[
+				{"id":"Which color?","header":"Color","question":"Which color?","multiSelect":false,
+				 "options":[{"label":"Red","description":"warm"},{"label":"Blue","description":"cool"}]},
+				{"id":"Which sizes?","header":"Sizes","question":"Which sizes?","multiSelect":true,
+				 "options":[{"label":"Small"},{"label":"Medium"},{"label":"Large"}]}]}`), nil
+		}
+		f.sent = append(f.sent, a)
+		return json.RawMessage(`{"sequence":1}`), nil
 	case "t3_queue":
 		a := args.(map[string]any)
 		if a["action"] == "list" {
@@ -285,6 +302,47 @@ func TestAttachments(t *testing.T) {
 	b.Handle(ctx, "c", []byte("V|s1|1|1"))
 	if got := read(0); !strings.Contains(got, `files=1,images=1,pos=0`) || !strings.Contains(got, `files=0,images=0,pos=3`) {
 		t.Fatalf("attachments not counted:\n%s", got)
+	}
+}
+
+func TestQuestions(t *testing.T) {
+	b, fake, read := setup(t)
+	ctx := context.Background()
+	fake.status, fake.pending, fake.requests = "waiting", 2, []string{"r1"} // a question and an approval
+	b.Handle(ctx, "c", []byte("H|s1"))
+	b.Handle(ctx, "c", []byte("O|s1|0|0"))
+	b.Handle(ctx, "c", []byte("V|s1|1|1")) // the thread read says what's pending, so they come with it
+	got := read(0)
+	if !strings.Contains(got, "asks = {") || !strings.Contains(got, `header="Color"`) ||
+		!strings.Contains(got, `label="Blue"`) || !strings.Contains(got, "multi=true") || !strings.Contains(got, "approvals=1") {
+		t.Fatalf("no questions:\n%s", got)
+	}
+
+	// Blue, and Small and Large.
+	b.Handle(ctx, "c", []byte("O|s1|2|2"))
+	b.Handle(ctx, "c", []byte("A|s1|1|o:2\no:1,3"))
+	last := fake.sent[len(fake.sent)-1]
+	answers, _ := last["answers"].(map[string]any)
+	sizes, _ := answers["Which sizes?"].([]string)
+	if last["action"] != "respond" || last["requestId"] != "r1" || answers["Which color?"] != "Blue" ||
+		len(sizes) != 2 || sizes[0] != "Small" || sizes[1] != "Large" {
+		t.Fatalf("answered %v", last)
+	}
+	if !strings.Contains(read(2), "ask=1") || !strings.Contains(read(2), "ok=true") {
+		t.Fatalf("no ack:\n%s", read(2))
+	}
+
+	// Their own words, with a | in them; and a short answer is turned back.
+	b.Handle(ctx, "c", []byte("O|s1|3|3"))
+	b.Handle(ctx, "c", []byte("A|s1|1|t:green | teal\nt:all"))
+	answers, _ = fake.sent[len(fake.sent)-1]["answers"].(map[string]any)
+	if answers["Which color?"] != "green | teal" {
+		t.Fatalf("typed answer %v", answers)
+	}
+	b.Handle(ctx, "c", []byte("O|s1|0|4"))
+	b.Handle(ctx, "c", []byte("A|s1|1|o:1"))
+	if !strings.Contains(read(0), "ok=false") || !strings.Contains(read(0), "every question") {
+		t.Fatalf("a short answer went through:\n%s", read(0))
 	}
 }
 

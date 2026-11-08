@@ -99,6 +99,11 @@ internal.threads = {} -- the list, newest first: { h, id, title, status, model, 
 internal.conversations = {} -- thread id -> { items = { [pos] = item }, order = { pos... }, older }
 internal.queues = {} -- thread id -> { active, items = { { q, text }... } }: its queued messages
 internal.sending = {} -- what the player sent that T3 hasn't taken yet: { id, threadId, text, error }
+-- thread id -> { approvals, items = { { a, questions = { { header, question, multi, options = {
+-- { label, description }... } }... } }... } }: what its agent asks the player, and approvals waiting
+internal.asks = {}
+internal.picks = {} -- a -> question index -> option index -> true: what the player has picked
+internal.answering = {} -- a -> true while an answer is on its way
 internal.selected = nil -- the thread id shown
 internal.note = nil -- what the program says about its link to T3, or nil when all's well
 internal.heard = false -- whether the program has answered this session
@@ -272,7 +277,16 @@ local function receive(inbox, now)
             refresh("thread")
         end
     end
+    if type(inbox.asks) == "table" and inbox.asks.id then
+        internal.asks[inbox.asks.id] = inbox.asks
+        if inbox.asks.id == internal.selected then
+            refresh("thread")
+        end
+    end
     for _, ack in ipairs(type(inbox.acks) == "table" and inbox.acks or {}) do
+        if ack.ask then
+            internal.answering[ack.ask] = nil -- answered, it leaves with the next asks
+        end
         local sent = ack.id and internal.SendingById(ack.id)
         if ack.ok and sent then
             tremove(internal.sending, sent) -- T3 has it: it shows in the queue or the thread now
@@ -416,6 +430,73 @@ function internal.Cancel(q)
         send(format("D|%s|%d", session, q))
         offerNext()
     end
+end
+
+---The question the shown thread's agent asks first, if it asks one.
+---@return table? request { a, questions }
+function internal.ShownAsk()
+    local asks = internal.selected and internal.asks[internal.selected]
+    return asks and type(asks.items) == "table" and asks.items[1] or nil
+end
+
+---Picks an option of a question the agent asked, or takes it back: a question that takes one
+---answer keeps only the last picked.
+---@param a number the request
+---@param q number the question
+---@param o number the option
+function internal.Pick(a, q, o)
+    local picks = internal.picks[a] or {}
+    internal.picks[a] = picks
+    local request = internal.ShownAsk()
+    local question = request and request.a == a and request.questions[q]
+    if not question then
+        return
+    end
+    local picked = picks[q] or {}
+    if picked[o] then
+        picked[o] = nil
+    elseif question.multi then
+        picked[o] = true
+    else
+        picked = { [o] = true }
+    end
+    picks[q] = picked
+    refresh("thread")
+end
+
+---Answers the question the shown thread's agent asks: with the options picked, and the text for
+---each question with none picked.
+---@param text string? as an edit box gives it, with a typed | doubled
+---@return boolean sent
+function internal.Answer(text)
+    local request = session and internal.ShownAsk()
+    if not request or internal.answering[request.a] then
+        return false
+    end
+    text = (text or ""):gsub("||", "|"):match("^%s*(.-)%s*$")
+    local picks = internal.picks[request.a] or {}
+    local lines = {}
+    for q, question in ipairs(request.questions) do
+        local picked = {}
+        for o in ipairs(question.options or {}) do
+            if picks[q] and picks[q][o] then
+                picked[#picked + 1] = o
+            end
+        end
+        if #picked > 0 then
+            lines[q] = "o:" .. table.concat(picked, ",")
+        elseif text ~= "" then
+            lines[q] = "t:" .. text
+        else
+            ns.Print(L.AGENTCHAT_ANSWER_ALL)
+            return false
+        end
+    end
+    internal.answering[request.a] = true
+    send(format("A|%s|%d|%s", session, request.a, table.concat(lines, "\n")))
+    offerNext()
+    refresh("thread")
+    return true
 end
 
 ---Stops the shown thread's running turn.

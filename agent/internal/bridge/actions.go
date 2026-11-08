@@ -16,6 +16,7 @@ import (
 //	S|session|q                steer queued message q into the running turn now
 //	D|session|q                cancel queued message q
 //	X|session|handle           stop the thread's running turn
+//	A|session|a|answers        answer a question the agent asked (asks.go)
 //
 // Each is answered in the next inbox, as an ack ({ id, ok, error }) for a send and a note for the
 // rest when they fail. Queued messages go to the game with a small number, q, like threads.
@@ -43,6 +44,16 @@ func (b *Bridge) act(ctx context.Context, char, kind string, parts []string) boo
 		if err := b.queueAction(ctx, kind, q); err != nil {
 			b.acks = append(b.acks, map[string]any{"ok": false, "error": err.Error()})
 			b.Log("%s: %s %d failed: %v", char, kind, q, err)
+		}
+	case kind == "A" && len(parts) >= 4:
+		n, _ := strconv.Atoi(parts[2])
+		lines := strings.Join(parts[3:], "|") // typed answers may hold | themselves
+		if err := b.answer(ctx, n, lines); err != nil {
+			b.acks = append(b.acks, map[string]any{"ask": n, "ok": false, "error": err.Error()})
+			b.Log("%s: answer %d failed: %v", char, n, err)
+		} else {
+			b.acks = append(b.acks, map[string]any{"ask": n, "ok": true})
+			b.Log("%s: answered question %d", char, n)
 		}
 	case kind == "X" && len(parts) >= 3:
 		h, _ := strconv.Atoi(parts[2])
