@@ -144,3 +144,18 @@ L.CURRENCYBAR_CURRENCIES_DESC = "Show the currencies you have ticked Show on Bac
     .. "Currency tab."
 L.CURRENCYBAR_VERTICAL = "Vertical"
 L.CURRENCYBAR_VERTICAL_DESC = "Stack the gold and currencies in a column instead of a row."
+
+-- LocalTime
+L.LOCALTIME_TITLE = "Local Time"
+L.LOCALTIME_DESC = "Show the calendar's times in your own time instead of the realm's, while the "
+    .. "clock uses local time. Guild events in the Communities window and Guild News, and when "
+    .. "auction money arrives in the mail, follow too."
+L.LOCALTIME_CLOCK = "Use Local Time"
+L.LOCALTIME_CLOCK_DESC = "The clock's own Use Local Time setting: your computer's time instead of "
+    .. "the realm's. The calendar follows it, so the clock and the calendar always agree."
+L.LOCALTIME_NOTICE = "Events stay on the realm's day in the calendar."
+L.LOCALTIME_NOTICE_DESC = "A time with +1 after it is the next day in your time, and -1 the day "
+    .. "before. The time you pick for a new event is still the realm's, with yours under it."
+L.LOCALTIME_NEXT_DAY = "%s +1" -- a time that falls on the next day in the player's time
+L.LOCALTIME_PREVIOUS_DAY = "%s -1" -- a time that falls on the day before
+L.LOCALTIME_YOUR_TIME = "Your time: %s" -- under the create event window's date
