@@ -1,0 +1,403 @@
+-- Agent Chat: your T3 Code threads in a window in the game, through the Forever Agent program on
+-- the same PC (agent/ in this repo). /fpp agent opens it. Read only for now.
+--
+-- An addon can't write files or open sockets, so the link uses files the game reads and writes.
+-- Out: Lib/AgentLink's frames, as which of 256 helper addons are on for this character, written
+-- at once to its AddOns.txt by C_AddOns.SaveAddOns(); the program watches that file. In: the
+-- program writes into a load-on-demand helper addon (a slot), and this loads it with
+-- C_AddOns.LoadAddOn, which runs its Data.lua: that sets ForeverPlusPlusAgentInbox, read and
+-- cleared at once. A slot loads once per UI session.
+--
+-- This always keeps one slot offered to the program (an inbox), and the program fills it only
+-- when something changed, so a slot is spent only on news. A signal says it's filled: a sound
+-- file in the FPPAgentSignals helper, which the program makes after writing. PlaySoundFile
+-- answers whether it's there, with game sound off too. The game knows only files that existed
+-- when it started, and once it has found one it remembers it until it restarts, so each signal
+-- works once per game launch: an offer takes the next one that reads as missing, from where the
+-- last left off (saved, so a /reload goes on from there). With none left, the slot loads a second
+-- after offering, while the window is open. What the tests showed is in docs/forever-api.md.
+--
+-- The helpers exist only once the program installs them, so without it the module isn't offered.
+-- The program's side and the messages are in agent/internal/bridge.
+local _, ns = ...
+
+local _G, ipairs, format, type, tostring, tonumber, floor, random, wipe, min = _G, ipairs, format,
+    type, tostring, tonumber, math.floor, math.random, wipe, math.min
+local tremove = table.remove
+local C_AddOns, UnitGUID, GetTimePreciseSec, PlaySoundFile, StopSound =
+    C_AddOns, UnitGUID, GetTimePreciseSec, PlaySoundFile, StopSound
+
+local L = ns.L
+local AgentLink = ns.AgentLink
+
+local BIT, SLOT, SIGNALS = "FPPAgentBit%03d", "FPPAgentSlot%03d", "FPPAgentSignals"
+local SIGNAL = "Interface\\AddOns\\FPPAgentSignals\\%04d.wav"
+local INBOX = "ForeverPlusPlusAgentInbox"
+local HOLD = 0.1 -- seconds each frame stays written, so the program reads every one
+local CHECK_OPEN, CHECK_CLOSED = 0.1, 0.5 -- how often the signal is checked
+local LOAD_AFTER = 1 -- with no signal, load the slot this long after offering it
+local GIVE_UP = 30 -- while the window is open, load an offer this long unanswered and offer again
+local MAX_SLOTS = 999
+local MAX_SCAN = 200 -- signals checked per offer before going without one
+local MAX_TEXT = 200
+
+local module = ns.NewModule("AgentChat", L.AGENTCHAT_DESC, {
+    enabled = true,
+    link = {}, -- signal: the next signal to try
+    layout = {}, -- where the window was left
+})
+module.title = L.AGENTCHAT_TITLE
+module.category = "chat"
+module.added = "1.3.0"
+
+local internal = {}
+module.internal = internal
+
+-- Only with the program's helper addons installed.
+function module:IsAvailable()
+    local exists = C_AddOns and C_AddOns.DoesAddOnExist
+    return exists and exists(BIT:format(0)) and exists(SLOT:format(0)) and exists(SIGNALS) or false
+end
+
+local sendTimer = ns.Frames.Timer(module)
+local checkTimer = ns.Frames.Timer(module)
+local offerTimer = ns.Frames.Timer(module)
+local SETTLE = 0.3 -- after the hello, time for the program to clear the signals before an offer
+local SIGNAL_TRIES = 3 -- offers tried a second apart, while the window is open, before going without
+
+-- What the window shows. The window (Window.lua) reads these.
+internal.threads = {} -- the list, newest first: { h, id, title, status, model, project, updated }
+internal.conversations = {} -- thread id -> { items = { [pos] = item }, order = { pos... }, older }
+internal.selected = nil -- the thread id shown
+internal.note = nil -- what the program says about its link to T3, or nil when all's well
+internal.heard = false -- whether the program has answered this session
+internal.outOfSlots = false
+
+local character, session, slots, signals
+local seq = 0
+local bits = {} -- helper index -> whether it's on, as last written; nil until written
+local queue = {} -- frames waiting: { frame = bytes, sent = fn(time) on a message's last frame }
+local offer -- the inbox offered: { slot, name, signal, offeredAt }
+local noSignal = 0 -- offers in a row that found no free signal
+local pings, pingStarts = 0, {}
+local viewSent -- the last V message, so the same one isn't sent twice
+
+-- Sending ------------------------------------------------------------------------------------------
+
+-- Writes a frame: only the helpers that change, then the file.
+local function apply(frame)
+    for i = 0, AgentLink.BITS - 1 do
+        local on = AgentLink.Bit(frame, i) == 1
+        if bits[i] ~= on then
+            if on then
+                C_AddOns.EnableAddOn(BIT:format(i), character)
+            else
+                C_AddOns.DisableAddOn(BIT:format(i), character)
+            end
+            bits[i] = on
+        end
+    end
+    C_AddOns.SaveAddOns()
+end
+
+local function pump()
+    local entry = tremove(queue, 1)
+    if not entry then
+        return
+    end
+    apply(entry.frame)
+    if entry.sent then
+        entry.sent(GetTimePreciseSec())
+    end
+    sendTimer:Start(HOLD, pump)
+end
+
+-- Queues a message; `sent` runs when its last frame is written.
+local function send(message, sent)
+    local frames
+    frames, seq = AgentLink.Frames(message, seq)
+    for i, frame in ipairs(frames) do
+        queue[#queue + 1] = { frame = frame, sent = i == #frames and sent or nil }
+    end
+    if not sendTimer:IsPending() then
+        pump()
+    end
+end
+
+-- Receiving ---------------------------------------------------------------------------------------
+
+-- The first slot this UI session hasn't loaded.
+local function freeSlot()
+    for i = 0, slots - 1 do
+        local name = SLOT:format(i)
+        if not C_AddOns.IsAddOnLoaded(name) then
+            return i, name
+        end
+    end
+end
+
+-- Whether signal i reads as there. The sound is silent and stopped at once.
+local function signalThere(i)
+    local willPlay, handle = PlaySoundFile(SIGNAL:format(i), "Master")
+    if willPlay and handle then
+        StopSound(handle)
+    end
+    return willPlay and true or false
+end
+
+-- The next signal that reads as missing, or -1. Ones that read as there were used earlier this
+-- game launch (or the program hasn't cleared them yet).
+local function freeSignal()
+    local link = module.db.link
+    local start = tonumber(link.signal) or 0
+    for n = 0, min(signals, MAX_SCAN) - 1 do
+        local i = (start + n) % signals
+        if not signalThere(i) then
+            link.signal = (i + 1) % signals
+            return i
+        end
+    end
+    return -1
+end
+
+local function ms(seconds)
+    return floor(seconds * 1000 + 0.5)
+end
+
+local function refresh(what)
+    if internal.Refresh then
+        internal.Refresh(what)
+    end
+end
+
+local function byId(id)
+    for _, thread in ipairs(internal.threads) do
+        if thread.id == id then
+            return thread
+        end
+    end
+end
+
+-- Tells the program which thread is shown and whether the window is open.
+local function sendView()
+    if not session then
+        return
+    end
+    local thread = internal.selected and byId(internal.selected)
+    local view = format("V|%s|%d|%d", session, thread and thread.h or 0, internal.IsShown() and 1 or 0)
+    if view ~= viewSent then
+        viewSent = view
+        send(view)
+    end
+end
+
+local function applyThread(update)
+    local conversation = internal.conversations[update.id]
+    if not conversation then
+        conversation = { items = {}, order = {}, older = 0 }
+        internal.conversations[update.id] = conversation
+    end
+    if type(update.older) == "number" and update.older > 0 then
+        conversation.older = update.older
+    end
+    for _, item in ipairs(type(update.items) == "table" and update.items or {}) do
+        if type(item.pos) == "number" then
+            if not conversation.items[item.pos] then
+                conversation.order[#conversation.order + 1] = item.pos
+                table.sort(conversation.order)
+            end
+            conversation.items[item.pos] = item
+        end
+    end
+    return update.id
+end
+
+-- What the program sent.
+local function receive(inbox, now)
+    if type(inbox) ~= "table" or inbox.session ~= session then
+        return
+    end
+    internal.heard = true
+    if inbox.note ~= nil then
+        internal.note = inbox.note ~= "" and inbox.note or nil
+        refresh("status")
+    end
+    if type(inbox.threads) == "table" then
+        internal.threads = inbox.threads
+        refresh("list")
+        sendView() -- the shown thread's handle may be new
+    end
+    if type(inbox.thread) == "table" then
+        if applyThread(inbox.thread) == internal.selected then
+            refresh("thread")
+        end
+    end
+    for _, pong in ipairs(type(inbox.pongs) == "table" and inbox.pongs or {}) do
+        local start = pingStarts[pong.id]
+        if start then
+            pingStarts[pong.id] = nil
+            ns.Print(format(L.AGENTCHAT_PONG, tostring(pong.text), ms(now - start)))
+        end
+    end
+end
+
+local offerNext
+
+-- Loads the offered slot once its signal is there (or, with none, a second after offering).
+local function check()
+    local o = offer
+    if not (o and o.offeredAt) then
+        return
+    end
+    local now = GetTimePreciseSec()
+    local ready
+    if o.signal >= 0 then
+        -- A program that restarted forgets the offer and clears its signal: while the window is
+        -- open, give up after a while and offer again.
+        ready = signalThere(o.signal) or (internal.IsShown() and now - o.offeredAt >= GIVE_UP)
+    else
+        ready = now - o.offeredAt >= LOAD_AFTER
+    end
+    if not ready then
+        checkTimer:Start(internal.IsShown() and CHECK_OPEN or CHECK_CLOSED, check)
+        return
+    end
+    offer = nil
+    _G[INBOX] = nil
+    C_AddOns.LoadAddOn(o.name)
+    local inbox = _G[INBOX]
+    _G[INBOX] = nil
+    receive(inbox, now)
+    offerNext()
+end
+
+-- Offers the program the next inbox, unless one is out already.
+function offerNext()
+    if offer or not session then
+        return
+    end
+    local slot, name = freeSlot()
+    if not slot then
+        internal.outOfSlots = true
+        refresh("status")
+        return
+    end
+    local signal = freeSignal()
+    if signal < 0 then
+        -- Every signal reads as used: the program may not have cleared them yet (it does at the
+        -- hello, or when it joins a session it missed). Try again for a bit; after that, offer
+        -- without one, loading every second, but only while the window is open.
+        if not internal.IsShown() then
+            return
+        end
+        noSignal = noSignal + 1
+        if noSignal < SIGNAL_TRIES then
+            offerTimer:Start(1, offerNext)
+            return
+        end
+    else
+        noSignal = 0
+    end
+    local o = { slot = slot, name = name, signal = signal }
+    offer = o
+    send(format("O|%s|%d|%d", session, slot, signal), function(at)
+        o.offeredAt = at
+        check()
+    end)
+end
+
+-- The window's side --------------------------------------------------------------------------------
+
+---Shows a thread, or none, and tells the program.
+---@param id string?
+function internal.Select(id)
+    internal.selected = id
+    refresh("thread")
+    refresh("list")
+    sendView()
+end
+
+---The window opened or closed.
+function internal.ViewChanged()
+    if not session then
+        return
+    end
+    sendView()
+    offerNext() -- after running out of signals, an offer waits for the window
+end
+
+-- Commands -----------------------------------------------------------------------------------------
+
+local function ping(text)
+    text = text ~= "" and text:sub(1, MAX_TEXT) or "ping"
+    pings = pings + 1
+    local id = tostring(pings)
+    pingStarts[id] = GetTimePreciseSec()
+    send(format("P|%s|%s|%s", session, id, text))
+    offerNext()
+end
+
+local function status()
+    local used = 0
+    for i = 0, slots - 1 do
+        if C_AddOns.IsAddOnLoaded(SLOT:format(i)) then
+            used = used + 1
+        end
+    end
+    ns.Print(format(L.AGENTCHAT_STATUS, tostring(session), slots - used, slots,
+        tonumber(module.db.link.signal) or 0, signals, offer and offer.signal or -1, #queue))
+end
+
+ns.AddCommand("agent", L.AGENTCHAT_COMMAND_USAGE, L.AGENTCHAT_COMMAND, function(rest)
+    local command, argument = rest:match("^(%S*)%s*(.-)$")
+    command = command:lower()
+    if command == "ping" then
+        ping(argument)
+    elseif command == "status" then
+        status()
+    elseif command == "" then
+        internal.Toggle()
+    else
+        ns.Print(format(L.AGENTCHAT_COMMAND_UNKNOWN, command))
+    end
+end, "AgentChat")
+
+-- Lifecycle ------------------------------------------------------------------------------------------
+
+-- A UI session starts with the idle frame, which tells the program to start reading afresh, a
+-- hello, which has it clear every slot (loaded ones can't load again until a /reload anyway) and
+-- every signal (so the ones this launch hasn't used read as missing), and the first offer.
+function module:OnEnable()
+    -- Blizzard's AddOns list names the character by GUID too; a name alone changes nothing.
+    character = UnitGUID("player")
+    slots = 0
+    while slots < MAX_SLOTS and C_AddOns.DoesAddOnExist(SLOT:format(slots)) do
+        slots = slots + 1
+    end
+    signals = tonumber(C_AddOns.GetAddOnMetadata(SIGNALS, "X-Signals")) or 0
+    if signals < 1 then
+        signals = 1
+    end
+    session = format("%04x%04x", random(0, 65535), random(0, 65535))
+    wipe(bits)
+    wipe(queue)
+    wipe(internal.threads)
+    wipe(internal.conversations)
+    seq, offer, viewSent, noSignal = 0, nil, nil, 0
+    internal.heard, internal.note, internal.outOfSlots = false, nil, false
+    queue[1] = { frame = AgentLink.Idle() }
+    send("H|" .. session, function()
+        offerTimer:Start(SETTLE, function()
+            offerNext()
+            sendView()
+        end)
+    end)
+end
+
+function module:OnDisable()
+    offer, session = nil, nil
+    wipe(queue)
+    if internal.Hide then
+        internal.Hide()
+    end
+end

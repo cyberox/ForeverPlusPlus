@@ -86,14 +86,45 @@ func luaInbox(fields map[string]any) string {
 	return b.String()
 }
 
+// luaValue writes strings, numbers, bools, lists ([]any, []map[string]any) and tables
+// (map[string]any, keys in order) as Lua.
 func luaValue(v any) string {
 	switch v := v.(type) {
+	case nil:
+		return "nil"
 	case string:
 		return LuaString(v)
 	case bool:
 		return fmt.Sprint(v)
 	case int, int64, float64:
 		return fmt.Sprint(v)
+	case map[string]any:
+		keys := make([]string, 0, len(v))
+		for k := range v {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		var b strings.Builder
+		b.WriteByte('{')
+		for _, k := range keys {
+			fmt.Fprintf(&b, "%s=%s,", k, luaValue(v[k]))
+		}
+		b.WriteByte('}')
+		return b.String()
+	case []map[string]any:
+		list := make([]any, len(v))
+		for i, m := range v {
+			list[i] = m
+		}
+		return luaValue(list)
+	case []any:
+		var b strings.Builder
+		b.WriteString("{\n")
+		for _, item := range v {
+			b.WriteString(luaValue(item) + ",\n")
+		}
+		b.WriteByte('}')
+		return b.String()
 	default:
 		return LuaString(fmt.Sprint(v))
 	}

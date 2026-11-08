@@ -15,10 +15,10 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
+	"github.com/xIGBClutchIx/ForeverPlusPlus/agent/internal/bridge"
 	"github.com/xIGBClutchIx/ForeverPlusPlus/agent/internal/link"
 	"github.com/xIGBClutchIx/ForeverPlusPlus/agent/internal/t3"
 	"github.com/xIGBClutchIx/ForeverPlusPlus/agent/internal/wow"
@@ -41,7 +41,7 @@ func main() {
 	flags := flag.NewFlagSet("forever-agent", flag.ExitOnError)
 	game := flags.String("game", defaultGame(), "the game's client folder (or set WOW_DIR)")
 	data := flags.String("data", wow.DefaultData(), "where the helper addons live")
-	slots := flags.Int("slots", 100, "reply slots: replies per UI session before a /reload")
+	slots := flags.Int("slots", 300, "reply slots: replies per UI session before a /reload")
 	signals := flags.Int("signals", 2000, "ready signals: replies per game launch told of at once")
 	iface := flags.Int("interface", 16001, "the TOC Interface number")
 	server := flags.String("t3", t3.DefaultServer(), "the T3 Code server, for login")
@@ -72,7 +72,7 @@ func main() {
 			fmt.Println("Removed. Restart the game to drop them from its list.")
 		}
 	case "run":
-		err = run(in)
+		err = run(in, *data)
 	case "login":
 		err = login(*data, *server)
 	case "t3":
@@ -165,7 +165,7 @@ func defaultGame() string {
 	return `D:\BattleNet\World of Warcraft\_forever_`
 }
 
-func run(in wow.Install) error {
+func run(in wow.Install, data string) error {
 	if !in.Load() {
 		return errors.New("not installed, or installed by an older version: run `forever-agent install`")
 	}
@@ -204,66 +204,23 @@ func run(in wow.Install) error {
 	}()
 	log.Printf("Watching %s. Ctrl+C to stop.", filepath.Join(in.Game, "WTF"))
 
+	// Everything that touches the bridge runs here, one thing at a time: the game's messages,
+	// and a check of T3 every second while the window is open.
+	b := bridge.New(in, data, version)
+	tick := time.NewTicker(time.Second)
+	defer tick.Stop()
 	for {
 		select {
 		case err := <-done:
 			return err
 		case m := <-messages:
-			handle(in, m)
-		}
-	}
-}
-
-// handle answers one message. H|session starts a UI session: every slot and signal is cleared,
-// since the game starts again at slot 0 and looks for the signals it hasn't used.
-// P|session|slot|signal|id|text is a ping: the pong goes into the slot, then the signal (-1 for
-// none, when the game has used them all) is made.
-func handle(in wow.Install, m wow.Message) {
-	char := characterOf(m.File)
-	parts := strings.SplitN(string(m.Data), "|", 6)
-	switch parts[0] {
-	case "H":
-		if len(parts) < 2 {
-			break
-		}
-		for i := 0; i < in.Slots; i++ {
-			if err := wow.ClearSlot(in.SlotDir(i)); err != nil {
-				log.Printf("clearing slot %d: %v", i, err)
+			b.Handle(ctx, characterOf(m.File), m.Data)
+		case <-tick.C:
+			if b.Busy() {
+				b.Poll(ctx, false)
 			}
 		}
-		if err := wow.ClearSignals(in.SignalsDir(), in.Signals); err != nil {
-			log.Printf("clearing the signals: %v", err)
-		}
-		log.Printf("%s: session %s started; %d slots and %d signals cleared", char, parts[1], in.Slots, in.Signals)
-		return
-	case "P":
-		if len(parts) < 6 {
-			break
-		}
-		slot, err := strconv.Atoi(parts[2])
-		if err != nil || slot < 0 || slot >= in.Slots {
-			break
-		}
-		sig, err := strconv.Atoi(parts[3])
-		if err != nil || sig >= in.Signals {
-			break
-		}
-		start := time.Now()
-		err = wow.FillSlot(in.SlotDir(slot), map[string]any{
-			"kind": "pong", "session": parts[1], "id": parts[4], "text": parts[5],
-		})
-		if err == nil && sig >= 0 {
-			err = wow.MakeSignal(in.SignalsDir(), sig)
-		}
-		if err != nil {
-			log.Printf("%s: ping %s: %v", char, parts[4], err)
-			return
-		}
-		log.Printf("%s: ping %s %q -> slot %d, signal %d (written in %s)", char, parts[4], parts[5],
-			slot, sig, time.Since(start).Round(time.Microsecond))
-		return
 	}
-	log.Printf("%s: unknown message %q", char, m.Data)
 }
 
 func arm(in wow.Install) {

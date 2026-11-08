@@ -8,23 +8,29 @@ end
 
 -- AgentChat
 L.AGENTCHAT_TITLE = "Agent Chat"
-L.AGENTCHAT_DESC = "Talk to your coding agents from inside the game, through the Forever Agent "
-    .. "program on this PC. For now only its link test: /fpp agent ping."
-L.AGENTCHAT_COMMAND = "Test the link to the Forever Agent program, or show its state."
-L.AGENTCHAT_COMMAND_USAGE = "ping <text> | status"
+L.AGENTCHAT_DESC = "Read your T3 Code threads in a window in the game, kept up to date while "
+    .. "agents work, through the Forever Agent program on this PC. Type /fpp agent to open it."
+L.AGENTCHAT_COMMAND = "Open your T3 Code threads, or test the link to the Forever Agent program."
+L.AGENTCHAT_COMMAND_USAGE = "[ping <text> | status]"
 L.AGENTCHAT_COMMAND_UNKNOWN = "Unknown agent command: %s. Try ping or status." -- what was typed
 L.AGENTCHAT_STATUS = "Agent link: session %s, %d of %d reply slots left, next signal %d of %d, "
-    .. "%d frames waiting." -- session id, slots left, slots, next signal, signals, frames queued
-L.AGENTCHAT_BUSY = "A ping is still waiting for its reply."
-L.AGENTCHAT_NO_SLOTS = "Every reply slot is used for this session. Type /reload to start again."
-L.AGENTCHAT_PONG = "Reply \"%s\" in %d ms: sent in %d ms, ready %d ms later, loaded in %d ms."
-    -- the text, total, sending, waiting for the slot, loading it (all milliseconds)
-L.AGENTCHAT_STALE = "%s loaded %d ms after sending but held no reply. Is the program running?"
-    -- slot addon name, milliseconds
-L.AGENTCHAT_LOAD_FAILED = "Couldn't load %s: %s." -- slot addon name, the game's reason
-L.AGENTCHAT_SIGNAL_AT = "  Signal %d showed up %d ms after sending." -- signal number, milliseconds
-L.AGENTCHAT_SIGNAL_NEVER = "  Signal %d never showed up, so it waited." -- signal number
-L.AGENTCHAT_SIGNAL_NONE = "  No unused signal was left this game launch, so it waited."
+    .. "offered signal %d, %d frames waiting."
+    -- session id, slots left, slots, next signal, signals, the signal offered now (-1 none), frames
+L.AGENTCHAT_PONG = "Reply \"%s\" in %d ms." -- the text, milliseconds
+L.AGENTCHAT_SUMMARY = "Your T3 Code threads"
+L.AGENTCHAT_NO_THREADS = "No threads yet"
+L.AGENTCHAT_UNTITLED = "New thread"
+L.AGENTCHAT_PICK = "Pick a thread"
+L.AGENTCHAT_LOADING = "Loading..."
+L.AGENTCHAT_OLDER = "%d earlier messages are in T3 Code." -- a number of messages
+L.AGENTCHAT_CUT = "(Cut short here. The rest is in T3 Code.)"
+L.AGENTCHAT_YOU = "You"
+L.AGENTCHAT_AGENT = "Agent"
+L.AGENTCHAT_WORKING = "Working"
+L.AGENTCHAT_NEEDS_YOU = "Needs you"
+L.AGENTCHAT_FAILED = "Failed"
+L.AGENTCHAT_WAITING = "Waiting for the Forever Agent program. Is it running?"
+L.AGENTCHAT_OUT_OF_SLOTS = "Updates are used up for this session. Type /reload to keep it updating."
 
 -- ChatCopy
 L.CHATCOPY_TITLE = "Chat Copy"
