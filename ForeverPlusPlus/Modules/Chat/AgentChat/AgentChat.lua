@@ -306,9 +306,26 @@ local function ms(seconds)
     return floor(seconds * 1000 + 0.5)
 end
 
+-- The window draws again once, the next frame, however many parts of one update asked: an update
+-- with the list, a thread, its queue, and its questions drew the whole conversation four times,
+-- and a long one hitched the game. A list redraw draws the thread too.
+local RANK = { status = 1, thread = 2, list = 3 }
+local pendingRefresh
+local refreshTimer = ns.Frames.Timer(module)
+
 local function refresh(what)
-    if internal.Refresh then
-        internal.Refresh(what)
+    if not internal.Refresh then
+        return
+    end
+    if not pendingRefresh or RANK[what] > RANK[pendingRefresh] then
+        pendingRefresh = what
+    end
+    if not refreshTimer:IsPending() then
+        refreshTimer:Start(0, function()
+            local which = pendingRefresh
+            pendingRefresh = nil
+            internal.Refresh(which)
+        end)
     end
 end
 

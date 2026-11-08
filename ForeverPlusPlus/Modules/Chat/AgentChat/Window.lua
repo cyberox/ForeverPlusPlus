@@ -400,9 +400,13 @@ local function addText(messages, text, color)
     end
 end
 
--- A message, read as Markdown.
-local function addMarkdown(messages, text, color)
-    for _, line in ipairs(ns.Markdown.Lines(text)) do
+-- A message, read as Markdown. The lines are kept with the item and read again only when its text
+-- changes: the conversation is drawn again whole on every update.
+local function addMarkdown(messages, item, color)
+    if item.mdText ~= item.text then
+        item.mdLines, item.mdText = ns.Markdown.Lines(item.text), item.text
+    end
+    for _, line in ipairs(item.mdLines) do
         messages:AddMessage(line, color[1], color[2], color[3])
     end
 end
@@ -768,7 +772,7 @@ local function refreshThread()
             end
             -- The agent's notes along the way are dimmed; its last message in a turn is the answer.
             local progress = item.role == "assistant" and item.final == false
-            addMarkdown(messages, item.text, progress and PROGRESS or TEXT)
+            addMarkdown(messages, item, progress and PROGRESS or TEXT)
             if item.cut then
                 messages:AddMessage(L.AGENTCHAT_CUT, NOTE[1], NOTE[2], NOTE[3])
             end
