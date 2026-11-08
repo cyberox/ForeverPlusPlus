@@ -67,6 +67,7 @@ Lib\Quests.lua
 Lib\Taxi.lua
 Lib\RealmTime.lua
 Lib\AgentLink.lua
+Lib\Markdown.lua
 Modules\System\ErrorCatcher.lua
 Modules\Units\PlayerNameplates.lua
 Modules\Units\NpcNameplates.lua

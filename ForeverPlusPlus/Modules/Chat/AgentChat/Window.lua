@@ -127,6 +127,13 @@ end
 local MAX_QUEUE_ROWS = 4
 local QUEUE_ROW_HEIGHT = 22
 
+-- A message, read as Markdown.
+local function addMarkdown(messages, text, color)
+    for _, line in ipairs(ns.Markdown.Lines(text)) do
+        messages:AddMessage(line, color[1], color[2], color[3])
+    end
+end
+
 local function refreshQueue(thread)
     local f = window
     local queue = thread and internal.queues[thread.id]
@@ -195,7 +202,7 @@ local function refreshThread()
             or L.AGENTCHAT_AGENT)) or item.role
         messages:AddMessage(" ")
         messages:AddMessage(plain(who), unpack(you and YOU or AGENT))
-        addText(messages, item.text, TEXT)
+        addMarkdown(messages, item.text, TEXT)
         if item.cut then
             messages:AddMessage(L.AGENTCHAT_CUT, NOTE[1], NOTE[2], NOTE[3])
         end
