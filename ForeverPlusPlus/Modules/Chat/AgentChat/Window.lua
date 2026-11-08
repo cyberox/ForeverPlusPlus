@@ -1327,6 +1327,16 @@ local function newWindow()
     f.messages = newMessages(clip)
     f.messages:SetPoint("TOPLEFT", 0, -2)
     f.messages:SetPoint("BOTTOMRIGHT")
+    -- A scroll bar like the thread list's, as Blizzard's chat frames have one. Our mouse wheel
+    -- keeps its own steps (newMessages).
+    if ScrollUtil and ScrollUtil.InitScrollingMessageFrameWithScrollBar
+        and f.messages.AddOnDisplayRefreshedCallback then
+        clip:SetPoint("BOTTOMRIGHT", f.working, "TOPRIGHT", -18, 4)
+        local bar = CreateFrame("EventFrame", nil, details, "MinimalScrollBar")
+        bar:SetPoint("TOPLEFT", clip, "TOPRIGHT", 6, -2)
+        bar:SetPoint("BOTTOMLEFT", clip, "BOTTOMRIGHT", 6, 2)
+        ScrollUtil.InitScrollingMessageFrameWithScrollBar(f.messages, bar, true)
+    end
 
     -- At the top right, the updates this session has left (a frame, for its tooltip), and how the
     -- link is doing beside it.
