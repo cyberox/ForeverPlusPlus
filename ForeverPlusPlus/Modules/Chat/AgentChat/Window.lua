@@ -174,6 +174,7 @@ end
 -- several where it takes several), and Answer. Typed text answers a question with nothing picked.
 -- Approvals can't be given from here (T3 doesn't offer it), so they only get a line.
 local OPTION_HEIGHT = 22
+local CHECK = "|TInterface\\Buttons\\UI-CheckBox-Check:16:16:0:-1|t" -- before a picked option
 
 local function askText(f, n)
     local text = f.askTexts[n]
@@ -246,8 +247,9 @@ local function refreshAsk(thread)
             for o, option in ipairs(type(question.options) == "table" and question.options or {}) do
                 buttons = buttons + 1
                 local button = optionButton(f, buttons)
+                local picked = picks[q] and picks[q][o]
                 button.a, button.q, button.o, button.tip = request.a, q, o, plain(option.description)
-                button:SetText(plain(option.label))
+                button:SetText((picked and CHECK or "") .. plain(option.label))
                 local w = min(width, max(60, button:GetFontString():GetStringWidth() + 24))
                 button:SetWidth(w)
                 if x > 0 and x + w > width then
@@ -255,7 +257,6 @@ local function refreshAsk(thread)
                 end
                 button:ClearAllPoints()
                 button:SetPoint("TOPLEFT", x, y)
-                local picked = picks[q] and picks[q][o]
                 if picked then
                     button:LockHighlight()
                     button:GetFontString():SetTextColor(1, 1, 1)
