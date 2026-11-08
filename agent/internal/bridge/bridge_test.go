@@ -16,8 +16,12 @@ import (
 // fakeT3 answers the two calls the bridge makes, from a thread it can change.
 type fakeT3 struct {
 	status string
+	active string // the running turn
 	items  []map[string]any
+	queue  []map[string]any
 	calls  []string
+	sent   []map[string]any // what t3_thread_send, t3_queue writes, and t3_thread_interrupt got
+	reject string           // when set, t3_thread_send fails with it
 }
 
 func (f *fakeT3) Close() error { return nil }
@@ -43,7 +47,27 @@ func (f *fakeT3) Call(_ context.Context, name string, args any) (json.RawMessage
 				out = append(out, it)
 			}
 		}
-		return json.Marshal(map[string]any{"hasMore": false, "items": out})
+		var active any
+		if f.active != "" {
+			active = f.active
+		}
+		return json.Marshal(map[string]any{"hasMore": false, "items": out, "thread": map[string]any{"activeRunId": active}})
+	case "t3_queue":
+		a := args.(map[string]any)
+		if a["action"] == "list" {
+			return json.Marshal(map[string]any{"items": f.queue})
+		}
+		f.sent = append(f.sent, a)
+		return json.RawMessage(`{}`), nil
+	case "t3_thread_send":
+		if f.reject != "" {
+			return nil, fmt.Errorf("%s", f.reject)
+		}
+		f.sent = append(f.sent, args.(map[string]any))
+		return json.RawMessage(`{}`), nil
+	case "t3_thread_interrupt":
+		f.sent = append(f.sent, args.(map[string]any))
+		return json.RawMessage(`{}`), nil
 	}
 	return nil, fmt.Errorf("unexpected %s", name)
 }
@@ -133,6 +157,55 @@ func TestUpdatesWaitButAnswersDont(t *testing.T) {
 	b.Handle(ctx, "c", []byte("P|s1|1|hi")) // a ping is answered at once, with the update
 	if !strings.Contains(read(1), "more") || !strings.Contains(read(1), `text="hi"`) {
 		t.Fatalf("the ping waited:\n%s", read(1))
+	}
+}
+
+func TestSendQueueSteerStop(t *testing.T) {
+	b, fake, read := setup(t)
+	ctx := context.Background()
+	fake.active = "run:1"
+	b.Handle(ctx, "c", []byte("H|s1"))
+	b.Handle(ctx, "c", []byte("O|s1|0|0"))
+	b.Handle(ctx, "c", []byte("V|s1|1|1"))
+
+	// A send queues, with any | in the text kept, and is acked.
+	b.Handle(ctx, "c", []byte("O|s1|1|1"))
+	b.Handle(ctx, "c", []byte("M|s1|1|g7|use a | here"))
+	if len(fake.sent) != 1 || fake.sent[0]["mode"] != "queue" || fake.sent[0]["message"] != "use a | here" ||
+		fake.sent[0]["threadId"] != "t1" {
+		t.Fatalf("sent %v", fake.sent)
+	}
+	if !strings.Contains(read(1), `id="g7"`) || !strings.Contains(read(1), "ok=true") {
+		t.Fatalf("no ack:\n%s", read(1))
+	}
+
+	// The queue shows; steering takes it into the running turn.
+	fake.queue = []map[string]any{{"queuedRunId": "run:2", "text": "use a | here"}}
+	b.Handle(ctx, "c", []byte("O|s1|2|2"))
+	b.Handle(ctx, "c", []byte("V|s1|1|1"))
+	b.Poll(ctx, true)
+	if !strings.Contains(read(2), "queue = {") || !strings.Contains(read(2), "q=1") || !strings.Contains(read(2), "active=true") {
+		t.Fatalf("no queue:\n%s", read(2))
+	}
+	b.Handle(ctx, "c", []byte("O|s1|3|3"))
+	b.Handle(ctx, "c", []byte("S|s1|1"))
+	last := fake.sent[len(fake.sent)-1]
+	if last["action"] != "promote_to_steer" || last["queuedRunId"] != "run:2" || last["targetRunId"] != "run:1" {
+		t.Fatalf("steer sent %v", last)
+	}
+
+	// Stop interrupts; a refused send says why.
+	b.Handle(ctx, "c", []byte("O|s1|0|4"))
+	b.Handle(ctx, "c", []byte("X|s1|1"))
+	if last = fake.sent[len(fake.sent)-1]; last["threadId"] != "t1" || last["action"] != nil {
+		t.Fatalf("stop sent %v", last)
+	}
+	fake.reject = "the thread runs with more access than this sign-in"
+	b.Handle(ctx, "c", []byte("O|s1|1|5"))
+	b.Handle(ctx, "c", []byte("M|s1|1|g8|hi"))
+	if got := read(1); !strings.Contains(got, `id="g8"`) || !strings.Contains(got, "ok=false") ||
+		!strings.Contains(got, "more access") {
+		t.Fatalf("no refusal:\n%s", got)
 	}
 }
 

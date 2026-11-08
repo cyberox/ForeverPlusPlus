@@ -6,7 +6,7 @@ local _, ns = ...
 local ipairs, format, time, type, pcall, tostring, tonumber, select, unpack = ipairs, string.format, time,
     type, pcall, tostring, tonumber, select, unpack
 local max, min = math.max, math.min
-local CreateFrame, UIParent = CreateFrame, UIParent
+local CreateFrame, UIParent, GameTooltip = CreateFrame, UIParent, GameTooltip
 
 local L = ns.L
 local Frames, Colors = ns.Frames, ns.Colors
@@ -19,6 +19,7 @@ local MIN_WIDTH, MIN_HEIGHT, MAX_WIDTH, MAX_HEIGHT = 560, 300, 1400, 1000
 local LIST_WIDTH = 230
 local ROW_HEIGHT = 38
 local MAX_LINES = 6000
+local MAX_SEND = 4000 -- characters in one message: about 15 seconds to send, at 28 bytes a frame
 
 -- Colors: what you wrote in gold like the game's own headings, the agent in the light blue of
 -- Blizzard's whisper you sent, and notes in gray.
@@ -121,10 +122,50 @@ local function addText(messages, text, color)
     end
 end
 
+-- The queued messages under the conversation, each with Steer and a cancel X, and the reply box
+-- and Stop for the thread shown.
+local MAX_QUEUE_ROWS = 4
+local QUEUE_ROW_HEIGHT = 22
+
+local function refreshQueue(thread)
+    local f = window
+    local queue = thread and internal.queues[thread.id]
+    local items = queue and queue.items or {}
+    local active = (queue and queue.active) or (thread and WORKING[thread.status]) or false
+    local shown = min(#items, MAX_QUEUE_ROWS)
+    for i, row in ipairs(f.queueRows) do
+        local item = i <= shown and items[i]
+        row:SetShown(item and true or false)
+        if item then
+            row.q = item.q
+            local text = plain(item.text ~= "" and item.text or L.AGENTCHAT_QUEUED_HIDDEN):gsub("\n", " ")
+            if i == MAX_QUEUE_ROWS and #items > MAX_QUEUE_ROWS then
+                text = format(L.AGENTCHAT_MORE_QUEUED, #items - MAX_QUEUE_ROWS + 1)
+                row.steer:Hide()
+                row.cancel:Hide()
+            else
+                row.steer:Show()
+                row.cancel:Show()
+                row.steer:SetEnabled(queue.active and true or false)
+            end
+            row.text:SetText(text)
+        end
+    end
+    f.queue:SetHeight(shown > 0 and shown * QUEUE_ROW_HEIGHT + 4 or 1)
+    f.stop:SetEnabled(active and true or false)
+    f.edit:SetEnabled(thread ~= nil)
+    if thread then
+        f.edit.hint:SetText(L.AGENTCHAT_SEND_HINT)
+    else
+        f.edit.hint:SetText("")
+    end
+end
+
 local function refreshThread()
     local f = window
     local messages = f.messages
     local thread = internal.selected and byId(internal.selected)
+    refreshQueue(thread)
     if not thread then
         f.name:SetText(internal.selected and "" or L.AGENTCHAT_PICK)
         f.details:SetText("")
@@ -157,6 +198,18 @@ local function refreshThread()
         addText(messages, item.text, TEXT)
         if item.cut then
             messages:AddMessage(L.AGENTCHAT_CUT, NOTE[1], NOTE[2], NOTE[3])
+        end
+    end
+    -- What the player sent that T3 hasn't taken yet, or turned down.
+    for _, sent in ipairs(internal.sending) do
+        if sent.threadId == thread.id then
+            messages:AddMessage(" ")
+            if sent.error then
+                messages:AddMessage(format(L.AGENTCHAT_NOT_SENT, plain(sent.error)), 1, 0.3, 0.3)
+            else
+                messages:AddMessage(L.AGENTCHAT_SENDING, NOTE[1], NOTE[2], NOTE[3])
+            end
+            addText(messages, sent.text, NOTE)
         end
     end
     if atBottom then
@@ -234,6 +287,16 @@ local function addResizeGrip(f)
         pcall(grip.Init, grip, f, MIN_WIDTH, MIN_HEIGHT, MAX_WIDTH, MAX_HEIGHT)
     end
     grip:HookScript("OnMouseUp", savePlace)
+end
+
+local function tooltip(owner, title, text)
+    owner:HookScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_TOP")
+        GameTooltip:SetText(title)
+        GameTooltip:AddLine(text, 1, 1, 1, true)
+        GameTooltip:Show()
+    end)
+    owner:HookScript("OnLeave", GameTooltip_Hide)
 end
 
 local function newMessages(parent)
@@ -320,16 +383,83 @@ local function newWindow()
     line:SetHeight(1)
     line:SetPoint("TOPLEFT", 8, -48)
     line:SetPoint("TOPRIGHT", -8, -48)
+    -- The queue, at the bottom of the conversation: a row per queued message.
+    f.queue = CreateFrame("Frame", nil, details)
+    f.queue:SetPoint("BOTTOMLEFT", 8, 4)
+    f.queue:SetPoint("BOTTOMRIGHT", -8, 4)
+    f.queue:SetHeight(1)
+    local queueLine = f.queue:CreateTexture(nil, "ARTWORK")
+    queueLine:SetColorTexture(1, 1, 1, 0.1)
+    queueLine:SetHeight(1)
+    queueLine:SetPoint("TOPLEFT")
+    queueLine:SetPoint("TOPRIGHT")
+    f.queueRows = {}
+    for i = 1, MAX_QUEUE_ROWS do
+        local row = CreateFrame("Frame", nil, f.queue)
+        row:SetHeight(QUEUE_ROW_HEIGHT)
+        row:SetPoint("TOPLEFT", 0, -4 - (i - 1) * QUEUE_ROW_HEIGHT)
+        row:SetPoint("TOPRIGHT", 0, -4 - (i - 1) * QUEUE_ROW_HEIGHT)
+        row.cancel = CreateFrame("Button", nil, row, "UIPanelCloseButtonNoScripts")
+        row.cancel:SetSize(20, 20)
+        row.cancel:SetPoint("RIGHT", 0, 0)
+        row.cancel:SetScript("OnClick", function()
+            internal.Cancel(row.q)
+        end)
+        row.steer = Frames.Button(row, L.AGENTCHAT_STEER, 64, function()
+            internal.Steer(row.q)
+        end)
+        row.steer:SetHeight(20)
+        row.steer:SetPoint("RIGHT", row.cancel, "LEFT", -2, 0)
+        local label = row:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+        label:SetPoint("LEFT", 2, 0)
+        label:SetText(L.AGENTCHAT_QUEUED)
+        row.text = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        row.text:SetPoint("LEFT", label, "RIGHT", 6, 0)
+        row.text:SetPoint("RIGHT", row.steer, "LEFT", -6, 0)
+        row.text:SetJustifyH("LEFT")
+        row.text:SetWordWrap(false)
+        tooltip(row.steer, L.AGENTCHAT_STEER, L.AGENTCHAT_STEER_TIP)
+        tooltip(row.cancel, L.AGENTCHAT_CANCEL, L.AGENTCHAT_CANCEL_TIP)
+        row:Hide()
+        f.queueRows[i] = row
+    end
+
     f.messages = newMessages(details)
     f.messages:SetPoint("TOPLEFT", line, "BOTTOMLEFT", 4, -4)
-    f.messages:SetPoint("BOTTOMRIGHT", -10, 6)
+    f.messages:SetPoint("BOTTOMRIGHT", f.queue, "TOPRIGHT", -2, 4)
 
-    -- The strip at the bottom: how the link is doing.
+    -- How the link is doing, beside the heading.
     f.status = f:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    f.status:SetPoint("BOTTOMLEFT", 10, 9)
-    f.status:SetPoint("RIGHT", -30, 0)
-    f.status:SetJustifyH("LEFT")
+    f.status:SetPoint("LEFT", f.summary, "RIGHT", 16, 0)
+    f.status:SetPoint("RIGHT", -12, 0)
+    f.status:SetJustifyH("RIGHT")
     f.status:SetWordWrap(false)
+
+    -- The strip at the bottom: the reply box under the conversation, and Stop.
+    f.stop = Frames.Button(f, L.AGENTCHAT_STOP, 70, internal.Stop)
+    f.stop:SetPoint("BOTTOMRIGHT", -24, 4)
+    tooltip(f.stop, L.AGENTCHAT_STOP, L.AGENTCHAT_STOP_TIP)
+    local edit = CreateFrame("EditBox", nil, f, "InputBoxTemplate")
+    edit:SetHeight(20)
+    edit:SetPoint("BOTTOMLEFT", details, "BOTTOMLEFT", 8, -24)
+    edit:SetPoint("RIGHT", f.stop, "LEFT", -10, 0)
+    edit:SetAutoFocus(false)
+    edit:SetMaxLetters(MAX_SEND)
+    edit:SetFontObject(ChatFontNormal)
+    edit:SetScript("OnEnterPressed", function(self)
+        if internal.Send(self:GetText()) then
+            self:SetText("")
+        else
+            self:ClearFocus()
+        end
+    end)
+    edit:SetScript("OnEscapePressed", edit.ClearFocus)
+    edit:SetScript("OnTextChanged", function(self)
+        self.hint:SetShown((self:GetText() or "") == "")
+    end)
+    edit.hint = edit:CreateFontString(nil, "ARTWORK", "GameFontDisable")
+    edit.hint:SetPoint("LEFT", 2, 0)
+    f.edit = edit
 
     f:HookScript("OnShow", function()
         refreshList()
@@ -338,6 +468,7 @@ local function newWindow()
         internal.ViewChanged()
     end)
     f:HookScript("OnHide", function()
+        f.edit:ClearFocus()
         internal.ViewChanged()
     end)
     place()

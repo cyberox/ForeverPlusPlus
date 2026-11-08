@@ -8,7 +8,7 @@ end
 
 -- AgentChat
 L.AGENTCHAT_TITLE = "Agent Chat"
-L.AGENTCHAT_DESC = "Read your T3 Code threads in a window in the game, kept up to date while "
+L.AGENTCHAT_DESC = "Read and write in your T3 Code threads from a window in the game, kept up to date while "
     .. "agents work, through the Forever Agent program on this PC. Type /fpp agent to open it."
 L.AGENTCHAT_COMMAND = "Open your T3 Code threads, or test the link to the Forever Agent program."
 L.AGENTCHAT_COMMAND_USAGE = "[ping <text> | status]"
@@ -30,7 +30,20 @@ L.AGENTCHAT_WORKING = "Working"
 L.AGENTCHAT_NEEDS_YOU = "Needs you"
 L.AGENTCHAT_FAILED = "Failed"
 L.AGENTCHAT_WAITING = "Waiting for the Forever Agent program. Is it running?"
-L.AGENTCHAT_OUT_OF_SLOTS = "Updates are used up for this session. Type /reload to keep it updating."
+L.AGENTCHAT_SEND_HINT = "Message this thread. Enter queues it."
+L.AGENTCHAT_SENDING = "You (sending)"
+L.AGENTCHAT_NOT_SENT = "You (not sent: %s)" -- T3 Code's reason
+L.AGENTCHAT_T3_SAID = "T3 Code: %s" -- T3 Code's reason something didn't work
+L.AGENTCHAT_QUEUED = "Queued"
+L.AGENTCHAT_QUEUED_HIDDEN = "(a message)"
+L.AGENTCHAT_MORE_QUEUED = "%d more queued" -- a number of messages
+L.AGENTCHAT_STEER = "Steer"
+L.AGENTCHAT_STEER_TIP = "Send it to the agent now, into the turn it's running, instead of after it."
+L.AGENTCHAT_CANCEL = "Remove"
+L.AGENTCHAT_CANCEL_TIP = "Take it out of the queue."
+L.AGENTCHAT_STOP = "Stop"
+L.AGENTCHAT_STOP_TIP = "Stop the turn the agent is running."
+L.AGENTCHAT_OUT_OF_SLOTS ="Updates are used up for this session. Type /reload to keep it updating."
 
 -- ChatCopy
 L.CHATCOPY_TITLE = "Chat Copy"

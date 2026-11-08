@@ -68,6 +68,8 @@ local SIGNAL_TRIES = 3 -- offers tried a second apart, while the window is open,
 -- What the window shows. The window (Window.lua) reads these.
 internal.threads = {} -- the list, newest first: { h, id, title, status, model, project, updated }
 internal.conversations = {} -- thread id -> { items = { [pos] = item }, order = { pos... }, older }
+internal.queues = {} -- thread id -> { active, items = { { q, text }... } }: its queued messages
+internal.sending = {} -- what the player sent that T3 hasn't taken yet: { id, threadId, text, error }
 internal.selected = nil -- the thread id shown
 internal.note = nil -- what the program says about its link to T3, or nil when all's well
 internal.heard = false -- whether the program has answered this session
@@ -232,6 +234,24 @@ local function receive(inbox, now)
             refresh("thread")
         end
     end
+    if type(inbox.queue) == "table" and inbox.queue.id then
+        internal.queues[inbox.queue.id] = inbox.queue
+        if inbox.queue.id == internal.selected then
+            refresh("thread")
+        end
+    end
+    for _, ack in ipairs(type(inbox.acks) == "table" and inbox.acks or {}) do
+        local sent = ack.id and internal.SendingById(ack.id)
+        if ack.ok and sent then
+            tremove(internal.sending, sent) -- T3 has it: it shows in the queue or the thread now
+        elseif not ack.ok then
+            if sent then
+                internal.sending[sent].error = tostring(ack.error)
+            end
+            ns.Print(format(L.AGENTCHAT_T3_SAID, tostring(ack.error)))
+        end
+        refresh("thread")
+    end
     for _, pong in ipairs(type(inbox.pongs) == "table" and inbox.pongs or {}) do
         local start = pingStarts[pong.id]
         if start then
@@ -317,6 +337,64 @@ function internal.Select(id)
     sendView()
 end
 
+local sends = 0
+
+---Where in internal.sending the send with this id is.
+---@param id string
+---@return number?
+function internal.SendingById(id)
+    for i, sent in ipairs(internal.sending) do
+        if sent.id == id then
+            return i
+        end
+    end
+end
+
+---Sends text to the shown thread, queued: an idle thread starts on it, a busy one runs it next.
+---@param text string as an edit box gives it, with a typed | doubled
+---@return boolean sent
+function internal.Send(text)
+    local thread = session and internal.selected and byId(internal.selected)
+    text = text and text:gsub("||", "|"):match("^%s*(.-)%s*$")
+    if not (thread and text and text ~= "") then
+        return false
+    end
+    sends = sends + 1
+    local id = "g" .. sends
+    internal.sending[#internal.sending + 1] = { id = id, threadId = thread.id, text = text }
+    send(format("M|%s|%d|%s|%s", session, thread.h, id, text))
+    offerNext()
+    refresh("thread")
+    return true
+end
+
+---Steers a queued message into the running turn now.
+---@param q number
+function internal.Steer(q)
+    if session then
+        send(format("S|%s|%d", session, q))
+        offerNext()
+    end
+end
+
+---Takes a message out of the queue.
+---@param q number
+function internal.Cancel(q)
+    if session then
+        send(format("D|%s|%d", session, q))
+        offerNext()
+    end
+end
+
+---Stops the shown thread's running turn.
+function internal.Stop()
+    local thread = session and internal.selected and byId(internal.selected)
+    if thread then
+        send(format("X|%s|%d", session, thread.h))
+        offerNext()
+    end
+end
+
 ---The window opened or closed.
 function internal.ViewChanged()
     if not session then
@@ -383,6 +461,8 @@ function module:OnEnable()
     wipe(queue)
     wipe(internal.threads)
     wipe(internal.conversations)
+    wipe(internal.queues)
+    wipe(internal.sending)
     seq, offer, viewSent, noSignal = 0, nil, nil, 0
     internal.heard, internal.note, internal.outOfSlots = false, nil, false
     queue[1] = { frame = AgentLink.Idle() }
