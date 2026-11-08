@@ -3,6 +3,7 @@ package wow
 import (
 	"path/filepath"
 	"strings"
+	"sync"
 	"syscall"
 	"unsafe"
 
@@ -28,22 +29,35 @@ func GameRunning(game string) bool {
 			pids[entry.ProcessID] = true
 		}
 	}
-	if len(pids) == 0 {
-		return false
-	}
-	found := false
-	callback := syscall.NewCallback(func(hwnd windows.HWND, _ uintptr) uintptr {
+	return len(pids) > 0 && hasWindow(pids)
+}
+
+// hasWindow says whether one of the processes has a visible window.
+func hasWindow(pids map[uint32]bool) bool {
+	enumMu.Lock()
+	defer enumMu.Unlock()
+	enumPids, enumFound = pids, false
+	windows.EnumWindows(enumCallback, nil)
+	return enumFound
+}
+
+// The window walk's callback, made once: Go keeps every callback for the life of the program
+// and allows about 2000, so making one for each check (every 2 seconds) crashed the program
+// after an hour. A walk at a time uses it, with its state here.
+var (
+	enumMu       sync.Mutex
+	enumPids     map[uint32]bool
+	enumFound    bool
+	enumCallback = syscall.NewCallback(func(hwnd windows.HWND, _ uintptr) uintptr {
 		var pid uint32
 		windows.GetWindowThreadProcessId(hwnd, &pid)
-		if pids[pid] && windows.IsWindowVisible(hwnd) {
-			found = true
+		if enumPids[pid] && windows.IsWindowVisible(hwnd) {
+			enumFound = true
 			return 0 // stop
 		}
 		return 1
 	})
-	windows.EnumWindows(callback, nil)
-	return found
-}
+)
 
 func processPath(pid uint32) string {
 	h, err := windows.OpenProcess(windows.PROCESS_QUERY_LIMITED_INFORMATION, false, pid)
