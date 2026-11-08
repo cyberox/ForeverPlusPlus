@@ -69,20 +69,22 @@ type Bridge struct {
 	handles map[string]int // thread id -> handle
 	ids     []string       // handle-1 -> thread id
 
-	sentList    string                    // the list as last sent this session
-	delivered   map[string]map[int]string // thread id -> position -> version sent this session
-	pongs       []map[string]any
-	acks        []map[string]any  // how the player's sends, steers, and stops went
-	sentQueue   map[string]string // thread id -> its queue as last sent this session
-	queued      []queued          // q-1 -> a queued message, for the program's life
-	sentAsks    map[string]string // thread id -> its questions as last sent this session
-	asks        []*ask            // a-1 -> a question request, for the program's life
-	note        string            // what the game should show about the link, when it changes
-	sentNote    string
-	urgent      bool              // the next fill answers the player, so it doesn't wait for MinGap
-	lastFill    time.Time         // when an inbox was last filled
-	statuses    map[string]string // thread id -> its state at the last read, for notices
-	closedCheck time.Time         // when the states were last read with the window closed
+	sentList     string                    // the list as last sent this session
+	delivered    map[string]map[int]string // thread id -> position -> version sent this session
+	pongs        []map[string]any
+	acks         []map[string]any  // how the player's sends, steers, and stops went
+	sentQueue    map[string]string // thread id -> its queue as last sent this session
+	queued       []queued          // q-1 -> a queued message, for the program's life
+	sentAsks     map[string]string // thread id -> its questions as last sent this session
+	sentWaiting  int               // threads needing the player, as last sent this session
+	sentProjects string            // the projects as last sent this session
+	asks         []*ask            // a-1 -> a question request, for the program's life
+	note         string            // what the game should show about the link, when it changes
+	sentNote     string
+	urgent       bool              // the next fill answers the player, so it doesn't wait for MinGap
+	lastFill     time.Time         // when an inbox was last filled
+	statuses     map[string]string // thread id -> its state at the last read, for notices
+	closedCheck  time.Time         // when the states were last read with the window closed
 
 	threads      map[string]*thread // what's been read of each thread, for the program's life
 	projects     map[string]string  // project id -> title
@@ -237,6 +239,7 @@ func (b *Bridge) start(session string, clear bool) {
 	b.sentQueue = map[string]string{}
 	b.sentAsks = map[string]string{}
 	b.sentExpires = time.Time{}
+	b.sentWaiting, b.sentProjects = 0, "" // the game starts at none needing the player
 	b.pongs, b.acks = nil, nil
 	// Signals the game hasn't found yet should read as missing; ones it has found read as there
 	// to it anyway, so clearing is safe even mid-session. Slots are cleared only at a hello: one
@@ -269,8 +272,19 @@ func (b *Bridge) Poll(ctx context.Context, force bool) {
 	news := false
 	var listSig string
 	var sentItems map[int]string
-	var queueSig, asksSig string
+	var queueSig, asksSig, projectsSig string
 	var threadID string
+	// How many threads need the player and how many work, for the chat button, open or closed.
+	// They go with whatever is sent, and on their own only when the number needing the player
+	// changes, since that's what the button shows.
+	waiting := -1
+	takeCounts := func(list []map[string]any) {
+		c := counts(list)
+		payload["counts"], waiting = c, c["waiting"].(int)
+		if waiting != b.sentWaiting {
+			news = true
+		}
+	}
 
 	// With the window closed, only the threads' states are read, now and then, for notices.
 	if !b.open && time.Since(b.closedCheck) >= ClosedEvery {
@@ -278,8 +292,11 @@ func (b *Bridge) Poll(ctx context.Context, force bool) {
 		if b.connect(ctx) == nil {
 			if list, _, err := b.list(ctx); err != nil {
 				b.fail(err)
-			} else if events := b.statusEvents(list); len(events) > 0 {
-				payload["events"], news = events, true
+			} else {
+				if events := b.statusEvents(list); len(events) > 0 {
+					payload["events"], news = events, true
+				}
+				takeCounts(list)
 			}
 		}
 	}
@@ -295,6 +312,10 @@ func (b *Bridge) Poll(ctx context.Context, force bool) {
 			}
 			if sig != b.sentList {
 				payload["threads"], listSig, news = list, sig, true
+			}
+			takeCounts(list)
+			if projects, sig := b.projectList(); sig != b.sentProjects {
+				payload["projects"], projectsSig, news = projects, sig, true
 			}
 			if b.view > 0 && b.view <= len(b.ids) {
 				threadID = b.ids[b.view-1]
@@ -376,9 +397,16 @@ func (b *Bridge) Poll(ctx context.Context, force bool) {
 	if asksSig != "" {
 		b.sentAsks[threadID] = asksSig
 	}
+	if waiting >= 0 {
+		b.sentWaiting = waiting
+	}
+	if projectsSig != "" {
+		b.sentProjects = projectsSig
+	}
 	b.acks = nil
 	what := []string{}
-	for _, k := range []string{"threads", "thread", "queue", "asks", "events", "pongs", "acks", "note"} {
+	for _, k := range []string{"threads", "thread", "queue", "asks", "counts", "projects", "events", "pongs", "acks",
+		"note"} {
 		if _, ok := payload[k]; ok {
 			what = append(what, k)
 		}
@@ -442,6 +470,38 @@ func (b *Bridge) handle(id string) int {
 	b.ids = append(b.ids, id)
 	b.handles[id] = len(b.ids)
 	return len(b.ids)
+}
+
+// counts says how many threads in the list need the player and how many are working.
+func counts(list []map[string]any) map[string]any {
+	waiting, busy := 0, 0
+	for _, t := range list {
+		status, _ := t["status"].(string)
+		if status == "waiting" {
+			waiting++
+		} else if working[status] {
+			busy++
+		}
+	}
+	return map[string]any{"waiting": waiting, "working": busy}
+}
+
+// projectList is T3's projects by title, for starting a thread in one.
+func (b *Bridge) projectList() ([]map[string]any, string) {
+	ids := make([]string, 0, len(b.projects))
+	for id := range b.projects {
+		ids = append(ids, id)
+	}
+	sort.Slice(ids, func(i, j int) bool {
+		return strings.ToLower(b.projects[ids[i]]) < strings.ToLower(b.projects[ids[j]])
+	})
+	list := make([]map[string]any, 0, len(ids))
+	sig := fnv.New64a()
+	for _, id := range ids {
+		list = append(list, map[string]any{"id": id, "title": b.projects[id]})
+		fmt.Fprintf(sig, "%s|%s\n", id, b.projects[id])
+	}
+	return list, fmt.Sprint(sig.Sum64())
 }
 
 // asking says whether a thread's agent waits on a question to the player. T3's thread list doesn't

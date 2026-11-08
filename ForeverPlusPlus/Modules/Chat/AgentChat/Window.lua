@@ -345,7 +345,7 @@ local function listElements()
     return elements
 end
 
-local MAX_TAB_WIDTH = 110
+local MAX_TAB_WIDTH = 80 -- a project's name is cut to this, to leave room for "+ New"
 
 local function refreshTabs()
     local x = 6
@@ -438,15 +438,18 @@ local function refreshQueue(thread)
     end
     f.queue:SetHeight(shown > 0 and shown * QUEUE_ROW_HEIGHT + 4 or 1)
     f.stop:SetEnabled(isWorking(thread) and true or false)
-    f.reply:SetEnabled(thread ~= nil)
-    if not thread then
+    local composing = internal.composing
+    f.reply:SetEnabled(thread ~= nil or (composing ~= nil and not composing.id))
+    if composing then
+        f.reply.hint:SetText(composing.id and "" or L.AGENTCHAT_NEW_HINT)
+    elseif not thread then
         f.reply.hint:SetText("")
     elseif internal.ShownAsk() then
         f.reply.hint:SetText(L.AGENTCHAT_ANSWER_HINT)
     else
         f.reply.hint:SetText(L.AGENTCHAT_SEND_HINT)
     end
-    f.reply.newline:SetShown(thread ~= nil and (f.reply:GetText() or "") == "")
+    f.reply.newline:SetShown((thread ~= nil or composing ~= nil) and (f.reply:GetText() or "") == "")
 end
 
 -- What the agent asks, above the queue: each question with its options as buttons to pick (one, or
@@ -587,6 +590,24 @@ local function refreshThread()
     refreshQueue(thread)
     refreshAsk(thread)
     refreshWorking(thread)
+    local composing = internal.composing
+    if composing then
+        -- A new thread: where it goes, and its first message once sent (or why T3 turned it down).
+        f.name:SetText(L.AGENTCHAT_UNTITLED)
+        f.details:SetText(plain(composing.name or L.AGENTCHAT_NO_PROJECT))
+        messages:Clear()
+        if composing.text then
+            messages:AddMessage(" ")
+            if composing.error then
+                messages:AddMessage(format(L.AGENTCHAT_NOT_SENT, plain(composing.error)), 1, 0.3, 0.3)
+            else
+                messages:AddMessage(composing.id and L.AGENTCHAT_STARTING or L.AGENTCHAT_YOU, NOTE[1], NOTE[2],
+                    NOTE[3])
+            end
+            addText(messages, composing.text, NOTE)
+        end
+        return
+    end
     if not thread then
         f.name:SetText(internal.selected and "" or L.AGENTCHAT_PICK)
         f.details:SetText("")
@@ -782,6 +803,21 @@ local function projectMenu(_, root)
     end
 end
 
+-- "+ New"'s menu: where to start the thread, a scratch folder or one of T3's projects.
+local function newThreadMenu(_, root)
+    root:CreateTitle(L.AGENTCHAT_NEW_IN)
+    root:CreateButton(L.AGENTCHAT_NO_PROJECT, function()
+        internal.NewThread("", nil)
+    end)
+    for _, project in ipairs(internal.projects) do
+        if type(project) == "table" and project.id then
+            root:CreateButton(plain(project.title), function()
+                internal.NewThread(project.id, project.title)
+            end)
+        end
+    end
+end
+
 -- The list's tabs: small buttons over it, the chosen one lit like a selected list row.
 local function newTabs(f, parent)
     f.tabs = {}
@@ -804,11 +840,24 @@ local function newTabs(f, parent)
         end)
         f.tabs[#f.tabs + 1] = button
     end
-    -- Without Blizzard's menus, the project tab can't pick one.
+    -- Without Blizzard's menus, the project tab can't pick one, nor "+ New" a project.
     if not (MenuUtil and MenuUtil.CreateContextMenu) then
         f.tabs[#f.tabs]:Hide()
         f.tabs[#f.tabs] = nil
+        return
     end
+    local new = CreateFrame("Button", nil, parent)
+    new.text = new:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    new.text:SetPoint("CENTER")
+    new.text:SetText(L.AGENTCHAT_NEW)
+    new:SetSize(new.text:GetStringWidth() + 14, 18)
+    new:SetPoint("TOPRIGHT", -6, -4)
+    new:SetHighlightTexture(Frames.RowTexture(new, "HIGHLIGHT", "Options_List_Hover", 1, 1, 1, 0.08))
+    new:SetScript("OnClick", function(self)
+        MenuUtil.CreateContextMenu(self, newThreadMenu)
+    end)
+    tooltip(new, L.AGENTCHAT_NEW, L.AGENTCHAT_NEW_TIP)
+    f.newButton = new
 end
 
 -- The reply box, across the bottom: a line high, growing to four as it fills, then scrolling. Enter sends (or

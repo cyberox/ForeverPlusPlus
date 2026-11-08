@@ -83,6 +83,12 @@ func (f *fakeT3) Call(_ context.Context, name string, args any) (json.RawMessage
 		}
 		f.sent = append(f.sent, args.(map[string]any))
 		return json.RawMessage(`{}`), nil
+	case "t3_thread_launch":
+		f.sent = append(f.sent, args.(map[string]any))
+		return json.RawMessage(`{"threadId":"t9","status":"preparing"}`), nil
+	case "t3_thread_update":
+		f.sent = append(f.sent, args.(map[string]any))
+		return json.RawMessage(`{}`), nil
 	case "t3_thread_interrupt":
 		f.sent = append(f.sent, args.(map[string]any))
 		return json.RawMessage(`{}`), nil
@@ -279,11 +285,15 @@ func TestQuestionNeedsYou(t *testing.T) {
 		t.Fatalf("no needs-you notice for a question:\n%s", read(0))
 	}
 	b.Handle(ctx, "c", []byte("O|s1|1|1"))
-	fake.requests = nil // answered, and the turn goes on
+	fake.requests = nil // answered, and the turn goes on: none needs the player, which goes at once
 	b.Poll(ctx, false)
+	if !strings.Contains(read(1), "waiting=0") {
+		t.Fatalf("the chat button's count didn't drop:\n%s", read(1))
+	}
+	b.Handle(ctx, "c", []byte("O|s1|2|2"))
 	fake.status = "idle"
 	b.Poll(ctx, false)
-	if got := read(1); !strings.Contains(got, `kind="done"`) || strings.Contains(got, `kind="waiting"`) {
+	if got := read(2); !strings.Contains(got, `kind="done"`) || strings.Contains(got, `kind="waiting"`) {
 		t.Fatalf("no done notice after the answer:\n%s", got)
 	}
 }
@@ -356,9 +366,13 @@ func TestQuestions(t *testing.T) {
 	ctx := context.Background()
 	fake.status, fake.pending, fake.requests = "waiting", 2, []string{"r1"} // a question and an approval
 	b.Handle(ctx, "c", []byte("H|s1"))
-	b.Handle(ctx, "c", []byte("O|s1|0|0"))
+	b.Handle(ctx, "c", []byte("O|s1|0|0")) // closed: the chat button's count goes at once
+	if !strings.Contains(read(0), "waiting=1") {
+		t.Fatalf("no count for the chat button:\n%s", read(0))
+	}
+	b.Handle(ctx, "c", []byte("O|s1|1|1"))
 	b.Handle(ctx, "c", []byte("V|s1|1|1")) // the thread read says what's pending, so they come with it
-	got := read(0)
+	got := read(1)
 	if !strings.Contains(got, "asks = {") || !strings.Contains(got, `header="Color"`) ||
 		!strings.Contains(got, `label="Blue"`) || !strings.Contains(got, "multi=true") || !strings.Contains(got, "approvals=1") {
 		t.Fatalf("no questions:\n%s", got)
@@ -389,6 +403,43 @@ func TestQuestions(t *testing.T) {
 	b.Handle(ctx, "c", []byte("A|s1|1|o:1"))
 	if !strings.Contains(read(0), "ok=false") || !strings.Contains(read(0), "every question") {
 		t.Fatalf("a short answer went through:\n%s", read(0))
+	}
+}
+
+func TestNewThreadCountsProjects(t *testing.T) {
+	b, fake, read := setup(t)
+	ctx := context.Background()
+	b.Handle(ctx, "c", []byte("H|s1"))
+	b.Handle(ctx, "c", []byte("O|s1|0|0"))
+	b.Handle(ctx, "c", []byte("V|s1|0|1"))
+	if got := read(0); !strings.Contains(got, "counts = {waiting=0,working=1,}") ||
+		!strings.Contains(got, `{id="p1",title="ForeverPlusPlus",}`) {
+		t.Fatalf("no counts or projects:\n%s", got)
+	}
+
+	b.Handle(ctx, "c", []byte("O|s1|1|1"))
+	b.Handle(ctx, "c", []byte("N|s1|g3|p1|Make a | thing\nwith details"))
+	var launch, rename map[string]any
+	for _, s := range fake.sent {
+		if s["message"] != nil {
+			launch = s
+		} else if s["action"] == "regenerate_title" {
+			rename = s
+		}
+	}
+	if launch == nil || launch["projectId"] != "p1" || launch["title"] != "Make a | thing" ||
+		launch["message"] != "Make a | thing\nwith details" || rename == nil || rename["threadId"] != "t9" {
+		t.Fatalf("launched %v, renamed %v", launch, rename)
+	}
+	got := read(1)
+	if !strings.Contains(got, `id="g3"`) || !strings.Contains(got, `thread="t9"`) || !strings.Contains(got, "threads = {") {
+		t.Fatalf("no ack, or the list didn't come again:\n%s", got)
+	}
+
+	b.Handle(ctx, "c", []byte("O|s1|2|2"))
+	b.Handle(ctx, "c", []byte("N|s1|g4||Scratch it"))
+	if last := fake.sent[len(fake.sent)-2]; last["scratch"] != true || last["projectId"] != nil {
+		t.Fatalf("no scratch folder: %v", last)
 	}
 }
 

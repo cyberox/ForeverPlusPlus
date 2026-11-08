@@ -17,6 +17,8 @@ import (
 //	D|session|q                cancel queued message q
 //	X|session|handle           stop the thread's running turn
 //	A|session|a|answers        answer a question the agent asked (asks.go)
+//	N|session|id|project|text  start a thread in a project (its T3 id, or none for a scratch
+//	                           folder) with text as its first message; the ack has its id
 //
 // Each is answered in the next inbox, as an ack ({ id, ok, error }) for a send and a note for the
 // rest when they fail. Queued messages go to the game with a small number, q, like threads.
@@ -45,6 +47,18 @@ func (b *Bridge) act(ctx context.Context, char, kind string, parts []string) boo
 			b.acks = append(b.acks, map[string]any{"ok": false, "error": err.Error()})
 			b.Log("%s: %s %d failed: %v", char, kind, q, err)
 		}
+	case kind == "N" && len(parts) >= 5:
+		id, project, text := parts[2], parts[3], parts[4]
+		ack := map[string]any{"id": id, "ok": true}
+		if thread, err := b.launch(ctx, project, text); err != nil {
+			ack["ok"], ack["error"] = false, err.Error()
+			b.Log("%s: new thread failed: %v", char, err)
+		} else {
+			ack["thread"] = thread
+			b.sentList = "" // the list goes again, with the new thread in it
+			b.Log("%s: started thread %s", char, thread)
+		}
+		b.acks = append(b.acks, ack)
 	case kind == "A" && len(parts) >= 4:
 		n, _ := strconv.Atoi(parts[2])
 		lines := strings.Join(parts[3:], "|") // typed answers may hold | themselves
@@ -103,6 +117,46 @@ func plainError(err error) error {
 			"run forever-agent login again and approve it with Full access")
 	}
 	return err
+}
+
+// titleLength is how much of the first line a new thread is named by, until T3 names it itself.
+const titleLength = 60
+
+// launch starts a thread with a first message and returns its id. T3 needs a title up front; the
+// first line stands in, and T3 is then asked for a proper one, as it gives threads started in it.
+func (b *Bridge) launch(ctx context.Context, project, text string) (string, error) {
+	if strings.TrimSpace(text) == "" {
+		return "", fmt.Errorf("write the first message")
+	}
+	if err := b.connect(ctx); err != nil {
+		return "", err
+	}
+	title := strings.TrimSpace(strings.SplitN(text, "\n", 2)[0])
+	if r := []rune(title); len(r) > titleLength {
+		title = strings.TrimSpace(string(r[:titleLength])) + "..."
+	}
+	args := map[string]any{"title": title, "message": text}
+	if project == "" {
+		args["scratch"] = true
+	} else {
+		args["projectId"] = project
+	}
+	raw, err := b.client.Call(ctx, "t3_thread_launch", args)
+	if err != nil {
+		return "", plainError(err)
+	}
+	var res struct {
+		ThreadID string `json:"threadId"`
+	}
+	if err := json.Unmarshal(raw, &res); err != nil || res.ThreadID == "" {
+		return "", fmt.Errorf("T3 started no thread")
+	}
+	if _, err := b.client.Call(ctx, "t3_thread_update", map[string]any{
+		"action": "regenerate_title", "threadId": res.ThreadID,
+	}); err != nil {
+		b.Log("naming thread %s: %v", res.ThreadID, err) // it keeps the first line
+	}
+	return res.ThreadID, nil
 }
 
 func (b *Bridge) stop(ctx context.Context, h int) error {

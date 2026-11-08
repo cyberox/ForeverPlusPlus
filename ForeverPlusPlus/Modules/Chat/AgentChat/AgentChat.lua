@@ -46,6 +46,7 @@ local module = ns.NewModule("AgentChat", L.AGENTCHAT_DESC, {
     enabled = true,
     sound = true,
     chat = true,
+    chatButton = true,
     link = {}, -- signal: the next signal to try
     layout = {}, -- where the window was left, and the list's tab
     seen = {}, -- thread id -> its updated time when last read, for unread marks
@@ -56,9 +57,14 @@ module.added = "1.3.0"
 
 -- When a thread finishes, fails, or needs you: a line in chat and a sound, window open or not.
 module.options = {
+    { key = "chatButton", name = L.AGENTCHAT_BUTTON, description = L.AGENTCHAT_BUTTON_DESC },
     { key = "sound", name = L.AGENTCHAT_SOUND, description = L.AGENTCHAT_SOUND_DESC },
     ns.ChatOption(L.AGENTCHAT_CHAT_DESC),
 }
+
+-- While another addon hides Blizzard's chat buttons, the Chat Button can't show.
+module.notice = ns.Chat.HiddenNotice(L.AGENTCHAT_BUTTON_HIDDEN, L.AGENTCHAT_BUTTON_HIDDEN_DESC,
+    function(db) return db.chatButton end)
 
 local NOTICES = {
     done = L.AGENTCHAT_NOTICE_DONE,
@@ -84,6 +90,77 @@ end
 local internal = {}
 module.internal = internal
 
+-- The chat button: in the column beside the chat window, after Whisper Window's. It opens the
+-- window, counts the threads that need the player, and glows while any do, as Whisper Window's
+-- does for unread whispers.
+local BUTTON_ICON = "Interface\\GossipFrame\\GossipGossipIcon" -- the speech bubble on gossip options
+local BUTTON_ORDER = 40
+local button
+
+local function updateButton()
+    if not button then
+        return
+    end
+    local waiting = tonumber(internal.counts and internal.counts.waiting) or 0
+    button.count:SetText(waiting > 0 and waiting or "")
+    if waiting > 0 then
+        button.glow:Show()
+        if not button.pulse:IsPlaying() then
+            button.pulse:Play()
+        end
+    else
+        button.pulse:Stop()
+        button.glow:Hide()
+    end
+end
+
+local function newButton()
+    local b = ns.Chat.NewButton(BUTTON_ICON, function()
+        internal.Toggle()
+    end, L.AGENTCHAT_TITLE, L.AGENTCHAT_BUTTON_TIP)
+    b.count = b:CreateFontString(nil, "OVERLAY", "NumberFontNormal")
+    b.count:SetPoint("BOTTOMRIGHT", 0, 0)
+    local glow = b:CreateTexture(nil, "OVERLAY")
+    glow:SetAllPoints()
+    glow:SetAtlas("chatframe-button-highlight")
+    glow:SetBlendMode("ADD")
+    glow:Hide()
+    local pulse = glow:CreateAnimationGroup()
+    pulse:SetLooping("BOUNCE")
+    local fade = pulse:CreateAnimation("Alpha")
+    fade:SetFromAlpha(0.1)
+    fade:SetToAlpha(1)
+    fade:SetDuration(0.8)
+    fade:SetSmoothing("IN_OUT")
+    b.glow, b.pulse = glow, pulse
+    -- How things stand, under the tooltip's line.
+    b:HookScript("OnEnter", function()
+        local counts = internal.counts or {}
+        GameTooltip:AddLine(format(L.AGENTCHAT_BUTTON_COUNTS, tonumber(counts.waiting) or 0,
+            tonumber(counts.working) or 0), 0.6, 0.6, 0.6)
+        GameTooltip:Show()
+    end)
+    return b
+end
+
+local function showButton()
+    if module.enabled and module.db.chatButton and ns.Chat.Anchor() ~= nil then
+        button = button or newButton()
+        button:Show()
+        ns.Chat.AddButton(module.name, button, BUTTON_ORDER)
+        updateButton()
+    elseif button then
+        ns.Chat.RemoveButton(module.name)
+        button:Hide()
+    end
+end
+
+function module:OnOptionChanged(key)
+    if key == "chatButton" then
+        showButton()
+    end
+end
+
 -- Only with the program's helper addons installed.
 function module:IsAvailable()
     local exists = C_AddOns and C_AddOns.DoesAddOnExist
@@ -98,6 +175,9 @@ local SIGNAL_TRIES = 3 -- offers tried a second apart, while the window is open,
 
 -- What the window shows. The window (Window.lua) reads these.
 internal.threads = {} -- the list, newest first: { h, id, title, status, model, project, updated }
+internal.projects = {} -- T3's projects, by title: { id, title }, for starting a thread in one
+internal.counts = { waiting = 0, working = 0 } -- threads needing the player and working, for the button
+internal.composing = nil -- a new thread being written: { project, name, id, text, error }
 internal.conversations = {} -- thread id -> { items = { [pos] = item }, order = { pos... }, older }
 internal.queues = {} -- thread id -> { active, items = { { q, text }... } }: its queued messages
 internal.sending = {} -- what the player sent that T3 hasn't taken yet: { id, threadId, text, error }
@@ -299,6 +379,13 @@ local function receive(inbox, now)
         internal.note = inbox.note ~= "" and inbox.note or nil
         refresh("status")
     end
+    if type(inbox.counts) == "table" then
+        internal.counts = inbox.counts
+        updateButton()
+    end
+    if type(inbox.projects) == "table" then
+        internal.projects = inbox.projects
+    end
     if type(inbox.expires) == "number" then
         internal.expires = inbox.expires
         local warning = internal.ExpiryWarning(CHAT_WARN_DAYS)
@@ -337,6 +424,16 @@ local function receive(inbox, now)
     for _, ack in ipairs(type(inbox.acks) == "table" and inbox.acks or {}) do
         if ack.ask then
             internal.answering[ack.ask] = nil -- answered, it leaves with the next asks
+        end
+        local composing = internal.composing
+        if composing and ack.id and ack.id == composing.id then
+            -- A new thread: open it once T3 has it; otherwise say why, and let the player try again.
+            if ack.ok and ack.thread then
+                internal.composing = nil
+                internal.Select(ack.thread)
+            else
+                composing.id, composing.error = nil, tostring(ack.error)
+            end
         end
         local sent = ack.id and internal.SendingById(ack.id)
         if ack.ok and sent then
@@ -466,9 +563,22 @@ function internal.IsUnread(thread)
     return seen ~= nil and (tonumber(thread.updated) or 0) > seen and thread.id ~= internal.selected
 end
 
+---Starts writing a new thread in a project (its T3 id, "" for none), shown in place of a thread
+---until its first message is sent and T3 has it.
+---@param project string
+---@param name string? the project's title, to show
+function internal.NewThread(project, name)
+    internal.composing = { project = project or "", name = name }
+    internal.Select(nil, true)
+end
+
 ---Shows a thread, or none, and tells the program.
 ---@param id string?
-function internal.Select(id)
+---@param keepComposing boolean? leave a new thread being written open
+function internal.Select(id, keepComposing)
+    if not keepComposing then
+        internal.composing = nil
+    end
     internal.selected = id
     internal.MarkSeen()
     refresh("thread")
@@ -493,8 +603,21 @@ end
 ---@param text string as an edit box gives it, with a typed | doubled
 ---@return boolean sent
 function internal.Send(text)
-    local thread = session and internal.selected and byId(internal.selected)
     text = text and text:gsub("||", "|"):match("^%s*(.-)%s*$")
+    local composing = internal.composing
+    if composing then
+        -- The first message of a new thread: it starts it.
+        if not (session and text and text ~= "") or composing.id then
+            return false
+        end
+        sends = sends + 1
+        composing.id, composing.text, composing.error = "g" .. sends, text, nil
+        send(format("N|%s|%s|%s|%s", session, composing.id, composing.project, text))
+        offerNext()
+        refresh("thread")
+        return true
+    end
+    local thread = session and internal.selected and byId(internal.selected)
     if not (thread and text and text ~= "") then
         return false
     end
@@ -672,6 +795,8 @@ function module:OnEnable()
     wipe(internal.sending)
     seq, offer, viewSent, noSignal = 0, nil, nil, 0
     internal.heard, internal.note, internal.outOfSlots = false, nil, false
+    internal.counts, internal.composing = { waiting = 0, working = 0 }, nil
+    showButton()
     queue[1] = { frame = AgentLink.Idle() }
     send("H|" .. session, function()
         offerTimer:Start(SETTLE, function()
@@ -684,6 +809,7 @@ end
 function module:OnDisable()
     offer, session = nil, nil
     wipe(queue)
+    showButton() -- module.enabled is false by now, so it goes
     if internal.Hide then
         internal.Hide()
     end
