@@ -488,6 +488,7 @@ func (b *Bridge) list(ctx context.Context) ([]map[string]any, string, error) {
 			ProjectID   string `json:"projectId"`
 			UpdatedAt   string `json:"updatedAt"`
 			Settled     bool   `json:"settled"`
+			Snoozed     bool   `json:"snoozed"`
 			RuntimeMode string `json:"runtimeMode"`
 		} `json:"threads"`
 	}
@@ -508,13 +509,13 @@ func (b *Bridge) list(ctx context.Context) ([]map[string]any, string, error) {
 		entry := map[string]any{
 			"h": b.handle(t.ThreadID), "id": t.ThreadID, "title": t.Title, "status": t.Status,
 			"model": t.Model, "project": b.projects[t.ProjectID], "updated": updated, "settled": t.Settled,
-			"mode": t.RuntimeMode,
+			"mode": t.RuntimeMode, "snoozed": t.Snoozed,
 		}
 		list = append(list, entry)
 		// The list goes again when what it shows changes; a running thread's updatedAt ticks
 		// constantly, so only to the minute.
-		fmt.Fprintf(sig, "%s|%s|%s|%s|%v|%d|%s\n", t.ThreadID, t.Title, t.Status, t.Model, t.Settled, updated/60,
-			t.RuntimeMode)
+		fmt.Fprintf(sig, "%s|%s|%s|%s|%v|%v|%d|%s\n", t.ThreadID, t.Title, t.Status, t.Model, t.Settled, t.Snoozed,
+			updated/60, t.RuntimeMode)
 	}
 	return list, fmt.Sprint(sig.Sum64()), nil
 }

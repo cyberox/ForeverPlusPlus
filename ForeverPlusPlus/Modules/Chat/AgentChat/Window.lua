@@ -23,7 +23,7 @@ local ROW_HEIGHT, GROUP_HEIGHT = 36, 18
 local MAX_LINES = 6000
 local MAX_SEND = 4000 -- characters in one message: about 15 seconds to send, at 28 bytes a frame
 local DAY = 24 * 60 * 60 -- the Active tab shows threads changed this recently
-local REPLY_MIN, REPLY_MAX = 40, 74 -- the reply box's height: two lines, growing to four
+local REPLY_MIN, REPLY_MAX = 26, 70 -- the reply box's height: one line, growing to four
 
 -- Colors: what you wrote in gold like the game's own headings, the agent in the light blue of
 -- Blizzard's whisper you sent, its progress notes dimmed, and notes in gray.
@@ -231,12 +231,30 @@ end
 
 -- The list ------------------------------------------------------------------------------------------
 
-local TABS = { "active", "all" }
-local TAB_NAMES = { active = L.AGENTCHAT_TAB_ACTIVE, all = L.AGENTCHAT_TAB_ALL }
+-- Active, All, and a project picked from a menu (the tab then takes its name).
+local TABS = { "active", "all", "project" }
+local TAB_NAMES = { active = L.AGENTCHAT_TAB_ACTIVE, all = L.AGENTCHAT_TAB_ALL, project = L.AGENTCHAT_TAB_PROJECT }
 
 local function tab()
-    local chosen = module.db.layout.tab
-    return TAB_NAMES[chosen] and chosen or "active"
+    local layout = module.db.layout
+    if layout.tab == "project" then
+        return layout.project and "project" or "active"
+    end
+    return TAB_NAMES[layout.tab] and layout.tab or "active"
+end
+
+-- The projects in the list, by name, for the project menu.
+local function projects()
+    local names, seen = {}, {}
+    for _, thread in ipairs(internal.threads) do
+        local name = tostring(thread.project or "")
+        if name ~= "" and not seen[name] then
+            seen[name] = true
+            names[#names + 1] = name
+        end
+    end
+    table.sort(names)
+    return names
 end
 
 local function buildRow(row)
@@ -273,7 +291,7 @@ local function initRow(row, element)
     else
         row.name:SetTextColor(1, 0.82, 0)
     end
-    row.preview:SetText(joinNonEmpty(plain(thread.project), ago(thread)))
+    row.preview:SetText(joinNonEmpty(plain(thread.project), thread.snoozed and L.AGENTCHAT_SNOOZED or ago(thread)))
     row.selected:SetShown(thread.id == internal.selected)
 end
 
@@ -288,14 +306,27 @@ end
 -- The list as the tab shows it: a heading and its threads for each group that has any.
 local function listElements()
     local groups = { waiting = {}, working = {}, recent = {} } -- needs you, working, the rest
-    local active = tab() == "active"
+    local shown = tab()
+    local project = module.db.layout.project
     local now = time()
     for _, thread in ipairs(internal.threads) do
         local state = stateOf(thread)
         -- A failed thread is over, so it sits with the rest, marked.
         local group = (state == "waiting" or state == "working") and state or "recent"
-        local recent = (tonumber(thread.updated) or 0) >= now - DAY
-        if not active or group ~= "recent" or state == "unread" or recent or thread.id == internal.selected then
+        local include
+        if shown == "project" then
+            include = thread.project == project
+        elseif shown == "active" then
+            -- What's going on: working, needing you, unread, or changed today; not what the player
+            -- snoozed or marked done in T3 (unless it's working or needs them again).
+            local putAway = (thread.snoozed or thread.settled) and group == "recent"
+            local recent = (tonumber(thread.updated) or 0) >= now - DAY
+            include = thread.id == internal.selected
+                or (not putAway and (group ~= "recent" or state == "unread" or recent))
+        else
+            include = true
+        end
+        if include then
             local list = groups[group]
             list[#list + 1] = { thread = thread }
         end
@@ -314,11 +345,22 @@ local function listElements()
     return elements
 end
 
+local MAX_TAB_WIDTH = 110
+
 local function refreshTabs()
+    local x = 6
     for _, button in ipairs(window.tabs) do
         local on = button.tab == tab()
         button.selected:SetShown(on)
         button.text:SetFontObject(on and "GameFontNormalSmall" or "GameFontDisableSmall")
+        local project = button.tab == "project" and module.db.layout.project
+        button.text:SetText(project and plain(project) or TAB_NAMES[button.tab])
+        button.text:SetWidth(0)
+        local width = min(MAX_TAB_WIDTH, button.text:GetStringWidth() + 16)
+        button.text:SetWidth(width - 12)
+        button:SetWidth(width)
+        button:SetPoint("TOPLEFT", x, -4)
+        x = x + width + 2
     end
 end
 
@@ -720,30 +762,56 @@ local function newMessages(parent)
     return messages
 end
 
+local function pickProject(name)
+    local layout = module.db.layout
+    layout.tab, layout.project = "project", name
+    refreshList()
+end
+
+-- The project tab's menu: a project from the list, picked like a radio button.
+local function projectMenu(_, root)
+    local names = projects()
+    if #names == 0 then
+        root:CreateTitle(L.AGENTCHAT_NO_PROJECTS)
+        return
+    end
+    for _, name in ipairs(names) do
+        root:CreateRadio(plain(name), function(value)
+            return tab() == "project" and module.db.layout.project == value
+        end, pickProject, name)
+    end
+end
+
 -- The list's tabs: small buttons over it, the chosen one lit like a selected list row.
 local function newTabs(f, parent)
     f.tabs = {}
-    local x = 6
     for _, key in ipairs(TABS) do
         local button = CreateFrame("Button", nil, parent)
         button.tab = key
         button.text = button:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
         button.text:SetPoint("CENTER")
-        button.text:SetText(TAB_NAMES[key])
-        button:SetSize(button.text:GetStringWidth() + 16, 18)
-        button:SetPoint("TOPLEFT", x, -4)
+        button.text:SetWordWrap(false)
+        button:SetHeight(18)
         button.selected = Frames.RowTexture(button, "BACKGROUND", "Options_List_Active", 1, 0.82, 0, 0.15)
         button:SetHighlightTexture(Frames.RowTexture(button, "HIGHLIGHT", "Options_List_Hover", 1, 1, 1, 0.08))
         button:SetScript("OnClick", function(self)
+            if self.tab == "project" and MenuUtil and MenuUtil.CreateContextMenu then
+                MenuUtil.CreateContextMenu(self, projectMenu)
+                return
+            end
             module.db.layout.tab = self.tab
             refreshList()
         end)
-        x = x + button:GetWidth() + 2
         f.tabs[#f.tabs + 1] = button
+    end
+    -- Without Blizzard's menus, the project tab can't pick one.
+    if not (MenuUtil and MenuUtil.CreateContextMenu) then
+        f.tabs[#f.tabs]:Hide()
+        f.tabs[#f.tabs] = nil
     end
 end
 
--- The reply box: two lines high, growing to four as it fills, then scrolling. Enter sends (or
+-- The reply box, across the bottom: a line high, growing to four as it fills, then scrolling. Enter sends (or
 -- answers what the agent asks), Shift+Enter starts a new line.
 local function sendReply(text)
     if internal.ShownAsk() then
@@ -756,15 +824,15 @@ local function newReply(f)
     local box = Frames.Inset(f)
     box:SetHeight(REPLY_MIN)
     local scroll = CreateFrame("ScrollFrame", nil, box)
-    scroll:SetPoint("TOPLEFT", 6, -5)
-    scroll:SetPoint("BOTTOMRIGHT", -6, 5)
+    scroll:SetPoint("TOPLEFT", 8, -6)
+    scroll:SetPoint("BOTTOMRIGHT", -8, 6)
     local edit = CreateFrame("EditBox", nil, scroll)
     edit:SetMultiLine(true)
     edit:SetAutoFocus(false)
     edit:SetMaxLetters(MAX_SEND)
     edit:SetFontObject(ChatFontNormal)
     edit:SetTextInsets(0, 0, 0, 0)
-    edit:SetHeight(REPLY_MIN - 10) -- a multi-line box grows from here as it fills
+    edit:SetHeight(REPLY_MIN - 12) -- a multi-line box grows from here as it fills
     scroll:SetScrollChild(edit)
     scroll:SetScript("OnSizeChanged", function(self, width)
         edit:SetWidth(width)
@@ -796,7 +864,7 @@ local function newReply(f)
         before, now = now, self:GetText() or ""
         box.hint:SetShown(now == "")
         box.newline:SetShown(now == "" and box.hint:GetText() ~= "")
-        box:SetHeight(min(REPLY_MAX, max(REPLY_MIN, self:GetHeight() + 10)))
+        box:SetHeight(min(REPLY_MAX, max(REPLY_MIN, self:GetHeight() + 12)))
     end)
     -- A multi-line box may put Enter's line break in before or after OnEnterPressed; this works
     -- either way: a break Enter added before is taken out of what's sent, and one added after is
@@ -835,11 +903,14 @@ local function newReply(f)
     end)
     edit:SetScript("OnEscapePressed", edit.ClearFocus)
 
-    box.hint = box:CreateFontString(nil, "ARTWORK", "GameFontDisable")
-    box.hint:SetPoint("TOPLEFT", 8, -7)
     box.newline = box:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
-    box.newline:SetPoint("BOTTOMLEFT", 8, 6)
+    box.newline:SetPoint("TOPRIGHT", -10, -8)
     box.newline:SetText(L.AGENTCHAT_NEWLINE_HINT)
+    box.hint = box:CreateFontString(nil, "ARTWORK", "GameFontDisable")
+    box.hint:SetPoint("TOPLEFT", 10, -7)
+    box.hint:SetPoint("RIGHT", box.newline, "LEFT", -12, 0)
+    box.hint:SetJustifyH("LEFT")
+    box.hint:SetWordWrap(false)
     box.edit = edit
 
     -- What the rest of the window calls: like an edit box.
@@ -881,10 +952,23 @@ local function newWindow()
     f.summary:SetPoint("TOPLEFT", 66, -38)
     f.summary:SetText(L.AGENTCHAT_SUMMARY)
 
+    -- The strip at the bottom, across the window: the reply box and Stop. Both columns sit on a
+    -- line at its top, so they follow it as it grows.
+    f.stop = Frames.Button(f, L.AGENTCHAT_STOP, 70, internal.Stop)
+    tooltip(f.stop, L.AGENTCHAT_STOP, L.AGENTCHAT_STOP_TIP)
+    f.stop:SetPoint("BOTTOMRIGHT", -24, 8)
+    f.reply = newReply(f)
+    f.reply:SetPoint("BOTTOMLEFT", 4, 6)
+    f.reply:SetPoint("RIGHT", f.stop, "LEFT", -8, 0)
+    local replyTop = CreateFrame("Frame", nil, f)
+    replyTop:SetPoint("BOTTOMLEFT", f.reply, "TOPLEFT")
+    replyTop:SetPoint("RIGHT", f, "RIGHT", -6, 0)
+    replyTop:SetHeight(1)
+
     -- The threads, on the left, under their tabs.
     local listInset = Frames.Inset(f)
     listInset:SetPoint("TOPLEFT", 4, -60)
-    listInset:SetPoint("BOTTOMLEFT", 4, 6)
+    listInset:SetPoint("BOTTOMLEFT", replyTop, "BOTTOMLEFT", 0, 4)
     listInset:SetWidth(LIST_WIDTH)
     newTabs(f, listInset)
     local tabLine = listInset:CreateTexture(nil, "ARTWORK")
@@ -917,20 +1001,7 @@ local function newWindow()
     f.empty:SetText(L.AGENTCHAT_NO_THREADS)
     f.empty:Hide()
 
-    -- The strip at the bottom right: the reply box and Stop.
-    f.stop = Frames.Button(f, L.AGENTCHAT_STOP, 70, internal.Stop)
-    tooltip(f.stop, L.AGENTCHAT_STOP, L.AGENTCHAT_STOP_TIP)
-    f.reply = newReply(f)
-    f.reply:SetPoint("BOTTOMLEFT", listInset, "BOTTOMRIGHT", 2, 0)
-    f.reply:SetPoint("RIGHT", f.stop, "LEFT", -8, 0)
-    f.stop:SetPoint("BOTTOMRIGHT", -24, 10)
-
-    -- The conversation, on the right, over the reply box: down to a line as wide as the window's
-    -- right side, at the reply box's top, so it follows the box as that grows.
-    local replyTop = CreateFrame("Frame", nil, f)
-    replyTop:SetPoint("BOTTOMLEFT", f.reply, "TOPLEFT")
-    replyTop:SetPoint("RIGHT", f, "RIGHT", -6, 0)
-    replyTop:SetHeight(1)
+    -- The conversation, on the right.
     local details = f.Inset or Frames.Inset(f)
     details:ClearAllPoints()
     details:SetPoint("TOPLEFT", listInset, "TOPRIGHT", 2, 0)
