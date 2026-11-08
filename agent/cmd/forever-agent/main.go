@@ -132,7 +132,9 @@ func handle(in wow.Install, m wow.Message) {
 			break
 		}
 		start := time.Now()
-		err = wow.FillSlot(in.SlotDir(slot), map[string]any{
+		// The game looks for this reply's ready files by this name.
+		ready := "ready_" + parts[1] + "_" + parts[3]
+		err = wow.FillSlot(in.SlotDir(slot), ready, map[string]any{
 			"kind": "pong", "session": parts[1], "id": parts[3], "text": parts[4],
 		})
 		if err != nil {

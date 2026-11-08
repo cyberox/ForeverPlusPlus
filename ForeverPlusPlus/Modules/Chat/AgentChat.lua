@@ -8,17 +8,17 @@
 -- program writes the reply into a load-on-demand helper addon (a slot), and this loads it with
 -- C_AddOns.LoadAddOn, which runs its Data.lua: that sets ForeverPlusPlusAgentInbox, read and
 -- cleared at once. A slot loads once per UI session. Before loading, this waits for the slot's
--- ready files (a sound and an image), which the program creates only once the reply is written.
--- Empty ones read as there, so it's whether the file exists; whether the game looks again while
--- running is what the test finds out. The helpers exist only once the program installs them, so
+-- ready files, which the program creates only once the reply is written (see PROBES). The
+-- helpers exist only once the program installs them, so
 -- without it the module isn't offered at all.
 local _, ns = ...
 
 local _G, ipairs, format, type, tostring, floor, random, wipe = _G, ipairs, format, type, tostring,
     math.floor, math.random, wipe
 local tremove = table.remove
-local C_AddOns, UnitGUID, GetTimePreciseSec, PlaySoundFile, StopSound, CreateFrame =
-    C_AddOns, UnitGUID, GetTimePreciseSec, PlaySoundFile, StopSound, CreateFrame
+local pcall = pcall
+local C_AddOns, UnitGUID, GetTimePreciseSec, PlaySoundFile, StopSound, CreateFrame, GetFileIDFromPath =
+    C_AddOns, UnitGUID, GetTimePreciseSec, PlaySoundFile, StopSound, CreateFrame, GetFileIDFromPath
 
 local L = ns.L
 local AgentLink = ns.AgentLink
@@ -51,7 +51,7 @@ local bits = {} -- helper index -> whether it's on, as last written; nil until w
 local queue = {} -- frames waiting: { frame = bytes, sent = fn(time) on a message's last frame }
 local pending -- the ping waiting for its reply
 local pings = 0
-local probeTexture
+local probeString
 
 -- Sending ------------------------------------------------------------------------------------------
 
@@ -111,23 +111,42 @@ local function ms(seconds)
     return floor(seconds * 1000 + 0.5)
 end
 
--- Whether each ready file reads as valid right now.
-local function readySound(path)
-    local willPlay, handle = PlaySoundFile(path .. "ready.wav", "Master")
-    if willPlay and handle then
-        StopSound(handle)
-    end
-    return willPlay and true or false
-end
-
-local function readyTexture(path)
-    if not probeTexture then
+-- Ways to see whether a ready file exists yet, without loading the slot. The game looks loose
+-- files up on disk each time, so each reply's ready files get a new name (`base`) and nothing a
+-- check saw before can linger. Which of these work, and with game sound off, is what the test is
+-- for: a sound only answers while sound is on, so fonts and file IDs are tried too.
+local function probeFont()
+    if not probeString then
         local holder = CreateFrame("Frame")
         holder:Hide()
-        probeTexture = holder:CreateTexture()
+        probeString = holder:CreateFontString()
     end
-    probeTexture:SetTexture(nil)
-    return probeTexture:SetTexture(path .. "ready.tga") and true or false
+    return probeString
+end
+
+local PROBES = {
+    { name = "sound (.wav)", check = function(base)
+        local willPlay, handle = PlaySoundFile(base .. ".wav", "Master")
+        if willPlay and handle then
+            StopSound(handle)
+        end
+        return willPlay
+    end },
+    { name = "font, Marlett (_m.ttf)", check = function(base)
+        return probeFont():SetFont(base .. "_m.ttf", 12, "")
+    end },
+    { name = "font, Arial (_a.ttf)", check = function(base)
+        return probeFont():SetFont(base .. "_a.ttf", 12, "")
+    end },
+    { name = "file ID (.wav)", check = function(base)
+        local id = GetFileIDFromPath and GetFileIDFromPath(base .. ".wav")
+        return id and id ~= 0
+    end },
+}
+
+local function check(probe, base)
+    local ok, ready = pcall(probe.check, base)
+    return ok and ready and true or false
 end
 
 local function probeText(before, at, sentAt)
@@ -156,23 +175,26 @@ local function finish(p, now)
     else
         ns.Print(format(L.AGENTCHAT_STALE, p.name, ms(now - p.sentAt)))
     end
-    ns.PrintLine(format(L.AGENTCHAT_PROBE, "ready.wav", probeText(p.soundBefore, p.soundAt, p.sentAt)))
-    ns.PrintLine(format(L.AGENTCHAT_PROBE, "ready.tga", probeText(p.textureBefore, p.textureAt, p.sentAt)))
+    for i, probe in ipairs(PROBES) do
+        ns.PrintLine(format(L.AGENTCHAT_PROBE, probe.name, probeText(p.before[i], p.at[i], p.sentAt)))
+    end
 end
 
+-- Loads the slot once any check that saw nothing before sees its file, or after LOAD_AFTER.
 local function probe()
     local p = pending
     if not p then
         return
     end
     local now = GetTimePreciseSec()
-    if not p.soundAt and readySound(p.path) then
-        p.soundAt = now
+    local ready = false
+    for i, entry in ipairs(PROBES) do
+        if not p.at[i] and check(entry, p.base) then
+            p.at[i] = now
+        end
+        ready = ready or (p.at[i] and not p.before[i])
     end
-    if not p.textureAt and readyTexture(p.path) then
-        p.textureAt = now
-    end
-    if (p.soundAt and p.textureAt) or now - p.sentAt >= LOAD_AFTER then
+    if ready or now - p.sentAt >= LOAD_AFTER then
         finish(p, now)
     else
         probeTimer:Start(PROBE_EVERY, probe)
@@ -191,10 +213,15 @@ local function ping(text)
     end
     text = text ~= "" and text:sub(1, MAX_TEXT) or "ping"
     pings = pings + 1
-    local path = "Interface\\AddOns\\" .. name .. "\\"
-    local p = { id = tostring(pings), name = name, path = path, start = GetTimePreciseSec() }
-    -- A missing file must not read as ready; if one does, it can't tell anything.
-    p.soundBefore, p.textureBefore = readySound(path), readyTexture(path)
+    local id = tostring(pings)
+    local p = {
+        id = id, name = name, start = GetTimePreciseSec(), before = {}, at = {},
+        base = format("Interface\\AddOns\\%s\\ready_%s_%s", name, session, id),
+    }
+    -- A missing file must not read as there; if one does, that check can't tell anything.
+    for i, entry in ipairs(PROBES) do
+        p.before[i] = check(entry, p.base)
+    end
     pending = p
     send(format("P|%s|%d|%s|%s", session, slot, p.id, text), function(at)
         p.sentAt = at

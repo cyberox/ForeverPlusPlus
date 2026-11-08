@@ -40,24 +40,23 @@ func TestInstallFillUninstall(t *testing.T) {
 		t.Errorf("slot toc:\n%s", toc)
 	}
 
-	if err := FillSlot(in.SlotDir(1), map[string]any{"kind": "pong", "id": "7", "text": "hi"}); err != nil {
+	if err := FillSlot(in.SlotDir(1), "ready_s_7", map[string]any{"kind": "pong", "id": "7", "text": "hi"}); err != nil {
 		t.Fatal(err)
 	}
 	data, _ := os.ReadFile(filepath.Join(game, "Interface", "AddOns", link.SlotName(1), "Data.lua"))
 	if !strings.Contains(string(data), `text = "hi",`) {
 		t.Errorf("Data.lua:\n%s", data)
 	}
-	if info, err := os.Stat(filepath.Join(in.SlotDir(1), readySFX)); err != nil || info.Size() == 0 {
-		t.Error("no ready sound after filling")
-	}
-	if _, err := os.Stat(filepath.Join(in.SlotDir(2), readyTGA)); !os.IsNotExist(err) {
-		t.Error("an empty slot has a ready image")
+	for _, f := range []string{"ready_s_7.wav", "ready_s_7_m.ttf", "ready_s_7_a.ttf"} {
+		if info, err := os.Stat(filepath.Join(in.SlotDir(1), f)); err != nil || info.Size() == 0 {
+			t.Errorf("no %s after filling", f)
+		}
 	}
 	if err := ClearSlot(in.SlotDir(1)); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := os.Stat(filepath.Join(in.SlotDir(1), readySFX)); !os.IsNotExist(err) {
-		t.Error("clearing left the ready sound")
+	if left, _ := filepath.Glob(filepath.Join(in.SlotDir(1), "ready*")); len(left) != 0 {
+		t.Errorf("clearing left %v", left)
 	}
 
 	if err := in.Uninstall(); err != nil {

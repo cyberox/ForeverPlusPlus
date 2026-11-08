@@ -12,41 +12,57 @@ import (
 // A reply reaches the game through a slot: a load-on-demand helper addon whose Data.lua the
 // program writes, and which the game then loads with C_AddOns.LoadAddOn. Each slot loads once
 // per UI session. The game finds addons only when it starts, so Data.lua exists from Install
-// on and the program only changes what's in it. The two ready files are how the game learns a
-// slot is filled without loading it: they exist only while a reply waits. (The game reads an
-// empty file as there, so it has to be whether the file exists. Whether the game looks again
-// while it runs, for a sound or an image, is what the ping test measures.)
+// on and the program only changes what's in it. The ready files are how the game learns a slot
+// is filled without loading it: they exist only while a reply waits. The game looks loose files
+// up on disk each time it asks (an empty one counts as there), so each reply's ready files get
+// a new name, `ready`, from the game: nothing it saw before can linger. A sound only answers
+// while game sound is on, so fonts are tried too; which work is what the ping test measures.
 
 const (
 	dataFile  = "Data.lua"
-	readySFX  = "ready.wav"
-	readyTGA  = "ready.tga"
 	emptyData = "-- Written by the Forever Agent program. Empty until a reply is waiting.\n"
 )
 
-// ClearSlot empties a slot: no reply, not ready.
+// Fonts every Windows has, for the font check: a small symbol font and a plain one.
+var readyFonts = map[string]string{
+	"_m.ttf": "marlett.ttf",
+	"_a.ttf": "arial.ttf",
+}
+
+// ClearSlot empties a slot: no reply, no ready files.
 func ClearSlot(dir string) error {
 	if err := os.WriteFile(filepath.Join(dir, dataFile), []byte(emptyData), 0o644); err != nil {
 		return err
 	}
-	for _, f := range []string{readySFX, readyTGA} {
-		if err := os.Remove(filepath.Join(dir, f)); err != nil && !os.IsNotExist(err) {
+	old, _ := filepath.Glob(filepath.Join(dir, "ready*"))
+	for _, f := range old {
+		if err := os.Remove(f); err != nil && !os.IsNotExist(err) {
 			return err
 		}
 	}
 	return nil
 }
 
-// FillSlot writes a reply into a slot, then marks it ready. fields become the global
-// ForeverPlusPlusAgentInbox table the game reads right after loading the slot.
-func FillSlot(dir string, fields map[string]any) error {
+// FillSlot writes a reply into a slot, then its ready files, named from `ready`. fields become
+// the global ForeverPlusPlusAgentInbox table the game reads right after loading the slot.
+func FillSlot(dir, ready string, fields map[string]any) error {
 	if err := os.WriteFile(filepath.Join(dir, dataFile), []byte(luaInbox(fields)), 0o644); err != nil {
 		return err
 	}
-	if err := os.WriteFile(filepath.Join(dir, readySFX), silentWAV(), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, ready+".wav"), silentWAV(), 0o644); err != nil {
 		return err
 	}
-	return os.WriteFile(filepath.Join(dir, readyTGA), pixelTGA(), 0o644)
+	fonts := filepath.Join(os.Getenv("WINDIR"), "Fonts")
+	for suffix, font := range readyFonts {
+		data, err := os.ReadFile(filepath.Join(fonts, font))
+		if err != nil {
+			continue // no such font here: that check just never answers
+		}
+		if err := os.WriteFile(filepath.Join(dir, ready+suffix), data, 0o644); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func luaInbox(fields map[string]any) string {
@@ -116,20 +132,6 @@ func silentWAV() []byte {
 	binary.LittleEndian.PutUint32(b[40:], samples)
 	for i := 44; i < len(b); i++ {
 		b[i] = 128 // silence in 8-bit PCM
-	}
-	return b
-}
-
-// pixelTGA is a 2x2 uncompressed 32-bit image.
-func pixelTGA() []byte {
-	b := make([]byte, 18+2*2*4)
-	b[2] = 2 // uncompressed true color
-	binary.LittleEndian.PutUint16(b[12:], 2)
-	binary.LittleEndian.PutUint16(b[14:], 2)
-	b[16] = 32
-	b[17] = 8 | 0x20 // 8 alpha bits, top-left origin
-	for i := 18; i < len(b); i++ {
-		b[i] = 255
 	}
 	return b
 }
