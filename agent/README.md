@@ -25,6 +25,18 @@ In game: `/fpp agent ping hello`. Chat shows the reply and how long each step to
 
 `--game` (or `WOW_DIR`) points at another client folder; the default is `D:\BattleNet\World of Warcraft\_forever_`. `--slots` sets the number of reply slots (100). `forever-agent uninstall` removes the junctions and the helpers.
 
+## T3 Code
+
+The program talks to T3 Code through its MCP endpoint, the way T3 supports outside programs. Sign in once:
+
+```sh
+forever-agent login        # approve "Forever Agent (WoW: Forever)" in the browser
+forever-agent t3 tools     # what T3 offers
+forever-agent t3 call t3_thread_list '{"allProjects":true,"limit":5}'
+```
+
+The sign-in uses T3's standard MCP OAuth (registration, PKCE, scopes `orchestration:read` and `orchestration:operate`) and is saved in `%LOCALAPPDATA%\ForeverPlusPlus\Agent\t3.json`. T3 gives no refresh token, so sign in again when it runs out. `--t3` picks another T3 server; the default is the one in `~/.t3/userdata/server-runtime.json`.
+
 ## Tests
 
 `go test ./...` from this folder: the frame format (with the same vectors as `tests/spec/agentlink.lua`), installing into a fake game folder, and reading frames as the game writes them.

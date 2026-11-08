@@ -5,7 +5,9 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -18,6 +20,7 @@ import (
 	"time"
 
 	"github.com/xIGBClutchIx/ForeverPlusPlus/agent/internal/link"
+	"github.com/xIGBClutchIx/ForeverPlusPlus/agent/internal/t3"
 	"github.com/xIGBClutchIx/ForeverPlusPlus/agent/internal/wow"
 )
 
@@ -27,6 +30,9 @@ Commands:
   install     make the helper addons and link them into the game (restart the game after)
   uninstall   remove the links and the helper addons
   run         answer the game
+  login       sign in to T3 Code (approve it in the browser)
+  t3 tools    list T3's tools and what they take
+  t3 call <tool> [json]   call one of T3's tools and print what it returns
 
 Flags:
 `
@@ -38,6 +44,7 @@ func main() {
 	slots := flags.Int("slots", 100, "reply slots: replies per UI session before a /reload")
 	signals := flags.Int("signals", 2000, "ready signals: replies per game launch told of at once")
 	iface := flags.Int("interface", 16001, "the TOC Interface number")
+	server := flags.String("t3", t3.DefaultServer(), "the T3 Code server, for login")
 	flags.Usage = func() {
 		fmt.Fprint(os.Stderr, usage)
 		flags.PrintDefaults()
@@ -66,6 +73,10 @@ func main() {
 		}
 	case "run":
 		err = run(in)
+	case "login":
+		err = login(*data, *server)
+	case "t3":
+		err = t3Command(*data, flags.Args())
 	default:
 		flags.Usage()
 		os.Exit(2)
@@ -74,6 +85,77 @@ func main() {
 		fmt.Fprintln(os.Stderr, "forever-agent:", err)
 		os.Exit(1)
 	}
+}
+
+const version = "0.1.0"
+
+func login(data, server string) error {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer stop()
+	tok, err := t3.Login(ctx, server, func(u string) {
+		fmt.Println("Approve Forever Agent in the browser. If it didn't open, go to:\n  " + u)
+	})
+	if err != nil {
+		return err
+	}
+	if err := tok.Save(data); err != nil {
+		return err
+	}
+	until := "until T3 ends it"
+	if !tok.ExpiresAt.IsZero() {
+		until = "until " + tok.ExpiresAt.Local().Format("Jan 2 15:04")
+	}
+	fmt.Printf("Signed in to %s (%s), %s.\n", tok.Server, tok.Scope, until)
+	return nil
+}
+
+// t3Command is for finding out what T3 offers: `t3 tools`, and `t3 call <tool> [json]`.
+func t3Command(data string, args []string) error {
+	if len(args) == 0 {
+		return errors.New("t3 tools, or t3 call <tool> [json]")
+	}
+	tok, err := t3.LoadToken(data)
+	if err != nil {
+		return t3.ErrSignIn
+	}
+	ctx := context.Background()
+	client, err := t3.Connect(ctx, tok, version)
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+	switch args[0] {
+	case "tools":
+		tools, err := client.Tools(ctx)
+		if err != nil {
+			return err
+		}
+		for _, tool := range tools {
+			fmt.Printf("%s\n  %s\n  %s\n\n", tool.Name, strings.ReplaceAll(tool.Description, "\n", "\n  "), tool.Input)
+		}
+		return nil
+	case "call":
+		if len(args) < 2 {
+			return errors.New("t3 call <tool> [json]")
+		}
+		var input any = map[string]any{}
+		if len(args) > 2 {
+			if err := json.Unmarshal([]byte(args[2]), &input); err != nil {
+				return fmt.Errorf("arguments aren't JSON: %w", err)
+			}
+		}
+		out, err := client.Call(ctx, args[1], input)
+		if err != nil {
+			return err
+		}
+		var pretty bytes.Buffer
+		if json.Indent(&pretty, out, "", "  ") != nil {
+			pretty.Write(out)
+		}
+		fmt.Println(pretty.String())
+		return nil
+	}
+	return errors.New("t3 tools, or t3 call <tool> [json]")
 }
 
 func defaultGame() string {
