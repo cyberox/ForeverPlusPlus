@@ -504,11 +504,12 @@ local function check()
         return
     end
     local now = GetTimePreciseSec()
-    local ready
+    local ready, heard
     if o.signal >= 0 then
         -- A program that restarted forgets the offer and clears its signal: while the window is
         -- open, give up after a while and offer again.
-        ready = signalThere(o.signal) or (internal.IsShown() and now - o.offeredAt >= GIVE_UP)
+        heard = signalThere(o.signal)
+        ready = heard or (internal.IsShown() and now - o.offeredAt >= GIVE_UP)
     else
         ready = now - o.offeredAt >= loadAfter
     end
@@ -529,15 +530,21 @@ local function check()
     refresh("status")
     local inbox = _G[INBOX]
     _G[INBOX] = nil
-    if o.signal < 0 then
-        local empty = type(inbox) == "table"
-        for key in pairs(empty and inbox or {}) do
-            if key ~= "session" then
-                empty = false
-                break
-            end
+    local empty = type(inbox) == "table"
+    for key in pairs(empty and inbox or {}) do
+        if key ~= "session" then
+            empty = false
+            break
         end
+    end
+    if o.signal < 0 then
         loadAfter = empty and min(LOAD_AFTER_MOST, loadAfter * 2) or LOAD_AFTER
+    elseif heard ~= not internal.deaf and (heard or not empty) then
+        -- Filled but its signal never sounded: the game started without the signals in place (the
+        -- program wasn't running), and won't find any until it restarts. Each update then waits
+        -- for GIVE_UP; say why.
+        internal.deaf = not heard
+        refresh("status")
     end
     receive(inbox, now)
     offerNext()

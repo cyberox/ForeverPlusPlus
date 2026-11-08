@@ -118,6 +118,7 @@ L.AGENTCHAT_EXPIRES_DAY = "Your T3 sign-in runs out tomorrow. Run forever-agent 
 L.AGENTCHAT_EXPIRES_TODAY = "Your T3 sign-in runs out today. Run forever-agent login again."
 L.AGENTCHAT_EXPIRED = "Your T3 sign-in ran out. Run forever-agent login again."
 L.AGENTCHAT_OUT_OF_SLOTS ="Updates are used up for this session. Type /reload to keep it updating."
+L.AGENTCHAT_DEAF = "Updates are slow: the game started before the Forever Agent program. Restart the game to fix it."
 
 -- ChatCopy
 L.CHATCOPY_TITLE = "Chat Copy"

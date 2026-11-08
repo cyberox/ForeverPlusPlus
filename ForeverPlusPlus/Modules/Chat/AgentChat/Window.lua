@@ -803,6 +803,8 @@ local function refreshStatus()
         text, color = plain(internal.note), { 1, 0.3, 0.3 }
     elseif not internal.heard then
         text = L.AGENTCHAT_WAITING
+    elseif internal.deaf then
+        text, color = L.AGENTCHAT_DEAF, { 1, 0.82, 0 }
     elseif internal.ExpiryWarning() then
         text, color = internal.ExpiryWarning(), { 1, 0.82, 0 }
     end
