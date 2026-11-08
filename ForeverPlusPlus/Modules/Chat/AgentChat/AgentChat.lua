@@ -21,8 +21,8 @@
 -- The program's side and the messages are in agent/internal/bridge.
 local _, ns = ...
 
-local _G, ipairs, format, type, tostring, tonumber, floor, random, wipe, min = _G, ipairs, format,
-    type, tostring, tonumber, math.floor, math.random, wipe, math.min
+local _G, ipairs, pairs, format, type, tostring, tonumber, floor, random, wipe, min = _G, ipairs, pairs,
+    format, type, tostring, tonumber, math.floor, math.random, wipe, math.min
 local tremove = table.remove
 local C_AddOns, UnitGUID, GetTimePreciseSec, PlaySoundFile, StopSound, PlaySound =
     C_AddOns, UnitGUID, GetTimePreciseSec, PlaySoundFile, StopSound, PlaySound
@@ -36,6 +36,7 @@ local INBOX = "ForeverPlusPlusAgentInbox"
 local HOLD = 0.1 -- seconds each frame stays written, so the program reads every one
 local CHECK_OPEN, CHECK_CLOSED = 0.1, 0.5 -- how often the signal is checked
 local LOAD_AFTER = 1 -- with no signal, load the slot this long after offering it
+local LOAD_AFTER_MOST = 5 -- doubling up to this while those loads find nothing new
 local GIVE_UP = 30 -- while the window is open, load an offer this long unanswered and offer again
 local MAX_SLOTS = 999
 local MAX_SCAN = 200 -- signals checked per offer before going without one
@@ -115,6 +116,9 @@ local bits = {} -- helper index -> whether it's on, as last written; nil until w
 local queue = {} -- frames waiting: { frame = bytes, sent = fn(time) on a message's last frame }
 local offer -- the inbox offered: { slot, name, signal, offeredAt }
 local noSignal = 0 -- offers in a row that found no free signal
+-- How long after offering a slot without a signal it's loaded. Each such load spends a slot, so it
+-- waits longer while they come back empty, and goes back to LOAD_AFTER when the player does something.
+local loadAfter = LOAD_AFTER
 local pings, pingStarts = 0, {}
 local viewSent -- the last V message, so the same one isn't sent twice
 
@@ -150,6 +154,9 @@ end
 
 -- Queues a message; `sent` runs when its last frame is written.
 local function send(message, sent)
+    if message:sub(1, 2) ~= "O|" then
+        loadAfter = LOAD_AFTER -- the player did something: the answer should come quickly
+    end
     local frames
     frames, seq = AgentLink.Frames(message, seq)
     for i, frame in ipairs(frames) do
@@ -186,12 +193,20 @@ end
 local function freeSignal()
     local link = module.db.link
     local start = tonumber(link.signal) or 0
-    for n = 0, min(signals, MAX_SCAN) - 1 do
+    local scan = min(signals, MAX_SCAN)
+    for n = 0, scan - 1 do
         local i = (start + n) % signals
         if not signalThere(i) then
             link.signal = (i + 1) % signals
             return i
         end
+    end
+    -- All used: look past them next time, or every later offer checks the same ones and the link
+    -- goes without signals for the rest of the session. Only once the program has answered, since
+    -- it clears the signals when it joins: one checked before that reads as used until the game
+    -- restarts, and moving on would spend the rest the same way.
+    if internal.heard and signals > 0 then
+        link.signal = (start + scan) % signals
     end
     return -1
 end
@@ -322,7 +337,7 @@ local function check()
         -- open, give up after a while and offer again.
         ready = signalThere(o.signal) or (internal.IsShown() and now - o.offeredAt >= GIVE_UP)
     else
-        ready = now - o.offeredAt >= LOAD_AFTER
+        ready = now - o.offeredAt >= loadAfter
     end
     if not ready then
         checkTimer:Start(internal.IsShown() and CHECK_OPEN or CHECK_CLOSED, check)
@@ -333,6 +348,16 @@ local function check()
     C_AddOns.LoadAddOn(o.name)
     local inbox = _G[INBOX]
     _G[INBOX] = nil
+    if o.signal < 0 then
+        local empty = type(inbox) == "table"
+        for key in pairs(empty and inbox or {}) do
+            if key ~= "session" then
+                empty = false
+                break
+            end
+        end
+        loadAfter = empty and min(LOAD_AFTER_MOST, loadAfter * 2) or LOAD_AFTER
+    end
     receive(inbox, now)
     offerNext()
 end
