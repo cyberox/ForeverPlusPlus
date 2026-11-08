@@ -11,10 +11,11 @@ import (
 
 // A reply reaches the game through a slot: a load-on-demand helper addon whose Data.lua the
 // program writes, and which the game then loads with C_AddOns.LoadAddOn. Each slot loads once
-// per UI session. The game finds files only when it starts, so every file a slot uses exists
-// from Install on; the program only changes what's in them. The two ready files are how the
-// game learns a slot is filled without loading it: empty means not yet, a valid sound and image
-// mean ready. (Which of the two the game notices while running is what the ping test measures.)
+// per UI session. The game finds addons only when it starts, so Data.lua exists from Install
+// on and the program only changes what's in it. The two ready files are how the game learns a
+// slot is filled without loading it: they exist only while a reply waits. (The game reads an
+// empty file as there, so it has to be whether the file exists. Whether the game looks again
+// while it runs, for a sound or an image, is what the ping test measures.)
 
 const (
 	dataFile  = "Data.lua"
@@ -29,7 +30,7 @@ func ClearSlot(dir string) error {
 		return err
 	}
 	for _, f := range []string{readySFX, readyTGA} {
-		if err := os.WriteFile(filepath.Join(dir, f), nil, 0o644); err != nil {
+		if err := os.Remove(filepath.Join(dir, f)); err != nil && !os.IsNotExist(err) {
 			return err
 		}
 	}

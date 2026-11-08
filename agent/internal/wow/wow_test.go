@@ -47,8 +47,17 @@ func TestInstallFillUninstall(t *testing.T) {
 	if !strings.Contains(string(data), `text = "hi",`) {
 		t.Errorf("Data.lua:\n%s", data)
 	}
-	if info, _ := os.Stat(filepath.Join(in.SlotDir(1), readySFX)); info.Size() == 0 {
-		t.Error("ready sound still empty")
+	if info, err := os.Stat(filepath.Join(in.SlotDir(1), readySFX)); err != nil || info.Size() == 0 {
+		t.Error("no ready sound after filling")
+	}
+	if _, err := os.Stat(filepath.Join(in.SlotDir(2), readyTGA)); !os.IsNotExist(err) {
+		t.Error("an empty slot has a ready image")
+	}
+	if err := ClearSlot(in.SlotDir(1)); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(filepath.Join(in.SlotDir(1), readySFX)); !os.IsNotExist(err) {
+		t.Error("clearing left the ready sound")
 	}
 
 	if err := in.Uninstall(); err != nil {

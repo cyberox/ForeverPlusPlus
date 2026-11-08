@@ -8,7 +8,8 @@
 -- program writes the reply into a load-on-demand helper addon (a slot), and this loads it with
 -- C_AddOns.LoadAddOn, which runs its Data.lua: that sets ForeverPlusPlusAgentInbox, read and
 -- cleared at once. A slot loads once per UI session. Before loading, this waits for the slot's
--- ready files (a sound and an image) to become valid; which of the two the game notices while
+-- ready files (a sound and an image), which the program creates only once the reply is written.
+-- Empty ones read as there, so it's whether the file exists; whether the game looks again while
 -- running is what the test finds out. The helpers exist only once the program installs them, so
 -- without it the module isn't offered at all.
 local _, ns = ...
@@ -16,8 +17,8 @@ local _, ns = ...
 local _G, ipairs, format, type, tostring, floor, random, wipe = _G, ipairs, format, type, tostring,
     math.floor, math.random, wipe
 local tremove = table.remove
-local C_AddOns, UnitName, GetTimePreciseSec, PlaySoundFile, StopSound, CreateFrame =
-    C_AddOns, UnitName, GetTimePreciseSec, PlaySoundFile, StopSound, CreateFrame
+local C_AddOns, UnitGUID, GetTimePreciseSec, PlaySoundFile, StopSound, CreateFrame =
+    C_AddOns, UnitGUID, GetTimePreciseSec, PlaySoundFile, StopSound, CreateFrame
 
 local L = ns.L
 local AgentLink = ns.AgentLink
@@ -26,7 +27,7 @@ local BIT, SLOT = "FPPAgentBit%03d", "FPPAgentSlot%03d"
 local INBOX = "ForeverPlusPlusAgentInbox"
 local HOLD = 0.1 -- seconds each frame stays written, so the program reads every one
 local PROBE_EVERY = 0.05
-local LOAD_AFTER = 2 -- load a slot this long after sending even if neither ready file turned valid
+local LOAD_AFTER = 1 -- load a slot this long after sending even if neither ready file showed up
 local MAX_SLOTS = 999
 local MAX_TEXT = 200
 
@@ -192,7 +193,7 @@ local function ping(text)
     pings = pings + 1
     local path = "Interface\\AddOns\\" .. name .. "\\"
     local p = { id = tostring(pings), name = name, path = path, start = GetTimePreciseSec() }
-    -- Empty files must not read as ready; if one does, it can't tell anything.
+    -- A missing file must not read as ready; if one does, it can't tell anything.
     p.soundBefore, p.textureBefore = readySound(path), readyTexture(path)
     pending = p
     send(format("P|%s|%d|%s|%s", session, slot, p.id, text), function(at)
@@ -228,7 +229,8 @@ end, "AgentChat")
 -- A UI session starts with the idle frame, which tells the program to start reading afresh, and
 -- a hello, which has it clear every slot: loaded ones can't load again until a /reload anyway.
 function module:OnEnable()
-    character = UnitName("player")
+    -- Blizzard's AddOns list names the character by GUID too; a name alone changes nothing.
+    character = UnitGUID("player")
     slots = 0
     while slots < MAX_SLOTS and C_AddOns.DoesAddOnExist(SLOT:format(slots)) do
         slots = slots + 1
