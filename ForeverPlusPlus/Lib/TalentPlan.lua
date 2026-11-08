@@ -44,7 +44,11 @@ end
 
 ---Fills in the points each node's row needs in its tab, for the nodes the game gave no gate
 ---condition (no `req`), from their height: rows count down from the top node, and the gap
----between rows is the smallest gap between two nodes' heights (more than 1 apart).
+---between rows is the smallest gap between two nodes' heights that's a row's. Nodes of a row
+---can sit a little apart (Forever's Affliction tree: two of its top three a few units lower, which
+---read as a row of their own and put the next row 61 rows down), so a gap under a quarter of the
+---largest one is a node nudged within its row. The largest gap is a row's, or a few rows' where
+---every tab leaves rows empty.
 ---@param nodes table nodeID -> node with `y` (its height on the tree, growing downward)
 ---@param perRow? number points each row adds, POINTS_PER_ROW by default
 function TalentPlan.RowGates(nodes, perRow)
@@ -54,10 +58,15 @@ function TalentPlan.RowGates(nodes, perRow)
         ys[#ys + 1] = node.y or 0
     end
     sort(ys)
+    local largest = 0
+    for i = 2, #ys do
+        largest = max(largest, ys[i] - ys[i - 1])
+    end
+    local nudge = max(1, largest / 4)
     local spacing
     for i = 2, #ys do
         local gap = ys[i] - ys[i - 1]
-        if gap > 1 and (not spacing or gap < spacing) then
+        if gap > nudge and (not spacing or gap < spacing) then
             spacing = gap
         end
     end

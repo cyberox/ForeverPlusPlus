@@ -114,6 +114,20 @@ eq(Plan.GateAmount({ { isGate = true, spentAmountRequired = 300, traitCurrencyID
     { isGate = true, spentAmountRequired = 5, traitCurrencyID = 3820 },
     { isGate = true, spentAmountRequired = 10, traitCurrencyID = 3820 } }, 3820), 10,
     "gate: the largest talent point gate")
+-- Forever's Affliction tree: two of the top three a little lower, which read as a row, and the
+-- second row then 61 rows down (305 points).
+local nudged = {
+    a = { y = 1000 }, b = { y = 1010 }, c = { y = 1010 },
+    d = { y = 1600 }, e = { y = 1610 }, f = { y = 1600 },
+    g = { y = 2200 }, h = { y = 4000 },
+}
+Plan.RowGates(nudged)
+eq(nudged.b.req, 0, "row gates: a node nudged down stays in the top row")
+eq(nudged.c.req, 0, "row gates: so does the other")
+eq(nudged.d.req, 5, "row gates: the second row needs 5, not 305")
+eq(nudged.e.req, 5, "row gates: a nudged node in the second row")
+eq(nudged.g.req, 10, "row gates: the third row")
+eq(nudged.h.req, 25, "row gates: rows left empty still count")
 local single = { only = { y = 40 } }
 Plan.RowGates(single, 3)
 eq(single.only.req, 0, "row gates: one node is the top row")
