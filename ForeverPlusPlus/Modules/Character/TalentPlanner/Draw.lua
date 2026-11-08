@@ -150,6 +150,22 @@ local function onNodeEnter(self)
     GameTooltip:Show()
 end
 
+-- The first time a talent is shown its spell isn't loaded yet; when it loads, Blizzard redraws the
+-- tooltip from the data it was given, which is only the rank's text we appended, so our name,
+-- rank, and lines went missing until the next hover. Draw ours again over it.
+local redrawing = false
+function internal.onTooltipRefreshed(tooltip)
+    if redrawing or tooltip ~= GameTooltip then
+        return
+    end
+    local owner = tooltip:GetOwner()
+    if owner and owner.nodeID and overlays[owner.nodeID] == owner and owner:IsMouseOver() then
+        redrawing = true
+        onNodeEnter(owner)
+        redrawing = false
+    end
+end
+
 local function makeOverlay(id)
     local button = CreateFrame("Button", nil, internal.ui.nodes)
     button.nodeID = id

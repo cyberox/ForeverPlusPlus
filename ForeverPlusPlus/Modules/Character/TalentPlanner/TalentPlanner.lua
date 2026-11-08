@@ -213,6 +213,7 @@ function module:OnEnable()
     self:On("TRAIT_CONFIG_UPDATED", refresh)
     self:On("TRAIT_CONFIG_UPDATED", internal.checkPoints)
     internal.checkPoints()
+    self:Hook(GameTooltip, "RefreshData", internal.onTooltipRefreshed)
     ns.AddOns.WhenLoaded(ADDON, start)
 end
 
