@@ -208,6 +208,12 @@ L.BUFFTIMERS_SORT_RIGHT = "Shortest on the Right"
 L.BUFFTIMERS_SORT_NOTICE = "In combat, buffs may go back to Blizzard's order." -- a gray row atop the module
 L.BUFFTIMERS_SORT_NOTICE_DESC = "In combat the game may hide buff times from addons. A buff gained or "
     .. "lost then puts your buffs back in Blizzard's order until the times can be read again."
+L.BUFFTIMERS_HIDE_TRACKING = "Hide Tracking Buffs"
+L.BUFFTIMERS_HIDE_TRACKING_DESC = "Leave minimap tracking, such as Find Herbs and Find Minerals, off "
+    .. "your buff bar. It still tracks, and you change it from the minimap's tracking menu."
+L.BUFFTIMERS_HIDE_NOTICE = "In combat, a tracking buff may show again." -- a gray row atop the module
+L.BUFFTIMERS_HIDE_NOTICE_DESC = "In combat the game may hide which buff is which from addons. A buff "
+    .. "gained or lost then shows the tracking buff until they can be read again."
 
 -- XPBarText
 L.XPBARTEXT_TITLE = "XP Bar Text"

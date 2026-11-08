@@ -1,12 +1,14 @@
 -- Buff Timers: the time left under your buff and debuff icons as a clock (1:23) instead of
 -- Blizzard's rounded "2 m". Blizzard's text keeps running underneath at no alpha and ours sits on
 -- top, so when a time can't be read (a secret value in combat) Blizzard's shows again as it was.
--- Sort Buffs moves Blizzard's buff buttons between the places Blizzard laid them out in.
+-- Sort Buffs moves Blizzard's buff buttons between the places Blizzard laid them out in, and Hide
+-- Tracking Buffs leaves minimap tracking out of them.
 local _, ns = ...
 
 local ipairs, pairs, type, setmetatable, floor = ipairs, pairs, type, setmetatable, math.floor
 local sort, huge = table.sort, math.huge
 local GetCVarBool = C_CVar and C_CVar.GetCVarBool or GetCVarBool
+local C_UnitAuras, C_Minimap = C_UnitAuras, C_Minimap
 
 local L = ns.L
 local readable = ns.IsReadable
@@ -17,6 +19,7 @@ local module = ns.NewModule("BuffTimers", L.BUFFTIMERS_DESC, {
     enabled = true,
     limit = "10m", -- "1m", "10m", "hour", or "all": which auras get a clock
     sort = "off", -- "off", "left", or "right": where the buff that runs out next sits
+    hideTracking = false, -- leave minimap tracking (Find Herbs) off the buff bar
 })
 module.title = L.BUFFTIMERS_TITLE
 module.category = "character"
@@ -29,6 +32,10 @@ module.notice = {
     {
         text = L.BUFFTIMERS_SORT_NOTICE, description = L.BUFFTIMERS_SORT_NOTICE_DESC,
         shown = function() return module.db.sort ~= "off" end,
+    },
+    {
+        text = L.BUFFTIMERS_HIDE_NOTICE, description = L.BUFFTIMERS_HIDE_NOTICE_DESC,
+        shown = function() return module.db.hideTracking end,
     },
 }
 
@@ -51,6 +58,10 @@ module.options = {
             { "left", L.BUFFTIMERS_SORT_LEFT },
             { "right", L.BUFFTIMERS_SORT_RIGHT },
         },
+    },
+    {
+        key = "hideTracking", name = L.BUFFTIMERS_HIDE_TRACKING, description = L.BUFFTIMERS_HIDE_TRACKING_DESC,
+        added = "1.3.0",
     },
 }
 
@@ -178,9 +189,63 @@ local function place(button, i, own)
     end
 end
 
--- Every button back in Blizzard's place.
+-- Hide Tracking Buffs. A hidden button goes to no alpha with its mouse off, so it can't be
+-- right-clicked away unseen, and the buttons after it close up the gap through `place`.
+local hidden = setmetatable({}, weak) -- button -> true while we hide it
+
+-- Every time: Blizzard's UpdateExpirationTime sets a buff that never runs out back to full alpha
+-- on each update (Blizzard_BuffFrame/BuffFrame.lua, `forever` branch).
+local function hide(button)
+    hidden[button] = true
+    button:SetAlpha(0)
+    button:EnableMouse(false)
+end
+
+local function unhide(button)
+    if hidden[button] then
+        hidden[button] = nil
+        button:SetAlpha(1)
+        button:EnableMouse(true)
+    end
+end
+
+-- The minimap's tracking spells (Find Herbs, Find Minerals, a hunter's tracks), read when turned on
+-- and as spells are learned. GetTrackingInfo has no secret values.
+local trackingSpells = {}
+
+local function readTracking()
+    trackingSpells = {}
+    for i = 1, C_Minimap and C_Minimap.GetNumTrackingTypes and C_Minimap.GetNumTrackingTypes() or 0 do
+        local info = C_Minimap.GetTrackingInfo(i)
+        local spellID = type(info) == "table" and info.spellID
+        if spellID and spellID > 0 then
+            trackingSpells[spellID] = true
+        end
+    end
+end
+
+-- Whether a buff button shows a tracking spell, or nil when the game won't say (a secret, in
+-- combat). Blizzard's button keeps the aura's instance, not its spell, so the spell is looked up.
+local function isTracking(button)
+    local id = button.buttonInfo and button.buttonInfo.auraInstanceID
+    if not id then
+        return false -- a weapon enchant
+    end
+    if not readable(id) or not C_UnitAuras.GetAuraDataByAuraInstanceID then
+        return nil
+    end
+    local aura = C_UnitAuras.GetAuraDataByAuraInstanceID("player", id)
+    local spellID = aura and aura.spellId
+    if not readable(spellID) then
+        return nil
+    end
+    return spellID and trackingSpells[spellID] or false
+end
+
+-- Every button back in Blizzard's place, and shown.
 local function unsort()
     for i, button in ipairs(BuffFrame and BuffFrame.auraFrames or {}) do
+        unhide(button)
         place(button, i, i)
     end
 end
@@ -197,33 +262,57 @@ local function endsAt(info)
     return expires
 end
 
-local function sortBuffs()
+-- Lays out the buff buttons: sorted with Sort Buffs, and without tracking buffs with Hide Tracking
+-- Buffs, in the places Blizzard laid them out, the shown ones from slot 1 and the hidden after.
+local function layout()
     local frames = BuffFrame and BuffFrame.auraFrames
     local container = BuffFrame and BuffFrame.AuraContainer
     local side = module.db.sort
-    if not (frames and container) or side == "off" then
+    local sorting, hiding = side ~= "off", module.db.hideTracking
+    if not (frames and container) or not (sorting or hiding) then
         unsort()
         return
     end
     -- Blizzard's shown buttons come first, in its order; Edit Mode's examples stay as they are.
-    local list, ends, order = {}, {}, {}
+    local all, ends, order, tracked = {}, {}, {}, {}
     for i, button in ipairs(frames) do
         if not button.hasValidInfo or button.isExample then
             break
         end
-        local at = button.buttonInfo and endsAt(button.buttonInfo)
-        if not at then
-            unsort() -- a secret time (in combat): Blizzard's order until it can be read
-            return
+        all[i], order[button] = button, i
+        if sorting then
+            ends[button] = button.buttonInfo and endsAt(button.buttonInfo)
+            -- A secret time (in combat): Blizzard's order until it can be read.
+            sorting = ends[button] ~= nil
         end
-        list[i], ends[button], order[button] = button, at, i
+        if hiding then
+            tracked[button] = isTracking(button)
+            -- Which is which is secret (in combat): show them all until it can be read.
+            hiding = tracked[button] ~= nil
+        end
     end
-    sort(list, function(a, b)
-        if ends[a] ~= ends[b] then
-            return ends[a] < ends[b]
+    if not (sorting or hiding) then
+        unsort()
+        return
+    end
+    local list, rest = {}, {}
+    for _, button in ipairs(all) do
+        if hiding and tracked[button] then
+            rest[#rest + 1] = button
+            hide(button)
+        else
+            list[#list + 1] = button
+            unhide(button)
         end
-        return order[a] < order[b]
-    end)
+    end
+    if sorting then
+        sort(list, function(a, b)
+            if ends[a] ~= ends[b] then
+                return ends[a] < ends[b]
+            end
+            return order[a] < order[b]
+        end)
+    end
     -- Slot 1 is the corner the buffs grow from: the right end unless Edit Mode's Icon Direction
     -- says right, and the top of a vertical bar unless it says up.
     local leftFirst
@@ -233,19 +322,29 @@ local function sortBuffs()
         leftFirst = not container.addIconsToTop
     end
     local n = #list
-    local reverse = (side == "left") ~= leftFirst
+    local reverse = sorting and (side == "left") ~= leftFirst
     for k, button in ipairs(list) do
         place(button, reverse and n + 1 - k or k, order[button])
     end
-    for i = n + 1, #frames do
+    for k, button in ipairs(rest) do
+        place(button, n + k, order[button])
+    end
+    for i = #all + 1, #frames do
+        unhide(frames[i])
         place(frames[i], i, i)
     end
 end
 
+local function onSpellsChanged()
+    readTracking()
+    layout()
+end
+module:OnWhile("hideTracking", { SPELLS_CHANGED = onSpellsChanged })
+
 -- Blizzard just put every button back in its own place, maybe new ones (Edit Mode's settings).
 local function afterGridLayout()
     readSlots()
-    sortBuffs()
+    layout()
 end
 
 function module:OnEnable()
@@ -261,15 +360,19 @@ function module:OnEnable()
     self:Hook(DebuffFrame, "UpdateAuraButtons", afterAuraButtons)
     if BuffFrame and BuffFrame.auraFrames and BuffFrame.AuraContainer then
         self:Hook(BuffFrame.AuraContainer, "UpdateGridLayout", afterGridLayout)
-        self:Hook(BuffFrame, "UpdateAuraButtons", sortBuffs)
+        self:Hook(BuffFrame, "UpdateAuraButtons", layout)
         readSlots() -- off until now, so every button is where Blizzard put it
-        sortBuffs()
+        readTracking()
+        layout()
     end
 end
 
 function module:OnOptionChanged(key)
-    if key == "sort" then
-        sortBuffs()
+    if key == "hideTracking" then
+        readTracking()
+    end
+    if key == "sort" or key == "hideTracking" then
+        layout()
     end
 end
 
