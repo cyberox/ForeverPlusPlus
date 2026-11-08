@@ -202,6 +202,16 @@ local function refreshThread()
             or L.AGENTCHAT_AGENT)) or item.role
         messages:AddMessage(" ")
         messages:AddMessage(plain(who), unpack(you and YOU or AGENT))
+        -- The game can't show them, so say they're there (the program guesses from T3's folder).
+        local images, files = tonumber(item.images) or 0, tonumber(item.files) or 0
+        if images > 0 then
+            messages:AddMessage(images == 1 and L.AGENTCHAT_IMAGE or format(L.AGENTCHAT_IMAGES, images),
+                NOTE[1], NOTE[2], NOTE[3])
+        end
+        if files > 0 then
+            messages:AddMessage(files == 1 and L.AGENTCHAT_FILE or format(L.AGENTCHAT_FILES, files),
+                NOTE[1], NOTE[2], NOTE[3])
+        end
         addMarkdown(messages, item.text, TEXT)
         if item.cut then
             messages:AddMessage(L.AGENTCHAT_CUT, NOTE[1], NOTE[2], NOTE[3])

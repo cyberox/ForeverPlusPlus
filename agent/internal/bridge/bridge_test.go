@@ -91,6 +91,7 @@ func setup(t *testing.T) (*Bridge, *fakeT3, func(slot int) string) {
 	b := New(in, in.Data, "test")
 	b.Log = t.Logf
 	b.Dial = func(context.Context) (Caller, error) { return fake, nil }
+	b.Attachments = t.TempDir()
 	read := func(slot int) string {
 		data, _ := os.ReadFile(filepath.Join(in.SlotDir(slot), "Data.lua"))
 		return string(data)
@@ -260,6 +261,30 @@ func TestPingWithoutWindow(t *testing.T) {
 		if call == "t3_thread_read" || call == "t3_queue" {
 			t.Errorf("read a thread with the window closed: %v", fake.calls)
 		}
+	}
+}
+
+func TestAttachments(t *testing.T) {
+	b, fake, read := setup(t)
+	ctx := context.Background()
+	sent := time.Date(2026, 11, 8, 15, 59, 16, 0, time.UTC)
+	fake.items[0]["updatedAt"] = sent.Format(time.RFC3339Nano)
+	file := func(name string, saved time.Time) {
+		path := filepath.Join(b.Attachments, name)
+		os.WriteFile(path, []byte("x"), 0o644)
+		os.Chtimes(path, saved, saved)
+	}
+	file("t1-a.png", sent.Add(-7*time.Second))     // pasted just before: this message's
+	file("t1-b-html.html", sent.Add(-time.Minute)) // pasted text
+	file("t1-c.png", sent.Add(-time.Hour))         // too long before: an older message's
+	file("t1-d.png", sent.Add(time.Second))        // after it: a later message's
+	file("t2-e.png", sent.Add(-time.Second))       // another thread's
+
+	b.Handle(ctx, "c", []byte("H|s1"))
+	b.Handle(ctx, "c", []byte("O|s1|0|0"))
+	b.Handle(ctx, "c", []byte("V|s1|1|1"))
+	if got := read(0); !strings.Contains(got, `files=1,images=1,pos=0`) || !strings.Contains(got, `files=0,images=0,pos=3`) {
+		t.Fatalf("attachments not counted:\n%s", got)
 	}
 }
 

@@ -21,11 +21,12 @@ func TestLuaString(t *testing.T) {
 }
 
 func TestGameTextDropsEmoji(t *testing.T) {
+	r := func(code rune) string { return string(code) }
 	cases := map[string]string{
-		"Hello! \U0001F44B Everything's fine": "Hello! Everything's fine",
-		"Done ✅":                         "Done ",
-		"\U0001F468‍\U0001F4BB code":     "code",
-		"café — a | b":              "café — a | b",
+		"Hello! " + r(0x1F44B) + " Everything's fine": "Hello! Everything's fine", // waving hand
+		"Done " + r(0x2705):                           "Done ",                    // check mark button
+		r(0x1F468) + r(0x200D) + r(0x1F4BB) + " code": "code",                     // man, joiner, laptop
+		"caf" + r(0xE9) + " " + r(0x2014) + " a | b":  "caf" + r(0xE9) + " " + r(0x2014) + " a | b",
 	}
 	for in, want := range cases {
 		if got := GameText(in); got != want {

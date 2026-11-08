@@ -20,6 +20,9 @@ import (
 	"fmt"
 	"hash/fnv"
 	"log"
+	"os"
+	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -50,6 +53,9 @@ type Bridge struct {
 	// Dial connects to T3; by default with the saved sign-in. Tests give a fake.
 	Dial   func(ctx context.Context) (Caller, error)
 	client Caller
+
+	// Attachments is the folder T3 Code keeps what's pasted into a message in, "" for none.
+	Attachments string
 
 	session string
 	inbox   *inbox
@@ -91,6 +97,9 @@ type item struct {
 	Text      string
 	Status    string
 	Truncated bool
+	Time      time.Time
+	Images    int // attached to it, as attachments() matched them
+	Files     int
 }
 
 type thread struct {
@@ -102,8 +111,12 @@ type thread struct {
 
 // New returns a Bridge for an install.
 func New(in wow.Install, data, version string) *Bridge {
+	attachments := ""
+	if home, err := os.UserHomeDir(); err == nil {
+		attachments = filepath.Join(home, ".t3", "userdata", "attachments")
+	}
 	return &Bridge{
-		In: in, Data: data, Version: version, Log: log.Printf,
+		In: in, Data: data, Version: version, Log: log.Printf, Attachments: attachments,
 		handles: map[string]int{}, delivered: map[string]map[int]string{},
 		threads: map[string]*thread{}, projects: map[string]string{},
 	}
@@ -477,11 +490,12 @@ func (b *Bridge) threadNews(ctx context.Context, id string) ([]map[string]any, i
 			HasMore      bool `json:"hasMore"`
 			NextPosition *int `json:"nextPosition"`
 			Items        []struct {
-				Position      int    `json:"position"`
-				Type          string `json:"type"`
-				Text          string `json:"text"`
-				Status        string `json:"status"`
-				TextTruncated bool   `json:"textTruncated"`
+				Position      int       `json:"position"`
+				Type          string    `json:"type"`
+				Text          string    `json:"text"`
+				Status        string    `json:"status"`
+				TextTruncated bool      `json:"textTruncated"`
+				UpdatedAt     time.Time `json:"updatedAt"`
 			} `json:"items"`
 			Thread *struct {
 				ActiveRunID *string `json:"activeRunId"`
@@ -501,7 +515,7 @@ func (b *Bridge) threadNews(ctx context.Context, id string) ([]map[string]any, i
 				t.order = append(t.order, it.Position)
 			}
 			t.items[it.Position] = &item{Pos: it.Position, Role: role(it.Type), Text: it.Text,
-				Status: it.Status, Truncated: it.TextTruncated}
+				Status: it.Status, Truncated: it.TextTruncated, Time: it.UpdatedAt}
 		}
 		if !res.HasMore || res.NextPosition == nil || len(res.Items) == 0 {
 			break
@@ -509,6 +523,7 @@ func (b *Bridge) threadNews(ctx context.Context, id string) ([]map[string]any, i
 		after = *res.NextPosition
 	}
 	t.read = true
+	b.attachments(id, t)
 
 	seen := b.delivered[id]
 	start := 0
@@ -519,12 +534,12 @@ func (b *Bridge) threadNews(ctx context.Context, id string) ([]map[string]any, i
 	versions := map[int]string{}
 	for _, pos := range t.order[start:] {
 		it := t.items[pos]
-		v := fmt.Sprintf("%s|%d|%v", it.Status, len(it.Text), it.Truncated)
+		v := fmt.Sprintf("%s|%d|%v|%d|%d", it.Status, len(it.Text), it.Truncated, it.Images, it.Files)
 		if seen != nil && seen[pos] == v {
 			continue
 		}
 		out = append(out, map[string]any{"pos": it.Pos, "role": it.Role, "text": it.Text,
-			"status": it.Status, "cut": it.Truncated})
+			"status": it.Status, "cut": it.Truncated, "images": it.Images, "files": it.Files})
 		versions[pos] = v
 	}
 	older := 0
@@ -532,6 +547,47 @@ func (b *Bridge) threadNews(ctx context.Context, id string) ([]map[string]any, i
 		older = start
 	}
 	return out, older, versions, nil
+}
+
+// attachWindow is how long before a message what's pasted into it can be saved.
+const attachWindow = 10 * time.Minute
+
+var imageExt = map[string]bool{".png": true, ".jpg": true, ".jpeg": true, ".gif": true, ".webp": true}
+
+// attachments counts what's attached to each of the player's messages. T3's MCP tools don't say,
+// but T3 saves each attachment as <thread id>-<attachment id>.<ext> in its attachments folder the
+// moment it's pasted, a few seconds before the message is sent: so each file goes to the first of
+// the player's messages sent after it, within attachWindow. Nothing when T3 runs on another
+// machine.
+func (b *Bridge) attachments(id string, t *thread) {
+	var users []*item
+	for _, pos := range t.order {
+		if it := t.items[pos]; it.Role == "user" && !it.Time.IsZero() {
+			it.Images, it.Files = 0, 0
+			users = append(users, it)
+		}
+	}
+	if b.Attachments == "" || len(users) == 0 {
+		return
+	}
+	files, _ := filepath.Glob(filepath.Join(b.Attachments, id+"-*"))
+	sort.Slice(users, func(i, j int) bool { return users[i].Time.Before(users[j].Time) })
+	for _, f := range files {
+		info, err := os.Stat(f)
+		if err != nil || info.IsDir() {
+			continue
+		}
+		saved := info.ModTime()
+		n := sort.Search(len(users), func(i int) bool { return !users[i].Time.Before(saved) })
+		if n == len(users) || users[n].Time.Sub(saved) > attachWindow {
+			continue
+		}
+		if imageExt[strings.ToLower(filepath.Ext(f))] {
+			users[n].Images++
+		} else {
+			users[n].Files++
+		}
+	}
 }
 
 func role(kind string) string {
