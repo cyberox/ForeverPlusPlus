@@ -57,6 +57,10 @@ type Bridge struct {
 	// Attachments is the folder T3 Code keeps what's pasted into a message in, "" for none.
 	Attachments string
 
+	expires     time.Time // when the T3 sign-in runs out, zero if it doesn't say
+	sentExpires time.Time // as last sent this session
+	expiresRead time.Time // when the saved sign-in was last read for it
+
 	session string
 	inbox   *inbox
 	view    int  // handle of the thread shown, 0 for none
@@ -232,6 +236,7 @@ func (b *Bridge) start(session string, clear bool) {
 	b.delivered = map[string]map[int]string{}
 	b.sentQueue = map[string]string{}
 	b.sentAsks = map[string]string{}
+	b.sentExpires = time.Time{}
 	b.pongs, b.acks = nil, nil
 	// Signals the game hasn't found yet should read as missing; ones it has found read as there
 	// to it anyway, so clearing is safe even mid-session. Slots are cleared only at a hello: one
@@ -322,6 +327,16 @@ func (b *Bridge) Poll(ctx context.Context, force bool) {
 	if b.note != b.sentNote {
 		payload["note"], news = b.note, true
 	}
+	// A new sign-in (forever-agent login) is used once the old one fails, but its date counts now.
+	if b.Dial == nil && time.Since(b.expiresRead) >= time.Minute {
+		b.expiresRead = time.Now()
+		if tok, err := t3.LoadToken(b.Data); err == nil {
+			b.expires = tok.ExpiresAt
+		}
+	}
+	if !b.expires.IsZero() && !b.expires.Equal(b.sentExpires) {
+		payload["expires"], news = b.expires.Unix(), true // the game warns as it nears
+	}
 	if !news && !force {
 		return
 	}
@@ -352,6 +367,9 @@ func (b *Bridge) Poll(ctx context.Context, force bool) {
 		}
 	}
 	b.sentNote = b.note
+	if _, ok := payload["expires"]; ok {
+		b.sentExpires = b.expires
+	}
 	if queueSig != "" {
 		b.sentQueue[threadID] = queueSig
 	}
@@ -402,6 +420,7 @@ func (b *Bridge) connect(ctx context.Context) error {
 			if err != nil {
 				return nil, t3.ErrSignIn
 			}
+			b.expires = tok.ExpiresAt // T3 gives no refresh token: the player signs in again
 			return t3.Connect(ctx, tok, b.Version)
 		}
 	}

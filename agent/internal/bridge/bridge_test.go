@@ -392,6 +392,23 @@ func TestQuestions(t *testing.T) {
 	}
 }
 
+func TestSignInExpiry(t *testing.T) {
+	b, _, read := setup(t)
+	ctx := context.Background()
+	b.expires = time.Date(2026, 12, 8, 16, 59, 0, 0, time.UTC)
+	b.Handle(ctx, "c", []byte("H|s1"))
+	b.Handle(ctx, "c", []byte("O|s1|0|0"))
+	b.Handle(ctx, "c", []byte("P|s1|1|x"))
+	if !strings.Contains(read(0), "expires = 1796749140") {
+		t.Fatalf("no expiry:\n%s", read(0))
+	}
+	b.Handle(ctx, "c", []byte("O|s1|1|1"))
+	b.Handle(ctx, "c", []byte("P|s1|2|y"))
+	if strings.Contains(read(1), "expires") {
+		t.Fatalf("the expiry went twice:\n%s", read(1))
+	}
+}
+
 func TestProgramStartedLate(t *testing.T) {
 	b, _, read := setup(t)
 	ctx := context.Background()

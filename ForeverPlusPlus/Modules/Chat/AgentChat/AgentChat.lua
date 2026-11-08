@@ -23,7 +23,7 @@ local _, ns = ...
 
 local _G, ipairs, pairs, format, type, tostring, tonumber, floor, random, wipe, min = _G, ipairs, pairs,
     format, type, tostring, tonumber, math.floor, math.random, wipe, math.min
-local tremove = table.remove
+local tremove, time = table.remove, time
 local C_AddOns, UnitGUID, GetTimePreciseSec, PlaySoundFile, StopSound, PlaySound =
     C_AddOns, UnitGUID, GetTimePreciseSec, PlaySoundFile, StopSound, PlaySound
 
@@ -264,6 +264,31 @@ local function applyThread(update)
     return update.id
 end
 
+-- T3 gives the program no way to renew its sign-in, so the player signs in again: say so as it
+-- nears, in the window from WINDOW_WARN_DAYS out, and once a session in chat from CHAT_WARN_DAYS.
+local WINDOW_WARN_DAYS, CHAT_WARN_DAYS = 5, 3
+local expiryWarned = false
+
+---What to say about the T3 sign-in running out within `days`, or nil.
+---@param days number?
+---@return string?
+function internal.ExpiryWarning(days)
+    local expires = tonumber(internal.expires)
+    if not expires or expires <= 0 then
+        return nil
+    end
+    local left = expires - time()
+    if left > (days or WINDOW_WARN_DAYS) * 86400 then
+        return nil
+    elseif left <= 0 then
+        return L.AGENTCHAT_EXPIRED
+    elseif left < 86400 then
+        return L.AGENTCHAT_EXPIRES_TODAY
+    end
+    local whole = floor(left / 86400)
+    return whole == 1 and L.AGENTCHAT_EXPIRES_DAY or format(L.AGENTCHAT_EXPIRES_DAYS, whole)
+end
+
 -- What the program sent.
 local function receive(inbox, now)
     if type(inbox) ~= "table" or inbox.session ~= session then
@@ -272,6 +297,15 @@ local function receive(inbox, now)
     internal.heard = true
     if inbox.note ~= nil then
         internal.note = inbox.note ~= "" and inbox.note or nil
+        refresh("status")
+    end
+    if type(inbox.expires) == "number" then
+        internal.expires = inbox.expires
+        local warning = internal.ExpiryWarning(CHAT_WARN_DAYS)
+        if warning and not expiryWarned then
+            expiryWarned = true
+            module:Print(warning)
+        end
         refresh("status")
     end
     if type(inbox.threads) == "table" then

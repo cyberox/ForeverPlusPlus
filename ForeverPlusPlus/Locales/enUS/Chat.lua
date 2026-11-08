@@ -72,6 +72,10 @@ L.AGENTCHAT_CANCEL = "Remove"
 L.AGENTCHAT_CANCEL_TIP = "Take it out of the queue."
 L.AGENTCHAT_STOP = "Stop"
 L.AGENTCHAT_STOP_TIP = "Stop the turn the agent is running."
+L.AGENTCHAT_EXPIRES_DAYS = "Your T3 sign-in runs out in %d days. Run forever-agent login again." -- days
+L.AGENTCHAT_EXPIRES_DAY = "Your T3 sign-in runs out tomorrow. Run forever-agent login again."
+L.AGENTCHAT_EXPIRES_TODAY = "Your T3 sign-in runs out today. Run forever-agent login again."
+L.AGENTCHAT_EXPIRED = "Your T3 sign-in ran out. Run forever-agent login again."
 L.AGENTCHAT_OUT_OF_SLOTS ="Updates are used up for this session. Type /reload to keep it updating."
 
 -- ChatCopy

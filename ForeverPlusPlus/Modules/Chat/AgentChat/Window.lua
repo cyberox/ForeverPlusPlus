@@ -623,6 +623,8 @@ local function refreshStatus()
         text, color = plain(internal.note), { 1, 0.3, 0.3 }
     elseif not internal.heard then
         text = L.AGENTCHAT_WAITING
+    elseif internal.ExpiryWarning() then
+        text, color = internal.ExpiryWarning(), { 1, 0.82, 0 }
     end
     window.status:SetText(text)
     window.status:SetTextColor(color[1], color[2], color[3])
