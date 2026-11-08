@@ -659,9 +659,20 @@ local function refreshThread()
     local agent = agentName(thread.model)
     local showSteps = module.db.steps
     local last
+    -- Spacing inside a turn: a blank line between two messages, and between a message and a run
+    -- of steps either way; a run of steps stays together. `drawn` is what was drawn last under
+    -- the name: nil (just the name), "text", or "steps".
+    local drawn
+    local function gapBefore(kind)
+        if drawn == "text" or (kind == "text" and drawn == "steps") then
+            messages:AddMessage(" ")
+        end
+        drawn = kind
+    end
     local stepText, stepCount = nil, 0
     local function flushSteps()
         if stepText then
+            gapBefore("steps")
             addStep(messages, stepCount > 1 and format(L.AGENTCHAT_STEP_TIMES, stepText, stepCount) or stepText)
         end
         stepText, stepCount = nil, 0
@@ -673,7 +684,7 @@ local function refreshThread()
                 if last ~= "assistant" then
                     flushSteps()
                     speaker(messages, agent, AGENT, item.at)
-                    last = "assistant"
+                    last, drawn = "assistant", nil
                 end
                 local text = stepLine(item)
                 if text == stepText then
@@ -689,8 +700,9 @@ local function refreshThread()
             if item.role ~= last then
                 local name = you and L.AGENTCHAT_YOU or (item.role == "assistant" and agent) or item.role
                 speaker(messages, name, you and YOU or AGENT, item.at)
-                last = item.role
+                last, drawn = item.role, nil
             end
+            gapBefore("text")
             -- The game can't show them, so say they're there (the program guesses from T3's folder).
             local images, files = tonumber(item.images) or 0, tonumber(item.files) or 0
             if images > 0 then
