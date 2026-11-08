@@ -54,7 +54,8 @@ func (f *fakeT3) Call(_ context.Context, name string, args any) (json.RawMessage
 			active = f.active
 		}
 		return json.Marshal(map[string]any{"hasMore": false, "items": out,
-			"thread": map[string]any{"activeRunId": active, "pendingRequestCount": f.pending}})
+			"thread":     map[string]any{"activeRunId": active, "pendingRequestCount": f.pending},
+			"recentRuns": []map[string]any{{"runId": f.active, "startedAt": "2026-11-08T16:00:00Z"}}})
 	case "t3_pending_request":
 		a := args.(map[string]any)
 		switch a["action"] {
@@ -322,8 +323,31 @@ func TestAttachments(t *testing.T) {
 	b.Handle(ctx, "c", []byte("H|s1"))
 	b.Handle(ctx, "c", []byte("O|s1|0|0"))
 	b.Handle(ctx, "c", []byte("V|s1|1|1"))
-	if got := read(0); !strings.Contains(got, `files=1,images=1,pos=0`) || !strings.Contains(got, `files=0,images=0,pos=3`) {
+	if got := read(0); !strings.Contains(got, `files=1,final=false,images=1,pos=0`) ||
+		!strings.Contains(got, `files=0,final=true,images=0,pos=3`) {
 		t.Fatalf("attachments not counted:\n%s", got)
+	}
+}
+
+func TestFinalAnswerAndStart(t *testing.T) {
+	b, fake, read := setup(t)
+	ctx := context.Background()
+	fake.active = "run:1"
+	fake.items[1]["runId"] = "run:1"
+	b.Handle(ctx, "c", []byte("H|s1"))
+	b.Handle(ctx, "c", []byte("O|s1|0|0"))
+	b.Handle(ctx, "c", []byte("V|s1|1|1"))
+	if got := read(0); !strings.Contains(got, `final=true,images=0,pos=3`) || !strings.Contains(got, "started=1794153600") {
+		t.Fatalf("the only answer isn't final, or no start:\n%s", got)
+	}
+	// A later message in the same turn: the earlier one becomes a progress note.
+	later := msg(5, "assistant_message", "done", "completed")
+	later["runId"] = "run:1"
+	fake.items = append(fake.items, later)
+	b.Handle(ctx, "c", []byte("O|s1|1|1"))
+	b.Poll(ctx, true)
+	if got := read(1); !strings.Contains(got, `final=false,images=0,pos=3`) || !strings.Contains(got, `final=true,images=0,pos=5`) {
+		t.Fatalf("finals not moved:\n%s", got)
 	}
 }
 

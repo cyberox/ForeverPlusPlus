@@ -1,12 +1,14 @@
--- Agent Chat's window, drawn like Whisper Window's: your T3 Code threads on the left, newest first,
--- and the one picked on the right, as a chat. It can be dragged and resized, and remembers where.
--- AgentChat.lua keeps what it shows and calls internal.Refresh when that changes.
+-- Agent Chat's window, drawn like Whisper Window's: your T3 Code threads on the left, those that
+-- need you or are working first, and the one picked on the right, as a chat. It can be dragged and
+-- resized, and remembers where. AgentChat.lua keeps what it shows and calls internal.Refresh when
+-- that changes.
 local _, ns = ...
 
-local ipairs, format, time, type, pcall, tostring, tonumber, select, unpack = ipairs, string.format, time,
-    type, pcall, tostring, tonumber, select, unpack
-local max, min, abs = math.max, math.min, math.abs
-local CreateFrame, UIParent, GameTooltip = CreateFrame, UIParent, GameTooltip
+local ipairs, format, time, date, type, pcall, tostring, tonumber, select = ipairs, string.format,
+    time, date, type, pcall, tostring, tonumber, select
+local max, min, abs, floor = math.max, math.min, math.abs, math.floor
+local CreateFrame, UIParent, GameTooltip, C_Timer, IsShiftKeyDown = CreateFrame, UIParent, GameTooltip, C_Timer,
+    IsShiftKeyDown
 
 local L = ns.L
 local Frames, Colors = ns.Frames, ns.Colors
@@ -15,18 +17,22 @@ local internal = module.internal
 
 local WINDOW_NAME = "ForeverPlusPlusAgentChat" -- named so Escape closes it
 local WIDTH, HEIGHT = 760, 460
-local MIN_WIDTH, MIN_HEIGHT, MAX_WIDTH, MAX_HEIGHT = 560, 300, 1400, 1000
+local MIN_WIDTH, MIN_HEIGHT, MAX_WIDTH, MAX_HEIGHT = 560, 320, 1400, 1000
 local LIST_WIDTH = 230
-local ROW_HEIGHT = 38
+local ROW_HEIGHT, GROUP_HEIGHT = 36, 18
 local MAX_LINES = 6000
 local MAX_SEND = 4000 -- characters in one message: about 15 seconds to send, at 28 bytes a frame
+local DAY = 24 * 60 * 60 -- the Active tab shows threads changed this recently
+local REPLY_MIN, REPLY_MAX = 40, 74 -- the reply box's height: two lines, growing to four
 
 -- Colors: what you wrote in gold like the game's own headings, the agent in the light blue of
--- Blizzard's whisper you sent, and notes in gray.
+-- Blizzard's whisper you sent, its progress notes dimmed, and notes in gray.
 local YOU = { 1, 0.82, 0 }
 local AGENT = { 0.55, 0.78, 1 }
 local TEXT = { 0.92, 0.92, 0.92 }
+local PROGRESS = { 0.62, 0.61, 0.58 }
 local NOTE = { 0.6, 0.6, 0.6 }
+local GRAY = "|cff808080"
 
 local window
 
@@ -44,19 +50,9 @@ local function byId(id)
     end
 end
 
--- A thread's state in a word, in its color: working, needs you, failed, or when it last changed.
-local WORKING = { running = true, starting = true, preparing = true, queued = true }
-local function statusText(thread)
-    local status = thread.status
-    if WORKING[status] then
-        return Colors.Code(0.25, 1, 0.25) .. L.AGENTCHAT_WORKING .. "|r"
-    elseif status == "waiting" then
-        return Colors.Code(1, 0.82, 0) .. L.AGENTCHAT_NEEDS_YOU .. "|r"
-    elseif status == "failed" then
-        return Colors.Code(1, 0.3, 0.3) .. L.AGENTCHAT_FAILED .. "|r"
-    end
-    local updated = tonumber(thread.updated)
-    return updated and updated > 0 and ns.Text.Ago(max(0, time() - updated)) or ""
+-- Text as the game should show it as is: no escape codes from it, no carriage returns.
+local function plain(text)
+    return (tostring(text or ""):gsub("\r", ""):gsub("|", "||"))
 end
 
 local function joinNonEmpty(...)
@@ -67,29 +63,195 @@ local function joinNonEmpty(...)
             parts[#parts + 1] = part
         end
     end
-    return table.concat(parts, "  |cff808080\194\183|r  ") -- a gray middle dot
+    return table.concat(parts, "  " .. GRAY .. "\194\183|r  ") -- a gray middle dot
 end
 
--- Text as the game should show it as is: no escape codes from it, no carriage returns.
-local function plain(text)
-    return (tostring(text or ""):gsub("\r", ""):gsub("|", "||"))
+-- What threads are doing, and how that reads ----------------------------------------------------------
+
+local WORKING = { running = true, starting = true, preparing = true, queued = true }
+
+local function stateOf(thread)
+    if WORKING[thread.status] then
+        return "working"
+    elseif thread.status == "waiting" then
+        return "waiting"
+    elseif thread.status == "failed" then
+        return "failed"
+    end
+    return internal.IsUnread(thread) and "unread" or "idle"
+end
+
+-- "claude-opus-5-5" as "Claude Opus 5.5": words capitalized, and numbers in a row as one version.
+local UPPER = { gpt = "GPT" }
+local function modelName(model)
+    model = tostring(model or "")
+    local words, version = {}, nil
+    for word in model:gmatch("[^%-_ ]+") do
+        if word:match("^%d%d%d%d%d%d%d%d$") then -- a release date ("20250929"): left out
+            version = nil
+        elseif word:match("^%d+$") and version then
+            version = version .. "." .. word
+            words[#words] = version
+        else
+            local nice = UPPER[word:lower()] or (word:sub(1, 1):upper() .. word:sub(2))
+            words[#words + 1] = nice
+            version = word:match("^%d[%d%.]*$") and nice or nil
+        end
+    end
+    return #words > 0 and table.concat(words, " ") or model
+end
+
+-- Who answers in a thread, by the name people know it by.
+local PROVIDERS = { { "^claude", "Claude" }, { "^gpt", "Codex" }, { "codex", "Codex" }, { "^o%d", "Codex" },
+    { "^gemini", "Gemini" } }
+local function agentName(model)
+    local lower = tostring(model or ""):lower()
+    for _, provider in ipairs(PROVIDERS) do
+        if lower:match(provider[1]) then
+            return provider[2]
+        end
+    end
+    return lower ~= "" and modelName(model) or L.AGENTCHAT_AGENT
+end
+
+local MODES = {
+    ["full-access"] = L.AGENTCHAT_MODE_FULL,
+    auto = L.AGENTCHAT_MODE_AUTO,
+    ["auto-accept-edits"] = L.AGENTCHAT_MODE_EDITS,
+    ["approval-required"] = L.AGENTCHAT_MODE_ASK,
+}
+
+local function ago(thread)
+    local updated = tonumber(thread.updated)
+    return updated and updated > 0 and ns.Text.Ago(max(0, time() - updated)) or ""
+end
+
+-- A time of day as the game's clock shows it (12 or 24 hours, by its setting).
+local function clock(at)
+    at = tonumber(at)
+    if not at or at <= 0 then
+        return ""
+    end
+    if GameTime_GetFormattedTime then
+        local ok, text = pcall(GameTime_GetFormattedTime, tonumber(date("%H", at)), tonumber(date("%M", at)), true)
+        if ok and type(text) == "string" then
+            return text
+        end
+    end
+    return date("%H:%M", at)
+end
+
+-- "2m 10s"
+local function duration(seconds)
+    seconds = max(0, floor(seconds))
+    if seconds < 60 then
+        return format(L.AGENTCHAT_SECONDS, seconds)
+    elseif seconds < 3600 then
+        return format(L.AGENTCHAT_MINUTES, floor(seconds / 60), seconds % 60)
+    end
+    return format(L.AGENTCHAT_HOURS, floor(seconds / 3600), floor(seconds % 3600 / 60))
+end
+
+-- The thread's state in a word, for the conversation's heading: not while working, since the
+-- working line under the conversation says so.
+local function stateWord(thread)
+    local state = stateOf(thread)
+    if state == "waiting" then
+        return Colors.Code(1, 0.82, 0) .. L.AGENTCHAT_NEEDS_YOU .. "|r"
+    elseif state == "failed" then
+        return Colors.Code(1, 0.3, 0.3) .. L.AGENTCHAT_FAILED .. "|r"
+    end
+    return ""
+end
+
+-- Icons ------------------------------------------------------------------------------------------------
+-- Blizzard's own art: a quest giver's "!" for needs you, the loading spinner for working, the red X
+-- for failed, and a round blue dot (the whisper blue) for unread. Probe: atlas names change, so each
+-- has a file to fall back on.
+
+local NEEDS_ATLAS = Frames.FirstAtlas("QuestNormal", "quest-icon-exclamation")
+local FAILED_ATLAS = Frames.FirstAtlas("common-icon-redx")
+local NEEDS_FILE = "Interface\\GossipFrame\\AvailableQuestIcon"
+local FAILED_FILE = "Interface\\Buttons\\UI-GroupLoot-Pass-Up"
+local ROUND_MASK = "Interface\\CHARACTERFRAME\\TempPortraitAlphaMask"
+
+local function newSpinner(parent, size)
+    local ok, spinner = pcall(CreateFrame, "Frame", nil, parent, "LoadingSpinnerTemplate")
+    if ok and spinner then
+        spinner:SetSize(size, size)
+        return spinner
+    end
+end
+
+-- An icon slot that shows one state at a time.
+local function newStateIcon(parent, size)
+    local icon = CreateFrame("Frame", nil, parent)
+    icon:SetSize(size, size)
+    icon.texture = icon:CreateTexture(nil, "ARTWORK")
+    icon.texture:SetAllPoints()
+    icon.dot = icon:CreateTexture(nil, "ARTWORK")
+    icon.dot:SetSize(size * 0.55, size * 0.55)
+    icon.dot:SetPoint("CENTER")
+    icon.dot:SetColorTexture(AGENT[1], AGENT[2], AGENT[3])
+    local mask = icon:CreateMaskTexture()
+    mask:SetTexture(ROUND_MASK, "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+    mask:SetAllPoints(icon.dot)
+    icon.dot:AddMaskTexture(mask)
+    icon.spinner = newSpinner(icon, size + 4)
+    if icon.spinner then
+        icon.spinner:SetPoint("CENTER")
+    else
+        -- No spinner on this client: a green dot instead.
+        icon.working = icon:CreateTexture(nil, "ARTWORK")
+        icon.working:SetAllPoints(icon.dot)
+        icon.working:SetColorTexture(0.25, 1, 0.25)
+        icon.working:AddMaskTexture(mask)
+    end
+    return icon
+end
+
+local function setStateIcon(icon, state)
+    icon.texture:Hide()
+    icon.dot:SetShown(state == "unread")
+    if icon.spinner then
+        icon.spinner:SetShown(state == "working")
+    else
+        icon.working:SetShown(state == "working")
+    end
+    if state == "waiting" or state == "failed" then
+        local atlas = state == "waiting" and NEEDS_ATLAS or FAILED_ATLAS
+        if atlas then
+            icon.texture:SetAtlas(atlas)
+        else
+            icon.texture:SetTexture(state == "waiting" and NEEDS_FILE or FAILED_FILE)
+        end
+        icon.texture:Show()
+    end
 end
 
 -- The list ------------------------------------------------------------------------------------------
 
+local TABS = { "active", "all" }
+local TAB_NAMES = { active = L.AGENTCHAT_TAB_ACTIVE, all = L.AGENTCHAT_TAB_ALL }
+
+local function tab()
+    local chosen = module.db.layout.tab
+    return TAB_NAMES[chosen] and chosen or "active"
+end
+
 local function buildRow(row)
     row.selected = Frames.RowTexture(row, "BACKGROUND", "Options_List_Active", 1, 0.82, 0, 0.15)
     row:SetHighlightTexture(Frames.RowTexture(row, "HIGHLIGHT", "Options_List_Hover", 1, 1, 1, 0.08))
-    row.info = row:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    row.info:SetPoint("TOPRIGHT", -6, -6)
+    row.icon = newStateIcon(row, 14)
+    row.icon:SetPoint("TOPLEFT", 6, -5)
     row.name = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    row.name:SetPoint("TOPLEFT", 8, -6)
-    row.name:SetPoint("RIGHT", row.info, "LEFT", -4, 0)
+    row.name:SetPoint("LEFT", row.icon, "RIGHT", 5, 0)
+    row.name:SetPoint("RIGHT", -6, 0)
     row.name:SetJustifyH("LEFT")
     row.name:SetWordWrap(false)
     row.preview = row:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    row.preview:SetPoint("BOTTOMLEFT", 8, 6)
-    row.preview:SetPoint("BOTTOMRIGHT", -6, 6)
+    row.preview:SetPoint("BOTTOMLEFT", 25, 5)
+    row.preview:SetPoint("BOTTOMRIGHT", -6, 5)
     row.preview:SetJustifyH("LEFT")
     row.preview:SetWordWrap(false)
     row:SetScript("OnClick", function(self)
@@ -97,20 +259,75 @@ local function buildRow(row)
     end)
 end
 
-local function initRow(row, thread)
+local function initRow(row, element)
     if not row.name then
         buildRow(row)
     end
+    local thread = element.thread
     row.thread = thread
+    local state = stateOf(thread)
+    setStateIcon(row.icon, state)
     row.name:SetText(plain(thread.title ~= "" and thread.title or L.AGENTCHAT_UNTITLED))
-    row.info:SetText(statusText(thread))
-    row.preview:SetText(joinNonEmpty(plain(thread.project), plain(thread.model)))
+    if state == "unread" then
+        row.name:SetTextColor(1, 1, 1)
+    else
+        row.name:SetTextColor(1, 0.82, 0)
+    end
+    row.preview:SetText(joinNonEmpty(plain(thread.project), ago(thread)))
     row.selected:SetShown(thread.id == internal.selected)
 end
 
+local function initGroup(frame, element)
+    if not frame.text then
+        frame.text = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+        frame.text:SetPoint("BOTTOMLEFT", 8, 3)
+    end
+    frame.text:SetText(element.group)
+end
+
+-- The list as the tab shows it: a heading and its threads for each group that has any.
+local function listElements()
+    local groups = { waiting = {}, working = {}, recent = {} } -- needs you, working, the rest
+    local active = tab() == "active"
+    local now = time()
+    for _, thread in ipairs(internal.threads) do
+        local state = stateOf(thread)
+        -- A failed thread is over, so it sits with the rest, marked.
+        local group = (state == "waiting" or state == "working") and state or "recent"
+        local recent = (tonumber(thread.updated) or 0) >= now - DAY
+        if not active or group ~= "recent" or state == "unread" or recent or thread.id == internal.selected then
+            local list = groups[group]
+            list[#list + 1] = { thread = thread }
+        end
+    end
+    local elements = {}
+    for _, group in ipairs({ { "waiting", L.AGENTCHAT_NEEDS_YOU }, { "working", L.AGENTCHAT_WORKING },
+        { "recent", L.AGENTCHAT_RECENT } }) do
+        local list = groups[group[1]]
+        if #list > 0 then
+            elements[#elements + 1] = { group = group[2] }
+            for _, element in ipairs(list) do
+                elements[#elements + 1] = element
+            end
+        end
+    end
+    return elements
+end
+
+local function refreshTabs()
+    for _, button in ipairs(window.tabs) do
+        local on = button.tab == tab()
+        button.selected:SetShown(on)
+        button.text:SetFontObject(on and "GameFontNormalSmall" or "GameFontDisableSmall")
+    end
+end
+
 local function refreshList()
-    window.scrollBox:SetDataProvider(CreateDataProvider(internal.threads), ScrollBoxConstants.RetainScrollPosition)
-    window.empty:SetShown(#internal.threads == 0 and internal.heard)
+    local elements = listElements()
+    window.scrollBox:SetDataProvider(CreateDataProvider(elements), ScrollBoxConstants.RetainScrollPosition)
+    window.empty:SetText(#internal.threads == 0 and L.AGENTCHAT_NO_THREADS or L.AGENTCHAT_NO_ACTIVE)
+    window.empty:SetShown(#elements == 0 and internal.heard)
+    refreshTabs()
 end
 
 -- The conversation ---------------------------------------------------------------------------------
@@ -122,11 +339,6 @@ local function addText(messages, text, color)
     end
 end
 
--- The queued messages under the conversation, each with Steer and a cancel X, and the reply box
--- and Stop for the thread shown.
-local MAX_QUEUE_ROWS = 4
-local QUEUE_ROW_HEIGHT = 22
-
 -- A message, read as Markdown.
 local function addMarkdown(messages, text, color)
     for _, line in ipairs(ns.Markdown.Lines(text)) do
@@ -134,11 +346,35 @@ local function addMarkdown(messages, text, color)
     end
 end
 
+-- The queued messages under the conversation, each with Steer and a cancel X, and the reply box
+-- and Stop for the thread shown.
+local MAX_QUEUE_ROWS = 4
+local QUEUE_ROW_HEIGHT = 22
+
+local function isWorking(thread)
+    local queue = thread and internal.queues[thread.id]
+    return (queue and queue.active) or (thread and WORKING[thread.status]) or false
+end
+
+-- "Working for 2m 10s" under the conversation while a turn runs.
+local function refreshWorking(thread)
+    local f = window
+    local working = isWorking(thread)
+    f.working:SetShown(working and true or false)
+    f.working:SetHeight(working and 18 or 1)
+    if not working then
+        return
+    end
+    local queue = internal.queues[thread.id]
+    local started = queue and tonumber(queue.started) or 0
+    f.working.text:SetText(started > 0 and format(L.AGENTCHAT_WORKING_FOR, duration(time() - started))
+        or L.AGENTCHAT_WORKING)
+end
+
 local function refreshQueue(thread)
     local f = window
     local queue = thread and internal.queues[thread.id]
     local items = queue and queue.items or {}
-    local active = (queue and queue.active) or (thread and WORKING[thread.status]) or false
     local shown = min(#items, MAX_QUEUE_ROWS)
     for i, row in ipairs(f.queueRows) do
         local item = i <= shown and items[i]
@@ -159,15 +395,16 @@ local function refreshQueue(thread)
         end
     end
     f.queue:SetHeight(shown > 0 and shown * QUEUE_ROW_HEIGHT + 4 or 1)
-    f.stop:SetEnabled(active and true or false)
-    f.edit:SetEnabled(thread ~= nil)
+    f.stop:SetEnabled(isWorking(thread) and true or false)
+    f.reply:SetEnabled(thread ~= nil)
     if not thread then
-        f.edit.hint:SetText("")
+        f.reply.hint:SetText("")
     elseif internal.ShownAsk() then
-        f.edit.hint:SetText(L.AGENTCHAT_ANSWER_HINT)
+        f.reply.hint:SetText(L.AGENTCHAT_ANSWER_HINT)
     else
-        f.edit.hint:SetText(L.AGENTCHAT_SEND_HINT)
+        f.reply.hint:SetText(L.AGENTCHAT_SEND_HINT)
     end
+    f.reply.newline:SetShown(thread ~= nil and (f.reply:GetText() or "") == "")
 end
 
 -- What the agent asks, above the queue: each question with its options as buttons to pick (one, or
@@ -293,12 +530,21 @@ local function refreshAsk(thread)
     f.ask:SetHeight(-y + 2)
 end
 
+-- A speaker's name, with the time of their first message in gray.
+local function speaker(messages, name, color, at)
+    local when = clock(at)
+    messages:AddMessage(" ")
+    messages:AddMessage(Colors.Code(color[1], color[2], color[3]) .. plain(name) .. "|r"
+        .. (when ~= "" and "  " .. GRAY .. when .. "|r" or ""))
+end
+
 local function refreshThread()
     local f = window
     local messages = f.messages
     local thread = internal.selected and byId(internal.selected)
     refreshQueue(thread)
     refreshAsk(thread)
+    refreshWorking(thread)
     if not thread then
         f.name:SetText(internal.selected and "" or L.AGENTCHAT_PICK)
         f.details:SetText("")
@@ -306,7 +552,8 @@ local function refreshThread()
         return
     end
     f.name:SetText(plain(thread.title ~= "" and thread.title or L.AGENTCHAT_UNTITLED))
-    f.details:SetText(joinNonEmpty(plain(thread.project), plain(thread.model), statusText(thread)))
+    f.details:SetText(joinNonEmpty(plain(thread.project), plain(modelName(thread.model)), MODES[thread.mode] or "",
+        stateWord(thread)))
 
     -- Drawn again whole on each change (a running message grows in place); stay where the player
     -- scrolled to, unless they were at the bottom.
@@ -321,13 +568,17 @@ local function refreshThread()
     if conversation.older > 0 then
         messages:AddMessage(format(L.AGENTCHAT_OLDER, conversation.older), NOTE[1], NOTE[2], NOTE[3])
     end
+    -- Messages in a row from the same side go under one name: yours, or the agent's turn.
+    local agent = agentName(thread.model)
+    local last
     for _, pos in ipairs(conversation.order) do
         local item = conversation.items[pos]
         local you = item.role == "user"
-        local who = you and L.AGENTCHAT_YOU or (item.role == "assistant" and (thread.model ~= "" and thread.model
-            or L.AGENTCHAT_AGENT)) or item.role
-        messages:AddMessage(" ")
-        messages:AddMessage(plain(who), unpack(you and YOU or AGENT))
+        if item.role ~= last then
+            local name = you and L.AGENTCHAT_YOU or (item.role == "assistant" and agent) or item.role
+            speaker(messages, name, you and YOU or AGENT, item.at)
+            last = item.role
+        end
         -- The game can't show them, so say they're there (the program guesses from T3's folder).
         local images, files = tonumber(item.images) or 0, tonumber(item.files) or 0
         if images > 0 then
@@ -338,7 +589,9 @@ local function refreshThread()
             messages:AddMessage(files == 1 and L.AGENTCHAT_FILE or format(L.AGENTCHAT_FILES, files),
                 NOTE[1], NOTE[2], NOTE[3])
         end
-        addMarkdown(messages, item.text, TEXT)
+        -- The agent's notes along the way are dimmed; its last message in a turn is the answer.
+        local progress = item.role == "assistant" and item.final == false
+        addMarkdown(messages, item.text, progress and PROGRESS or TEXT)
         if item.cut then
             messages:AddMessage(L.AGENTCHAT_CUT, NOTE[1], NOTE[2], NOTE[3])
         end
@@ -465,6 +718,147 @@ local function newMessages(parent)
     return messages
 end
 
+-- The list's tabs: small buttons over it, the chosen one lit like a selected list row.
+local function newTabs(f, parent)
+    f.tabs = {}
+    local x = 6
+    for _, key in ipairs(TABS) do
+        local button = CreateFrame("Button", nil, parent)
+        button.tab = key
+        button.text = button:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+        button.text:SetPoint("CENTER")
+        button.text:SetText(TAB_NAMES[key])
+        button:SetSize(button.text:GetStringWidth() + 16, 18)
+        button:SetPoint("TOPLEFT", x, -4)
+        button.selected = Frames.RowTexture(button, "BACKGROUND", "Options_List_Active", 1, 0.82, 0, 0.15)
+        button:SetHighlightTexture(Frames.RowTexture(button, "HIGHLIGHT", "Options_List_Hover", 1, 1, 1, 0.08))
+        button:SetScript("OnClick", function(self)
+            module.db.layout.tab = self.tab
+            refreshList()
+        end)
+        x = x + button:GetWidth() + 2
+        f.tabs[#f.tabs + 1] = button
+    end
+end
+
+-- The reply box: two lines high, growing to four as it fills, then scrolling. Enter sends (or
+-- answers what the agent asks), Shift+Enter starts a new line.
+local function sendReply(text)
+    if internal.ShownAsk() then
+        return internal.Answer((text:gsub("\n", " ")))
+    end
+    return internal.Send(text)
+end
+
+local function newReply(f)
+    local box = Frames.Inset(f)
+    box:SetHeight(REPLY_MIN)
+    local scroll = CreateFrame("ScrollFrame", nil, box)
+    scroll:SetPoint("TOPLEFT", 6, -5)
+    scroll:SetPoint("BOTTOMRIGHT", -6, 5)
+    local edit = CreateFrame("EditBox", nil, scroll)
+    edit:SetMultiLine(true)
+    edit:SetAutoFocus(false)
+    edit:SetMaxLetters(MAX_SEND)
+    edit:SetFontObject(ChatFontNormal)
+    edit:SetTextInsets(0, 0, 0, 0)
+    edit:SetHeight(REPLY_MIN - 10) -- a multi-line box grows from here as it fills
+    scroll:SetScrollChild(edit)
+    scroll:SetScript("OnSizeChanged", function(self, width)
+        edit:SetWidth(width)
+    end)
+    scroll:EnableMouseWheel(true)
+    scroll:SetScript("OnMouseWheel", function(self, delta)
+        local most = max(0, edit:GetHeight() - self:GetHeight())
+        self:SetVerticalScroll(min(most, max(0, self:GetVerticalScroll() - delta * 14)))
+    end)
+    box:EnableMouse(true)
+    box:SetScript("OnMouseDown", function()
+        edit:SetFocus()
+    end)
+
+    -- Keep the cursor in view.
+    edit:SetScript("OnCursorChanged", function(self, _, y, _, height)
+        local top, shown = scroll:GetVerticalScroll(), scroll:GetHeight()
+        y = -y
+        if y < top then
+            scroll:SetVerticalScroll(y)
+        elseif y + height > top + shown then
+            scroll:SetVerticalScroll(y + height - shown)
+        end
+    end)
+
+    -- What the text was before its last change, to tell whether Enter itself just added a line.
+    local before, now = "", ""
+    edit:SetScript("OnTextChanged", function(self)
+        before, now = now, self:GetText() or ""
+        box.hint:SetShown(now == "")
+        box.newline:SetShown(now == "" and box.hint:GetText() ~= "")
+        box:SetHeight(min(REPLY_MAX, max(REPLY_MIN, self:GetHeight() + 10)))
+    end)
+    -- A multi-line box may put Enter's line break in before or after OnEnterPressed; this works
+    -- either way: a break Enter added before is taken out of what's sent, and one added after is
+    -- cleared on the next frame.
+    edit:SetScript("OnEnterPressed", function(self)
+        local text = self:GetText() or ""
+        local cursor = self:GetCursorPosition() or 0
+        local added = cursor > 0 and text:sub(cursor, cursor) == "\n"
+            and text:sub(1, cursor - 1) .. text:sub(cursor + 1) == before
+        if IsShiftKeyDown() then
+            if not added then
+                C_Timer.After(0, function()
+                    if self:GetText() == text then
+                        self:Insert("\n")
+                    end
+                end)
+            end
+            return
+        end
+        if added then
+            text = before
+        end
+        if sendReply(text) then
+            self:SetText("")
+            C_Timer.After(0, function()
+                if self:GetText() == "\n" then
+                    self:SetText("")
+                end
+            end)
+        else
+            if added then
+                self:SetText(text)
+            end
+            self:ClearFocus()
+        end
+    end)
+    edit:SetScript("OnEscapePressed", edit.ClearFocus)
+
+    box.hint = box:CreateFontString(nil, "ARTWORK", "GameFontDisable")
+    box.hint:SetPoint("TOPLEFT", 8, -7)
+    box.newline = box:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
+    box.newline:SetPoint("BOTTOMLEFT", 8, 6)
+    box.newline:SetText(L.AGENTCHAT_NEWLINE_HINT)
+    box.edit = edit
+
+    -- What the rest of the window calls: like an edit box.
+    function box:SetEnabled(enabled)
+        edit:SetEnabled(enabled)
+        if not enabled then
+            edit:ClearFocus()
+        end
+    end
+    function box:GetText()
+        return edit:GetText()
+    end
+    function box:SetText(text)
+        edit:SetText(text)
+    end
+    function box:ClearFocus()
+        edit:ClearFocus()
+    end
+    return box
+end
+
 local function newWindow()
     local f = Frames.PortraitWindow(WINDOW_NAME, L.AGENTCHAT_TITLE)
     window = f
@@ -485,32 +879,60 @@ local function newWindow()
     f.summary:SetPoint("TOPLEFT", 66, -38)
     f.summary:SetText(L.AGENTCHAT_SUMMARY)
 
-    -- The threads, on the left.
+    -- The threads, on the left, under their tabs.
     local listInset = Frames.Inset(f)
     listInset:SetPoint("TOPLEFT", 4, -60)
-    listInset:SetPoint("BOTTOMLEFT", 4, 28)
+    listInset:SetPoint("BOTTOMLEFT", 4, 6)
     listInset:SetWidth(LIST_WIDTH)
+    newTabs(f, listInset)
+    local tabLine = listInset:CreateTexture(nil, "ARTWORK")
+    tabLine:SetColorTexture(1, 1, 1, 0.1)
+    tabLine:SetHeight(1)
+    tabLine:SetPoint("TOPLEFT", 4, -24)
+    tabLine:SetPoint("TOPRIGHT", -4, -24)
     local scrollBox = CreateFrame("Frame", nil, listInset, "WowScrollBoxList")
-    scrollBox:SetPoint("TOPLEFT", 3, -3)
+    scrollBox:SetPoint("TOPLEFT", 3, -26)
     scrollBox:SetPoint("BOTTOMRIGHT", -18, 3)
     local scrollBar = CreateFrame("EventFrame", nil, listInset, "MinimalScrollBar")
     scrollBar:SetPoint("TOPLEFT", scrollBox, "TOPRIGHT", 6, -2)
     scrollBar:SetPoint("BOTTOMLEFT", scrollBox, "BOTTOMRIGHT", 6, 2)
     local view = CreateScrollBoxListLinearView()
-    view:SetElementExtent(ROW_HEIGHT)
-    view:SetElementInitializer("Button", initRow)
+    view:SetElementFactory(function(factory, element)
+        if element.group then
+            factory("Frame", initGroup)
+        else
+            factory("Button", initRow)
+        end
+    end)
+    view:SetElementExtentCalculator(function(_, element)
+        return element.group and GROUP_HEIGHT or ROW_HEIGHT
+    end)
     ScrollUtil.InitScrollBoxListWithScrollBar(scrollBox, scrollBar, view)
     f.scrollBox = scrollBox
     f.empty = listInset:CreateFontString(nil, "OVERLAY", "GameFontDisable")
-    f.empty:SetPoint("CENTER")
+    f.empty:SetPoint("LEFT", 12, 0)
+    f.empty:SetPoint("RIGHT", -12, 0)
     f.empty:SetText(L.AGENTCHAT_NO_THREADS)
     f.empty:Hide()
 
-    -- The conversation, on the right.
+    -- The strip at the bottom right: the reply box and Stop.
+    f.stop = Frames.Button(f, L.AGENTCHAT_STOP, 70, internal.Stop)
+    tooltip(f.stop, L.AGENTCHAT_STOP, L.AGENTCHAT_STOP_TIP)
+    f.reply = newReply(f)
+    f.reply:SetPoint("BOTTOMLEFT", listInset, "BOTTOMRIGHT", 2, 0)
+    f.reply:SetPoint("RIGHT", f.stop, "LEFT", -8, 0)
+    f.stop:SetPoint("BOTTOMRIGHT", -24, 10)
+
+    -- The conversation, on the right, over the reply box: down to a line as wide as the window's
+    -- right side, at the reply box's top, so it follows the box as that grows.
+    local replyTop = CreateFrame("Frame", nil, f)
+    replyTop:SetPoint("BOTTOMLEFT", f.reply, "TOPLEFT")
+    replyTop:SetPoint("RIGHT", f, "RIGHT", -6, 0)
+    replyTop:SetHeight(1)
     local details = f.Inset or Frames.Inset(f)
     details:ClearAllPoints()
     details:SetPoint("TOPLEFT", listInset, "TOPRIGHT", 2, 0)
-    details:SetPoint("BOTTOMRIGHT", -6, 28)
+    details:SetPoint("BOTTOMRIGHT", replyTop, "BOTTOMRIGHT", 0, 4)
     f.name = details:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     f.name:SetPoint("TOPLEFT", 12, -10)
     f.name:SetPoint("RIGHT", -12, 0)
@@ -526,6 +948,7 @@ local function newWindow()
     line:SetHeight(1)
     line:SetPoint("TOPLEFT", 8, -48)
     line:SetPoint("TOPRIGHT", -8, -48)
+
     -- The queue, at the bottom of the conversation: a row per queued message.
     f.queue = CreateFrame("Frame", nil, details)
     f.queue:SetPoint("BOTTOMLEFT", 8, 4)
@@ -580,8 +1003,8 @@ local function newWindow()
     f.ask.line:Hide()
     f.askTexts, f.askButtons = {}, {}
     f.answer = Frames.Button(f.ask, L.AGENTCHAT_ANSWER, 80, function()
-        if internal.Answer(f.edit:GetText()) then
-            f.edit:SetText("")
+        if sendReply(f.reply:GetText() or "") then
+            f.reply:SetText("")
         end
     end)
     f.answer:SetHeight(OPTION_HEIGHT - 2)
@@ -594,9 +1017,28 @@ local function newWindow()
         end
     end)
 
+    -- "Working for 2m 10s", over what the agent asks, ticking each second while shown.
+    f.working = CreateFrame("Frame", nil, details)
+    f.working:SetPoint("BOTTOMLEFT", f.ask, "TOPLEFT", 4, 2)
+    f.working:SetPoint("BOTTOMRIGHT", f.ask, "TOPRIGHT", 0, 2)
+    f.working:SetHeight(1)
+    f.working.spinner = newSpinner(f.working, 16)
+    f.working.text = f.working:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    f.working.text:SetTextColor(0.25, 1, 0.25)
+    if f.working.spinner then
+        f.working.spinner:SetPoint("LEFT", -2, 0)
+        f.working.text:SetPoint("LEFT", f.working.spinner, "RIGHT", 2, 0)
+    else
+        f.working.text:SetPoint("LEFT")
+    end
+    f.working:Hide()
+    f.working:SetScript("OnUpdate", Frames.Throttled(1, ns.Profiler.Wrap(module, function()
+        refreshWorking(internal.selected and byId(internal.selected))
+    end)))
+
     f.messages = newMessages(details)
     f.messages:SetPoint("TOPLEFT", line, "BOTTOMLEFT", 4, -4)
-    f.messages:SetPoint("BOTTOMRIGHT", f.ask, "TOPRIGHT", -2, 4)
+    f.messages:SetPoint("BOTTOMRIGHT", f.working, "TOPRIGHT", -2, 4)
 
     -- How the link is doing, beside the heading.
     f.status = f:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
@@ -605,39 +1047,6 @@ local function newWindow()
     f.status:SetJustifyH("RIGHT")
     f.status:SetWordWrap(false)
 
-    -- The strip at the bottom: the reply box under the conversation, and Stop.
-    f.stop = Frames.Button(f, L.AGENTCHAT_STOP, 70, internal.Stop)
-    f.stop:SetPoint("BOTTOMRIGHT", -24, 4)
-    tooltip(f.stop, L.AGENTCHAT_STOP, L.AGENTCHAT_STOP_TIP)
-    local edit = CreateFrame("EditBox", nil, f, "InputBoxTemplate")
-    edit:SetHeight(20)
-    edit:SetPoint("BOTTOMLEFT", details, "BOTTOMLEFT", 8, -24)
-    edit:SetPoint("RIGHT", f.stop, "LEFT", -10, 0)
-    edit:SetAutoFocus(false)
-    edit:SetMaxLetters(MAX_SEND)
-    edit:SetFontObject(ChatFontNormal)
-    edit:SetScript("OnEnterPressed", function(self)
-        -- While the agent asks something, Enter answers it.
-        local sent
-        if internal.ShownAsk() then
-            sent = internal.Answer(self:GetText())
-        else
-            sent = internal.Send(self:GetText())
-        end
-        if sent then
-            self:SetText("")
-        else
-            self:ClearFocus()
-        end
-    end)
-    edit:SetScript("OnEscapePressed", edit.ClearFocus)
-    edit:SetScript("OnTextChanged", function(self)
-        self.hint:SetShown((self:GetText() or "") == "")
-    end)
-    edit.hint = edit:CreateFontString(nil, "ARTWORK", "GameFontDisable")
-    edit.hint:SetPoint("LEFT", 2, 0)
-    f.edit = edit
-
     f:HookScript("OnShow", function()
         refreshList()
         refreshThread()
@@ -645,7 +1054,7 @@ local function newWindow()
         internal.ViewChanged()
     end)
     f:HookScript("OnHide", function()
-        f.edit:ClearFocus()
+        f.reply:ClearFocus()
         internal.ViewChanged()
     end)
     place()

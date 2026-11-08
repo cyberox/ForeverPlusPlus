@@ -100,7 +100,8 @@ type item struct {
 	Status    string
 	Truncated bool
 	Time      time.Time
-	Images    int // attached to it, as attachments() matched them
+	Run       string // the turn it's from
+	Images    int    // attached to it, as attachments() matched them
 	Files     int
 }
 
@@ -110,6 +111,7 @@ type thread struct {
 	read    bool   // read to the end at least once
 	active  string // the running turn's id, for steering into; "" when idle
 	pending int    // requests waiting for the player: questions and approvals
+	started int64  // when the running turn started (Unix seconds), 0 when idle or unknown
 }
 
 // New returns a Bridge for an install.
@@ -460,13 +462,14 @@ func (b *Bridge) list(ctx context.Context) ([]map[string]any, string, error) {
 	}
 	var res struct {
 		Threads []struct {
-			ThreadID  string `json:"threadId"`
-			Title     string `json:"title"`
-			Status    string `json:"status"`
-			Model     string `json:"model"`
-			ProjectID string `json:"projectId"`
-			UpdatedAt string `json:"updatedAt"`
-			Settled   bool   `json:"settled"`
+			ThreadID    string `json:"threadId"`
+			Title       string `json:"title"`
+			Status      string `json:"status"`
+			Model       string `json:"model"`
+			ProjectID   string `json:"projectId"`
+			UpdatedAt   string `json:"updatedAt"`
+			Settled     bool   `json:"settled"`
+			RuntimeMode string `json:"runtimeMode"`
 		} `json:"threads"`
 	}
 	if err := json.Unmarshal(raw, &res); err != nil {
@@ -486,11 +489,13 @@ func (b *Bridge) list(ctx context.Context) ([]map[string]any, string, error) {
 		entry := map[string]any{
 			"h": b.handle(t.ThreadID), "id": t.ThreadID, "title": t.Title, "status": t.Status,
 			"model": t.Model, "project": b.projects[t.ProjectID], "updated": updated, "settled": t.Settled,
+			"mode": t.RuntimeMode,
 		}
 		list = append(list, entry)
 		// The list goes again when what it shows changes; a running thread's updatedAt ticks
 		// constantly, so only to the minute.
-		fmt.Fprintf(sig, "%s|%s|%s|%s|%v|%d\n", t.ThreadID, t.Title, t.Status, t.Model, t.Settled, updated/60)
+		fmt.Fprintf(sig, "%s|%s|%s|%s|%v|%d|%s\n", t.ThreadID, t.Title, t.Status, t.Model, t.Settled, updated/60,
+			t.RuntimeMode)
 	}
 	return list, fmt.Sprint(sig.Sum64()), nil
 }
@@ -527,20 +532,30 @@ func (b *Bridge) threadNews(ctx context.Context, id string) ([]map[string]any, i
 				Status        string    `json:"status"`
 				TextTruncated bool      `json:"textTruncated"`
 				UpdatedAt     time.Time `json:"updatedAt"`
+				RunID         string    `json:"runId"`
 			} `json:"items"`
 			Thread *struct {
 				ActiveRunID         *string `json:"activeRunId"`
 				PendingRequestCount int     `json:"pendingRequestCount"`
 			} `json:"thread"`
+			RecentRuns []struct {
+				RunID     string    `json:"runId"`
+				StartedAt time.Time `json:"startedAt"`
+			} `json:"recentRuns"`
 		}
 		if err := json.Unmarshal(raw, &res); err != nil {
 			return nil, 0, nil, err
 		}
 		if res.Thread != nil {
 			t.pending = res.Thread.PendingRequestCount
-			t.active = ""
+			t.active, t.started = "", 0
 			if res.Thread.ActiveRunID != nil {
 				t.active = *res.Thread.ActiveRunID
+			}
+			for _, run := range res.RecentRuns {
+				if t.active != "" && run.RunID == t.active && !run.StartedAt.IsZero() {
+					t.started = run.StartedAt.Unix()
+				}
 			}
 		}
 		for _, it := range res.Items {
@@ -548,7 +563,7 @@ func (b *Bridge) threadNews(ctx context.Context, id string) ([]map[string]any, i
 				t.order = append(t.order, it.Position)
 			}
 			t.items[it.Position] = &item{Pos: it.Position, Role: role(it.Type), Text: it.Text,
-				Status: it.Status, Truncated: it.TextTruncated, Time: it.UpdatedAt}
+				Status: it.Status, Truncated: it.TextTruncated, Time: it.UpdatedAt, Run: it.RunID}
 		}
 		if !res.HasMore || res.NextPosition == nil || len(res.Items) == 0 {
 			break
@@ -563,16 +578,37 @@ func (b *Bridge) threadNews(ctx context.Context, id string) ([]map[string]any, i
 	if seen == nil && len(t.order) > firstItems {
 		start = len(t.order) - firstItems
 	}
+	// An agent message is its turn's answer when no later one in the turn follows it; the rest are
+	// progress notes, which the game shows dimmed.
+	final := map[int]bool{}
+	lastOfRun := map[string]int{}
+	for _, pos := range t.order {
+		if it := t.items[pos]; it.Role == "assistant" {
+			if it.Run == "" {
+				final[pos] = true
+				continue
+			}
+			if prev, ok := lastOfRun[it.Run]; ok {
+				final[prev] = false
+			}
+			lastOfRun[it.Run], final[pos] = pos, true
+		}
+	}
 	var out []map[string]any
 	versions := map[int]string{}
 	for _, pos := range t.order[start:] {
 		it := t.items[pos]
-		v := fmt.Sprintf("%s|%d|%v|%d|%d", it.Status, len(it.Text), it.Truncated, it.Images, it.Files)
+		v := fmt.Sprintf("%s|%d|%v|%d|%d|%v", it.Status, len(it.Text), it.Truncated, it.Images, it.Files, final[pos])
 		if seen != nil && seen[pos] == v {
 			continue
 		}
+		at := int64(0)
+		if !it.Time.IsZero() {
+			at = it.Time.Unix()
+		}
 		out = append(out, map[string]any{"pos": it.Pos, "role": it.Role, "text": it.Text,
-			"status": it.Status, "cut": it.Truncated, "images": it.Images, "files": it.Files})
+			"status": it.Status, "cut": it.Truncated, "images": it.Images, "files": it.Files,
+			"at": at, "final": final[pos]})
 		versions[pos] = v
 	}
 	older := 0

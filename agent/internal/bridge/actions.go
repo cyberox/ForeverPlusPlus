@@ -162,12 +162,12 @@ func (b *Bridge) queueNews(ctx context.Context, id string) (map[string]any, stri
 	if err := json.Unmarshal(raw, &res); err != nil {
 		return nil, "", err
 	}
-	active := ""
+	active, started := "", int64(0)
 	if t := b.threads[id]; t != nil {
-		active = t.active
+		active, started = t.active, t.started
 	}
 	sig := fnv.New64a()
-	fmt.Fprintf(sig, "%s|%v\n", id, active != "")
+	fmt.Fprintf(sig, "%s|%v|%d\n", id, active != "", started)
 	items := []map[string]any{}
 	for _, it := range res.Items {
 		run := firstString(it, "queuedRunId", "runId", "id")
@@ -178,7 +178,8 @@ func (b *Bridge) queueNews(ctx context.Context, id string) (map[string]any, stri
 		items = append(items, map[string]any{"q": b.queuedNumber(id, run), "text": text})
 		fmt.Fprintf(sig, "%s|%s\n", run, text)
 	}
-	return map[string]any{"id": id, "active": active != "", "items": items}, fmt.Sprint(sig.Sum64()), nil
+	return map[string]any{"id": id, "active": active != "", "started": started, "items": items},
+		fmt.Sprint(sig.Sum64()), nil
 }
 
 // firstString is the first of keys that holds a non-empty string. T3's queue items aren't

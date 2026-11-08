@@ -47,7 +47,8 @@ local module = ns.NewModule("AgentChat", L.AGENTCHAT_DESC, {
     sound = true,
     chat = true,
     link = {}, -- signal: the next signal to try
-    layout = {}, -- where the window was left
+    layout = {}, -- where the window was left, and the list's tab
+    seen = {}, -- thread id -> its updated time when last read, for unread marks
 })
 module.title = L.AGENTCHAT_TITLE
 module.category = "chat"
@@ -275,6 +276,7 @@ local function receive(inbox, now)
     end
     if type(inbox.threads) == "table" then
         internal.threads = inbox.threads
+        internal.MarkSeen(true)
         refresh("list")
         sendView() -- the shown thread's handle may be new
     end
@@ -399,10 +401,42 @@ end
 
 -- The window's side --------------------------------------------------------------------------------
 
+---Remembers the shown thread as read, and with `list`, takes in a new list: a thread seen for the
+---first time counts as read (so nothing is unread on the first run), and threads gone from it are
+---forgotten.
+---@param list boolean?
+function internal.MarkSeen(list)
+    local seen = module.db.seen
+    if list then
+        local kept = {}
+        for _, thread in ipairs(internal.threads) do
+            local updated = tonumber(thread.updated) or 0
+            kept[thread.id] = seen[thread.id] or updated
+        end
+        wipe(seen)
+        for id, updated in pairs(kept) do
+            seen[id] = updated
+        end
+    end
+    local thread = internal.selected and internal.IsShown and internal.IsShown() and byId(internal.selected)
+    if thread then
+        seen[thread.id] = tonumber(thread.updated) or seen[thread.id]
+    end
+end
+
+---Whether a thread changed since the player last read it.
+---@param thread table
+---@return boolean
+function internal.IsUnread(thread)
+    local seen = module.db.seen[thread.id]
+    return seen ~= nil and (tonumber(thread.updated) or 0) > seen and thread.id ~= internal.selected
+end
+
 ---Shows a thread, or none, and tells the program.
 ---@param id string?
 function internal.Select(id)
     internal.selected = id
+    internal.MarkSeen()
     refresh("thread")
     refresh("list")
     sendView()
@@ -535,6 +569,7 @@ end
 
 ---The window opened or closed.
 function internal.ViewChanged()
+    internal.MarkSeen()
     if not session then
         return
     end
