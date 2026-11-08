@@ -87,6 +87,21 @@ func (b *Bridge) send(ctx context.Context, h int, text string) error {
 	_, err = b.client.Call(ctx, "t3_thread_send", map[string]any{
 		"threadId": id, "message": text, "mode": "queue",
 	})
+	return plainError(err)
+}
+
+// plainError says what to do about T3 refusals the player can fix. T3 caps what a signed-in
+// program may do at the access picked when its sign-in was approved, and refuses a thread that
+// runs with more.
+func plainError(err error) error {
+	if err == nil {
+		return nil
+	}
+	msg := err.Error()
+	if strings.Contains(msg, "mode_escalation_denied") {
+		return fmt.Errorf("this thread runs with more access than the program's T3 sign-in allows; " +
+			"run forever-agent login again and approve it with Full access")
+	}
 	return err
 }
 
@@ -99,7 +114,7 @@ func (b *Bridge) stop(ctx context.Context, h int) error {
 		return err
 	}
 	_, err = b.client.Call(ctx, "t3_thread_interrupt", map[string]any{"threadId": id})
-	return err
+	return plainError(err)
 }
 
 func (b *Bridge) queueAction(ctx context.Context, kind string, q int) error {
@@ -122,7 +137,7 @@ func (b *Bridge) queueAction(ctx context.Context, kind string, q int) error {
 		args["action"], args["targetRunId"] = "promote_to_steer", active
 	}
 	_, err := b.client.Call(ctx, "t3_queue", args)
-	return err
+	return plainError(err)
 }
 
 func (b *Bridge) queuedNumber(thread, run string) int {

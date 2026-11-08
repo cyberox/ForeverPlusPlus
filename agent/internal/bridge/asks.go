@@ -155,5 +155,5 @@ func (b *Bridge) answer(ctx context.Context, n int, lines string) error {
 	_, err := b.client.Call(ctx, "t3_pending_request", map[string]any{
 		"action": "respond", "threadId": a.thread, "requestId": a.request, "answers": answers,
 	})
-	return err
+	return plainError(err)
 }
