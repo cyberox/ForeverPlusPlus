@@ -48,6 +48,7 @@ local module = ns.NewModule("AgentChat", L.AGENTCHAT_DESC, {
     chat = true,
     chatButton = true,
     steps = true,
+    reloadPrompt = true,
     link = {}, -- signal: the next signal to try
     layout = {}, -- where the window was left, and the list's tab
     seen = {}, -- thread id -> its updated time when last read, for unread marks
@@ -60,6 +61,7 @@ module.added = "1.3.0"
 module.options = {
     { key = "chatButton", name = L.AGENTCHAT_BUTTON, description = L.AGENTCHAT_BUTTON_DESC },
     { key = "steps", name = L.AGENTCHAT_STEPS, description = L.AGENTCHAT_STEPS_DESC },
+    { key = "reloadPrompt", name = L.AGENTCHAT_RELOAD_PROMPT, description = L.AGENTCHAT_RELOAD_PROMPT_DESC },
     { key = "sound", name = L.AGENTCHAT_SOUND, description = L.AGENTCHAT_SOUND_DESC },
     ns.ChatOption(L.AGENTCHAT_CHAT_DESC),
 }
@@ -373,6 +375,19 @@ function internal.ExpiryWarning(days)
     return whole == 1 and L.AGENTCHAT_EXPIRES_DAY or format(L.AGENTCHAT_EXPIRES_DAYS, whole)
 end
 
+-- Forever++'s own files changed (an agent edited it): offer a reload, like the game's own prompt
+-- before it moves you to another layer, and like it not in combat.
+local function askReload()
+    if not module.db.reloadPrompt then
+        return
+    end
+    ns.AfterCombat(function()
+        if module.enabled then
+            ns.Confirm("AGENTCHAT_RELOAD", L.AGENTCHAT_RELOAD_TEXT, ReloadUI)
+        end
+    end)
+end
+
 -- What the program sent.
 local function receive(inbox, now)
     if type(inbox) ~= "table" or inbox.session ~= session then
@@ -382,6 +397,9 @@ local function receive(inbox, now)
     if inbox.note ~= nil then
         internal.note = inbox.note ~= "" and inbox.note or nil
         refresh("status")
+    end
+    if type(inbox.reload) == "number" then
+        askReload()
     end
     if type(inbox.counts) == "table" then
         internal.counts = inbox.counts

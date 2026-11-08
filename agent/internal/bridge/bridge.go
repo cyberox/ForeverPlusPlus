@@ -61,6 +61,10 @@ type Bridge struct {
 	sentExpires time.Time // as last sent this session
 	expiresRead time.Time // when the saved sign-in was last read for it
 
+	sessionStart time.Time // when this UI session began (or the program joined it), for reload.go
+	reloadCheck  time.Time
+	sentReload   time.Time // the change last told of
+
 	session string
 	inbox   *inbox
 	view    int  // handle of the thread shown, 0 for none
@@ -242,6 +246,7 @@ func (b *Bridge) start(session string, clear bool) {
 	b.sentQueue = map[string]string{}
 	b.sentAsks = map[string]string{}
 	b.sentExpires = time.Time{}
+	b.sessionStart, b.sentReload, b.reloadCheck = time.Now(), time.Time{}, time.Time{}
 	b.sentWaiting, b.sentProjects = 0, "" // the game starts at none needing the player
 	b.pongs, b.acks = nil, nil
 	// Signals the game hasn't found yet should read as missing; ones it has found read as there
@@ -361,6 +366,10 @@ func (b *Bridge) Poll(ctx context.Context, force bool) {
 	if !b.expires.IsZero() && !b.expires.Equal(b.sentExpires) {
 		payload["expires"], news = b.expires.Unix(), true // the game warns as it nears
 	}
+	reload := b.reloadNews()
+	if !reload.IsZero() {
+		payload["reload"], news = reload.Unix(), true
+	}
 	if !news && !force {
 		return
 	}
@@ -391,6 +400,10 @@ func (b *Bridge) Poll(ctx context.Context, force bool) {
 		}
 	}
 	b.sentNote = b.note
+	if !reload.IsZero() {
+		b.sentReload = reload
+		b.Log("told the game Forever++ changed")
+	}
 	if _, ok := payload["expires"]; ok {
 		b.sentExpires = b.expires
 	}

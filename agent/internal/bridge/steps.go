@@ -23,7 +23,7 @@ type step struct {
 }
 
 const (
-	detailLength = 48 // a step stays one line at the window's default width
+	detailLength = 48  // a step stays one line at the window's default width
 	stepChars    = 400 // of each activity item: enough for a command or a path, not a whole diff
 	stepPages    = 30
 )

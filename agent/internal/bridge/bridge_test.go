@@ -477,6 +477,38 @@ func TestNewThreadCountsProjects(t *testing.T) {
 	}
 }
 
+func TestReloadWhenAddonChanges(t *testing.T) {
+	b, _, read := setup(t)
+	ReloadSettle = time.Second
+	t.Cleanup(func() { ReloadSettle = 8 * time.Second })
+	ctx := context.Background()
+	dir := filepath.Join(b.In.Game, "Interface", "AddOns", "ForeverPlusPlus")
+	os.MkdirAll(dir, 0o755)
+	file := filepath.Join(dir, "Core.lua")
+	os.WriteFile(file, []byte("-- loaded"), 0o644)
+	os.Chtimes(file, time.Now().Add(-time.Hour), time.Now().Add(-time.Hour)) // from before the UI loaded
+
+	b.Handle(ctx, "c", []byte("H|s1"))
+	b.sessionStart = time.Now().Add(-time.Minute) // the UI loaded a minute ago
+	b.Handle(ctx, "c", []byte("O|s1|0|0"))
+	if strings.Contains(read(0), "reload") {
+		t.Fatalf("asked to reload for what the UI already has:\n%s", read(0))
+	}
+	changed := time.Now().Add(-2 * time.Second) // edited, and settled since
+	os.Chtimes(file, changed, changed)
+	b.reloadCheck = time.Time{}
+	b.Poll(ctx, false)
+	if !strings.Contains(read(0), "reload = ") {
+		t.Fatalf("no reload asked:\n%s", read(0))
+	}
+	b.Handle(ctx, "c", []byte("O|s1|1|1"))
+	b.reloadCheck = time.Time{}
+	b.Handle(ctx, "c", []byte("P|s1|1|x"))
+	if strings.Contains(read(1), "reload") {
+		t.Fatalf("asked twice for one change:\n%s", read(1))
+	}
+}
+
 func TestSignInExpiry(t *testing.T) {
 	b, _, read := setup(t)
 	ctx := context.Background()
