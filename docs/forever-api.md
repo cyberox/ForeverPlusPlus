@@ -501,6 +501,17 @@ Results of the 2026-10-14 run (build 70338, out of combat, no flight master open
 - The view windows keep their update function from load (`self.update = CalendarViewEventFrame_Update`), and `CalendarFrame_ShowEventFrame` calls that copy when a window is already shown, so a hook on the global misses those redraws; Local Time hooks `CalendarFrame_ShowEventFrame` and each window's OnShow too. The day buttons' OnEnter is an inline script that calls `CalendarDayButton_OnEnter` by name, and invite buttons take `CalendarEventInviteListButton_OnEnter` each time they're set up, so hooks on those globals are reached. **[web]** (same source)
 - `C_DateAndTime.GetCurrentCalendarTime()` is the realm's date and time to the minute; Local Time's offset is that against `date("*t")`, rounded to a quarter hour. That the mail's `etaHour` is realm time, like the calendar's, is **Unverified**; check a sale invoice against the realm clock (the money comes an hour after the sale).
 
+## Files an addon can reach while the game runs
+
+What Agent Chat's link to the Forever Agent program (`agent/`) is built on.
+
+- `C_AddOns.SaveAddOns()` writes the character's `WTF\Account\<account>\<realm>\<character>\AddOns.txt` at once, no `/reload`: a line `Name: enabled` or `Name: disabled` per addon. **[in-game]** (2026-11-07, build 70862) `C_AddOns.EnableAddOn(name, UnitGUID("player"))` changes only the current character's file (as Blizzard's AddOns list does); a name alone (`UnitName("player")`) changes nothing; no character at all changed three of six characters' files on the account. 256 helper addons, each one bit, flipped and saved in about a millisecond. Forever's character folders are named `<Name>-<Surname>`.
+- `C_AddOns.LoadAddOn` reads a load-on-demand addon's files from disk when it loads, so a file rewritten after the game started is read as rewritten. A reply written by the program came back in 51 ms. **[in-game]** (2026-11-07) The addon itself must exist when the game starts; new addon folders need a full restart (every Forever AI bridge project says so **[web]**).
+- `PlaySoundFile(path, "Master")` looks for the file each time: it returned false while the file was missing and true once the program created it, 49 ms later, with no restart. An empty (0-byte) file already counts as there. **[in-game]** (2026-11-07) Whether it still answers with game sound off, or with the game in the background, is **Unverified**.
+- `Texture:SetTexture(path)` returned true for a file that didn't exist, so it can't tell. **[in-game]** (2026-11-07)
+- `C_Log.LogMessage` text didn't reach any file in `Logs` within a minute. **[in-game]** (2026-11-07)
+- The `## Group` TOC field puts an addon under another one in the AddOns list: it must exactly match the parent addon's folder name. **[web]** (the `forever` UI source, `Blizzard_AddOnList/AddonList.lua` `AddonList_Update`, build 70862) Unverified in game.
+
 ## Open questions
 
 Check these in the live client and move them up with a tag and date:
