@@ -2,6 +2,20 @@
 
 What changed in each release of Forever++. The same notes show in game under Settings > AddOns > Forever++ > Changelog, from [`ForeverPlusPlus/Changelog.lua`](ForeverPlusPlus/Changelog.lua); change both together.
 
+## Unreleased
+
+### Added
+
+- **Loot Rolls**: a new module, off by default. Move the group loot rolls in Edit Mode, and pick there which way they stack (up, down, left, or right), the space between them, and how many example rolls to show while you place them. Each roll also shows the seconds left and how many have picked Need, Greed, or Pass. Appearance Icons, Already Known, and Unusable Items Tint mark the rolls as they do your bags.
+- **Square Minimap**: a new module, off by default. It makes the minimap square, with a border in Blizzard's art: the frame of the game's windows by default, or a dozen others, at the size you like. Forever++'s minimap button and icons, and most other addons' minimap buttons, follow the square edge.
+- **Console Variables**: lock a CVar with the padlock beside its star, and it keeps your value at every login, even one the game puts back, until you change it or unlock it. Locked ones have a group of their own, and Simplified Nameplate Size is in Popular.
+- **Minimap Button**: pick which modules the quick toggles offer with Customize in its settings (or the last line of the menu). Player Nameplates and NPC Nameplates are in a new Nameplates group.
+- **Player Nameplates**: Names Only in Dungeons (on by default). In dungeons and raids Blizzard draws friendly players' plates itself, and they showed health bars; now they show only names there.
+
+### Fixed
+
+- **Whisper Window**: on a short chat window, the Chat Button hid under the speech bubble button. A button that doesn't fit now goes in the speech bubble's menu, and Settings says so. The same for Chat Copy's and Social Button's buttons. Thanks to ryansouza.
+
 ## 1.3.1 (2026-11-09)
 
 ### Added
