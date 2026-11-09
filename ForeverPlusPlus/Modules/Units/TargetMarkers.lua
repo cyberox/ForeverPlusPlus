@@ -61,16 +61,28 @@ module.options = {
 
 -- The ring ----------------------------------------------------------------------------------------
 
--- Blizzard's radial wheel, which the ping wheel is made of (Blizzard_SharedXML/Blizzard_RadialWheel.xml).
+-- Blizzard's radial wheel, which the ping wheel is made of (Blizzard_SharedXML/Blizzard_RadialWheel
+-- .lua and .xml, `forever` branch): its background, pointer, the dividers and the picked wedge's
+-- glow for its number of wedges, and the middle's close icon and the ring around it when picked.
 local ATLAS_BACKGROUND = "Radial_Wheel_BG"
 local ATLAS_POINTER = "Radial_Wheel_Select_Pointer"
-local ATLAS_CLEAR = "common-icon-redx"
+local ATLAS_DIVIDERS = "Radial_Wheel_Frame_Count_8"
+local ATLAS_PICKED = "Radial_Wheel_Select_Wedge_Count_8"
+local ATLAS_CLOSE = "Radial_Wheel_Icon_Close"
+local ATLAS_CLOSE_PICKED = "Radial_Wheel_Select_Close"
+local ATLAS_CLOSE_FALLBACK = "common-icon-redx"
 local ICON = "Interface\\TargetingFrame\\UI-RaidTargetingIcon_%d"
 
 local SIZE = 300 -- the wheel's size when its atlas is missing
-local ICON_SIZE, PICKED_SIZE = 34, 46
--- Where the icons sit and how far the middle reaches, as shares of the wheel's size.
-local RADIUS, MIDDLE = 0.34, 0.12
+-- Icons are drawn at this size and shrink to 90% while not picked, as the wheel's own do.
+local ICON_SIZE, UNPICKED = 40, 0.9
+-- Where the icons sit, how far the middle reaches, and how far out the picked glow sits, as
+-- shares of the wheel's size; the ping wheel's are 80 and 20 of its wheel, for four wedges.
+local RADIUS, MIDDLE, GLOW = 0.32, 0.12, 0.08
+-- The divider lines drawn when the client has no eight-wedge dividers: Blizzard's thin gold, from
+-- just outside the middle to the wheel's edge.
+local LINE_COLOR = { 0.55, 0.47, 0.3, 0.45 }
+local LINE_FROM, LINE_TO, LINE_WIDTH = 0.15, 0.47, 1.5
 -- The area the mouse's direction is read in (the ring frame), centered on the wheel. Wider than
 -- the wheel, so pointing well past an icon still picks it; the mouse farther out than this cancels.
 local REACH = 1600
@@ -143,19 +155,20 @@ local SNIPPET = [[
     end
 ]]
 
-local ring -- { frame, button, icons, clear, pointer, label, hint, wheel }, made on first turning on
+local ring -- { frame, button, icons, names, angles, close, closePicked, glow, pointer, label, hint, wheel }
 
--- The name under the ring: Blizzard's for the icon, "on the Ground" with Shift, ours for the middle.
-local function placeName(place, world)
+-- What the line under the wheel says: what the middle does, and with Shift, that the icon goes on
+-- the ground. Each icon's own name is beside it.
+local function underText(place, world)
     if place == 0 then
         return world and L.TARGETMARKERS_CLEAR_ALL or L.TARGETMARKERS_CLEAR
     end
-    local name = _G["RAID_TARGET_" .. place] or ""
-    return world and format(L.TARGETMARKERS_ON_GROUND, name) or name
+    return world and format(L.TARGETMARKERS_ON_GROUND, _G["RAID_TARGET_" .. place] or "") or ""
 end
 
--- While the ring is open: the pointer toward the mouse, the icon it picks grown, and its name.
--- Plain code on our own frames' textures, which it may change in combat.
+-- While the ring is open: the pointer toward the mouse, and the icon it picks at full size with its
+-- glow (the others at 90%, as the wheel's own), or the middle's ring. Plain code on our own
+-- frames' textures, which it may change in combat.
 local function drawPicked(frame)
     local scale = frame:GetEffectiveScale()
     local x, y = GetCursorPosition()
@@ -174,12 +187,51 @@ local function drawPicked(frame)
     end
     ring.place, ring.world = place, world
     for i, icon in ipairs(ring.icons) do
-        local size = i == place and PICKED_SIZE or ICON_SIZE
+        local picked = i == place
+        local size = picked and ICON_SIZE or ICON_SIZE * UNPICKED
         icon:SetSize(size, size)
+        ring.names[i]:SetFontObject(picked and "GameFontHighlight" or "GameFontHighlightSmall")
     end
-    ring.clear:SetAlpha(place == 0 and 1 or 0.6)
+    ring.closePicked:SetShown(place == 0 and ring.hasClosePicked)
     ring.pointer:SetShown(place > 0 and ring.hasPointer)
-    ring.label:SetText(placeName(place, world))
+    if ring.glow then
+        ring.glow:SetShown(place > 0)
+        if place > 0 then
+            local angle = ring.angles[place]
+            local reach = (RADIUS + GLOW) * ring.wheel
+            ring.glow:ClearAllPoints()
+            ring.glow:SetPoint("CENTER", cos(angle) * reach, sin(angle) * reach)
+            ring.glow:SetRotation(angle)
+        end
+    end
+    ring.label:SetText(underText(place, world))
+end
+
+-- An icon's name beside it, on the side away from the middle, as the wheel places its own.
+local function placeName(name, icon, angle)
+    local quarter = math.pi / 4
+    name:ClearAllPoints()
+    if angle > quarter + 0.01 and angle < 3 * quarter - 0.01 then
+        name:SetPoint("BOTTOM", icon, "TOP", 0, 4)
+    elseif angle >= 3 * quarter - 0.01 and angle <= 5 * quarter + 0.01 then
+        name:SetPoint("RIGHT", icon, "LEFT", -4, 0)
+    elseif angle > 5 * quarter + 0.01 and angle < 7 * quarter - 0.01 then
+        name:SetPoint("TOP", icon, "BOTTOM", 0, -4)
+    else
+        name:SetPoint("LEFT", icon, "RIGHT", 4, 0)
+    end
+end
+
+-- The lines between wedges, drawn when the client has no eight-wedge dividers to show.
+local function drawDividers(art, wheel)
+    for k = 0, 7 do
+        local angle = rad(90 - 22.5 - k * 45)
+        local line = art:CreateLine(nil, "BORDER")
+        line:SetColorTexture(LINE_COLOR[1], LINE_COLOR[2], LINE_COLOR[3], LINE_COLOR[4])
+        line:SetThickness(LINE_WIDTH)
+        line:SetStartPoint("CENTER", art, cos(angle) * LINE_FROM * wheel, sin(angle) * LINE_FROM * wheel)
+        line:SetEndPoint("CENTER", art, cos(angle) * LINE_TO * wheel, sin(angle) * LINE_TO * wheel)
+    end
 end
 
 local function buildRing()
@@ -187,7 +239,7 @@ local function buildRing()
     frame:SetSize(REACH, REACH)
     frame:SetFrameStrata("DIALOG")
     frame:Hide()
-    ring = { frame = frame, icons = {} }
+    ring = { frame = frame, icons = {}, names = {}, angles = {} }
 
     -- The wheel's art, at its own size; the ring frame around it is only the area read.
     local art = CreateFrame("Frame", nil, frame)
@@ -211,20 +263,51 @@ local function buildRing()
     end
     ring.pointer:Hide()
 
+    -- Between the wedges: the wheel's own eight-wedge dividers, or lines like them.
+    if ns.Frames.HasAtlas(ATLAS_DIVIDERS) then
+        local dividers = art:CreateTexture(nil, "BORDER")
+        dividers:SetPoint("CENTER")
+        dividers:SetAtlas(ATLAS_DIVIDERS, true)
+    else
+        drawDividers(art, wheel)
+    end
+    -- The picked wedge's glow, when the client has one for eight wedges.
+    if ns.Frames.HasAtlas(ATLAS_PICKED) then
+        ring.glow = art:CreateTexture(nil, "ARTWORK", nil, -1)
+        ring.glow:SetAtlas(ATLAS_PICKED, true)
+        ring.glow:Hide()
+    end
+
     for i = 1, 8 do
         local icon = art:CreateTexture(nil, "ARTWORK")
         icon:SetTexture(ICON:format(i))
-        icon:SetSize(ICON_SIZE, ICON_SIZE)
-        local angle = rad(90 - (i - 1) * 45)
+        icon:SetSize(ICON_SIZE * UNPICKED, ICON_SIZE * UNPICKED)
+        local angle = rad(90 - (i - 1) * 45) % (2 * math.pi)
         icon:SetPoint("CENTER", cos(angle) * RADIUS * wheel, sin(angle) * RADIUS * wheel)
-        ring.icons[i] = icon
+        local name = art:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        name:SetText(_G["RAID_TARGET_" .. i] or "")
+        placeName(name, icon, angle)
+        ring.icons[i], ring.names[i], ring.angles[i] = icon, name, angle
     end
-    ring.clear = art:CreateTexture(nil, "ARTWORK")
-    ring.clear:SetPoint("CENTER")
-    ring.clear:SetAtlas(ATLAS_CLEAR)
-    ring.clear:SetSize(ICON_SIZE * 0.7, ICON_SIZE * 0.7)
 
-    ring.label = art:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    -- The middle: the wheel's close icon, ringed while picked.
+    local close = art:CreateTexture(nil, "ARTWORK")
+    close:SetPoint("CENTER")
+    if ns.Frames.HasAtlas(ATLAS_CLOSE) then
+        close:SetAtlas(ATLAS_CLOSE, true)
+    else
+        close:SetAtlas(ATLAS_CLOSE_FALLBACK)
+        close:SetSize(ICON_SIZE * 0.6, ICON_SIZE * 0.6)
+    end
+    ring.closePicked = art:CreateTexture(nil, "ARTWORK", nil, -1)
+    ring.closePicked:SetPoint("CENTER")
+    ring.hasClosePicked = ns.Frames.HasAtlas(ATLAS_CLOSE_PICKED)
+    if ring.hasClosePicked then
+        ring.closePicked:SetAtlas(ATLAS_CLOSE_PICKED, true)
+    end
+    ring.closePicked:Hide()
+
+    ring.label = art:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     ring.label:SetPoint("TOP", art, "BOTTOM", 0, -2)
     -- In a group, where world markers work: how to place one.
     ring.hint = art:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
