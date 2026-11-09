@@ -205,3 +205,7 @@ L.HOME_COMMANDS = "Commands"
 L.EDITMODE_SCALE = "Scale"
 L.EDITMODE_CLICK_TO_EDIT = "Click To Edit"
 L.EDITMODE_RESET_POSITION = "Reset To Default Position"
+L.SETTINGS_EDIT_MODE_NOTE = "Where it sits and how it's laid out are in Edit Mode: press Escape, "
+    .. "pick Edit Mode, then click it." -- a gray row on a module with Edit Mode settings
+L.SETTINGS_EDIT_MODE_NOTE_DESC = "Its place, scale, and layout settings are in its Edit Mode dialog and "
+    .. "its right-click menu there, beside the frame they change."

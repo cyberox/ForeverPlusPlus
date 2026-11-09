@@ -283,7 +283,7 @@ local function markNew()
         -- All of a new module is new, so its options aren't marked.
         if not mark(name, nil, module.added, name) then
             for _, option in ipairs(module.options or {}) do
-                if not option.debug and not mark(option, module, option.added, name) then
+                if not option.debug and not option.editMode and not mark(option, module, option.added, name) then
                     mark(option, module, option.changed, name)
                 end
             end
@@ -948,10 +948,24 @@ local function addModuleRows(view, module)
         return
     end
     local options, byKey, done = {}, {}, {}
+    local inEditMode = false
     for _, option in ipairs(module.options or {}) do
-        if not option.debug then
+        -- An Edit Mode option is set beside its frame (Lib/EditMode.lua), so it isn't here.
+        if option.editMode then
+            inEditMode = true
+        elseif not option.debug then
             options[#options + 1] = option
             byKey[option.key] = option
+        end
+    end
+    -- Says where those went. No button: opening Edit Mode from addon code taints it.
+    if inEditMode then
+        local row, label = addRow(view, format("|cff999999%s|r", L.SETTINGS_EDIT_MODE_NOTE), 0)
+        label:SetWidth(view:GetWidth() - 8)
+        row:SetHeight(max(ROW_HEIGHT, label:GetStringHeight() + 8))
+        addTooltip(row, L.SETTINGS_EDIT_MODE_NOTE, L.SETTINGS_EDIT_MODE_NOTE_DESC)
+        if #options == 0 and not module.actions then
+            return
         end
     end
     -- A module's own page needs no button here: it's in the sidebar while the module is on (the

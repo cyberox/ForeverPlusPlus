@@ -1,14 +1,15 @@
 -- Edit Mode for our own frames, made to look and work like Blizzard's own system frames: while
 -- the player is in Blizzard's Edit Mode, a frame registered here gets the same blue selection box,
 -- which turns gold when clicked. It drags with snapping to the screen's middle and edges and to
--- our other frames, and opens a small settings dialog and a right-click menu (scale and reset
--- position) like Blizzard's; while the dialog is up, the arrow keys nudge the frame a pixel (ten
--- with Shift). Edit Mode has no way for an addon to add a frame to its layouts (that needs its
+-- our other frames, and opens a small settings dialog and a right-click menu (scale, the frame's
+-- own settings, and reset position) like Blizzard's; while the dialog is up, the arrow keys nudge
+-- the frame a pixel (ten with Shift). A module's options marked `editMode = true` are those
+-- settings (RegisterModule), shown here instead of on the Modules page. Edit Mode has no way for an addon to add a frame to its layouts (that needs its
 -- protected system code), so the position is the module's, not part of an Edit Mode layout.
 -- Nothing is hooked until a module registers a frame.
 local _, ns = ...
 
-local pairs, type, pcall, setmetatable = pairs, type, pcall, setmetatable
+local pairs, ipairs, type, pcall, setmetatable = pairs, ipairs, type, pcall, setmetatable
 local abs, min, max = math.abs, math.min, math.max
 local format = string.format
 local CreateFrame, UIParent, hooksecurefunc = CreateFrame, UIParent, hooksecurefunc
@@ -259,6 +260,46 @@ end
 
 local pick, deselect, refreshDialog
 
+-- A setting's value as text: a slider's `format` is a pattern ("%d%%") or a function.
+local function valueText(setting, value)
+    local fmt = setting.format
+    if type(fmt) == "function" then
+        return fmt(value)
+    end
+    return format(fmt or "%d", value)
+end
+
+-- A frame's own settings in its right-click menu, after the scale: a dropdown's or a slider's
+-- values as a submenu of choices, a checkbox as one.
+local function addMenuSettings(root, info)
+    for _, setting in ipairs(info.settings or {}) do
+        if setting.kind == "checkbox" then
+            root:CreateCheckbox(setting.name, function() return setting.get() and true or false end,
+                function()
+                    call(setting.set, not setting.get())
+                    EditMode.Refresh()
+                end)
+        else
+            local sub = root:CreateButton(setting.name)
+            local function add(label, value)
+                sub:CreateRadio(label, function() return setting.get() == value end, function()
+                    call(setting.set, value)
+                    EditMode.Refresh()
+                end)
+            end
+            if setting.kind == "dropdown" then
+                for _, choice in ipairs(setting.choices) do
+                    add(choice[2], choice[1])
+                end
+            else
+                for value = setting.min, setting.max, setting.step do
+                    add(valueText(setting, value), value)
+                end
+            end
+        end
+    end
+end
+
 local function newSelection(frame, info)
     local selection = CreateFrame("Frame", nil, frame)
     selection:SetAllPoints(frame)
@@ -291,7 +332,7 @@ local function newSelection(frame, info)
             pick(frame)
         end
     end)
-    -- Right-click, as on Blizzard's frames: a menu with the scale and reset.
+    -- Right-click, as on Blizzard's frames: a menu with the scale, the frame's settings, and reset.
     selection:SetScript("OnMouseUp", function(self, button)
         if button == "RightButton" and MenuUtil and MenuUtil.CreateContextMenu then
             pick(frame)
@@ -309,6 +350,7 @@ local function newSelection(frame, info)
                             end)
                     end
                 end
+                addMenuSettings(root, info)
                 if info.reset then
                     root:CreateButton(L.EDITMODE_RESET_POSITION, function() call(info.reset) end)
                 end
@@ -424,8 +466,78 @@ local function newDialog()
     return frame
 end
 
--- Sets the dialog up for the selected frame: its name, its scale slider if it has one, and a
--- reset button if it has one; and puts it beside the frame, on whichever side has more room.
+local settingRows = {} -- every frame's setting rows, all on the one dialog; the selected one's show
+local ROW_HEIGHT, ROW_STEP = 30, 36
+
+-- The slider's value label at its right, in the setting's own format.
+local function sliderLabels(setting)
+    local formatter = CreateMinimalSliderFormatter and MinimalSliderWithSteppersMixin.Label
+        and CreateMinimalSliderFormatter(MinimalSliderWithSteppersMixin.Label.Right,
+            function(value) return valueText(setting, value) end)
+    return formatter and { [MinimalSliderWithSteppersMixin.Label.Right] = formatter } or nil
+end
+
+-- A row of the dialog for one of a frame's settings: its name at the left and its control where
+-- the scale slider is, or a checkbox with its name after it. `row.update` shows the value now.
+local function newSettingRow(setting)
+    local row = CreateFrame("Frame", nil, dialog)
+    row:SetSize(340, ROW_HEIGHT)
+    row.update = function() end
+    if setting.kind == "checkbox" then
+        local box = CreateFrame("CheckButton", nil, row, "UICheckButtonTemplate")
+        box:SetSize(28, 28)
+        box:SetPoint("LEFT", -4, 0)
+        local text = row:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+        text:SetPoint("LEFT", box, "RIGHT", 2, 0)
+        text:SetText(setting.name)
+        box:SetScript("OnClick", function(self)
+            call(setting.set, self:GetChecked() and true or false)
+            EditMode.Refresh()
+        end)
+        row.update = function() box:SetChecked(setting.get() and true or false) end
+        return row
+    end
+    local label = row:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    label:SetPoint("LEFT")
+    label:SetText(setting.name)
+    if setting.kind == "dropdown" then
+        local ok, dropdown = pcall(CreateFrame, "DropdownButton", nil, row, "WowStyle1DropdownTemplate")
+        if ok and dropdown and dropdown.SetupMenu then
+            dropdown:SetWidth(200)
+            dropdown:SetPoint("LEFT", label, "LEFT", 90, 0)
+            dropdown:SetupMenu(function(_, root)
+                for _, choice in ipairs(setting.choices) do
+                    root:CreateRadio(choice[2], function() return setting.get() == choice[1] end, function()
+                        call(setting.set, choice[1])
+                        EditMode.Refresh()
+                    end)
+                end
+            end)
+            row.update = function() dropdown:GenerateMenu() end
+        end
+        return row
+    end
+    local slider = newSlider(row)
+    if slider then
+        slider:SetPoint("LEFT", label, "LEFT", 90, 0)
+        slider:SetWidth(200)
+        slider:RegisterCallback(MinimalSliderWithSteppersMixin.Event.OnValueChanged, function(_, value)
+            if not dialog.refreshing then
+                call(setting.set, value)
+                EditMode.Refresh()
+            end
+        end, row)
+        row.update = function()
+            slider:Init(setting.get(), setting.min, setting.max, (setting.max - setting.min) / setting.step,
+                sliderLabels(setting))
+        end
+    end
+    return row
+end
+
+-- Sets the dialog up for the selected frame: its name, its scale slider if it has one, its own
+-- settings, and a reset button if it has one; and puts it beside the frame, on whichever side has
+-- more room.
 function refreshDialog()
     local frame = selected
     local info = frame and registered[frame]
@@ -454,6 +566,27 @@ function refreshDialog()
             formatter and { [MinimalSliderWithSteppersMixin.Label.Right] = formatter } or nil)
         dialog.refreshing = false
         height = height + 40
+    end
+    for _, row in ipairs(settingRows) do
+        row:Hide()
+    end
+    if info.settings then
+        info.rows = info.rows or {}
+        dialog.refreshing = true
+        for i, setting in ipairs(info.settings) do
+            local row = info.rows[i]
+            if not row then
+                row = newSettingRow(setting)
+                info.rows[i] = row
+                settingRows[#settingRows + 1] = row
+            end
+            row:ClearAllPoints()
+            row:SetPoint("TOPLEFT", 20, -(height - 8))
+            call(row.update)
+            row:Show()
+            height = height + ROW_STEP
+        end
+        dialog.refreshing = false
     end
     dialog.reset:SetShown(info.reset ~= nil)
     if info.reset then
@@ -573,15 +706,21 @@ end
 ---@param frame table
 ---@param label string the dialog's title and the right-click menu's
 ---@param onMove fun(x: number, y: number)
----@param options? { onChange: fun(active: boolean)?, scale: { min: number, max: number, step: number, format: string?, get: fun(): number, set: fun(value: number) }?, reset: fun()? }
+---@param options? { onChange: fun(active: boolean)?, scale: { min: number, max: number, step: number, format: string?, get: fun(): number, set: fun(value: number) }?, reset: fun()?, settings: table[]? }
 --- onChange is called when Edit Mode opens or closes, and now if it's open. scale gives the
---- dialog a scale slider; reset gives it a Reset To Default Position button.
+--- dialog a scale slider; reset gives it a Reset To Default Position button. settings are the
+--- frame's own, in the dialog under the scale and in the right-click menu: each { name, kind =
+--- "dropdown" (with choices, { value, label } each) or "slider" (with min, max, step, and format,
+--- a pattern or a function) or "checkbox", get = fun(): any, set = fun(value) }.
 function EditMode.Register(frame, label, onMove, options)
     options = options or {}
     local wasRegistered = registered[frame] ~= nil
     local info = registered[frame] or unregistered[frame] or {}
     info.label, info.onMove, info.onChange = label, onMove, options.onChange
     info.scale, info.reset = options.scale, options.reset
+    if info.settings ~= options.settings then
+        info.settings, info.rows = options.settings, nil
+    end
     if wasRegistered then
         return
     end
@@ -599,9 +738,37 @@ function EditMode.Register(frame, label, onMove, options)
     end
 end
 
+-- A module's options marked `editMode = true` as the frame's settings: a dropdown for `choices`, a
+-- slider for `min`, a checkbox otherwise. Changing one goes through ns.SetOption, so the module
+-- hears of it in OnOptionChanged as from the Settings page. Made once per module.
+local moduleSettings = setmetatable({}, { __mode = "k" })
+
+local function settingsOf(module)
+    if moduleSettings[module] then
+        return moduleSettings[module]
+    end
+    local list = {}
+    for _, option in ipairs(module.options or {}) do
+        if option.editMode then
+            local key = option.key
+            list[#list + 1] = {
+                name = option.name,
+                kind = option.choices and "dropdown" or option.min and "slider" or "checkbox",
+                choices = option.choices,
+                min = option.min, max = option.max, step = option.step, format = option.format,
+                get = function() return module.db[key] end,
+                set = function(value) ns.SetOption(module.name, key, value) end,
+            }
+        end
+    end
+    moduleSettings[module] = #list > 0 and list or false
+    return moduleSettings[module]
+end
+
 ---`EditMode.Register` for a module's frame placed from its own settings: the offset in
----`module.db.x` and `y`, Reset To Default Position back to the module's defaults, and a 50% to 200%
----scale slider for `module.db.scale`. `apply` puts the frame where the settings now say.
+---`module.db.x` and `y`, Reset To Default Position back to the module's defaults, a 50% to 200%
+---scale slider for `module.db.scale`, and the module's options marked `editMode = true`. `apply`
+---puts the frame where the settings now say.
 ---@param module table
 ---@param frame table
 ---@param label string
@@ -612,6 +779,7 @@ function EditMode.RegisterModule(module, frame, label, apply, onChange)
         module.db.x, module.db.y = x, y
     end, {
         onChange = onChange,
+        settings = settingsOf(module) or nil,
         reset = function()
             module.db.x, module.db.y = nil, nil -- forgotten: the default spot, today's or a later one
             apply()
