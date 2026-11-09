@@ -4,7 +4,7 @@
 local _, ns = ...
 
 local ipairs, GetGuildInfo = ipairs, GetGuildInfo
-local UnitClass, UnitIsUnit = UnitClass, UnitIsUnit
+local UnitClass, UnitIsUnit, IsInInstance = UnitClass, UnitIsUnit, IsInInstance
 
 local L = ns.L
 local readable = ns.IsReadable
@@ -26,10 +26,12 @@ local module = ns.NewModule("PlayerNameplates", L.PLAYERNAMEPLATES_DESC, ns.Frie
     socialIcons = true,
     groupIcon = "role", -- "role" or "looking"
     iconSide = "after", -- "after" or "before" the name
+    instanceNames = true, -- Blizzard's names-only plates where it draws them itself (dungeons, raids)
     testIcons = "off", -- debug: "off", "group", or "friend" on every friendly player
 }))
 module.title = L.PLAYERNAMEPLATES_TITLE
 module.category = "units"
+module.quickToggle = "nameplates"
 
 -- Layout version 5: the icons had no size of their own and grew with Name Size. A player who set
 -- Name Size keeps their icons that size under the new Icon Size.
@@ -44,6 +46,11 @@ end)
 
 -- General first, then the name, the guild line, and the icons beside the name.
 module.options = ns.FriendlyPlates.Options(L.PLAYERNAMEPLATES_HEALTH_BAR_DESC, {
+    {
+        key = "instanceNames", name = L.PLAYERNAMEPLATES_INSTANCE_NAMES,
+        description = L.PLAYERNAMEPLATES_INSTANCE_NAMES_DESC, section = L.PLATES_SECTION_GENERAL,
+        added = "1.4.0",
+    },
     {
         key = "nameColor", name = L.PLATES_NAME_COLOR, description = L.PLAYERNAMEPLATES_NAME_COLOR_DESC,
         choices = { { "class", L.PLAYERNAMEPLATES_NAME_COLOR_CLASS }, { "white", L.PLATES_COLOR_WHITE } },
@@ -247,8 +254,38 @@ end
 -- Blizzard's friendly player nameplates can be turned off after this module turns them on (in
 -- its options, or with its keybind), and then there are no plates to draw on.
 local SHOW_FRIENDLY = { "nameplateShowFriendlyPlayers", "nameplateShowFriends" }
-module.notice = ns.CVars.OffNotice(module, SHOW_FRIENDLY, L.PLATES_BLIZZARD_OFF,
-    L.PLAYERNAMEPLATES_BLIZZARD_OFF_DESC)
+module.notice = {
+    ns.CVars.OffNotice(module, SHOW_FRIENDLY, L.PLATES_BLIZZARD_OFF, L.PLAYERNAMEPLATES_BLIZZARD_OFF_DESC),
+    -- The game's rule, not ours: always there, with no button.
+    { text = L.PLAYERNAMEPLATES_INSTANCES, description = L.PLAYERNAMEPLATES_INSTANCES_DESC },
+}
+
+-- Where Blizzard keeps friendly plates to itself. In dungeons and raids friendly plates are
+-- forbidden to addons (Retail's rule since 7.2, and Forever's plates have the forbidden pool:
+-- Blizzard_NamePlates.lua, 1.60.1.70862). In another kind of instance (a battleground), a
+-- forbidden plate showing up says so too, until the next loading screen.
+local forbiddenSeen = false
+
+local function inInstance()
+    if not IsInInstance then
+        return false, nil
+    end
+    local inside, kind = IsInInstance()
+    return inside and true or false, kind
+end
+
+local function blizzardPlatesHere()
+    local inside, kind = inInstance()
+    return inside and (kind == "party" or kind == "raid" or forbiddenSeen)
+end
+
+-- Blizzard's names-only mode (its Show Only Name checkbox) drops the bar entirely, so on our plates
+-- it could never come back when hurt: off, except where the plates are Blizzard's, where it's the
+-- only way to keep their health bars hidden (Names Only in Dungeons). The forbidden plates read the
+-- same CVar (NamePlateUnitFrameMixin:UpdateShowOnlyName, on both pools).
+local function namesOnly(db)
+    return db.instanceNames and blizzardPlatesHere() and "1" or "0"
+end
 
 local plates -- set below
 
@@ -265,8 +302,7 @@ plates = ns.FriendlyPlates.New(module, {
         -- Each entry lists the names the setting has had, newest first; the first one this client
         -- knows is used.
         { names = SHOW_FRIENDLY, value = "1" },
-        -- Blizzard's names-only mode drops the bar entirely, so it could never come back when hurt.
-        { names = { "nameplateShowOnlyNameForFriendlyPlayerUnits", "nameplateShowOnlyNames" }, value = "0" },
+        { names = { "nameplateShowOnlyNameForFriendlyPlayerUnits", "nameplateShowOnlyNames" }, value = namesOnly },
         -- Blizzard's own name, shown while the bar is up, stays plain white; class color is for ours.
         { names = { "nameplateUseClassColorForFriendlyPlayerUnitNames" }, value = "0" },
     },
@@ -279,6 +315,24 @@ plates = ns.FriendlyPlates.New(module, {
         end
     end,
 })
+
+-- Names Only in Dungeons: into or out of an instance (a loading screen), or a forbidden plate
+-- somewhere this didn't expect one. Set out of combat, as every nameplate CVar is (ns.CVars).
+local whileInstanceNames = {
+    PLAYER_ENTERING_WORLD = function()
+        forbiddenSeen = false
+        plates:ApplyCVars(true)
+    end,
+}
+if ns.HasEvent("FORBIDDEN_NAME_PLATE_UNIT_ADDED") then
+    whileInstanceNames.FORBIDDEN_NAME_PLATE_UNIT_ADDED = function()
+        if not forbiddenSeen and inInstance() then
+            forbiddenSeen = true
+            plates:ApplyCVars(true)
+        end
+    end
+end
+module:OnWhile("instanceNames", whileInstanceNames)
 
 -- Dim Other Players leaves your target bright, so the plates follow the target.
 module:OnWhile("dimOthers", {

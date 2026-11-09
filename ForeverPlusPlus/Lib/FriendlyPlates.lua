@@ -5,13 +5,18 @@
 --
 --   local plates = ns.FriendlyPlates.New(module, {
 --       players = true,             -- friendly players, or false for friendly NPCs
---       cvars = { { names = { "cvarName", "olderName" }, value = "1" }, ... },
+--       cvars = { { names = { "cvarName", "olderName" }, value = "1" }, ... }, -- value may be fn(db)
 --       style = { NameColor = fn, Subtitle = fn, SubtitleColor = fn, icons = bool },
 --       OnEnable = fn(module), -- optional: more to do when the module turns on
 --       Skip = fn(unit),       -- optional: true leaves this unit's plate to Blizzard
 --   })
 --   plates:Refresh() -- after a setting the plates draw from changed
 --   plates:Recheck() -- after a setting Skip reads changed
+--   plates:ApplyCVars(true) -- after what a CVar's value function reads changed
+--
+-- In dungeons and raids friendly plates are forbidden to addons: Blizzard draws its own there
+-- (FORBIDDEN_NAME_PLATE_UNIT_ADDED, never seen by ns.Nameplates), from the same CVars, so a CVar
+-- set here still reaches them, but nothing else does.
 --
 -- New gives the module its OnEnable, OnDisable and OnOptionChanged (unless it has its own
 -- OnDisable or OnOptionChanged). The module's settings come from FriendlyPlates.Defaults: they
@@ -19,7 +24,7 @@
 -- the CVars. FriendlyPlates.Options puts the General options at the top of the module's list.
 local _, ns = ...
 
-local pairs, ipairs, setmetatable, hooksecurefunc = pairs, ipairs, setmetatable, hooksecurefunc
+local pairs, ipairs, setmetatable, hooksecurefunc, type = pairs, ipairs, setmetatable, hooksecurefunc, type
 local CreateFrame = CreateFrame
 local UnitIsPlayer, UnitIsFriend, UnitIsUnit = UnitIsPlayer, UnitIsFriend, UnitIsUnit
 local UnitAffectingCombat, UnitHealthPercent = UnitAffectingCombat, UnitHealthPercent
@@ -370,6 +375,7 @@ function FriendlyPlates.New(module, spec)
     end
     module.OnOptionChanged = module.OnOptionChanged or function(mod)
         if mod.enabled then
+            self:ApplyCVars(true)
             self:Recheck()
             self:Refresh()
         end
@@ -614,6 +620,23 @@ function Plates:Refresh()
     end
 end
 
+---Sets the module's CVars (the player's own values kept in `db.saved`). A CVar whose `value` is a
+---function, of the module's settings, depends on them or on where the player is: `changing` sets
+---only those again, after a setting changed or the player moved, and leaves the fixed ones as the
+---player may have set them since (Blizzard's own checkbox, a keybind).
+---@param changing? boolean
+function Plates:ApplyCVars(changing)
+    local db = self.module.db
+    for _, entry in ipairs(self.spec.cvars) do
+        local value = entry.value
+        if type(value) == "function" then
+            ns.CVars.Set(db.saved, entry.names, value(db))
+        elseif not changing then
+            ns.CVars.Set(db.saved, entry.names, value)
+        end
+    end
+end
+
 ---Sets the CVars, and starts handling plates and their events (through module:On, so they stop
 ---when the module turns off).
 function Plates:Enable()
@@ -623,9 +646,7 @@ function Plates:Enable()
         curve, inverse = ns.HealthStepCurve(1, 0), ns.HealthStepCurve(0, 1)
     end
     self.style.db = module.db
-    for _, entry in ipairs(self.spec.cvars) do
-        ns.CVars.Set(module.db.saved, entry.names, entry.value)
-    end
+    self:ApplyCVars()
     for _, event in ipairs(EVENTS) do
         module:On(event, self.onUnitEvent)
     end
