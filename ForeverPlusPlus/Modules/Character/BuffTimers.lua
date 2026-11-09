@@ -5,7 +5,7 @@
 -- Tracking Buffs leaves minimap tracking out of them.
 local _, ns = ...
 
-local ipairs, pairs, type, setmetatable, floor = ipairs, pairs, type, setmetatable, math.floor
+local ipairs, pairs, type, setmetatable, floor, pcall = ipairs, pairs, type, setmetatable, math.floor, pcall
 local sort, huge = table.sort, math.huge
 local GetCVarBool = C_CVar and C_CVar.GetCVarBool or GetCVarBool
 local C_UnitAuras, C_Minimap = C_UnitAuras, C_Minimap
@@ -232,10 +232,15 @@ local function isTracking(info)
     if not id then
         return false -- a weapon enchant
     end
-    if not readable(id) or not C_UnitAuras.GetAuraDataByAuraInstanceID then
+    -- While auras are secret (in combat, and in Edit Mode's layout pass at login) the lookup throws
+    -- instead of giving back a secret value: check first, and catch it in case it throws anyway.
+    if not readable(id) or not C_UnitAuras.GetAuraDataByAuraInstanceID or not ns.AurasReadable() then
         return nil
     end
-    local aura = C_UnitAuras.GetAuraDataByAuraInstanceID("player", id)
+    local ok, aura = pcall(C_UnitAuras.GetAuraDataByAuraInstanceID, "player", id)
+    if not ok then
+        return nil
+    end
     local spellID = aura and aura.spellId
     if not readable(spellID) then
         return nil
