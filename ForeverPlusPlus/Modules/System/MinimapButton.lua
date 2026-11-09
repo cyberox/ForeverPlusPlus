@@ -221,17 +221,13 @@ local function moduleTooltip(entry)
     end
 end
 
--- Customize: a submenu per Modules page category, each with a checkbox per module for whether this
--- menu offers it. Checking one redraws the checks; the menu itself shows the change the next
--- time it opens.
-local function addCustomize(root)
-    local customize = root:CreateButton(L.MINIMAPBUTTON_CUSTOMIZE)
-    if customize.SetTooltip then
-        customize:SetTooltip(function(tooltip)
-            tooltip:SetText(L.MINIMAPBUTTON_CUSTOMIZE, 1, 1, 1)
-            tooltip:AddLine(L.MINIMAPBUTTON_CUSTOMIZE_DESC, GOLD[1], GOLD[2], GOLD[3], true)
-        end)
-    end
+-- Customize, from the button in the module's settings: a submenu per Modules page category, each
+-- with a checkbox per module for whether the quick toggles offer it. It isn't in the quick toggles
+-- menu itself, since an open menu only redraws its checks, never adds or drops rows
+-- (MenuResponse.Refresh is ReinitializeAll in Blizzard_Menu's Menu.lua), so a pick there wouldn't
+-- show until it opened again.
+local function customizeItems(_, root)
+    root:CreateTitle(L.MINIMAPBUTTON_CUSTOMIZE_NAME)
     local byCategory = {}
     for _, name in ipairs(ns.order) do
         local other = ns.modules[name]
@@ -246,7 +242,7 @@ local function addCustomize(root)
         local entries = byCategory[category[1]]
         if entries then
             sort(entries, byTitle)
-            local sub = customize:CreateButton(category[2])
+            local sub = root:CreateButton(category[2])
             if #entries > MAX_ROWS and sub.SetScrollMode then
                 sub:SetScrollMode(MAX_ROWS * ROW_HEIGHT)
             end
@@ -261,8 +257,8 @@ local function addCustomize(root)
             end
         end
     end
-    customize:CreateDivider()
-    local reset = customize:CreateButton(L.MINIMAPBUTTON_CUSTOMIZE_RESET, function()
+    root:CreateDivider()
+    local reset = root:CreateButton(L.MINIMAPBUTTON_CUSTOMIZE_RESET, function()
         wipe(module.db.quickToggles)
         return MenuResponse and MenuResponse.Refresh
     end)
@@ -286,7 +282,23 @@ local function quickMenuItems(_, root)
         end
     end
     root:CreateDivider()
-    addCustomize(root)
+    local customize = root:CreateButton(L.MINIMAPBUTTON_CUSTOMIZE_OPEN, function()
+        ns.OpenSettings(module.name)
+    end)
+    if customize.SetTooltip then
+        customize:SetTooltip(function(tooltip)
+            tooltip:SetText(L.MINIMAPBUTTON_CUSTOMIZE_NAME, 1, 1, 1)
+            tooltip:AddLine(L.MINIMAPBUTTON_CUSTOMIZE_OPEN_DESC, GOLD[1], GOLD[2], GOLD[3], true)
+        end)
+    end
+end
+
+-- The Customize button's menu, at the cursor, owned by the button so it closes with Settings.
+local function openCustomize()
+    if MenuUtil and MenuUtil.CreateContextMenu then
+        local owner = GetMouseFoci and GetMouseFoci()[1]
+        MenuUtil.CreateContextMenu(owner or UIParent, customizeItems)
+    end
 end
 
 -- Menu Side's anchor: a corner of the menu on the cursor, the right one for Left and the left one
@@ -615,6 +627,15 @@ module.options = {
         "0.9.0"),
     Keys.Option("clearAllKey", L.MINIMAPBUTTON_CLEAR_ALL_KEY, L.MINIMAPBUTTON_CLEAR_ALL_KEY_DESC),
 }
+module.actions = {
+    {
+        name = L.MINIMAPBUTTON_CUSTOMIZE_NAME,
+        button = L.MINIMAPBUTTON_CUSTOMIZE,
+        description = L.MINIMAPBUTTON_CUSTOMIZE_DESC,
+        fn = openCustomize,
+    },
+}
+
 for _, option in ipairs(module.options) do
     if option.key == "errorsKey" or option.key == "clearAllKey" then
         option.added = "0.9.0"
