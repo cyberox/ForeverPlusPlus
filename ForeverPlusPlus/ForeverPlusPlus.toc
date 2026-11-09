@@ -155,6 +155,7 @@ Modules\Chat\AgentChat\AgentChat.lua
 Modules\Chat\AgentChat\Window.lua
 Modules\Units\ClassColors.lua
 Modules\Units\DruidManaBar.lua
+Modules\Units\TargetMarkers.lua
 Modules\Map\WorldMap\WorldMap.lua
 Modules\Map\WorldMap\Coordinates.lua
 Modules\Map\WorldMap\ZoneInfo\ZoneInfo.lua

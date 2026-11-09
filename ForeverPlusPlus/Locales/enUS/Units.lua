@@ -216,3 +216,21 @@ L.NPCNAMEPLATES_TITLES_DESC = "When to show an NPC's title, like <Innkeeper>, un
 L.NPCNAMEPLATES_TITLE_COLOR = "Title Color"
 L.NPCNAMEPLATES_TITLE_COLOR_DESC = "The color of an NPC's <Title> line."
 L.NPCNAMEPLATES_TITLE_COLOR_NAME = "Same as Name"
+
+-- TargetMarkers
+L.TARGETMARKERS_TITLE = "Target Markers"
+L.TARGETMARKERS_DESC = "Hold a key and a ring of the raid icons opens at your mouse. Point toward one "
+    .. "and let go to mark your target, or let go in the middle to clear it. A second key does the "
+    .. "same with world markers. Works in combat."
+L.TARGETMARKERS_BINDING_MARK = "Target Marker Ring" -- in Blizzard's Key Bindings
+L.TARGETMARKERS_BINDING_WORLD = "World Marker Ring"
+L.TARGETMARKERS_NO_KEY = "No key is bound yet" -- a gray row atop the module, with a button
+L.TARGETMARKERS_NO_KEY_DESC = "The rings open with keys you choose in Key Bindings, under Forever++."
+L.TARGETMARKERS_BIND = "Key Bindings"
+L.TARGETMARKERS_MOUSEOVER = "Mark What's Under the Mouse"
+L.TARGETMARKERS_MOUSEOVER_DESC = "When your mouse is over a unit as you press the key, target it, so "
+    .. "it's the one marked. Off, the ring always marks your current target."
+L.TARGETMARKERS_SCALE = "Ring Size"
+L.TARGETMARKERS_SCALE_DESC = "The size of the ring."
+L.TARGETMARKERS_CLEAR = "Clear Mark" -- the middle of the ring
+L.TARGETMARKERS_CLEAR_ALL = "Clear All Markers"

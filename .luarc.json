@@ -11,6 +11,7 @@
     "StopSound",
     "SLASH_FOREVERPLUSPLUS1",
     "SLASH_FOREVERPLUSPLUS2",
+    "BINDING_HEADER_FOREVERPLUSPLUS",
     "SlashCmdList",
     "CreateFrame",
     "ReloadUI",
