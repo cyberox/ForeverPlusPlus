@@ -497,10 +497,13 @@ local function placeLevel(label, record, unit, db, where, anchor, gap)
         textWidth = fontSize * 1.2
     end
     local frame = LEVEL_FRAMES[db.levelFrame]
+    -- The width set here, not read back: beside a secret name (a player's), GetWidth read as
+    -- secret, the level counted as no width, and the raid icon past the row sat on it.
+    local width
     if frame and setLevelArt(badge, frame) then
         badge.frame:Show()
         local height = fontSize * frame.height
-        local width = height * frame.wide
+        width = height * frame.wide
         if textWidth + fontSize * frame.pad > width then
             width = textWidth + fontSize * frame.pad
         end
@@ -512,11 +515,11 @@ local function placeLevel(label, record, unit, db, where, anchor, gap)
     else
         -- Just the number, so it's as wide as the number.
         badge.frame:Hide()
+        width = textWidth
         badge:SetSize(textWidth, fontSize * 1.4)
         badge.text:SetPoint("CENTER", badge, "CENTER", 0, 0)
     end
-    local width = badge:GetWidth()
-    width = readable(width) and width + gap or 0
+    width = width + gap
     badge:ClearAllPoints()
     if where == "after" then
         badge:SetPoint("LEFT", anchor, "RIGHT", gap, 0)
