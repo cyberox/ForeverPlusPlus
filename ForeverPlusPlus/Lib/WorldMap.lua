@@ -3,7 +3,7 @@
 -- module waits for it.
 local _, ns = ...
 
-local ipairs, pairs, tonumber = ipairs, pairs, tonumber
+local ipairs, pairs, tonumber, setmetatable = ipairs, pairs, tonumber, setmetatable
 local sqrt, atan2, pi = math.sqrt, math.atan2, math.pi
 local UnitFactionGroup, CreateFromMixins = UnitFactionGroup, CreateFromMixins
 local FACTION_ALLIANCE, FACTION_HORDE = FACTION_ALLIANCE, FACTION_HORDE
@@ -300,6 +300,118 @@ function WorldMap.Toward(width, height, fromX, fromY, toX, toY)
     local east = (toX - fromX) * width
     local south = (toY - fromY) * height
     return sqrt(east * east + south * south), atan2(-east, -south) % (2 * pi)
+end
+
+-- Points ----------------------------------------------------------------------------------------
+-- A point is a spot on a map the way the map pin (C_Map.GetUserWaypoint) is one:
+-- { uiMapID = mapID, position = { x = x, y = y } }, x and y from 0 to 1.
+
+---Where a quest is, as a point: the next stop the game routes through to get there (a quest in
+---another zone), or else its spot on the player's map or a map above it, up to the continent.
+---Both are the quest's own map icon, from Mainline's C_QuestLog. Nil when the game has none.
+---@param questID number
+---@return table? point
+function WorldMap.QuestPoint(questID)
+    if not C_QuestLog then
+        return nil
+    end
+    if C_QuestLog.GetNextWaypoint then
+        local mapID, x, y = C_QuestLog.GetNextWaypoint(questID)
+        if mapID and x and y then
+            return { uiMapID = mapID, position = { x = x, y = y } }
+        end
+    end
+    if not C_QuestLog.GetQuestsOnMap then
+        return nil
+    end
+    for mapID in WorldMap.Up(C_Map.GetBestMapForUnit("player")) do
+        for _, quest in ipairs(C_QuestLog.GetQuestsOnMap(mapID) or {}) do
+            if quest.questID == questID and quest.x and quest.y then
+                return { uiMapID = mapID, position = { x = quest.x, y = quest.y } }
+            end
+        end
+    end
+    return nil
+end
+
+---Where the player's corpse is, as a point: on the player's map or the first map above it that
+---has it (a corpse in the next zone), up to the continent. Blizzard's map draws its tombstone
+---from the same call. Nil while there's no corpse.
+---@return table? point
+function WorldMap.CorpsePoint()
+    if not (C_DeathInfo and C_DeathInfo.GetCorpseMapPosition) then
+        return nil
+    end
+    for mapID in WorldMap.Up(C_Map.GetBestMapForUnit("player")) do
+        local position = C_DeathInfo.GetCorpseMapPosition(mapID)
+        if position then
+            return { uiMapID = mapID, position = position }
+        end
+    end
+    return nil
+end
+
+-- The maps a point can be pointed at on, from its own up to its continent, each with the point's
+-- spot on it and the map's size: { mapID, target, width, height }. Worked out once per point
+-- (weak keys: gone with the point), so each look only reads where the player is.
+local routes = setmetatable({}, { __mode = "k" })
+
+local function route(point)
+    local steps = {}
+    local pinMap = point.uiMapID
+    local continentType = Enum and Enum.UIMapType and Enum.UIMapType.Continent or 2
+    local continent, world
+    if C_Map.GetWorldPosFromMapPos then
+        continent, world = C_Map.GetWorldPosFromMapPos(pinMap, point.position)
+    end
+    for mapID, info in WorldMap.Up(pinMap) do
+        if not info or (info.mapType and info.mapType < continentType) then
+            break -- past the continent: another continent's point has no direction from here
+        end
+        local target = point.position
+        if mapID ~= pinMap then
+            target = nil
+            if world and C_Map.GetMapPosFromWorldPos then
+                local _, pos = C_Map.GetMapPosFromWorldPos(continent, world, mapID)
+                target = pos
+            end
+        end
+        local width, height = WorldMap.Size(mapID)
+        steps[#steps + 1] = { mapID = mapID, target = target, width = width, height = height }
+    end
+    return steps
+end
+
+---How far a point is from the player in yards and its direction (WorldMap.Toward's angle), on
+---the point's own map or the first map above it the player is also on, so a pin in the next zone
+---still points the right way. Nil when the game can't say: no point, in an instance, another
+---continent. Keep the same point table between calls, so its route is worked out once.
+---@param point table?
+---@return number? yards
+---@return number? angle
+function WorldMap.FromPlayer(point)
+    if not (point and point.uiMapID and point.position) then
+        return nil
+    end
+    local steps = routes[point]
+    if not steps then
+        steps = route(point)
+        routes[point] = steps
+    end
+    for _, step in ipairs(steps) do
+        local _, px, py = WorldMap.PlayerPosition(step.mapID)
+        if px then
+            local target, width, height = step.target, step.width, step.height
+            if target and width and not (px == 0 and py == 0) then
+                -- Read x and y, not GetXY: on Forever the waypoint's position is a plain table.
+                local tx, ty = target.x, target.y
+                if ns.IsReadable(tx) and ns.IsReadable(ty) then
+                    return WorldMap.Toward(width, height, px, py, tx, ty)
+                end
+            end
+        end
+    end
+    return nil
 end
 
 -- Sides -----------------------------------------------------------------------------------------

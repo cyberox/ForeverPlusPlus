@@ -110,6 +110,35 @@ local ok, why = WorldMap.SetWaypoint(1411, 1.5, 0)
 eq(ok == false and why, "range", "SetWaypoint: outside the map")
 ok, why = WorldMap.SetWaypoint(9001, 0.5, 0.5)
 eq(ok == false and why, "map", "SetWaypoint: a map without pins")
+
+-- Points: a quest's and the corpse's spot, and how far and which way one is from the player, who
+-- stands at 0.25, 0.75 on Durotar (5000 by 3000 yards).
+C_QuestLog = { GetQuestsOnMap = function(mapID)
+    if mapID == 1411 then
+        return { { questID = 7, x = 0.25, y = 0.55 } }
+    end
+end }
+local point = WorldMap.QuestPoint(7)
+eq(point and point.uiMapID == 1411 and point.position.y == 0.55, true, "QuestPoint on the player's map")
+eq(WorldMap.QuestPoint(8), nil, "QuestPoint of a quest without a spot")
+C_QuestLog.GetNextWaypoint = function()
+    return 12, 0.5, 0.5
+end
+eq(WorldMap.QuestPoint(7).uiMapID, 12, "QuestPoint: the next stop the game routes through first")
+C_QuestLog = nil
+eq(WorldMap.QuestPoint(7), nil, "QuestPoint without the quest log")
+C_DeathInfo = { GetCorpseMapPosition = function(mapID)
+    return mapID == 12 and { x = 0.1, y = 0.2 } or nil
+end }
+eq(WorldMap.CorpsePoint().uiMapID, 12, "CorpsePoint on a map above the player's")
+C_DeathInfo = nil
+eq(WorldMap.CorpsePoint(), nil, "CorpsePoint without one")
+local fromYards, fromAngle = WorldMap.FromPlayer(point)
+near(fromYards, 600, "FromPlayer: 0.2 of 3000 yards")
+near(fromAngle, 0, "FromPlayer: north")
+eq(WorldMap.FromPlayer({ uiMapID = 1413, position = { x = 0.5, y = 0.5 } }), nil,
+    "FromPlayer: a map the player isn't on")
+eq(WorldMap.FromPlayer(nil), nil, "FromPlayer: no point")
 UiMapPoint = nil
 C_Map = nil
 eq(WorldMap.PlayerSide(), "H", "Horde side")

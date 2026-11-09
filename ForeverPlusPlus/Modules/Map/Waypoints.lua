@@ -9,11 +9,11 @@
 -- under the arrow, and /way share puts the pin's link in the chat box.
 local _, ns = ...
 
-local ipairs, tonumber, format, floor, abs = ipairs, tonumber, string.format, math.floor, math.abs
+local tonumber, format, floor, abs = tonumber, string.format, math.floor, math.abs
 local tconcat = table.concat
 local CreateFrame, UIParent, C_Map, C_QuestLog = CreateFrame, UIParent, C_Map, C_QuestLog
 local GetPlayerFacing, GetTime, UnitIsGhost = GetPlayerFacing, GetTime, UnitIsGhost
-local C_DeathInfo, C_Timer = C_DeathInfo, C_Timer
+local C_Timer = C_Timer
 
 local L = ns.L
 local WorldMap = ns.WorldMap
@@ -209,8 +209,6 @@ end
 local ARRIVED = 10 -- yards; closer than this the arrow goes away. 5 was easy to ride past.
 local QUEST_INTERVAL = 1 -- seconds between looking up where the selected quest is
 
-local continentType = Enum and Enum.UIMapType and Enum.UIMapType.Continent or 2
-
 -- The quest selected on the map (the super-tracked one) while Follow Selected Quest is on.
 local function selectedQuest()
     if not (module.db.quest and C_SuperTrack and C_SuperTrack.GetSuperTrackedQuestID) then
@@ -223,52 +221,13 @@ local function selectedQuest()
     return nil
 end
 
--- Where a quest is, as a point like the map pin's: the next stop the game routes through to get
--- there (a quest in another zone), or else its spot on the player's map or a map above it, up to
--- the continent. Both are the quest's own map icon, from Mainline's C_QuestLog.
-local function questPoint(questID)
-    if C_QuestLog.GetNextWaypoint then
-        local mapID, x, y = C_QuestLog.GetNextWaypoint(questID)
-        if mapID and x and y then
-            return { uiMapID = mapID, position = { x = x, y = y } }
-        end
-    end
-    if not C_QuestLog.GetQuestsOnMap then
-        return nil
-    end
-    for mapID in WorldMap.Up(C_Map.GetBestMapForUnit("player")) do
-        for _, quest in ipairs(C_QuestLog.GetQuestsOnMap(mapID) or {}) do
-            if quest.questID == questID and quest.x and quest.y then
-                return { uiMapID = mapID, position = { x = quest.x, y = quest.y } }
-            end
-        end
-    end
-    return nil
-end
-
 -- Whether the arrow should point to the corpse: a ghost with Point to Corpse on.
 local function followCorpse()
     return module.db.corpse and UnitIsGhost("player") and true or false
 end
 
--- Where the player's corpse is, as a point like the map pin's: on the player's map or the first
--- map above it that has it (a corpse in the next zone), up to the continent. Blizzard's map draws
--- its tombstone from the same call.
-local function corpsePoint()
-    if not (C_DeathInfo and C_DeathInfo.GetCorpseMapPosition) then
-        return nil
-    end
-    for mapID in WorldMap.Up(C_Map.GetBestMapForUnit("player")) do
-        local position = C_DeathInfo.GetCorpseMapPosition(mapID)
-        if position then
-            return { uiMapID = mapID, position = position }
-        end
-    end
-    return nil
-end
-
--- The quest point and the corpse are looked up again each QUEST_INTERVAL, not every turn of the
--- arrow, and the map pin once each time it changes (refresh).
+-- The quest point and the corpse (Lib/WorldMap) are looked up again each QUEST_INTERVAL, not every
+-- turn of the arrow, and the map pin once each time it changes (refresh).
 local cachedQuest, cachedPoint, cachedTitle, checkedAt = nil, nil, nil, 0
 local cachedCorpse, corpseCheckedAt = nil, nil
 local cachedWaypoint, cachedNote, waypointRead = nil, nil, false
@@ -280,7 +239,7 @@ local function destination()
     if followCorpse() then
         local now = GetTime()
         if not corpseCheckedAt or now - corpseCheckedAt >= QUEST_INTERVAL then
-            cachedCorpse, corpseCheckedAt = corpsePoint(), now
+            cachedCorpse, corpseCheckedAt = WorldMap.CorpsePoint(), now
         end
         if cachedCorpse then
             return cachedCorpse, L.WAYPOINTS_CORPSE_LABEL
@@ -291,7 +250,7 @@ local function destination()
         local now = GetTime()
         if questID ~= cachedQuest or now - checkedAt >= QUEST_INTERVAL then
             -- The same spot keeps the old point, so its route (built per point) isn't built again.
-            local point = questPoint(questID)
+            local point = WorldMap.QuestPoint(questID)
             if not (point and cachedPoint and questID == cachedQuest
                 and point.uiMapID == cachedPoint.uiMapID
                 and point.position.x == cachedPoint.position.x
@@ -313,63 +272,9 @@ local function destination()
     return cachedWaypoint, cachedNote, cachedWaypoint ~= nil
 end
 
--- The maps a point can be pointed at on, from its own up to its continent, each with the point's
--- spot on it and the map's size: { mapID, target, width, height }. Worked out once per point, so
--- each turn of the arrow only reads where the player is.
-local function route(point)
-    local steps = {}
-    local pinMap = point.uiMapID
-    local continent, world
-    if C_Map.GetWorldPosFromMapPos then
-        continent, world = C_Map.GetWorldPosFromMapPos(pinMap, point.position)
-    end
-    for mapID, info in WorldMap.Up(pinMap) do
-        if not info or (info.mapType and info.mapType < continentType) then
-            break -- past the continent: another continent's pin has no direction from here
-        end
-        local target = point.position
-        if mapID ~= pinMap then
-            target = nil
-            if world and C_Map.GetMapPosFromWorldPos then
-                local _, pos = C_Map.GetMapPosFromWorldPos(continent, world, mapID)
-                target = pos
-            end
-        end
-        local width, height = C_Map.GetMapWorldSize(mapID)
-        steps[#steps + 1] = { mapID = mapID, target = target, width = width, height = height }
-    end
-    return steps
-end
-
-local steps, stepsFor -- route(stepsFor)
-
 -- How far `point` is from the player in yards and its direction counter-clockwise from north,
--- through WorldMap.Toward (nil when the game can't say: no target, in an instance, another
--- continent). Works on the target's own map, or the first map above it the player is also on, so
--- a pin in the next zone still points the right way.
-local function toward(point)
-    if not (point and point.uiMapID and point.position) then
-        return nil
-    end
-    if stepsFor ~= point then
-        steps, stepsFor = route(point), point
-    end
-    for _, step in ipairs(steps) do
-        local _, px, py = WorldMap.PlayerPosition(step.mapID)
-        if px then
-            local target, width, height = step.target, step.width, step.height
-            if target and ns.IsReadable(width) and width > 0 and height > 0
-                and not (px == 0 and py == 0) then
-                -- Read x and y, not GetXY: on Forever the waypoint's position is a plain table.
-                local tx, ty = target.x, target.y
-                if ns.IsReadable(tx) then
-                    return WorldMap.Toward(width, height, px, py, tx, ty)
-                end
-            end
-        end
-    end
-    return nil
-end
+-- or nil when the game can't say (Lib/WorldMap).
+local toward = WorldMap.FromPlayer
 
 -- The arrow -----------------------------------------------------------------------------------
 
@@ -380,13 +285,8 @@ local INTERVAL = 0.03 -- seconds between turns, smooth enough to follow the came
 
 local frame, watcher
 
--- "120 yds", like Blizzard's own marker (IN_GAME_NAVIGATION_RANGE), with big numbers shortened.
-local function distanceText(yards)
-    yards = floor(yards + 0.5)
-    local text = yards < 1000 and tostring(yards) or (AbbreviateNumbers and AbbreviateNumbers(yards))
-        or tostring(yards)
-    return format(IN_GAME_NAVIGATION_RANGE or L.WAYPOINTS_YARDS, text)
-end
+-- "120 yds", like Blizzard's own marker.
+local distanceText = ns.Text.Yards
 
 local function newFrame()
     local f = CreateFrame("Frame", nil, UIParent)

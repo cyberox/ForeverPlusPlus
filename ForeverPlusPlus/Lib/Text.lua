@@ -111,6 +111,17 @@ function Text.Hours(hours)
     return hours == 1 and L.TEXT_ONE_HOUR or format(L.TEXT_HOURS, hours)
 end
 
+---A distance in yards as Blizzard's own waypoint marker writes it ("120 yds",
+---IN_GAME_NAVIGATION_RANGE), rounded, with big numbers shortened where the client can ("1.2K").
+---@param yards number
+---@return string
+function Text.Yards(yards)
+    yards = floor(yards + 0.5)
+    local short = _G.AbbreviateNumbers
+    local text = yards >= 1000 and short and short(yards) or tostring(yards)
+    return format(_G.IN_GAME_NAVIGATION_RANGE or L.TEXT_YARDS, text)
+end
+
 ---A length of time as a clock: "0:42", "12:05", and from an hour "1:02:05".
 ---@param seconds number
 ---@return string

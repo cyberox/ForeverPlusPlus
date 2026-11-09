@@ -23,6 +23,13 @@ eq(ns.Text.Minutes(1), "1 Minute", "one minute")
 eq(ns.Text.Minutes(10), "10 Minutes", "minutes")
 eq(ns.Text.Hours(1), "1 Hour", "one hour")
 eq(ns.Text.Hours(12), "12 Hours", "hours")
+eq(ns.Text.Yards(119.6), "120 yds", "Yards rounds")
+eq(ns.Text.Yards(1500), "1500 yds", "Yards without the client's short numbers")
+AbbreviateNumbers = function(n) return (n / 1000) .. "K" end
+IN_GAME_NAVIGATION_RANGE = "%s yards"
+eq(ns.Text.Yards(1500), "1.5K yards", "Yards in the game's words, shortened")
+eq(ns.Text.Yards(999), "999 yards", "Yards under 1000 aren't shortened")
+AbbreviateNumbers, IN_GAME_NAVIGATION_RANGE = nil, nil
 eq(ns.Text.NewerVersion("0.8.0", "0.7.0"), true, "newer version")
 eq(ns.Text.NewerVersion("0.10.0", "0.9.2"), true, "newer version by number, not text")
 eq(ns.Text.NewerVersion("0.7.0", "0.7.0"), false, "same version")

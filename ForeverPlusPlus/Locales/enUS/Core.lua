@@ -21,6 +21,7 @@ L.TEXT_AGO_NOW = "just now"
 L.TEXT_AGO_MINUTES = "%dm ago" -- minutes
 L.TEXT_AGO_HOURS = "%dh ago" -- hours
 L.TEXT_AGO_DAYS = "%dd ago" -- days
+L.TEXT_YARDS = "%s yds" -- a distance; the game's own words are used when it has them
 
 -- Lib/Fonts.lua: the game's fonts, in every font dropdown
 L.FONT_FRIZQT = "Friz Quadrata"
