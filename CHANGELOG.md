@@ -2,6 +2,16 @@
 
 What changed in each release of Forever++. The same notes show in game under Settings > AddOns > Forever++ > Changelog, from [`ForeverPlusPlus/Changelog.lua`](ForeverPlusPlus/Changelog.lua); change both together.
 
+## 1.3.1 (2026-11-09)
+
+### Added
+
+- **Error Catcher**: a Sound option (off by default) plays one of Blizzard's alerts, like Raid Warning or a war horn, when an error is caught. Thanks to cyberox.
+
+### Fixed
+
+- **Whisper Window**: its settings page no longer errors while another addon hides the chat buttons. Thanks to cyberox.
+
 ## 1.3.0 (2026-11-09)
 
 ### Added

@@ -10,6 +10,20 @@ local L = ns.L
 
 ns.changelog = {
     {
+        version = "1.3.1",
+        date = "2026-11-09",
+        sections = {
+            { L.CHANGELOG_ADDED, {
+                { L.ERRORCATCHER_TITLE, "A Sound option (off by default) plays one of Blizzard's alerts, "
+                    .. "like Raid Warning or a war horn, when an error is caught. Thanks to cyberox." },
+            } },
+            { L.CHANGELOG_FIXED, {
+                { L.WHISPERWINDOW_TITLE, "Its settings page no longer errors while another addon hides "
+                    .. "the chat buttons. Thanks to cyberox." },
+            } },
+        },
+    },
+    {
         version = "1.3.0",
         date = "2026-11-09",
         sections = {
