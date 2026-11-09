@@ -67,6 +67,8 @@ module.options = {
 local ATLAS_BACKGROUND = "Radial_Wheel_BG"
 local ATLAS_POINTER = "Radial_Wheel_Select_Pointer"
 local ATLAS_DIVIDERS = "Radial_Wheel_Frame_Count_8"
+-- The ping wheel's four dividers, an X: two of them turned 22.5 degrees each way are eight.
+local ATLAS_DIVIDERS_4 = "Radial_Wheel_Frame_Count_4"
 local ATLAS_PICKED = "Radial_Wheel_Select_Wedge_Count_8"
 local ATLAS_CLOSE = "Radial_Wheel_Icon_Close"
 local ATLAS_CLOSE_PICKED = "Radial_Wheel_Select_Close"
@@ -212,19 +214,20 @@ local function drawPicked(frame)
     ring.label:SetText(underText(place, world))
 end
 
--- An icon's name beside it, on the side away from the middle, as the wheel places its own: 10
--- above or below, and right against it at the sides.
+-- An icon's name beside it, on the side away from the middle, as the wheel places its own. The
+-- wheel's icon art has room around it and the raid icons fill theirs, so the gaps make up for it.
+local NAME_GAP_SIDE, NAME_GAP_END = 12, 14
 local function placeName(name, icon, angle)
     local quarter = math.pi / 4
     name:ClearAllPoints()
     if angle > quarter + 0.01 and angle < 3 * quarter - 0.01 then
-        name:SetPoint("BOTTOM", icon, "TOP", 0, 10)
+        name:SetPoint("BOTTOM", icon, "TOP", 0, NAME_GAP_END)
     elseif angle >= 3 * quarter - 0.01 and angle <= 5 * quarter + 0.01 then
-        name:SetPoint("RIGHT", icon, "LEFT")
+        name:SetPoint("RIGHT", icon, "LEFT", -NAME_GAP_SIDE, 0)
     elseif angle > 5 * quarter + 0.01 and angle < 7 * quarter - 0.01 then
-        name:SetPoint("TOP", icon, "BOTTOM", 0, -10)
+        name:SetPoint("TOP", icon, "BOTTOM", 0, -NAME_GAP_END)
     else
-        name:SetPoint("LEFT", icon, "RIGHT")
+        name:SetPoint("LEFT", icon, "RIGHT", NAME_GAP_SIDE, 0)
     end
 end
 
@@ -269,11 +272,19 @@ local function buildRing()
     end
     ring.pointer:Hide()
 
-    -- Between the wedges: the wheel's own eight-wedge dividers, or lines like them.
+    -- Between the wedges: the wheel's own eight-wedge dividers, or the ping wheel's four twice, or
+    -- lines like them.
     if ns.Frames.HasAtlas(ATLAS_DIVIDERS) then
         local dividers = art:CreateTexture(nil, "BORDER")
         dividers:SetPoint("CENTER")
         dividers:SetAtlas(ATLAS_DIVIDERS, true)
+    elseif ns.Frames.HasAtlas(ATLAS_DIVIDERS_4) then
+        for _, turn in ipairs({ 22.5, -22.5 }) do
+            local dividers = art:CreateTexture(nil, "BORDER")
+            dividers:SetPoint("CENTER")
+            dividers:SetAtlas(ATLAS_DIVIDERS_4, true)
+            dividers:SetRotation(rad(turn))
+        end
     else
         drawDividers(art, wheel)
     end
