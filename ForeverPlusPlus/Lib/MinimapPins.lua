@@ -1,8 +1,9 @@
 -- Our own icons on the minimap at spots on the zone map: what the minimap shows right now (the
 -- player's spot, how far it sees, and how it's turned), and turning a spot on the map into a spot
 -- on the minimap and back. Exact through moving, turning, and zooming, since it's worked out from
--- the player's own position rather than read from the minimap. Nothing is listened to until a
--- module first asks.
+-- the player's own position rather than read from the minimap. And its shape: round, or square
+-- while an addon says so, with word to whoever places buttons on its edge when that changes.
+-- Nothing is listened to until a module first asks.
 local _, ns = ...
 
 local sin, cos, pairs, next, type = math.sin, math.cos, pairs, next, type
@@ -107,11 +108,38 @@ function MinimapPins.CursorOffset()
     return x / scale - (cx or 0), y / scale - (cy or 0)
 end
 
--- Whether the minimap is square: an addon that squares it says so with the global GetMinimapShape
--- (the convention minimap button libraries read); Blizzard's is round and defines none.
-local function square()
+---Whether the minimap is square: an addon that squares it (Square Minimap, or another) says so
+---with the global GetMinimapShape, the convention minimap button libraries read; Blizzard's is
+---round and defines none.
+---@return boolean
+function MinimapPins.Square()
     local shape = _G.GetMinimapShape and _G.GetMinimapShape()
     return shape == "SQUARE"
+end
+local square = MinimapPins.Square
+
+local shapeListeners = {} -- fn -> true
+
+---Calls `fn()` whenever the minimap's shape changes, as ShapeChanged says, while `on`.
+---@param fn fun()
+---@param on boolean
+function MinimapPins.OnShapeChanged(fn, on)
+    shapeListeners[fn] = on and true or nil
+end
+
+---Says the minimap's shape changed (GetMinimapShape answers something new): our listeners put
+---their buttons on the new edge, and so does LibDBIcon, another addon's library for minimap
+---buttons, which reads the shape only when a button moves. Setting its radius to what it is
+---places every one of its buttons again.
+function MinimapPins.ShapeChanged()
+    for fn in pairs(shapeListeners) do
+        fn()
+    end
+    local LibStub = _G.LibStub
+    local icons = type(LibStub) == "table" and LibStub("LibDBIcon-1.0", true)
+    if icons and icons.SetButtonRadius and ns.IsNumber(icons.radius) then
+        icons:SetButtonRadius(icons.radius)
+    end
 end
 
 ---Whether a spot right and up of the minimap's center is on the minimap, at least `inset` units

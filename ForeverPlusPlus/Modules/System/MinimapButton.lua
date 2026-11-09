@@ -9,6 +9,7 @@ local _, ns = ...
 
 local format, type, tremove, sort = string.format, type, table.remove, table.sort
 local cos, sin, rad, deg, atan2, floor = math.cos, math.sin, math.rad, math.deg, math.atan2, math.floor
+local abs, max = math.abs, math.max
 local ipairs, CreateFrame, GetCursorPosition = ipairs, CreateFrame, GetCursorPosition
 
 local L = ns.L
@@ -307,11 +308,18 @@ end
 
 -- The minimap button ----------------------------------------------------------------------------
 
+-- Around the minimap's edge at the saved angle, its middle 10 past it: on a circle, or on a
+-- square while the minimap is square (Lib/MinimapPins.lua), so it stays on the edge in a corner.
 local function place()
     local angle = rad(module.db.saved.angle)
     local radius = Minimap:GetWidth() / 2 + 10
+    local x, y = cos(angle), sin(angle)
+    if ns.MinimapPins.Square() then
+        local far = max(abs(x), abs(y))
+        x, y = x / far, y / far
+    end
     button:ClearAllPoints()
-    button:SetPoint("CENTER", Minimap, "CENTER", cos(angle) * radius, sin(angle) * radius)
+    button:SetPoint("CENTER", Minimap, "CENTER", x * radius, y * radius)
 end
 
 -- While dragging: the button follows the cursor around the minimap's edge.
@@ -496,11 +504,20 @@ end
 Errors.OnChanged(onChanged)
 ns.OnWelcomed(onChanged)
 
+-- The minimap turned square or round: onto its new edge.
+local function onShapeChanged()
+    if button and button:IsShown() then
+        place()
+    end
+end
+
 function module:OnEnable()
+    ns.MinimapPins.OnShapeChanged(onShapeChanged, true)
     update()
 end
 
 function module:OnDisable()
+    ns.MinimapPins.OnShapeChanged(onShapeChanged, false)
     update()
 end
 
