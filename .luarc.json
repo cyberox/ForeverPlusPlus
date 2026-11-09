@@ -185,6 +185,8 @@
     "PTR_IssueReporter",
     "ItemRefTooltip",
     "C_Minimap",
+    "MinimapCluster",
+    "GetMinimapShape",
     "UnitIsDeadOrGhost",
     "UnitIsDead",
     "UnitIsGhost",

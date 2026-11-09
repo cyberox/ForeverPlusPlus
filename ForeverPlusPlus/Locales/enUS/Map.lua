@@ -197,6 +197,19 @@ L.HIDEFILTERRESET_TITLE = "Hide Filter Reset"
 L.HIDEFILTERRESET_DESC = "Hide the reset button on the world map's filter dropdown, which shows "
     .. "whenever a filter is off."
 
+-- SquareMinimap
+L.SQUAREMINIMAP_TITLE = "Square Minimap"
+L.SQUAREMINIMAP_DESC = "Make the minimap square, with a square border in place of its round frame. "
+    .. "Minimap buttons and Forever++'s minimap icons follow the square edge."
+L.SQUAREMINIMAP_BORDER = "Border"
+L.SQUAREMINIMAP_BORDER_DESC = "The border around the square minimap, in Blizzard's own art."
+L.SQUAREMINIMAP_BORDER_TOOLTIP = "Thin" -- the tooltip border
+L.SQUAREMINIMAP_BORDER_DIALOG = "Stone" -- the dialog border
+L.SQUAREMINIMAP_BORDER_NONE = "None"
+L.SQUAREMINIMAP_OTHER = "Another addon shapes the minimap, so this leaves it alone."
+L.SQUAREMINIMAP_OTHER_DESC = "That addon decides the minimap's shape. Use its own setting for a "
+    .. "square minimap, or turn its shape off and reload."
+
 
 -- FlightTimer
 L.FLIGHTTIMER_TITLE = "Flight Timer"

@@ -168,6 +168,7 @@ Modules\Map\WorldMap\PointsOfInterest\BlizzardIcons.lua
 Modules\Map\WorldMap\Filter.lua
 Modules\Map\FlightTimer.lua
 Modules\Map\HideFilterReset.lua
+Modules\Map\SquareMinimap.lua
 Modules\Map\Waypoints.lua
 Modules\Map\MinimapNodeIcons\MinimapNodeIcons.lua
 Modules\Map\MinimapNodeIcons\Probe.lua
