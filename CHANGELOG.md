@@ -2,19 +2,19 @@
 
 What changed in each release of Forever++. The same notes show in game under Settings > AddOns > Forever++ > Changelog, from [`ForeverPlusPlus/Changelog.lua`](ForeverPlusPlus/Changelog.lua); change both together.
 
-## Unreleased
+## 1.4.0 (2026-11-09)
 
 ### Added
 
-- **Loot Rolls**: a new module, off by default. Move the group loot rolls in Edit Mode, and pick there which way they stack (up, down, left, or right), the space between them, and how many example rolls to show while you place them. Each roll also shows the seconds left and how many have picked Need, Greed, or Pass. Appearance Icons, Already Known, and Unusable Items Tint mark the rolls as they do your bags.
-- **Square Minimap**: a new module, off by default. It makes the minimap square, with a border in Blizzard's art: gold by default, or nine others, at the size you like. The map moves up to the zone name and buttons above it, and the day and night indicator sits by the top right corner (Shift-drag moves it). Forever++'s minimap button and icons, and most other addons' minimap buttons, follow the square edge.
-- **Console Variables**: lock a CVar with the padlock beside its star, and it keeps your value at every login, even one the game puts back, until you change it or unlock it. Locked ones have a group of their own, and Simplified Nameplate Size is in Popular.
-- **Minimap Button**: pick which modules the quick toggles offer with Customize in its settings (or the last line of the menu), and lay them out by activity, by category, or A to Z with Menu Order. Player Nameplates and NPC Nameplates are in a new Nameplates group. The button now drags anywhere on or around the minimap, not only along its edge.
-- **Player Nameplates**: Names Only in Dungeons (off by default). In dungeons and raids Blizzard draws friendly players' plates itself, with health bars; turn this on to show only their names there.
+- **Loot Rolls**: a new module, off by default. Place the loot rolls in Edit Mode, and pick there which way they stack, the space between them, and how many example rolls to show. Each roll shows the seconds left and how many picked Need, Greed, or Pass, and item marks like Appearance Icons show on them.
+- **Square Minimap**: a new module, off by default. A square minimap with a border in Blizzard's art (gold by default, or nine others), moved up to the zone name above it. Shift-drag moves the day and night indicator, and minimap buttons follow the square edge.
+- **Console Variables**: a padlock keeps a CVar at your value every login, until you change or unlock it. Simplified Nameplate Size is in Popular.
+- **Minimap Button**: Customize picks which modules the quick toggles offer, and Menu Order sorts them by activity, category, or A to Z. Player and NPC Nameplates are in a new Nameplates group, and the button drags anywhere around the minimap.
+- **Player Nameplates**: Names Only in Dungeons (off by default) hides friendly players' health bars in dungeons and raids, where Blizzard draws their plates.
 
 ### Fixed
 
-- **Whisper Window**: on a short chat window, the Chat Button hid under the speech bubble button. A button that doesn't fit now goes in the speech bubble's menu, and Settings says so. The same for Chat Copy's and Social Button's buttons. The Chat Button now comes before Chat Copy's, so it's the last to go, and while it's in the menu the speech bubble glows with how many whispers are waiting. Thanks to ryansouza.
+- **Whisper Window**: on a short chat window, the Chat Button no longer hides under the speech bubble. Buttons that don't fit go in the speech bubble's menu, which glows with waiting whispers, and the Chat Button now sits above Chat Copy's. Thanks to ryansouza.
 
 ## 1.3.1 (2026-11-09)
 

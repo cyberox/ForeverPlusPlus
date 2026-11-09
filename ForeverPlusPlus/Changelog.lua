@@ -10,41 +10,32 @@ local L = ns.L
 
 ns.changelog = {
     {
-        version = L.CHANGELOG_UNRELEASED,
+        version = "1.4.0",
+        date = "2026-11-09",
         sections = {
             { L.CHANGELOG_ADDED, {
-                { L.LOOTROLLS_TITLE, "A new module, off by default. Move the group loot rolls in Edit "
-                    .. "Mode, and pick there which way they stack (up, down, left, or right), the space "
-                    .. "between them, and how many example rolls to show while you place them. Each roll "
-                    .. "also shows the seconds left and how many have picked Need, Greed, or Pass. "
-                    .. "Appearance Icons, Already Known, and Unusable Items Tint mark the rolls as they do "
-                    .. "your bags." },
-                { L.SQUAREMINIMAP_TITLE, "A new module, off by default. It makes the minimap square, "
-                    .. "with a border in Blizzard's art: gold by default, or nine others, at the size you "
-                    .. "like. The map moves up to the zone name and buttons above it, and the day and "
-                    .. "night indicator sits by the top right corner (Shift-drag moves it). Forever++'s "
-                    .. "minimap button and icons, and "
-                    .. "most other addons' minimap buttons, follow the square edge." },
-                { L.CONSOLEVARIABLES_TITLE, "Lock a CVar with the padlock beside its star, and it keeps "
-                    .. "your value at every login, even one the game puts back, until you change it or "
-                    .. "unlock it. Locked ones have a group of their own, and Simplified Nameplate Size "
-                    .. "is in Popular." },
-                { L.MINIMAPBUTTON_TITLE, "Pick which modules the quick toggles offer with Customize in "
-                    .. "its settings (or the last line of the menu), and lay them out by activity, by "
-                    .. "category, or A to Z with Menu Order. Player Nameplates and NPC Nameplates are "
-                    .. "in a new Nameplates group. The button now drags anywhere on or around the "
-                    .. "minimap, not only along its edge." },
-                { L.PLAYERNAMEPLATES_TITLE, "Names Only in Dungeons (off by default). In dungeons and "
-                    .. "raids Blizzard draws friendly players' plates itself, with health bars; turn "
-                    .. "this on to show only their names there." },
+                { L.LOOTROLLS_TITLE, "A new module, off by default. Place the loot rolls in Edit Mode, "
+                    .. "and pick there which way they stack, the space between them, and how many "
+                    .. "example rolls to show. Each roll shows the seconds left and how many picked Need, "
+                    .. "Greed, or Pass, and item marks like Appearance Icons show on them." },
+                { L.SQUAREMINIMAP_TITLE, "A new module, off by default. A square minimap with a border "
+                    .. "in Blizzard's art (gold by default, or nine others), moved up to the zone name "
+                    .. "above it. Shift-drag moves the day and night indicator, and minimap buttons "
+                    .. "follow the square edge." },
+                { L.CONSOLEVARIABLES_TITLE, "A padlock keeps a CVar at your value every login, until "
+                    .. "you change or unlock it. Simplified Nameplate Size is in Popular." },
+                { L.MINIMAPBUTTON_TITLE, "Customize picks which modules the quick toggles offer, and "
+                    .. "Menu Order sorts them by activity, category, or A to Z. Player and NPC "
+                    .. "Nameplates are in a new Nameplates group, and the button drags anywhere around "
+                    .. "the minimap." },
+                { L.PLAYERNAMEPLATES_TITLE, "Names Only in Dungeons (off by default) hides friendly "
+                    .. "players' health bars in dungeons and raids, where Blizzard draws their plates." },
             } },
             { L.CHANGELOG_FIXED, {
-                { L.WHISPERWINDOW_TITLE, "On a short chat window, the Chat Button hid under the speech "
-                    .. "bubble button. A button that doesn't fit now goes in the speech bubble's menu, and "
-                    .. "Settings says so. The same for Chat Copy's and Social Button's buttons. The Chat "
-                    .. "Button now comes before Chat Copy's, so it's the last to go, and while it's in "
-                    .. "the menu the speech bubble glows with how many whispers are waiting. Thanks to "
-                    .. "ryansouza." },
+                { L.WHISPERWINDOW_TITLE, "On a short chat window, the Chat Button no longer hides under "
+                    .. "the speech bubble. Buttons that don't fit go in the speech bubble's menu, which "
+                    .. "glows with waiting whispers, and the Chat Button now sits above Chat Copy's. "
+                    .. "Thanks to ryansouza." },
             } },
         },
     },
