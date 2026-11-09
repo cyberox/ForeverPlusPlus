@@ -1,6 +1,5 @@
 <Bindings>
-    <!-- Target Markers' keys (Modules/Units/TargetMarkers.lua), listed in Blizzard's Key Bindings
-         under Forever++. Each clicks a secure button the module makes while it's on. -->
+    <!-- Target Markers' key (Modules/Units/TargetMarkers.lua), listed in Blizzard's Key Bindings
+         under Forever++. It clicks a secure button the module makes while it's on. -->
     <Binding name="CLICK ForeverPlusPlusMarkerButton:LeftButton" header="FOREVERPLUSPLUS" category="ADDONS"/>
-    <Binding name="CLICK ForeverPlusPlusWorldMarkerButton:LeftButton" category="ADDONS"/>
 </Bindings>

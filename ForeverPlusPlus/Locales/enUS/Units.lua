@@ -220,12 +220,11 @@ L.NPCNAMEPLATES_TITLE_COLOR_NAME = "Same as Name"
 -- TargetMarkers
 L.TARGETMARKERS_TITLE = "Target Markers"
 L.TARGETMARKERS_DESC = "Hold a key and a ring of the raid icons opens at your mouse. Point toward one "
-    .. "and let go to mark your target, or let go in the middle to clear it. A second key does the "
-    .. "same with world markers. Works in combat."
-L.TARGETMARKERS_BINDING_MARK = "Target Marker Ring" -- in Blizzard's Key Bindings
-L.TARGETMARKERS_BINDING_WORLD = "World Marker Ring"
+    .. "and let go to mark your target, or let go in the middle to clear it. Hold Shift as you let "
+    .. "go to place a world marker instead. Works in combat."
+L.TARGETMARKERS_BINDING = "Marker Ring" -- in Blizzard's Key Bindings
 L.TARGETMARKERS_NO_KEY = "No key is bound yet" -- a gray row atop the module, with a button
-L.TARGETMARKERS_NO_KEY_DESC = "The rings open with keys you choose in Key Bindings, under Forever++."
+L.TARGETMARKERS_NO_KEY_DESC = "The ring opens with a key you choose in Key Bindings, under Forever++."
 L.TARGETMARKERS_BIND = "Key Bindings"
 L.TARGETMARKERS_MOUSEOVER = "Mark What's Under the Mouse"
 L.TARGETMARKERS_MOUSEOVER_DESC = "When your mouse is over a unit as you press the key, target it, so "
@@ -233,4 +232,6 @@ L.TARGETMARKERS_MOUSEOVER_DESC = "When your mouse is over a unit as you press th
 L.TARGETMARKERS_SCALE = "Ring Size"
 L.TARGETMARKERS_SCALE_DESC = "The size of the ring."
 L.TARGETMARKERS_CLEAR = "Clear Mark" -- the middle of the ring
-L.TARGETMARKERS_CLEAR_ALL = "Clear All Markers"
+L.TARGETMARKERS_CLEAR_ALL = "Clear All World Markers"
+L.TARGETMARKERS_ON_GROUND = "%s on the Ground" -- a raid icon's name, with Shift held: a world marker
+L.TARGETMARKERS_SHIFT_HINT = "Hold Shift to place a world marker" -- under the ring, in a group

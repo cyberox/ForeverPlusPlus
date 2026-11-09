@@ -20,6 +20,7 @@
     "hooksecurefunc",
     "securecallfunction",
     "InCombatLockdown",
+    "IsInGroup",
     "GetMouseFoci",
     "GetMouseFocus",
     "SetOverrideBindingSpell",
