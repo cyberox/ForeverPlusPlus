@@ -8,7 +8,7 @@
 local _, ns = ...
 
 local format, type, tremove, sort = string.format, type, table.remove, table.sort
-local cos, sin, rad, deg, atan2, floor = math.cos, math.sin, math.rad, math.deg, math.atan2, math.floor
+local cos, sin, rad, floor = math.cos, math.sin, math.rad, math.floor
 local abs, max = math.abs, math.max
 local ipairs, pairs, next, wipe = ipairs, pairs, next, wipe
 local CreateFrame, GetCursorPosition = CreateFrame, GetCursorPosition
@@ -39,7 +39,8 @@ local module = ns.NewModule("MinimapButton", L.MINIMAPBUTTON_DESC, {
     clearAllKey = "alt", -- clears every saved error, after asking
     -- Data, not settings: a table, so presets leave it alone.
     saved = {
-        angle = 200, -- the button's place around the minimap, in degrees
+        angle = 200, -- the button's place around the minimap, in degrees, until it's dragged
+        -- x, y: where it was dragged to, from the minimap's middle, in its pixels
     },
     -- Module name -> true (the player added it to the quick toggles) or false (took it out).
     quickToggles = {},
@@ -479,27 +480,72 @@ end
 
 -- The minimap button ----------------------------------------------------------------------------
 
--- Around the minimap's edge at the saved angle, its middle 10 past it: on a circle, or on a
+local REACH = 40 -- how far past the minimap's edge a drag can take the button, in its pixels
+
+-- Where the player dragged it (`saved.x`, `saved.y`, from the minimap's middle), or until they
+-- have, around the minimap's edge at the saved angle, its middle 10 past it: on a circle, or on a
 -- square while the minimap is square (Lib/MinimapPins.lua), so it stays on the edge in a corner.
 local function place()
-    local angle = rad(module.db.saved.angle)
-    local radius = Minimap:GetWidth() / 2 + 10
-    local x, y = cos(angle), sin(angle)
-    if ns.MinimapPins.Square() then
-        local far = max(abs(x), abs(y))
-        x, y = x / far, y / far
+    local saved = module.db.saved
+    local x, y
+    if saved.x and saved.y then
+        x, y = saved.x, saved.y
+    else
+        local angle = rad(saved.angle or 200)
+        local radius = Minimap:GetWidth() / 2 + 10
+        x, y = cos(angle), sin(angle)
+        if ns.MinimapPins.Square() then
+            local far = max(abs(x), abs(y))
+            x, y = x / far, y / far
+        end
+        x, y = x * radius, y * radius
     end
     button:ClearAllPoints()
-    button:SetPoint("CENTER", Minimap, "CENTER", x * radius, y * radius)
+    button:SetPoint("CENTER", Minimap, "CENTER", x, y)
 end
 
--- While dragging: the button follows the cursor around the minimap's edge.
-local function follow()
+-- The cursor, from the minimap's middle, in its pixels.
+local function cursorOnMap()
     local x, y = Minimap:GetCenter()
     local scale = Minimap:GetEffectiveScale()
     local cx, cy = GetCursorPosition()
-    module.db.saved.angle = floor(deg(atan2(cy / scale - y, cx / scale - x)) % 360)
+    return cx / scale - x, cy / scale - y
+end
+
+local grabX, grabY -- the cursor's offset from the button's middle when the drag began
+
+local function clamp(v, limit)
+    return v < -limit and -limit or v > limit and limit or v
+end
+
+-- While dragging: the button goes wherever the cursor takes it, on or around the minimap, keeping
+-- the spot it was picked up by under the cursor (like the day and night indicator's drag).
+local function follow()
+    local x, y = cursorOnMap()
+    local limit = Minimap:GetWidth() / 2 + REACH
+    local saved = module.db.saved
+    saved.x = floor(clamp(x - grabX, limit) + 0.5)
+    saved.y = floor(clamp(y - grabY, limit) + 0.5)
     place()
+end
+
+local function startDrag(self)
+    GameTooltip_Hide()
+    local x, y = cursorOnMap()
+    local bx, by = self:GetCenter()
+    local mx, my = Minimap:GetCenter()
+    local ratio = self:GetEffectiveScale() / Minimap:GetEffectiveScale()
+    grabX, grabY = x - (bx * ratio - mx), y - (by * ratio - my)
+    self:SetScript("OnUpdate", follow)
+end
+
+---Puts the button back on the minimap's edge, where it starts.
+local function resetPlace()
+    local saved = module.db.saved
+    saved.x, saved.y, saved.angle = nil, nil, nil
+    if button and button:IsShown() then
+        place()
+    end
 end
 
 local function onEnter(self)
@@ -534,10 +580,7 @@ local function newMinimapButton()
     b.count:SetPoint("BOTTOMRIGHT", 2, 1)
 
     b:SetScript("OnClick", onClick)
-    b:SetScript("OnDragStart", function(self)
-        GameTooltip_Hide()
-        self:SetScript("OnUpdate", follow)
-    end)
+    b:SetScript("OnDragStart", startDrag)
     b:SetScript("OnDragStop", function(self)
         self:SetScript("OnUpdate", nil)
     end)
@@ -678,6 +721,12 @@ module.actions = {
         button = L.MINIMAPBUTTON_CUSTOMIZE,
         description = L.MINIMAPBUTTON_CUSTOMIZE_DESC,
         fn = openCustomize,
+    },
+    {
+        name = L.MINIMAPBUTTON_PLACE_NAME,
+        button = L.MINIMAPBUTTON_PLACE_RESET,
+        description = L.MINIMAPBUTTON_PLACE_RESET_DESC,
+        fn = resetPlace,
     },
 }
 

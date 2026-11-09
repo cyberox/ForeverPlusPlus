@@ -21,8 +21,9 @@ ns.changelog = {
                     .. "your bags." },
                 { L.SQUAREMINIMAP_TITLE, "A new module, off by default. It makes the minimap square, "
                     .. "with a border in Blizzard's art: gold by default, or nine others, at the size you "
-                    .. "like. The map moves up to the zone name and buttons above it, and Shift-drag "
-                    .. "moves the day and night indicator. Forever++'s minimap button and icons, and "
+                    .. "like. The map moves up to the zone name and buttons above it, and the day and "
+                    .. "night indicator sits by the top right corner (Shift-drag moves it). Forever++'s "
+                    .. "minimap button and icons, and "
                     .. "most other addons' minimap buttons, follow the square edge." },
                 { L.CONSOLEVARIABLES_TITLE, "Lock a CVar with the padlock beside its star, and it keeps "
                     .. "your value at every login, even one the game puts back, until you change it or "
@@ -31,7 +32,8 @@ ns.changelog = {
                 { L.MINIMAPBUTTON_TITLE, "Pick which modules the quick toggles offer with Customize in "
                     .. "its settings (or the last line of the menu), and lay them out by activity, by "
                     .. "category, or A to Z with Menu Order. Player Nameplates and NPC Nameplates are "
-                    .. "in a new Nameplates group." },
+                    .. "in a new Nameplates group. The button now drags anywhere on or around the "
+                    .. "minimap, not only along its edge." },
                 { L.PLAYERNAMEPLATES_TITLE, "Names Only in Dungeons (on by default). In dungeons and "
                     .. "raids Blizzard draws friendly players' plates itself, and they showed health "
                     .. "bars; now they show only names there." },

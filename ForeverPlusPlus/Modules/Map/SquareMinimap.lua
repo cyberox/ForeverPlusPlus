@@ -309,14 +309,18 @@ end
 
 -- The sun -----------------------------------------------------------------------------------------
 -- Camelot's day and night indicator (MinimapCluster.DielFrame, Camelot/Diel.lua) sits at a fixed
--- spot on the round frame, which a square one's edge doesn't reach. With its key held, it drags
--- anywhere on or around the map, and stays there (`sun`, from the map's middle); a right-click puts
--- it back. Blizzard places it again when Edit Mode's scale changes, so that's hooked.
+-- spot on the round frame, which a square one's edge doesn't reach, so it goes by the top right
+-- corner instead. With its key held, it drags anywhere on or around the map, and stays there
+-- (`sun`, from the map's middle); a right-click puts it back by the corner. Turned off, it goes
+-- back to Blizzard's spot. Blizzard places it again when Edit Mode's scale changes, so that's hooked.
 
 -- Where Blizzard puts it: from its container's middle, times the container's scale (Diel.lua's
 -- DielFrameData and SetDielFrameTransform, wow-ui-source `forever` branch, checked 2026-11-09).
 local SUN_X, SUN_Y = 55, 86
 local SUN_REACH = 40 -- how far past the map's edge it can go, in the map's pixels
+-- Where it goes on the square map until dragged: just past the top right corner, beside the
+-- calendar, from that corner in the map's pixels (where the player put it in game, 2026-11-09).
+local CORNER_X, CORNER_Y = 11, 5
 
 local sunMoved = false
 local handle -- our frame over the sun that takes the drag
@@ -415,11 +419,13 @@ function placeSun()
         return
     end
     local saved = module.db.sun
-    if squared and saved.x and saved.y then
+    if squared then
+        local half = Minimap:GetWidth() / 2
+        local x, y = saved.x or half + CORNER_X, saved.y or half + CORNER_Y
         local ratio = Minimap:GetEffectiveScale() / sun:GetEffectiveScale()
         sunMoved = true
         sun:ClearAllPoints()
-        sun:SetPoint("CENTER", Minimap, "CENTER", saved.x * ratio, saved.y * ratio)
+        sun:SetPoint("CENTER", Minimap, "CENTER", x * ratio, y * ratio)
     elseif sunMoved then
         sunMoved = false
         local scale = MinimapCluster.MinimapContainer:GetScale()
@@ -429,7 +435,7 @@ function placeSun()
     updateHandle()
 end
 
----Puts the sun back where Blizzard has it.
+---Puts the sun back by the top right corner.
 function module.internal.ResetSun()
     wipe(module.db.sun)
     placeSun()
