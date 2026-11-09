@@ -394,6 +394,7 @@ local function roll(frame, fn)
 end
 
 local rollHooks = weak() -- fn -> its OnShow handler
+local rollOwners = {} -- fn -> the module that hooked it, for example rolls (MarkExampleRoll)
 
 ---Calls `fn(icon, link)` for a loot roll as its frame shows, before the player picks Need,
 ---through `module` (so it stops when the module turns off).
@@ -407,8 +408,21 @@ function ItemButtons.HookRolls(module, fn)
         end
         rollHooks[fn] = onShow
     end
+    rollOwners[fn] = module
     for i = 1, ROLL_FRAMES do
         module:HookScript(_G["GroupLootFrame" .. i], "OnShow", onShow)
+    end
+end
+
+---Marks an example loot roll of our own (Loot Rolls' Edit Mode preview) as every module marking
+---loot rolls marks a real one, while each of those is on, so the preview shows what a roll will.
+---@param icon table the example's item icon texture
+---@param link string? its item
+function ItemButtons.MarkExampleRoll(icon, link)
+    for fn, module in pairs(rollOwners) do
+        if module.enabled then
+            ns.Call(fn, icon, link)
+        end
     end
 end
 

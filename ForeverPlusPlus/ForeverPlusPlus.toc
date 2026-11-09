@@ -127,6 +127,7 @@ Modules\Character\XPBarText.lua
 Modules\System\AddOnsList.lua
 Modules\Interface\CurrencyBar.lua
 Modules\Interface\LocalTime.lua
+Modules\Interface\LootRolls.lua
 Modules\Character\CharacterWindow\CharacterWindow.lua
 Modules\Character\CharacterWindow\Durability.lua
 Modules\Character\CharacterWindow\Skills.lua

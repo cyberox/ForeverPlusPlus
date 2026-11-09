@@ -159,3 +159,26 @@ L.LOCALTIME_NOTICE_DESC = "A time with +1 after it is the next day in your time,
 L.LOCALTIME_NEXT_DAY = "%s +1" -- a time that falls on the next day in the player's time
 L.LOCALTIME_PREVIOUS_DAY = "%s -1" -- a time that falls on the day before
 L.LOCALTIME_YOUR_TIME = "Your time: %s" -- under the create event window's date
+
+-- LootRolls
+L.LOOTROLLS_TITLE = "Loot Rolls"
+L.LOOTROLLS_DESC = "Place the Need, Greed, and Pass rolls in Edit Mode, and have them stack up, down, "
+    .. "left, or right. Shows the seconds left, the item level, and how many have picked each."
+L.LOOTROLLS_GROW = "Grow" -- Edit Mode: which way more rolls stack
+L.LOOTROLLS_GROW_DESC = "Which way more rolls stack from the first."
+L.LOOTROLLS_GROW_UP = "Up"
+L.LOOTROLLS_GROW_DOWN = "Down"
+L.LOOTROLLS_GROW_LEFT = "Left"
+L.LOOTROLLS_GROW_RIGHT = "Right"
+L.LOOTROLLS_SPACING = "Spacing"
+L.LOOTROLLS_SPACING_DESC = "The gap between rolls."
+L.LOOTROLLS_PREVIEW = "Preview Rolls"
+L.LOOTROLLS_PREVIEW_DESC = "How many example rolls show while Edit Mode is open."
+L.LOOTROLLS_TIMER = "Time Left"
+L.LOOTROLLS_TIMER_DESC = "Show the seconds left to roll beside each roll's timer bar."
+L.LOOTROLLS_TIMER_TEXT = "%ds" -- seconds left to roll
+L.LOOTROLLS_ITEM_LEVEL = "Item Level"
+L.LOOTROLLS_ITEM_LEVEL_DESC = "Show a weapon's or armor's item level on its icon."
+L.LOOTROLLS_COUNTS = "Roll Counts"
+L.LOOTROLLS_COUNTS_DESC = "Show how many in your group have picked Need, Greed, and Pass on each "
+    .. "button, from the game's loot history."
