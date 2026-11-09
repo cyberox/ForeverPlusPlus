@@ -567,8 +567,16 @@ function refreshDialog()
         dialog.refreshing = false
         height = height + 40
     end
+    -- Only other frames' rows hide: hiding a row while its slider is dragged (each change refreshes
+    -- the dialog) would drop the drag.
+    local mine = {}
+    for _, row in ipairs(info.rows or {}) do
+        mine[row] = true
+    end
     for _, row in ipairs(settingRows) do
-        row:Hide()
+        if not mine[row] then
+            row:Hide()
+        end
     end
     if info.settings then
         info.rows = info.rows or {}
