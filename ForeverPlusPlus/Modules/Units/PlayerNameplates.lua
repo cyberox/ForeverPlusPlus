@@ -26,7 +26,9 @@ local module = ns.NewModule("PlayerNameplates", L.PLAYERNAMEPLATES_DESC, ns.Frie
     socialIcons = true,
     groupIcon = "role", -- "role" or "looking"
     iconSide = "after", -- "after" or "before" the name
-    instanceNames = true, -- Blizzard's names-only plates where it draws them itself (dungeons, raids)
+    -- Blizzard's names-only plates where it draws them itself (dungeons, raids). Off, so health bars
+    -- show there by default.
+    instanceNames = false,
     testIcons = "off", -- debug: "off", "group", or "friend" on every friendly player
 }))
 module.title = L.PLAYERNAMEPLATES_TITLE

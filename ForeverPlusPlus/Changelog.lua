@@ -34,9 +34,9 @@ ns.changelog = {
                     .. "category, or A to Z with Menu Order. Player Nameplates and NPC Nameplates are "
                     .. "in a new Nameplates group. The button now drags anywhere on or around the "
                     .. "minimap, not only along its edge." },
-                { L.PLAYERNAMEPLATES_TITLE, "Names Only in Dungeons (on by default). In dungeons and "
-                    .. "raids Blizzard draws friendly players' plates itself, and they showed health "
-                    .. "bars; now they show only names there." },
+                { L.PLAYERNAMEPLATES_TITLE, "Names Only in Dungeons (off by default). In dungeons and "
+                    .. "raids Blizzard draws friendly players' plates itself, with health bars; turn "
+                    .. "this on to show only their names there." },
             } },
             { L.CHANGELOG_FIXED, {
                 { L.WHISPERWINDOW_TITLE, "On a short chat window, the Chat Button hid under the speech "

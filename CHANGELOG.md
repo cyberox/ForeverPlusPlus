@@ -10,7 +10,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Square Minimap**: a new module, off by default. It makes the minimap square, with a border in Blizzard's art: gold by default, or nine others, at the size you like. The map moves up to the zone name and buttons above it, and the day and night indicator sits by the top right corner (Shift-drag moves it). Forever++'s minimap button and icons, and most other addons' minimap buttons, follow the square edge.
 - **Console Variables**: lock a CVar with the padlock beside its star, and it keeps your value at every login, even one the game puts back, until you change it or unlock it. Locked ones have a group of their own, and Simplified Nameplate Size is in Popular.
 - **Minimap Button**: pick which modules the quick toggles offer with Customize in its settings (or the last line of the menu), and lay them out by activity, by category, or A to Z with Menu Order. Player Nameplates and NPC Nameplates are in a new Nameplates group. The button now drags anywhere on or around the minimap, not only along its edge.
-- **Player Nameplates**: Names Only in Dungeons (on by default). In dungeons and raids Blizzard draws friendly players' plates itself, and they showed health bars; now they show only names there.
+- **Player Nameplates**: Names Only in Dungeons (off by default). In dungeons and raids Blizzard draws friendly players' plates itself, with health bars; turn this on to show only their names there.
 
 ### Fixed
 
