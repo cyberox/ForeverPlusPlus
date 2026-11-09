@@ -1,10 +1,11 @@
--- Changing game settings (CVars) from a module, and putting the player's own values back.
+-- Changing game settings (CVars) from a module, putting the player's own values back, and keeping
+-- one at a value the player chose (Hold).
 -- Each module keeps the originals in its own saved table (usually a field of module.db), so they
 -- survive a reload and two modules don't lose each other's. Many CVars (nameplates among them)
 -- can't change in combat, so changes made then wait for it to end, in order (ns.AfterCombat).
 local _, ns = ...
 
-local type, pairs, next, C_CVar = type, pairs, next, C_CVar
+local type, pairs, next, tonumber, C_CVar = type, pairs, next, tonumber, C_CVar
 
 local CVars = {}
 ns.CVars = CVars
@@ -89,6 +90,47 @@ function CVars.Apply(name, value, done)
         end
         if done then
             done(ok)
+        end
+    end)
+end
+
+---Whether a CVar holds `wanted`: the same text, or the same number. The game writes numbers back
+---its own way ("0.65" reads back as "0.650000"), so comparing text alone would see a change.
+---@param value string|nil
+---@param wanted string|nil
+---@return boolean
+function CVars.Same(value, wanted)
+    if value == wanted then
+        return true
+    end
+    local a, b = tonumber(value), tonumber(wanted)
+    return a ~= nil and a == b
+end
+
+---Keeps a CVar at `value`: sets it if it's something else (after combat, if the player is in
+---combat) and leaves it alone if it already is. `done(result, now)` says how it went, with the
+---value the CVar has after: "held" (it already was), "set", "kept" (the game took another value,
+---`now`: one past its range, rounded), "refused" (SetCVar said no), or "missing" (this client
+---has no such CVar, `now` nil).
+---@param name string
+---@param value string
+---@param done? fun(result: string, now: string|nil)
+function CVars.Hold(name, value, done)
+    ns.AfterCombat(function()
+        local now = C_CVar.GetCVar(name)
+        local result
+        if now == nil then
+            result = "missing"
+        elseif CVars.Same(now, value) then
+            result = "held"
+        elseif C_CVar.SetCVar(name, value) == false then
+            result = "refused"
+        else
+            now = C_CVar.GetCVar(name)
+            result = CVars.Same(now, value) and "set" or "kept"
+        end
+        if done then
+            done(result, now)
         end
     end)
 end

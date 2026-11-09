@@ -98,6 +98,47 @@ eq(table.concat(results, ","), "true,false,false", "cvars: apply says whether th
 refuse.coords = nil
 log()
 
+-- Same: the same text, or the same number written the game's way.
+eq(CVars.Same("0.650000", "0.65"), true, "same: a number the game wrote its own way")
+eq(CVars.Same("1", "1"), true, "same: the same text")
+eq(CVars.Same("inline", "popout"), false, "same: different text")
+eq(CVars.Same("0.3", "0.65"), false, "same: different numbers")
+eq(CVars.Same(nil, "1"), false, "same: a CVar with no value")
+
+-- Hold: sets only what's different, and says how it went.
+local held = {}
+local function hold(name, value)
+    CVars.Hold(name, value, function(result, now) held[#held + 1] = result .. ":" .. tostring(now) end)
+end
+cvars.scale = "0.300000"
+hold("scale", "0.65")
+eq(log() .. "|" .. held[#held], "scale=0.65|set:0.65", "hold: sets one that's different")
+cvars.scale = "0.650000"
+hold("scale", "0.65")
+eq(log() .. "|" .. held[#held], "|held:0.650000", "hold: leaves one that already is, written its way")
+hold("missing", "1")
+eq(log() .. "|" .. held[#held], "|missing:nil", "hold: one this client lacks is left alone")
+refuse.scale = true
+cvars.scale = "0.3"
+hold("scale", "0.65")
+eq(held[#held], "refused:0.3", "hold: one the client says no to")
+refuse.scale = nil
+local realSet = C_CVar.SetCVar
+C_CVar.SetCVar = function(name, value)
+    return realSet(name, name == "scale" and "2.0" or value) -- held at the end of its range
+end
+hold("scale", "5")
+eq(held[#held], "kept:2.0", "hold: one the game takes as something else says what it kept")
+C_CVar.SetCVar = realSet
+log()
+inCombat = true
+cvars.scale = "0.3"
+hold("scale", "0.65")
+local before = #held
+eq(log(), "", "hold: waits for combat to end")
+leaveCombat()
+eq(log() .. "|" .. #held - before, "scale=0.65|1", "hold: and then sets it")
+
 -- Bind: an option that's on sets its CVar to "1", off puts the player's value back.
 cvars.locked = "0"
 local module = { db = { enabled = true, saved = {}, lock = false, show = true } }
