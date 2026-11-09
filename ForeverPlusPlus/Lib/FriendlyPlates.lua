@@ -64,6 +64,34 @@ local function hookName(name)
     end
 end
 
+-- Blizzard unit frame -> { plates, unit } while one of ours shows on it
+local anchoredFrames = setmetatable({}, weak)
+local hookedFrames = setmetatable({}, weak)
+
+-- Blizzard places its plate's parts again (NamePlateUnitFrameMixin:UpdateAnchors, as it sets the
+-- plate up, after we took it): what we placed, the raid icon and the buff row, went back to
+-- Blizzard's places, so read those and place ours again.
+local function onAnchors(frame)
+    local entry = anchoredFrames[frame]
+    local record = entry and entry[1].records[entry[2]]
+    if not record then
+        return
+    end
+    if record.raidTarget then
+        local ok, points = pcall(ns.Frames.GetPoints, record.raidTarget)
+        record.raidPoints = ok and points and points[1] and points or record.raidPoints
+    end
+    record.raidWhere, record.buffsWhere = nil, "stale"
+    entry[1]:PlaceBuffs(entry[2], record.buffsInCombat)
+end
+
+local function hookAnchors(frame)
+    if not hookedFrames[frame] and frame.UpdateAnchors then
+        hookedFrames[frame] = true
+        hooksecurefunc(frame, "UpdateAnchors", onAnchors)
+    end
+end
+
 -- Blizzard's level at the bar's end. Which of the two frames draws the badge players see isn't
 -- known yet (LevelFrame alone left it showing), so both fade with the bar.
 local function fadeLevel(record, alpha)
@@ -483,6 +511,9 @@ function Plates:Add(unit, frame)
         record.label = PlateLabel.Show(frame)
         hookName(name)
         mirrored[name] = { self, unit }
+        record.frame = frame
+        anchoredFrames[frame] = { self, unit }
+        hookAnchors(frame)
     end
     self.records[unit] = record
     self:Layout(unit)
@@ -504,6 +535,9 @@ function Plates:Remove(unit)
         mirrored[record.name] = nil
     end
     anchorRaidTarget(record, "blizzard")
+    if record.frame then
+        anchoredFrames[record.frame] = nil
+    end
     if record.label then
         PlateLabel.Hide(record.label)
     end
