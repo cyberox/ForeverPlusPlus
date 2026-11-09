@@ -70,6 +70,13 @@ local ATLAS_DIVIDERS = "Radial_Wheel_Frame_Count_8"
 -- The ping wheel's four dividers, an X: two of them turned 22.5 degrees each way are eight.
 local ATLAS_DIVIDERS_4 = "Radial_Wheel_Frame_Count_4"
 local ATLAS_PICKED = "Radial_Wheel_Select_Wedge_Count_8"
+-- The ping wheel's gold glow for a quarter of the wheel, pointing right. Forever has no eighth, so
+-- it's squeezed to one: its width across the wedge to tan(22.5)/tan(45) of itself.
+local ATLAS_PICKED_4 = "Radial_Wheel_Select_Wedge_Count_4"
+local SQUEEZE = 0.414
+-- Where the wheel puts the glow's middle: its wedge's spot (80) and 20 more outward, in the
+-- wheel's own pixels (RadialWheelFrameMixin:SetupRadialWedgeButtons).
+local GLOW_REACH = 100
 local ATLAS_CLOSE = "Radial_Wheel_Icon_Close"
 local ATLAS_CLOSE_PICKED = "Radial_Wheel_Select_Close"
 local ATLAS_CLOSE_FALLBACK = "common-icon-redx"
@@ -80,9 +87,8 @@ local SIZE = 300 -- the wheel's size when its atlas is missing
 -- their names, in the wheel's font (RadialWheelButtonTemplate's Text: Game18Font).
 local ICON_SIZE, UNPICKED = 48, 0.9
 local NAME_FONT, NAME_FALLBACK = "Game18Font", "GameFontHighlightLarge"
--- Where the icons sit, how far the middle reaches, and how far out the picked glow sits, as
--- shares of the wheel's size; the ping wheel's are 80 and 20 of its wheel, for four wedges.
-local RADIUS, MIDDLE, GLOW = 0.32, 0.12, 0.08
+-- Where the icons sit and how far the middle reaches, as shares of the wheel's size.
+local RADIUS, MIDDLE = 0.35, 0.12
 -- The divider lines drawn when the client has no eight-wedge dividers (Forever has only the ping
 -- wheel's four): solid and dark like those, from the middle's ring out past the icons.
 local LINE_COLOR = { 0.32, 0.29, 0.25, 0.9 }
@@ -205,9 +211,8 @@ local function drawPicked(frame)
         ring.glow:SetShown(place > 0)
         if place > 0 then
             local angle = ring.angles[place]
-            local reach = (RADIUS + GLOW) * ring.wheel
             ring.glow:ClearAllPoints()
-            ring.glow:SetPoint("CENTER", cos(angle) * reach, sin(angle) * reach)
+            ring.glow:SetPoint("CENTER", cos(angle) * GLOW_REACH, sin(angle) * GLOW_REACH)
             ring.glow:SetRotation(angle)
         end
     end
@@ -216,7 +221,7 @@ end
 
 -- An icon's name beside it, on the side away from the middle, as the wheel places its own. The
 -- wheel's icon art has room around it and the raid icons fill theirs, so the gaps make up for it.
-local NAME_GAP_SIDE, NAME_GAP_END = 12, 14
+local NAME_GAP_SIDE, NAME_GAP_END = 18, 12
 local function placeName(name, icon, angle)
     local quarter = math.pi / 4
     name:ClearAllPoints()
@@ -236,7 +241,14 @@ local function drawDividers(art, wheel)
     for k = 0, 7 do
         local angle = rad(90 - 22.5 - k * 45)
         local line = art:CreateLine(nil, "BORDER")
-        line:SetColorTexture(LINE_COLOR[1], LINE_COLOR[2], LINE_COLOR[3], LINE_COLOR[4])
+        local r, g, b, a = LINE_COLOR[1], LINE_COLOR[2], LINE_COLOR[3], LINE_COLOR[4]
+        -- Fading out toward the edge as the wheel's own do; a line's gradient runs along it.
+        if line.SetGradient and CreateColor then
+            line:SetColorTexture(1, 1, 1, 1)
+            line:SetGradient("HORIZONTAL", CreateColor(r, g, b, a), CreateColor(r, g, b, 0))
+        else
+            line:SetColorTexture(r, g, b, a)
+        end
         line:SetThickness(LINE_WIDTH)
         line:SetStartPoint("CENTER", art, cos(angle) * LINE_FROM * wheel, sin(angle) * LINE_FROM * wheel)
         line:SetEndPoint("CENTER", art, cos(angle) * LINE_TO * wheel, sin(angle) * LINE_TO * wheel)
@@ -288,10 +300,15 @@ local function buildRing()
     else
         drawDividers(art, wheel)
     end
-    -- The picked wedge's glow, when the client has one for eight wedges.
+    -- The picked wedge's gold glow: the wheel's for eight wedges, or its quarter one squeezed.
     if ns.Frames.HasAtlas(ATLAS_PICKED) then
         ring.glow = art:CreateTexture(nil, "ARTWORK", nil, -1)
         ring.glow:SetAtlas(ATLAS_PICKED, true)
+        ring.glow:Hide()
+    elseif ns.Frames.HasAtlas(ATLAS_PICKED_4) then
+        ring.glow = art:CreateTexture(nil, "ARTWORK", nil, -1)
+        ring.glow:SetAtlas(ATLAS_PICKED_4, true)
+        ring.glow:SetHeight(ring.glow:GetHeight() * SQUEEZE)
         ring.glow:Hide()
     end
 
@@ -332,10 +349,19 @@ local function buildRing()
     ring.hint:SetPoint("TOP", ring.label, "BOTTOM", 0, -2)
     ring.hint:SetText(L.TARGETMARKERS_SHIFT_HINT)
 
+    -- Fading in over 0.2 seconds as the wheel does (its IntroAnim), on our own art frame.
+    local intro = art:CreateAnimationGroup()
+    intro:SetToFinalAlpha(true)
+    local fade = intro:CreateAnimation("Alpha")
+    fade:SetFromAlpha(0)
+    fade:SetToAlpha(1)
+    fade:SetDuration(0.2)
+
     frame:SetScript("OnShow", function(self)
         ring.place, ring.world = nil, nil
         ring.hint:SetShown(IsInGroup() and true or false)
         drawPicked(self)
+        intro:Restart()
     end)
     frame:SetScript("OnUpdate", drawPicked)
 
