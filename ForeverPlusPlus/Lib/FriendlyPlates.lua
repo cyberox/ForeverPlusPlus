@@ -221,7 +221,8 @@ local function setRaidAnchor(record, where)
     local icon, label = record.raidTarget, record.label
     icon:ClearAllPoints()
     if where == "name" then
-        icon:SetPoint("RIGHT", label.name, "LEFT", -((label.leftWidth or 0) + (label.gap or 3)), 0)
+        -- Twice the row's own gap and a little more: at one gap it nearly touched the level.
+        icon:SetPoint("RIGHT", label.name, "LEFT", -((label.leftWidth or 0) + (label.gap or 3) * 2 + 2), 0)
     else
         icon:SetPoint("RIGHT", record.container, "LEFT", 0, 0)
     end
