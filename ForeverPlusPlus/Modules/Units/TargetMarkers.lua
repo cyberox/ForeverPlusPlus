@@ -74,15 +74,17 @@ local ATLAS_CLOSE_FALLBACK = "common-icon-redx"
 local ICON = "Interface\\TargetingFrame\\UI-RaidTargetingIcon_%d"
 
 local SIZE = 300 -- the wheel's size when its atlas is missing
--- Icons are drawn at this size and shrink to 90% while not picked, as the wheel's own do.
-local ICON_SIZE, UNPICKED = 40, 0.9
+-- Icons are drawn at this size and shrink to 90% while not picked, as the wheel's own do, and so do
+-- their names, in the wheel's font (RadialWheelButtonTemplate's Text: Game18Font).
+local ICON_SIZE, UNPICKED = 48, 0.9
+local NAME_FONT, NAME_FALLBACK = "Game18Font", "GameFontHighlightLarge"
 -- Where the icons sit, how far the middle reaches, and how far out the picked glow sits, as
 -- shares of the wheel's size; the ping wheel's are 80 and 20 of its wheel, for four wedges.
 local RADIUS, MIDDLE, GLOW = 0.32, 0.12, 0.08
--- The divider lines drawn when the client has no eight-wedge dividers: Blizzard's thin gold, from
--- just outside the middle to the wheel's edge.
-local LINE_COLOR = { 0.55, 0.47, 0.3, 0.45 }
-local LINE_FROM, LINE_TO, LINE_WIDTH = 0.15, 0.47, 1.5
+-- The divider lines drawn when the client has no eight-wedge dividers (Forever has only the ping
+-- wheel's four): solid and dark like those, from the middle's ring out past the icons.
+local LINE_COLOR = { 0.32, 0.29, 0.25, 0.9 }
+local LINE_FROM, LINE_TO, LINE_WIDTH = 0.1, 0.52, 2
 -- The area the mouse's direction is read in (the ring frame), centered on the wheel. Wider than
 -- the wheel, so pointing well past an icon still picks it; the mouse farther out than this cancels.
 local REACH = 1600
@@ -157,13 +159,16 @@ local SNIPPET = [[
 
 local ring -- { frame, button, icons, names, angles, close, closePicked, glow, pointer, label, hint, wheel }
 
--- What the line under the wheel says: what the middle does, and with Shift, that the icon goes on
--- the ground. Each icon's own name is beside it.
+-- What the line under the wheel says: only with Shift, which makes it a world marker (the ping
+-- wheel has no line, and each icon's own name is beside it).
 local function underText(place, world)
-    if place == 0 then
-        return world and L.TARGETMARKERS_CLEAR_ALL or L.TARGETMARKERS_CLEAR
+    if not world then
+        return ""
     end
-    return world and format(L.TARGETMARKERS_ON_GROUND, _G["RAID_TARGET_" .. place] or "") or ""
+    if place == 0 then
+        return L.TARGETMARKERS_CLEAR_ALL
+    end
+    return format(L.TARGETMARKERS_ON_GROUND, _G["RAID_TARGET_" .. place] or "")
 end
 
 -- While the ring is open: the pointer toward the mouse, and the icon it picks at full size with its
@@ -190,7 +195,7 @@ local function drawPicked(frame)
         local picked = i == place
         local size = picked and ICON_SIZE or ICON_SIZE * UNPICKED
         icon:SetSize(size, size)
-        ring.names[i]:SetFontObject(picked and "GameFontHighlight" or "GameFontHighlightSmall")
+        ring.names[i]:SetScale(picked and 1 or UNPICKED)
     end
     ring.closePicked:SetShown(place == 0 and ring.hasClosePicked)
     ring.pointer:SetShown(place > 0 and ring.hasPointer)
@@ -207,18 +212,19 @@ local function drawPicked(frame)
     ring.label:SetText(underText(place, world))
 end
 
--- An icon's name beside it, on the side away from the middle, as the wheel places its own.
+-- An icon's name beside it, on the side away from the middle, as the wheel places its own: 10
+-- above or below, and right against it at the sides.
 local function placeName(name, icon, angle)
     local quarter = math.pi / 4
     name:ClearAllPoints()
     if angle > quarter + 0.01 and angle < 3 * quarter - 0.01 then
-        name:SetPoint("BOTTOM", icon, "TOP", 0, 4)
+        name:SetPoint("BOTTOM", icon, "TOP", 0, 10)
     elseif angle >= 3 * quarter - 0.01 and angle <= 5 * quarter + 0.01 then
-        name:SetPoint("RIGHT", icon, "LEFT", -4, 0)
+        name:SetPoint("RIGHT", icon, "LEFT")
     elseif angle > 5 * quarter + 0.01 and angle < 7 * quarter - 0.01 then
-        name:SetPoint("TOP", icon, "BOTTOM", 0, -4)
+        name:SetPoint("TOP", icon, "BOTTOM", 0, -10)
     else
-        name:SetPoint("LEFT", icon, "RIGHT", 4, 0)
+        name:SetPoint("LEFT", icon, "RIGHT")
     end
 end
 
@@ -284,8 +290,9 @@ local function buildRing()
         icon:SetSize(ICON_SIZE * UNPICKED, ICON_SIZE * UNPICKED)
         local angle = rad(90 - (i - 1) * 45) % (2 * math.pi)
         icon:SetPoint("CENTER", cos(angle) * RADIUS * wheel, sin(angle) * RADIUS * wheel)
-        local name = art:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        local name = art:CreateFontString(nil, "OVERLAY", _G[NAME_FONT] and NAME_FONT or NAME_FALLBACK)
         name:SetText(_G["RAID_TARGET_" .. i] or "")
+        name:SetScale(UNPICKED)
         placeName(name, icon, angle)
         ring.icons[i], ring.names[i], ring.angles[i] = icon, name, angle
     end

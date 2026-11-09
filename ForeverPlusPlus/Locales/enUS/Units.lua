@@ -231,7 +231,6 @@ L.TARGETMARKERS_MOUSEOVER_DESC = "When your mouse is over a unit as you press th
     .. "it's the one marked. Off, the ring always marks your current target."
 L.TARGETMARKERS_SCALE = "Ring Size"
 L.TARGETMARKERS_SCALE_DESC = "The size of the ring."
-L.TARGETMARKERS_CLEAR = "Clear Mark" -- the middle of the ring
 L.TARGETMARKERS_CLEAR_ALL = "Clear All World Markers"
 L.TARGETMARKERS_ON_GROUND = "%s on the Ground" -- a raid icon's name, with Shift held: a world marker
 L.TARGETMARKERS_SHIFT_HINT = "Hold Shift to place a world marker" -- under the ring, in a group
