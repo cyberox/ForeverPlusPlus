@@ -53,7 +53,7 @@ end
 
 -- While another addon hides Blizzard's chat buttons, the Chat Button seemed to do nothing (issue #2).
 module.notice = ns.Chat.HiddenNotice(L.WHISPERWINDOW_BUTTON_HIDDEN, L.WHISPERWINDOW_BUTTON_HIDDEN_DESC,
-    function(db) return db.chatButton end)
+    function() return module.db.chatButton end)
 
 module.options = {
     { key = "openOnWhisper", name = L.WHISPERWINDOW_OPEN, description = L.WHISPERWINDOW_OPEN_DESC,

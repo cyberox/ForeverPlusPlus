@@ -411,13 +411,14 @@ end
 ---hidden, saying what still works without the button.
 ---@param text string
 ---@param description string
----@param shown? function(db) only while this is true as well (the button's option is on)
+---@param shown? function only while this is true as well (the button's option is on). Settings calls
+---a notice's `shown` with nothing, so it reads the module's settings itself (issue #5).
 ---@return table notice for `module.notice`
 function Chat.HiddenNotice(text, description, shown)
     return {
         text = text, description = description,
-        shown = function(db)
-            return (not shown or shown(db)) and Chat.ButtonsHidden()
+        shown = function()
+            return (not shown or shown()) and Chat.ButtonsHidden()
         end,
     }
 end
