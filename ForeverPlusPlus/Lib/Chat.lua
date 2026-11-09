@@ -3,7 +3,8 @@
 -- chat window (Blizzard's menu and channel buttons, then ours).
 local _, ns = ...
 
-local _G, ipairs, type, tonumber, gsub = _G, ipairs, type, tonumber, string.gsub
+local _G, ipairs, type, tonumber, gsub, format = _G, ipairs, type, tonumber, string.gsub, string.format
+local select = select
 local setmetatable, CreateFrame, UIParent = setmetatable, CreateFrame, UIParent
 local byte, find, match, sub = string.byte, string.find, string.match, string.sub
 local min, concat = math.min, table.concat
@@ -338,9 +339,12 @@ end
 -- Each module that adds a button gives it a key and an order; they stack under Blizzard's own
 -- buttons, lowest order first, so two modules never put theirs in the same spot.
 
-local column = {} -- { key, button, order }, sorted by order
+local column = {} -- { key, button, order, label }, sorted by order
 local laying
-local ours = setmetatable({}, { __mode = "k" }) -- the buttons Chat.NewButton made
+local ours = setmetatable({}, { __mode = "k" }) -- the buttons Chat.NewButton made, to their label
+-- The buttons that don't fit above Blizzard's chat menu button (a short chat window, issue #2):
+-- hidden, with an entry in that button's menu instead, by key.
+local folded = {}
 
 -- The frame holding Blizzard's chat buttons, which ours join so they show and fade with them. Read
 -- from the buttons each time, since another addon (Leatrix Plus' Hide chat buttons) can move them
@@ -364,7 +368,7 @@ end
 ---@return table button with `.icon`
 function Chat.NewButton(texture, onClick, title, text)
     local b = CreateFrame("Button", nil, host())
-    ours[b] = true
+    ours[b] = format("|T%s:16:16|t %s", texture, title)
     local template = Chat.Anchor()
     b:SetSize(template and template:GetWidth() or 32, template and template:GetHeight() or 32)
     b:SetNormalAtlas("chatframe-button-up")
@@ -407,19 +411,37 @@ function Chat.ButtonsHidden()
     return not (anchor and anchor:IsVisible())
 end
 
----A notice for a module with a button in the column: a gray row while Blizzard's chat buttons are
----hidden, saying what still works without the button.
+---Whether the button `key` added is in the chat menu button's menu, since the chat window is too
+---short for it in the column.
+---@param key string
+---@return boolean
+function Chat.Folded(key)
+    return folded[key] ~= nil
+end
+
+---The notices for a module with a button in the column: a gray row while Blizzard's chat buttons are
+---hidden, saying what still works without the button, and one while the chat window is too short
+---for it, saying where it went.
+---@param key string the key its button was added with (the module's name)
 ---@param text string
 ---@param description string
 ---@param shown? function only while this is true as well (the button's option is on). Settings calls
 ---a notice's `shown` with nothing, so it reads the module's settings itself (issue #5).
----@return table notice for `module.notice`
-function Chat.HiddenNotice(text, description, shown)
+---@return table notices for `module.notice`
+function Chat.HiddenNotice(key, text, description, shown)
     return {
-        text = text, description = description,
-        shown = function()
-            return (not shown or shown()) and Chat.ButtonsHidden()
-        end,
+        {
+            text = text, description = description,
+            shown = function()
+                return (not shown or shown()) and Chat.ButtonsHidden()
+            end,
+        },
+        {
+            text = ns.L.CHAT_BUTTON_FOLDED, description = ns.L.CHAT_BUTTON_FOLDED_DESC,
+            shown = function()
+                return (not shown or shown()) and not Chat.ButtonsHidden() and Chat.Folded(key)
+            end,
+        },
     }
 end
 
@@ -446,7 +468,74 @@ local function top()
     return Chat.Anchor()
 end
 
+-- How low the column can reach, in screen pixels: the top of Blizzard's chat menu button (the
+-- speech bubble), which sits at the bottom of the button frame (FloatingChatFrame.xml), so a short
+-- chat window put our buttons under it (issue #2). Nil when it isn't under the column: hidden, or
+-- moved by another addon.
+local function lowest(above)
+    local menu = _G.ChatFrameMenuButton
+    if not (menu and menu:IsShown()) then
+        return nil
+    end
+    local menuTop, menuLeft, menuRight = menu:GetTop(), menu:GetLeft(), menu:GetRight()
+    local aboveBottom, aboveLeft, aboveRight = above:GetBottom(), above:GetLeft(), above:GetRight()
+    if not (menuTop and menuLeft and menuRight and aboveBottom and aboveLeft and aboveRight) then
+        return nil
+    end
+    local scale, aboveScale = menu:GetEffectiveScale(), above:GetEffectiveScale()
+    menuTop = menuTop * scale
+    if menuTop > aboveBottom * aboveScale or menuLeft * scale >= aboveRight * aboveScale
+        or menuRight * scale <= aboveLeft * aboveScale then
+        return nil
+    end
+    return menuTop
+end
+
+local function show(button, shown)
+    button:SetAlpha(shown and 1 or 0)
+    button:EnableMouse(shown)
+end
+
+-- The chat window's size and the menu button change what fits, so the column is laid out again
+-- then. Hooked once for each frame, since a hook can't be taken off.
+local watched = setmetatable({}, { __mode = "k" })
+local function watch(frame, ...)
+    if frame and not watched[frame] and frame.HookScript then
+        watched[frame] = true
+        for i = 1, select("#", ...) do
+            frame:HookScript((select(i, ...)), Chat.Layout)
+        end
+    end
+end
+
+-- The folded buttons at the end of Blizzard's chat menu, after a line, in the column's order.
+local function addFolded(_, root)
+    local any = false
+    for _, entry in ipairs(column) do
+        if folded[entry.key] then
+            if not any then
+                any = true
+                root:CreateDivider()
+            end
+            local button = entry.button
+            root:CreateButton(entry.label or entry.key, function()
+                button:Click()
+            end)
+        end
+    end
+end
+
+local menuAdded
+local function addToMenu()
+    -- Probe: Menu.ModifyMenu and the menu's tag are Mainline's (ChatFrameMenuButton.lua).
+    if not menuAdded and Menu and Menu.ModifyMenu then
+        menuAdded = true
+        Menu.ModifyMenu("MENU_CHAT_SHORTCUTS", addFolded)
+    end
+end
+
 ---Puts the buttons in the column back in place. Modules call it again when something moves one.
+---Those that don't fit above the chat menu button are hidden and listed in its menu instead.
 function Chat.Layout()
     if not column[1] then
         return
@@ -457,14 +546,33 @@ function Chat.Layout()
     end
     laying = true
     local parent = host()
+    watch(parent, "OnSizeChanged")
+    watch(_G.ChatFrameMenuButton, "OnShow", "OnHide")
+    local bottom = lowest(previous)
+    local y = bottom and previous:GetBottom() * previous:GetEffectiveScale()
     for _, entry in ipairs(column) do
+        local button = entry.button
         -- Ours follow Blizzard's buttons if an addon moved them; Social Button moves its own.
-        if ours[entry.button] and entry.button:GetParent() ~= parent then
-            entry.button:SetParent(parent)
+        if ours[button] and button:GetParent() ~= parent then
+            button:SetParent(parent)
         end
-        entry.button:ClearAllPoints()
-        entry.button:SetPoint("TOP", previous, "BOTTOM", 0, -2)
-        previous = entry.button
+        button:ClearAllPoints()
+        button:SetPoint("TOP", previous, "BOTTOM", 0, -2)
+        previous = button
+        local fits = true
+        if y then
+            local scale = button:GetEffectiveScale()
+            y = y - (2 + button:GetHeight()) * scale
+            fits = y >= bottom
+        end
+        if not fits and not folded[entry.key] then
+            folded[entry.key] = button
+            show(button, false)
+            addToMenu()
+        elseif fits and folded[entry.key] then
+            folded[entry.key] = nil
+            show(button, true)
+        end
     end
     laying = false
 end
@@ -479,9 +587,10 @@ end
 ---@param key string the module's name
 ---@param button table
 ---@param order number
-function Chat.AddButton(key, button, order)
+---@param label? string its line in the chat menu while it doesn't fit (Chat.NewButton's has one)
+function Chat.AddButton(key, button, order, label)
     Chat.RemoveButton(key, true)
-    column[#column + 1] = { key = key, button = button, order = order }
+    column[#column + 1] = { key = key, button = button, order = order, label = label or ours[button] }
     table.sort(column, function(a, b)
         return a.order < b.order
     end)
@@ -495,6 +604,10 @@ function Chat.RemoveButton(key, quiet)
     for i, entry in ipairs(column) do
         if entry.key == key then
             table.remove(column, i)
+            if folded[key] then
+                folded[key] = nil
+                show(entry.button, true)
+            end
             break
         end
     end

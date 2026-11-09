@@ -71,7 +71,8 @@ function module:OnEnable()
     if host then
         button:SetParent(host)
     end
-    Chat.AddButton(self.name, button, 10)
+    -- Its line in the chat menu while the chat window is too short for it: its own art (QuickJoinToast.xml).
+    Chat.AddButton(self.name, button, 10, "|A:quickjoin-button-friendslist-up:16:16|a " .. L.SOCIALBUTTON_MENU)
     self:Hook(button, "SetPoint", onSetPoint)
     -- Probe: ChatAlertFrame and its subsystem list are Mainline's (AlertFrames.lua).
     if _G.ChatAlertFrame and _G.ChatAlertFrame.UpdateAnchors then

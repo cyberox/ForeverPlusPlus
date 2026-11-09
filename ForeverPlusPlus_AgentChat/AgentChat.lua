@@ -68,7 +68,7 @@ module.options = {
 }
 
 -- While another addon hides Blizzard's chat buttons, the Chat Button can't show.
-module.notice = ns.Chat.HiddenNotice(L.AGENTCHAT_BUTTON_HIDDEN, L.AGENTCHAT_BUTTON_HIDDEN_DESC,
+module.notice = ns.Chat.HiddenNotice(module.name, L.AGENTCHAT_BUTTON_HIDDEN, L.AGENTCHAT_BUTTON_HIDDEN_DESC,
     function() return module.db.chatButton end)
 
 local NOTICES = {

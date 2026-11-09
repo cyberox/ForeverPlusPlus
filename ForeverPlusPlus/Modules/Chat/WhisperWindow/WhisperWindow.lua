@@ -52,7 +52,7 @@ local function percent(option)
 end
 
 -- While another addon hides Blizzard's chat buttons, the Chat Button seemed to do nothing (issue #2).
-module.notice = ns.Chat.HiddenNotice(L.WHISPERWINDOW_BUTTON_HIDDEN, L.WHISPERWINDOW_BUTTON_HIDDEN_DESC,
+module.notice = ns.Chat.HiddenNotice(module.name, L.WHISPERWINDOW_BUTTON_HIDDEN, L.WHISPERWINDOW_BUTTON_HIDDEN_DESC,
     function() return module.db.chatButton end)
 
 module.options = {
