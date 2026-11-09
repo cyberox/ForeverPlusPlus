@@ -3,7 +3,7 @@
 -- text with the address in gray, quotes in gray, and bullets as a dot. The game can't change font
 -- weight inside a line, so color stands in for it. Any | in the text is doubled first, so nothing
 -- in it becomes one of the game's escape codes; only the codes added here are real.
-local _, ns = ...
+local ns = ForeverPlusPlusCompanion() -- Forever++'s own, as its files have (ForeverPlusPlus/Init.lua)
 
 local tostring, tonumber = tostring, tonumber
 

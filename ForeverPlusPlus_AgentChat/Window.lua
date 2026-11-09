@@ -2,7 +2,7 @@
 -- need you or are working first, and the one picked on the right, as a chat. It can be dragged and
 -- resized, and remembers where. AgentChat.lua keeps what it shows and calls internal.Refresh when
 -- that changes.
-local _, ns = ...
+local ns = ForeverPlusPlusCompanion() -- Forever++'s own, as its files have (ForeverPlusPlus/Init.lua)
 
 local ipairs, format, time, date, type, pcall, tostring, tonumber, select = ipairs, string.format,
     time, date, type, pcall, tostring, tonumber, select

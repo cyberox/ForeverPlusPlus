@@ -22,7 +22,7 @@ jobs:
           status=0
           while IFS= read -r -d '' file; do
             luac5.1 -p "$file" || status=1
-          done < <(find ForeverPlusPlus tests -name '*.lua' -print0)
+          done < <(find ForeverPlusPlus ForeverPlusPlus_AgentChat tests -name '*.lua' -print0)
           exit $status
 
       - name: Offline tests
@@ -30,7 +30,7 @@ jobs:
 
       - name: ASCII only in .lua and .toc
         run: |
-          if grep -rnP '[^\x00-\x7F]' --include='*.lua' --include='*.toc' ForeverPlusPlus; then
+          if grep -rnP '[^\x00-\x7F]' --include='*.lua' --include='*.toc' ForeverPlusPlus ForeverPlusPlus_AgentChat; then
             echo "Non-ASCII characters found (see above)."
             exit 1
           fi

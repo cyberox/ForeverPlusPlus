@@ -40,12 +40,19 @@ func TestInstallFillUninstall(t *testing.T) {
 	if err := os.MkdirAll(filepath.Join(game, "Interface", "AddOns", "ForeverPlusPlus"), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	in := Install{Game: game, Data: t.TempDir(), Slots: 3, Signals: 5, Interface: 16001}
+	companion := t.TempDir()
+	if err := os.WriteFile(filepath.Join(companion, CompanionName+".toc"), []byte("## Title: test\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	in := Install{Game: game, Data: t.TempDir(), Slots: 3, Signals: 5, Interface: 16001, Companion: companion}
 	if err := in.Run(); err != nil {
 		t.Fatal(err)
 	}
 	if err := in.Run(); err != nil {
 		t.Fatalf("running install again: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(game, "Interface", "AddOns", CompanionName, CompanionName+".toc")); err != nil {
+		t.Fatalf("Agent Chat isn't linked into the game: %v", err)
 	}
 	toc, err := os.ReadFile(filepath.Join(game, "Interface", "AddOns", link.SlotName(2), link.SlotName(2)+".toc"))
 	if err != nil {
@@ -93,6 +100,9 @@ func TestInstallFillUninstall(t *testing.T) {
 	entries, _ := os.ReadDir(filepath.Join(game, "Interface", "AddOns"))
 	if len(entries) != 1 || entries[0].Name() != "ForeverPlusPlus" {
 		t.Errorf("left behind: %v", entries)
+	}
+	if _, err := os.Stat(filepath.Join(companion, CompanionName+".toc")); err != nil {
+		t.Errorf("uninstall touched the Agent Chat folder itself: %v", err)
 	}
 }
 

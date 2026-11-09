@@ -66,8 +66,6 @@ Lib\Spellbook.lua
 Lib\Quests.lua
 Lib\Taxi.lua
 Lib\RealmTime.lua
-Lib\AgentLink.lua
-Lib\Markdown.lua
 Modules\System\ErrorCatcher.lua
 Modules\Units\PlayerNameplates.lua
 Modules\Units\NpcNameplates.lua
@@ -151,8 +149,6 @@ Modules\Chat\ChatHistory.lua
 Modules\Chat\SocialButton.lua
 Modules\Chat\WhisperWindow\WhisperWindow.lua
 Modules\Chat\WhisperWindow\Window.lua
-Modules\Chat\AgentChat\AgentChat.lua
-Modules\Chat\AgentChat\Window.lua
 Modules\Units\ClassColors.lua
 Modules\Units\DruidManaBar.lua
 Modules\Units\TargetMarkers.lua

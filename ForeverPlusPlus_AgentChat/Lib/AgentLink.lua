@@ -6,7 +6,7 @@
 -- payload's length), PAYLOAD bytes of the message, and a Fletcher-16 checksum (mod 255) of the rest.
 -- The program reads each frame once by its sequence number and joins them from FIRST to LAST.
 -- `agent/internal/link` in this repo reads the same format; change both together.
-local _, ns = ...
+local ns = ForeverPlusPlusCompanion() -- Forever++'s own, as its files have (ForeverPlusPlus/Init.lua)
 
 local floor, byte, sub = math.floor, string.byte, string.sub
 

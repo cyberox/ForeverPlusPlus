@@ -53,6 +53,8 @@ func main() {
 	server := flags.String("t3", t3.DefaultServer(), "the T3 Code server, for login")
 	quiet := flags.Bool("background", false, "run with no window, logging to agent.log (what start does)")
 	after := flags.Int("after", 0, "wait for this process to end first (an update taking over)")
+	companion := flags.String("companion", defaultCompanion(),
+		"the Agent Chat addon's folder, linked into the game by install (\"\" for none)")
 	flags.Usage = func() {
 		fmt.Fprint(os.Stderr, usage)
 		flags.PrintDefaults()
@@ -63,7 +65,8 @@ func main() {
 	}
 	command := os.Args[1]
 	flags.Parse(os.Args[2:])
-	in := wow.Install{Game: *game, Data: *data, Slots: *slots, Signals: *signals, Interface: *iface}
+	in := wow.Install{Game: *game, Data: *data, Slots: *slots, Signals: *signals, Interface: *iface,
+		Companion: *companion}
 	log.SetFlags(log.Ltime | log.Lmicroseconds)
 
 	var err error
@@ -71,8 +74,13 @@ func main() {
 	case "install":
 		err = in.Run()
 		if err == nil {
-			fmt.Printf("Installed %d bit and %d slot helpers, and %d signals.\nRestart the game (not /reload) so it finds them.\n",
-				link.Bits, in.Slots, in.Signals)
+			fmt.Printf("Installed %d bit and %d slot helpers, and %d signals.\n", link.Bits, in.Slots, in.Signals)
+			if in.Companion != "" {
+				fmt.Printf("Linked Agent Chat (%s).\n", in.Companion)
+			} else {
+				fmt.Println("No Agent Chat addon found beside the program; pass -companion to link it.")
+			}
+			fmt.Println("Restart the game (not /reload) so it finds them.")
 		}
 	case "uninstall":
 		err = in.Uninstall()
@@ -182,6 +190,23 @@ func defaultGame() string {
 		return dir
 	}
 	return `D:\BattleNet\World of Warcraft\_forever_`
+}
+
+// defaultCompanion is the Agent Chat addon beside the program's folder in the repository
+// (agent\forever-agent.exe and ForeverPlusPlus_AgentChat\), or "" when it isn't there.
+func defaultCompanion() string {
+	exe, err := os.Executable()
+	if err != nil {
+		return ""
+	}
+	dir := filepath.Join(filepath.Dir(exe), "..", wow.CompanionName)
+	if info, err := os.Stat(dir); err != nil || !info.IsDir() {
+		return ""
+	}
+	if abs, err := filepath.Abs(dir); err == nil {
+		return abs
+	}
+	return filepath.Clean(dir)
 }
 
 // start runs the program again in the background, with no window, and returns.

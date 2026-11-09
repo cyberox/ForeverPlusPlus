@@ -3,8 +3,10 @@
 local T = ...
 local eq, same, ok = T.eq, T.same, T.ok
 
+-- Part of the Agent Chat companion addon, which takes Forever++'s ns from ForeverPlusPlusCompanion.
 local ns = {}
-T.load("Lib/AgentLink", ns)
+T.env.ForeverPlusPlusCompanion = function() return ns end
+T.load("../ForeverPlusPlus_AgentChat/Lib/AgentLink", ns)
 local A = ns.AgentLink
 
 local frames, seq = A.Frames("hello", 0)

@@ -19,7 +19,7 @@
 --
 -- The helpers exist only once the program installs them, so without it the module isn't offered.
 -- The program's side and the messages are in agent/internal/bridge.
-local _, ns = ...
+local ns = ForeverPlusPlusCompanion() -- Forever++'s own, as its files have (ForeverPlusPlus/Init.lua)
 
 local _G, ipairs, pairs, format, type, tostring, tonumber, floor, random, wipe, min = _G, ipairs, pairs,
     format, type, tostring, tonumber, math.floor, math.random, wipe, math.min

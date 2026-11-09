@@ -24,10 +24,16 @@ type Install struct {
 	Slots     int    // reply slots: how many replies a UI session can take before a /reload
 	Signals   int    // ready signals: how many replies a game launch can be told of at once
 	Interface int    // the TOC Interface number
+	// Companion is the Agent Chat addon's folder in the repository (ForeverPlusPlus_AgentChat),
+	// linked into the game with the helpers; "" for none. Forever++'s releases don't have it.
+	Companion string
 }
 
 // SignalsName is the helper addon that holds the ready signals. Its TOC says how many there are.
 const SignalsName = "FPPAgentSignals"
+
+// CompanionName is the Agent Chat addon, which the helpers belong to.
+const CompanionName = "ForeverPlusPlus_AgentChat"
 
 // DefaultData is %LOCALAPPDATA%\ForeverPlusPlus\Agent.
 func DefaultData() string {
@@ -66,13 +72,13 @@ func (in Install) names() []string {
 	return names
 }
 
-// toc is a helper's TOC. Group puts it under Forever++ in the game's AddOns list.
+// toc is a helper's TOC. Group puts it under Agent Chat in the game's AddOns list.
 func (in Install) toc(name string, files ...string) string {
 	var b strings.Builder
 	fmt.Fprintf(&b, "## Interface: %d\n", in.Interface)
 	fmt.Fprintf(&b, "## Title: |cff808080Forever++ Agent link: %s|r\n", name)
 	b.WriteString("## Notes: Part of the link between Forever++'s Agent Chat and the Forever Agent program on this PC.\n")
-	b.WriteString("## Group: ForeverPlusPlus\n")
+	b.WriteString("## Group: " + CompanionName + "\n")
 	b.WriteString("## LoadOnDemand: 1\n")
 	for _, f := range files {
 		b.WriteString(f + "\n")
@@ -103,6 +109,11 @@ func (in Install) Run() error {
 			return err
 		}
 		if err := in.link(name, dir); err != nil {
+			return err
+		}
+	}
+	if in.Companion != "" {
+		if err := in.link(CompanionName, in.Companion); err != nil {
 			return err
 		}
 	}
@@ -168,12 +179,20 @@ func (in Install) link(name, dir string) error {
 }
 
 // Uninstall removes the links from the game and the helper addons. It only removes a link that
-// points into Data, never a real folder.
+// points into Data (or, for Agent Chat, at Companion), never a real folder.
 func (in Install) Uninstall() error {
 	var errs []error
 	entries, err := os.ReadDir(in.gameAddOns())
 	if err != nil {
 		return err
+	}
+	if in.Companion != "" {
+		path := filepath.Join(in.gameAddOns(), CompanionName)
+		if target, err := os.Readlink(path); err == nil && samePath(target, in.Companion) {
+			if err := os.Remove(path); err != nil {
+				errs = append(errs, err)
+			}
+		}
 	}
 	for _, e := range entries {
 		if !strings.HasPrefix(e.Name(), "FPPAgent") {

@@ -9,7 +9,9 @@ import (
 
 // When Forever++'s own files change while the game runs (an agent editing it), the game is told,
 // so it can offer a reload. The addon's folder in the game's Interface\AddOns is a link to where
-// it's worked on, so its files are watched there.
+// it's worked on, so its files are watched there, and Agent Chat's (its companion addon) with it.
+
+var watchedAddOns = []string{"ForeverPlusPlus", "ForeverPlusPlus_AgentChat"}
 
 // ReloadSettle is how long the files must stay unchanged before the game is told, so a run of
 // edits asks once.
@@ -21,20 +23,22 @@ var addonFiles = map[string]bool{".lua": true, ".toc": true, ".xml": true}
 
 // addonChanged is when Forever++'s code last changed, zero if it can't be read.
 func (b *Bridge) addonChanged() time.Time {
-	dir := filepath.Join(b.In.Game, "Interface", "AddOns", "ForeverPlusPlus")
-	if real, err := filepath.EvalSymlinks(dir); err == nil {
-		dir = real
-	}
 	var newest time.Time
-	filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
-		if err != nil || d.IsDir() || !addonFiles[strings.ToLower(filepath.Ext(path))] {
+	for _, name := range watchedAddOns {
+		dir := filepath.Join(b.In.Game, "Interface", "AddOns", name)
+		if real, err := filepath.EvalSymlinks(dir); err == nil {
+			dir = real
+		}
+		filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+			if err != nil || d.IsDir() || !addonFiles[strings.ToLower(filepath.Ext(path))] {
+				return nil
+			}
+			if info, err := d.Info(); err == nil && info.ModTime().After(newest) {
+				newest = info.ModTime()
+			}
 			return nil
-		}
-		if info, err := d.Info(); err == nil && info.ModTime().After(newest) {
-			newest = info.ModTime()
-		}
-		return nil
-	})
+		})
+	}
 	return newest
 }
 

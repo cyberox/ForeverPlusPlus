@@ -2,8 +2,10 @@
 local T = ...
 local eq, same = T.eq, T.same
 
+-- Part of the Agent Chat companion addon, which takes Forever++'s ns from ForeverPlusPlusCompanion.
 local ns = {}
-T.load("Lib/Markdown", ns)
+T.env.ForeverPlusPlusCompanion = function() return ns end
+T.load("../ForeverPlusPlus_AgentChat/Lib/Markdown", ns)
 local M = ns.Markdown
 
 same(M.Lines("plain text"), { "plain text" }, "markdown: plain text as is")

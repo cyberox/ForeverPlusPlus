@@ -1,0 +1,14 @@
+## Interface: 16001
+## Title: Forever++ Agent Chat
+## Notes: Your T3 Code threads in a window in the game, through the Forever Agent program on this PC. Part of the Forever++ repository, not its releases.
+## Author: xIGBClutchIx
+## Version: dev
+## Dependencies: ForeverPlusPlus
+## Group: ForeverPlusPlus
+## IconTexture: Interface\AddOns\ForeverPlusPlus\Media\Icon
+
+Locales\enUS.lua
+Lib\AgentLink.lua
+Lib\Markdown.lua
+AgentChat.lua
+Window.lua

@@ -6,7 +6,7 @@
 // starts a session), a flags byte (First, Last, and the payload's length), Payload bytes of the
 // message, and a Fletcher-16 checksum (mod 255) of the rest.
 //
-// ForeverPlusPlus/Lib/AgentLink.lua writes the same format; change both together.
+// ForeverPlusPlus_AgentChat/Lib/AgentLink.lua writes the same format; change both together.
 package link
 
 const (
