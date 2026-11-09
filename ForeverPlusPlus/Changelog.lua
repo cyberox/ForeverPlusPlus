@@ -11,33 +11,28 @@ local L = ns.L
 ns.changelog = {
     {
         version = "1.3.0",
-        date = "2026-11-08",
+        date = "2026-11-09",
         sections = {
             { L.CHANGELOG_ADDED, {
-                { L.TARGETMARKERS_TITLE, "A new module, off by default. Hold a key and a ring of the "
-                    .. "raid icons opens at your mouse, like the ping wheel. Point toward one and let go "
-                    .. "to mark your target, or the unit under your mouse, or let go in the middle to "
-                    .. "clear the mark. Hold Shift as you let go to place that icon as a world marker "
-                    .. "instead. Bind the key in Key Bindings under Forever++. Works in combat." },
+                { L.TARGETMARKERS_TITLE, "A new module, off by default. Hold a key for a ring of raid "
+                    .. "icons at your mouse, like the ping wheel, and let go on one to mark your target "
+                    .. "(the middle clears it). Hold Shift as you let go for a world marker. Set the key "
+                    .. "in Key Bindings under Forever++. Works in combat." },
                 { L.LOCALTIME_TITLE, "A new module, on by default. While the clock's Use Local Time is "
-                    .. "on, the calendar shows its times in your own time instead of the realm's, and "
-                    .. "guild events in the Communities window and Guild News, and when auction money "
-                    .. "arrives in the mail, follow too." },
-                { L.BUFFTIMERS_TITLE, "Hide Tracking Buffs (off by default) leaves minimap tracking such "
-                    .. "as Find Herbs and Find Minerals off the buff bar, and hides the buff bar's fold "
-                    .. "arrow when tracking buffs are all it would fold." },
+                    .. "on, the calendar, guild events, and auction mail show your own time instead of "
+                    .. "the realm's." },
+                { L.BUFFTIMERS_TITLE, "Hide Tracking Buffs (off by default) keeps Find Herbs, Find "
+                    .. "Minerals, and other tracking off the buff bar." },
             } },
             { L.CHANGELOG_FIXED, {
-                { L.TALENTPLANNER_TITLE, "A talent sitting a little off its row no longer asks for "
-                    .. "points it doesn't need (Affliction's top row asked for 5, its second row for "
-                    .. "305)." },
+                { L.TALENTPLANNER_TITLE, "Talents a little off their row no longer ask for points they "
+                    .. "don't need (Affliction showed 5 and 305)." },
                 { L.TALENTPLANNER_TITLE, "The plan's tooltip shows in full the first time you point at "
                     .. "a talent." },
-                { L.NPCNAMEPLATES_TITLE, "A marked unit's raid icon sits beside its name on a name-only "
-                    .. "plate, instead of far off where the hidden health bar would be, and moves clear "
-                    .. "of the bar when it shows. The same for Player Nameplates." },
-                { L.PLAYERNAMEPLATES_TITLE, "The level beside a player's name counts when centering the "
-                    .. "name, and buffs beside the name clear it." },
+                { L.NPCNAMEPLATES_TITLE, "On name-only plates, a raid icon sits beside the name instead "
+                    .. "of far off to the side. Player Nameplates too." },
+                { L.PLAYERNAMEPLATES_TITLE, "The level beside a player's name now counts when centering "
+                    .. "the name." },
             } },
         },
     },
