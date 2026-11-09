@@ -171,8 +171,9 @@ local timers = setmetatable({}, weak) -- a timer bar -> our seconds beside it
 local function timerText(bar)
     local text = timers[bar]
     if not text then
+        -- Above the bar's right end, under the item's name: Greed's button is past the bar's end.
         text = bar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-        text:SetPoint("LEFT", bar, "RIGHT", 6, 0)
+        text:SetPoint("BOTTOMRIGHT", bar, "TOPRIGHT", 0, 1)
         timers[bar] = text
     end
     return text
