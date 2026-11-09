@@ -22,7 +22,7 @@ local _, ns = ...
 local pairs, ipairs, setmetatable, hooksecurefunc = pairs, ipairs, setmetatable, hooksecurefunc
 local UnitIsPlayer, UnitIsFriend, UnitIsUnit = UnitIsPlayer, UnitIsFriend, UnitIsUnit
 local UnitAffectingCombat, UnitHealthPercent = UnitAffectingCombat, UnitHealthPercent
-local UnitHealth, UnitHealthMax, pcall, max = UnitHealth, UnitHealthMax, pcall, math.max
+local UnitHealth, UnitHealthMax, pcall, max, floor = UnitHealth, UnitHealthMax, pcall, math.max, math.floor
 
 local readable = ns.IsReadable
 local Nameplates, PlateLabel = ns.Nameplates, ns.PlateLabel
@@ -217,21 +217,58 @@ end
 -- UpdateAnchors). Moved rather than drawn again: which icon a unit has can be secret (a friendly
 -- player's was), and Blizzard's own frame shows it whatever it is. Its anchors are set, never
 -- read: like the buff row, reading them threw, and the icon never moved.
-local function setRaidAnchor(record, where)
-    local icon, label = record.raidTarget, record.label
+-- How far left of our name the icon's right edge goes: past the level and icons on that side, then
+-- twice the row's own gap and a little more (at one gap it nearly touched the level).
+local function raidReach(label)
+    return (label.leftWidth or 0) + (label.gap or 3) * 2 + 2
+end
+
+local function setRaidAnchor(record, where, x)
+    local icon = record.raidTarget
     icon:ClearAllPoints()
     if where == "name" then
-        -- Twice the row's own gap and a little more: at one gap it nearly touched the level.
-        icon:SetPoint("RIGHT", label.name, "LEFT", -((label.leftWidth or 0) + (label.gap or 3) * 2 + 2), 0)
+        icon:SetPoint("RIGHT", record.label.name, "LEFT", -raidReach(record.label), 0)
     else
-        icon:SetPoint("RIGHT", record.container, "LEFT", 0, 0)
+        -- "unsure" passes the client's offset from the bar's end; Blizzard's own place is at it.
+        icon:SetPoint("RIGHT", record.container, "LEFT", x or 0, 0)
     end
 end
 
----@param where string "name" (beside our name) or "blizzard" (its own place)
-local function anchorRaidTarget(record, where)
+local function leftEdges(record)
+    return record.label.name:GetLeft(), record.container:GetLeft()
+end
+
+-- Offsets from the bar's left end to beside the name, as step curves by health (cached by offset):
+-- hurt (the bar shows) 0, full (only the name shows) the offset.
+local raidCurves = {}
+
+---@param where string "name" (the bar is hidden: beside our name), "unsure" (the bar shows when
+---the unit is hurt, but its health is secret: the client picks between the two from it), or
+---"blizzard" (at the bar's left end, Blizzard's place)
+---@param unit string?
+local function anchorRaidTarget(record, where, unit)
     if not (record.raidTarget and record.label) then
         return
+    end
+    if where == "unsure" then
+        -- A friendly player's health reads as secret, so their plate is usually unsure. Measured
+        -- on the plate as laid out; a spot that can't be read yet goes to the bar's end, which
+        -- never covers the bar, until the next fade measures it again.
+        local ok, nameLeft, barLeft = pcall(leftEdges, record)
+        if ok and unit and curve and readable(nameLeft) and readable(barLeft) and nameLeft and barLeft then
+            local dx = floor(nameLeft - barLeft - raidReach(record.label) + 0.5)
+            local stepped = raidCurves[dx]
+            if not stepped then
+                stepped = ns.HealthStepCurve(0, dx)
+                raidCurves[dx] = stepped
+            end
+            -- A secret offset can't be compared, so this one is set every time.
+            record.raidWhere, record.raidX = "unsure", nil
+            if stepped and pcall(setRaidAnchor, record, "unsure", UnitHealthPercent(unit, true, stepped)) then
+                return
+            end
+        end
+        where = "blizzard"
     end
     local x = where == "name" and record.label.leftWidth or nil
     if record.raidWhere == where and record.raidX == x then
@@ -404,8 +441,8 @@ function Plates:Layout(unit)
         PlateLabel.Layout(record.label, record, unit, self.style)
         record.label.rise = nameRise(record.label)
         -- The row may be wider or narrower now; keep the raid icon just past it.
-        if record.raidWhere == "name" then
-            anchorRaidTarget(record, "name")
+        if record.raidWhere == "name" or record.raidWhere == "unsure" then
+            anchorRaidTarget(record, record.raidWhere, unit)
         end
         -- The name, level, or icons may have moved; keep the buffs placed against them.
         if record.buffsWhere and record.buffsWhere ~= "blizzard" then
@@ -477,7 +514,7 @@ function Plates:PlaceBuffs(unit, inCombat)
         end
     end
     record.buffsInCombat = inCombat
-    anchorRaidTarget(record, state == "bar" and "blizzard" or "name")
+    anchorRaidTarget(record, state == "bar" and "blizzard" or state, unit)
     local where = db.buffs
     -- Beside the name would sit on the bar. (Unsure, it stays beside the name: that's the usual
     -- case on a name-only plate, and a sideways move can't follow a secret like a height can.)
