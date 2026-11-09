@@ -2,19 +2,25 @@
 -- frame fades out, and a border in Blizzard's tooltip or dialog art goes around it. While it's
 -- on, the global GetMinimapShape answers "SQUARE": the convention minimap button libraries
 -- (LibDBIcon) and Lib/MinimapPins.lua read, so buttons on the edge and our icons on the minimap
--- follow the square. Turned off, the round mask and frame come back. An addon that already shapes
--- the minimap (its own GetMinimapShape) is left to it.
+-- follow the square. The map moves up to the header row the round frame kept it from, and the day
+-- and night indicator drags anywhere with a key held. Turned off, the round mask and frame, the
+-- map's place, and the sun's come back. An addon that already shapes the minimap (its own
+-- GetMinimapShape) is left to it.
 local _, ns = ...
 
-local _G, type, ipairs, abs = _G, type, ipairs, math.abs
-local CreateFrame = CreateFrame
+local _G, type, ipairs, abs, floor, wipe = _G, type, ipairs, math.abs, math.floor, wipe
+local CreateFrame, GetCursorPosition = CreateFrame, GetCursorPosition
 
 local L = ns.L
 
 local module = ns.NewModule("SquareMinimap", L.SQUAREMINIMAP_DESC, {
     enabled = false,
-    border = "window", -- a BORDERS key, or none; set below to one this client has
+    border = "gold", -- a BORDERS key, or none; set below to one this client has
     borderScale = 100, -- the border art's size, in percent
+    gap = 6, -- pixels between the map and the header row (zone name, tracking, calendar)
+    sunKey = "shift", -- the key held to drag the day and night indicator, or off
+    -- Data, not settings: where the player dragged the sun, from the map's middle, in its pixels.
+    sun = {},
 })
 module.title = L.SQUAREMINIMAP_TITLE
 module.category = "map"
@@ -36,18 +42,17 @@ local ART = { "MinimapCompassTexture", "MinimapCompassTextureUnderlay" }
 -- The borders, in the order the dropdown lists them. Two kinds, both Blizzard's own art:
 -- - `layout`: a frame from NineSliceLayouts (Blizzard_SharedXML/Mainline/NineSliceLayouts.lua,
 --   `forever` branch, checked 2026-11-09), drawn by NineSliceUtil, so Forever's own art and its
---   offsets for it (Camelot/NineSliceLayoutOverrides.lua) come with it. Window is the frame of the
---   game's windows, ours among them. Faction is the Alliance or Horde mission table frame by the
+--   offsets for it (Camelot/NineSliceLayoutOverrides.lua) come with it. (The windows' own frames,
+--   ButtonFrameTemplateNoPortrait and SimplePanelTemplate, left a wide empty band inside the line
+--   in game, so they aren't offered.) Faction is the Alliance or Horde mission table frame by the
 --   player's side, and Wood for anyone else. `atlas` is one of its pieces, to check this client
 --   has it. The frame's pieces lie inside it, so it sits `outset` of its edge's width past the
 --   minimap, which puts the middle of the line on the minimap's edge.
 -- - `file`: a backdrop edge file at an edge size that suits the minimap, `outset` pixels past it.
 --   `backdrop` is the global Blizzard keeps it in, read first in case a patch moves the file.
 local BORDERS = {
-    { "window", L.SQUAREMINIMAP_BORDER_WINDOW, layout = "ButtonFrameTemplateNoPortrait",
-        atlas = "!UI-Frame-Metal-EdgeLeft", outset = 0.5 },
-    { "panel", L.SQUAREMINIMAP_BORDER_PANEL, layout = "SimplePanelTemplate",
-        atlas = "!UI-Frame-SimpleMetal-EdgeLeft", outset = 0.5 },
+    { "gold", L.SQUAREMINIMAP_BORDER_GOLD, backdrop = "BACKDROP_GOLD_DIALOG_32_32",
+        file = "Interface\\DialogFrame\\UI-DialogBox-Gold-Border", size = 16, outset = 5 },
     { "metal", L.SQUAREMINIMAP_BORDER_METAL, layout = "GenericMetal",
         atlas = "!UI-Frame-GenericMetal-EdgeLeft", outset = 0.5 },
     { "diamond", L.SQUAREMINIMAP_BORDER_DIAMOND, layout = "Dialog",
@@ -61,8 +66,6 @@ local BORDERS = {
         atlas = "!Oribos-NineSlice-EdgeLeft", outset = 0.5 },
     { "dialog", L.SQUAREMINIMAP_BORDER_DIALOG, backdrop = "BACKDROP_DIALOG_32_32",
         file = "Interface\\DialogFrame\\UI-DialogBox-Border", size = 16, outset = 5 },
-    { "gold", L.SQUAREMINIMAP_BORDER_GOLD, backdrop = "BACKDROP_GOLD_DIALOG_32_32",
-        file = "Interface\\DialogFrame\\UI-DialogBox-Gold-Border", size = 16, outset = 5 },
     { "achievement", L.SQUAREMINIMAP_BORDER_ACHIEVEMENT,
         file = "Interface\\AchievementFrame\\UI-Achievement-WoodBorder", size = 32, outset = 8 },
     { "tooltip", L.SQUAREMINIMAP_BORDER_TOOLTIP, backdrop = "BACKDROP_TOOLTIP_16_16_5555",
@@ -97,8 +100,17 @@ for _, style in ipairs(BORDERS) do
     end
 end
 CHOICES[#CHOICES + 1] = { "none", L.SQUAREMINIMAP_BORDER_NONE }
--- The window frame, the one Forever draws its windows in, when it's there.
-module.defaults.border = STYLES.window and "window" or STYLES.dialog and "dialog" or "none"
+-- Gold, or Stone without it.
+module.defaults.border = STYLES.gold and "gold" or STYLES.dialog and "dialog" or "none"
+
+-- The keys that can drag the sun, and Off.
+local SUN_KEYS = {}
+for _, choice in ipairs(ns.Keys.CHOICES) do
+    if choice[1] ~= "none" then
+        SUN_KEYS[#SUN_KEYS + 1] = choice
+    end
+end
+SUN_KEYS[#SUN_KEYS + 1] = { "off", L.SQUAREMINIMAP_SUN_OFF }
 
 module.options = {
     {
@@ -114,7 +126,29 @@ module.options = {
         min = 50, max = 150, step = 10, format = "%d%%",
         shown = function(db) return db.border ~= "none" end,
     },
+    {
+        key = "gap",
+        name = L.SQUAREMINIMAP_GAP,
+        description = L.SQUAREMINIMAP_GAP_DESC,
+        min = 0, max = 40, step = 1, format = L.ICONMARK_PIXELS,
+    },
+    {
+        key = "sunKey",
+        name = L.SQUAREMINIMAP_SUN_KEY,
+        description = L.SQUAREMINIMAP_SUN_KEY_DESC,
+        choices = SUN_KEYS,
+    },
 }
+
+module.actions = {
+    {
+        name = L.SQUAREMINIMAP_SUN_RESET_NAME,
+        button = L.SQUAREMINIMAP_SUN_RESET,
+        description = L.SQUAREMINIMAP_SUN_RESET_DESC,
+        fn = function() module.internal.ResetSun() end,
+    },
+}
+module.internal = {}
 
 local squared = false -- whether the minimap is square because of us
 local border -- our frame around the minimap, made the first time it's needed
@@ -212,6 +246,199 @@ local function drawBorder()
     end
 end
 
+-- The map's place -------------------------------------------------------------------------------
+-- Blizzard centers the minimap in a container the size of its round frame (Camelot Minimap.lua's
+-- UpdateMinimapConfig), so with the frame faded a band of nothing sat between the map and the
+-- header row above it. The map moves to `gap` pixels from that row instead: below it, or above it
+-- with Edit Mode's Header Underneath. Read from where the row is, so Edit Mode's scale and header
+-- setting are already in it.
+
+local mapMoved = false
+
+-- The header row's frames: the zone name, the tracking button, and the calendar.
+local function headerFrames()
+    local cluster = MinimapCluster
+    return { cluster.ZoneTextButton or false, cluster.Tracking or false, _G.GameTimeFrame or false }
+end
+
+local function placeMap()
+    local container = MinimapCluster and MinimapCluster.MinimapContainer
+    if not container then
+        return
+    end
+    local cTop, cBottom = container:GetTop(), container:GetBottom()
+    local zone = MinimapCluster.ZoneTextButton
+    local zoneTop = zone and zone:GetTop()
+    if not (squared and cTop and cBottom and zoneTop) then
+        if mapMoved then
+            mapMoved = false
+            Minimap:ClearAllPoints()
+            Minimap:SetPoint("CENTER", container, "CENTER")
+        end
+        return
+    end
+    local cScale, mScale = container:GetEffectiveScale(), Minimap:GetEffectiveScale()
+    local middle = (cTop + cBottom) / 2 * cScale
+    local under = zoneTop * zone:GetEffectiveScale() < middle
+    local edge -- the row's edge nearest the map, on the screen
+    for _, frame in ipairs(headerFrames()) do
+        if frame and frame:IsShown() then
+            local y = under and frame:GetTop() or frame:GetBottom()
+            if y then
+                y = y * frame:GetEffectiveScale()
+                -- One beside the map rather than in the row (an addon moved it) doesn't count.
+                local inRow = (under and y < middle) or (not under and y > middle)
+                if inRow and (not edge or (under and y > edge) or (not under and y < edge)) then
+                    edge = y
+                end
+            end
+        end
+    end
+    if not edge then
+        return
+    end
+    local gap = module.db.gap * mScale
+    mapMoved = true
+    Minimap:ClearAllPoints()
+    if under then
+        Minimap:SetPoint("BOTTOM", container, "BOTTOM", 0, (edge + gap - cBottom * cScale) / mScale)
+    else
+        Minimap:SetPoint("TOP", container, "TOP", 0, (edge - gap - cTop * cScale) / mScale)
+    end
+end
+
+-- The sun -----------------------------------------------------------------------------------------
+-- Camelot's day and night indicator (MinimapCluster.DielFrame, Camelot/Diel.lua) sits at a fixed
+-- spot on the round frame, which a square one's edge doesn't reach. With its key held, it drags
+-- anywhere on or around the map, and stays there (`sun`, from the map's middle); a right-click puts
+-- it back. Blizzard places it again when Edit Mode's scale changes, so that's hooked.
+
+-- Where Blizzard puts it: from its container's middle, times the container's scale (Diel.lua's
+-- DielFrameData and SetDielFrameTransform, wow-ui-source `forever` branch, checked 2026-11-09).
+local SUN_X, SUN_Y = 55, 86
+local SUN_REACH = 40 -- how far past the map's edge it can go, in the map's pixels
+
+local sunMoved = false
+local handle -- our frame over the sun that takes the drag
+local grabX, grabY -- the cursor's offset from the sun's middle when the drag began
+local placeSun
+
+local function sunFrame()
+    return MinimapCluster and MinimapCluster.DielFrame
+end
+
+local function sunKeyDown()
+    local key = module.db.sunKey
+    return key ~= "off" and ns.Keys.IsDown(key)
+end
+
+-- The cursor, from the map's middle, in the map's pixels.
+local function cursorOnMap()
+    local x, y = GetCursorPosition()
+    local scale = Minimap:GetEffectiveScale()
+    local mx, my = Minimap:GetCenter()
+    return x / scale - mx, y / scale - my
+end
+
+local function clamp(v, limit)
+    return v < -limit and -limit or v > limit and limit or v
+end
+
+local function onDrag()
+    local x, y = cursorOnMap()
+    local limit = Minimap:GetWidth() / 2 + SUN_REACH
+    local sun = module.db.sun
+    sun.x = floor(clamp(x - grabX, limit) + 0.5)
+    sun.y = floor(clamp(y - grabY, limit) + 0.5)
+    placeSun()
+end
+
+local function stopDrag()
+    if grabX then
+        grabX, grabY = nil, nil
+        handle:SetScript("OnUpdate", nil)
+        placeSun()
+    end
+end
+
+local function newHandle(sun)
+    local frame = CreateFrame("Frame", nil, sun)
+    frame:SetAllPoints(sun)
+    frame:SetFrameLevel(sun:GetFrameLevel() + 1)
+    frame:SetScript("OnMouseDown", function(_, button)
+        if button == "LeftButton" and sunKeyDown() then
+            local x, y = cursorOnMap()
+            local sx, sy = sun:GetCenter()
+            local ratio = sun:GetEffectiveScale() / Minimap:GetEffectiveScale()
+            local mx, my = Minimap:GetCenter()
+            grabX, grabY = x - (sx * ratio - mx), y - (sy * ratio - my)
+            frame:SetScript("OnUpdate", onDrag)
+            GameTooltip:Hide()
+        end
+    end)
+    frame:SetScript("OnMouseUp", function(_, button)
+        if grabX then
+            stopDrag()
+        elseif button == "RightButton" then
+            module.internal.ResetSun()
+        end
+    end)
+    frame:SetScript("OnHide", stopDrag)
+    frame:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_LEFT")
+        GameTooltip:SetText(L.SQUAREMINIMAP_SUN, 1, 1, 1)
+        GameTooltip:AddLine(L.SQUAREMINIMAP_SUN_HINT, nil, nil, nil, true)
+        GameTooltip:Show()
+    end)
+    frame:SetScript("OnLeave", GameTooltip_Hide)
+    return frame
+end
+
+-- The handle takes the mouse only while the key is held (or a drag goes on), so the map under the
+-- sun still pings the rest of the time.
+local function updateHandle()
+    local sun = sunFrame()
+    if not (squared and sun and module.db.sunKey ~= "off") then
+        if handle then
+            handle:Hide()
+        end
+        return
+    end
+    handle = handle or newHandle(sun)
+    handle:Show()
+    handle:EnableMouse(grabX ~= nil or sunKeyDown())
+end
+
+function placeSun()
+    local sun = sunFrame()
+    if not sun then
+        return
+    end
+    local saved = module.db.sun
+    if squared and saved.x and saved.y then
+        local ratio = Minimap:GetEffectiveScale() / sun:GetEffectiveScale()
+        sunMoved = true
+        sun:ClearAllPoints()
+        sun:SetPoint("CENTER", Minimap, "CENTER", saved.x * ratio, saved.y * ratio)
+    elseif sunMoved then
+        sunMoved = false
+        local scale = MinimapCluster.MinimapContainer:GetScale()
+        sun:ClearAllPoints()
+        sun:SetPoint("CENTER", SUN_X * scale, SUN_Y * scale)
+    end
+    updateHandle()
+end
+
+---Puts the sun back where Blizzard has it.
+function module.internal.ResetSun()
+    wipe(module.db.sun)
+    placeSun()
+end
+
+module:OnWhile(function(db) return db.sunKey ~= "off" end, {
+    MODIFIER_STATE_CHANGED = updateHandle,
+})
+
 -- Squares the minimap while the module is on (again after Blizzard set its own mask, as it does
 -- when Rotate Minimap changes), or puts Blizzard's round mask and frame back. Another addon that
 -- has taken over the shape is left to it.
@@ -230,6 +457,8 @@ local function update()
     end
     squared = want
     drawBorder()
+    placeMap()
+    placeSun()
     if want ~= was then
         ns.MinimapPins.ShapeChanged()
     end
@@ -256,7 +485,10 @@ end
 
 function module:OnEnable()
     if MinimapCluster then
+        -- Each puts Blizzard's mask, the map, or the sun back in place (Camelot Minimap.lua, Diel.lua).
         self:Hook(MinimapCluster, "UpdateMinimapConfig", refresh)
+        self:Hook(MinimapCluster, "SetHeaderUnderneath", refresh)
+        self:Hook(MinimapCluster, "SetEditModeScale", refresh)
     end
     self:HookScript(Minimap, "OnMouseUp", onMouseUp)
     refresh()
@@ -269,5 +501,9 @@ end
 function module:OnOptionChanged(key)
     if key == "border" or key == "borderScale" then
         drawBorder()
+    elseif key == "gap" then
+        ns.AfterCombat(placeMap)
+    elseif key == "sunKey" then
+        updateHandle()
     end
 end

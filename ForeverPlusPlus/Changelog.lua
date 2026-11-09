@@ -20,8 +20,9 @@ ns.changelog = {
                     .. "Appearance Icons, Already Known, and Unusable Items Tint mark the rolls as they do "
                     .. "your bags." },
                 { L.SQUAREMINIMAP_TITLE, "A new module, off by default. It makes the minimap square, "
-                    .. "with a border in Blizzard's art: the frame of the game's windows by default, or a "
-                    .. "dozen others, at the size you like. Forever++'s minimap button and icons, and "
+                    .. "with a border in Blizzard's art: gold by default, or nine others, at the size you "
+                    .. "like. The map moves up to the zone name and buttons above it, and Shift-drag "
+                    .. "moves the day and night indicator. Forever++'s minimap button and icons, and "
                     .. "most other addons' minimap buttons, follow the square edge." },
                 { L.CONSOLEVARIABLES_TITLE, "Lock a CVar with the padlock beside its star, and it keeps "
                     .. "your value at every login, even one the game puts back, until you change it or "

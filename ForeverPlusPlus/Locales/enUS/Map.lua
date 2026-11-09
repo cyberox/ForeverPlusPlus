@@ -202,10 +202,8 @@ L.SQUAREMINIMAP_TITLE = "Square Minimap"
 L.SQUAREMINIMAP_DESC = "Make the minimap square, with a square border in place of its round frame. "
     .. "Minimap buttons and Forever++'s minimap icons follow the square edge."
 L.SQUAREMINIMAP_BORDER = "Border"
-L.SQUAREMINIMAP_BORDER_DESC = "The border around the square minimap, in Blizzard's own art. Window is "
-    .. "the frame the game's windows have; Faction is the Alliance or Horde war table's."
-L.SQUAREMINIMAP_BORDER_WINDOW = "Window" -- the frame of the game's windows
-L.SQUAREMINIMAP_BORDER_PANEL = "Panel" -- the thinner frame of simple panels
+L.SQUAREMINIMAP_BORDER_DESC = "The border around the square minimap, in Blizzard's own art. Faction "
+    .. "is the Alliance or Horde war table's."
 L.SQUAREMINIMAP_BORDER_METAL = "Metal" -- the generic metal frame
 L.SQUAREMINIMAP_BORDER_DIAMOND = "Diamond" -- the diamond-studded metal of dialogs
 L.SQUAREMINIMAP_BORDER_WOOD = "Wood"
@@ -219,6 +217,18 @@ L.SQUAREMINIMAP_BORDER_TOOLTIP = "Thin" -- the tooltip border
 L.SQUAREMINIMAP_BORDER_NONE = "None"
 L.SQUAREMINIMAP_BORDER_SCALE = "Border Size"
 L.SQUAREMINIMAP_BORDER_SCALE_DESC = "How big the border's art is."
+L.SQUAREMINIMAP_GAP = "Space Above"
+L.SQUAREMINIMAP_GAP_DESC = "How far the map sits from the zone name, tracking, and calendar above it "
+    .. "(below it, with Edit Mode's Header Underneath)."
+L.SQUAREMINIMAP_SUN = "Day and Night" -- the sun and moon indicator on the minimap
+L.SQUAREMINIMAP_SUN_KEY = "Move the Sun"
+L.SQUAREMINIMAP_SUN_KEY_DESC = "Hold this key and drag the day and night indicator to move it. "
+    .. "Right-click it with the key held to put it back."
+L.SQUAREMINIMAP_SUN_OFF = "Off"
+L.SQUAREMINIMAP_SUN_HINT = "Drag to move it. Right-click to put it back."
+L.SQUAREMINIMAP_SUN_RESET_NAME = "Day and Night Indicator"
+L.SQUAREMINIMAP_SUN_RESET = "Reset Position"
+L.SQUAREMINIMAP_SUN_RESET_DESC = "Put the day and night indicator back where Blizzard has it."
 L.SQUAREMINIMAP_OTHER = "Another addon shapes the minimap, so this leaves it alone."
 L.SQUAREMINIMAP_OTHER_DESC = "That addon decides the minimap's shape. Use its own setting for a "
     .. "square minimap, or turn its shape off and reload."
