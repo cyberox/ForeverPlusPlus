@@ -1,6 +1,6 @@
 -- Loot Rolls: the group loot rolls (Need, Greed, Pass) where the player puts them in Edit Mode,
--- stacking up, down, left, or right with the gap they pick, and showing the seconds left to roll,
--- the item level, and how many in the group picked each roll.
+-- stacking up, down, left, or right with the gap they pick, and showing the seconds left to roll
+-- and how many in the group picked each roll.
 --
 -- Blizzard stacks the roll frames (GroupLootFrame1 to 4) up from GroupLootContainer's bottom, 100
 -- apart (GroupLootContainer_Update, Blizzard_UIPanels_Game/Mainline/GroupLootFrame.lua, `forever`
@@ -28,7 +28,6 @@ local module = ns.NewModule("LootRolls", L.LOOTROLLS_DESC, {
     spacing = 4, -- pixels between rolls
     preview = 1, -- example rolls shown in Edit Mode
     timer = true,
-    itemLevel = true,
     counts = true,
 })
 module.title = L.LOOTROLLS_TITLE
@@ -54,7 +53,6 @@ module.options = {
         min = 1, max = 4, step = 1, format = "%d",
     },
     { key = "timer", name = L.LOOTROLLS_TIMER, description = L.LOOTROLLS_TIMER_DESC },
-    { key = "itemLevel", name = L.LOOTROLLS_ITEM_LEVEL, description = L.LOOTROLLS_ITEM_LEVEL_DESC },
     { key = "counts", name = L.LOOTROLLS_COUNTS, description = L.LOOTROLLS_COUNTS_DESC },
 }
 
@@ -122,46 +120,6 @@ local function giveBack()
             frame:SetPoint("CENTER", container, "BOTTOM", 0, (container.reservedSize or 100) * (i - 0.5))
         end
     end
-end
-
--- Item level ---------------------------------------------------------------------------------------
-
-local levels = setmetatable({}, weak) -- an item icon's frame -> our item level on it
-
--- A weapon's or armor's item level, or nil.
-local function itemLevel(link)
-    if not (readable(link) and type(link) == "string" and C_Item and C_Item.GetItemInfoInstant) then
-        return nil
-    end
-    local _, _, _, equipLoc, _, classID = C_Item.GetItemInfoInstant(link)
-    local enum = Enum and Enum.ItemClass
-    local gear = enum and (classID == enum.Weapon or classID == enum.Armor) or classID == 2 or classID == 4
-    if not gear or not equipLoc or equipLoc == "" or equipLoc == "INVTYPE_NON_EQUIP_IGNORE" then
-        return nil
-    end
-    local level = C_Item.GetDetailedItemLevelInfo and C_Item.GetDetailedItemLevelInfo(link)
-    return readable(level) and level and level > 1 and level or nil
-end
-
-local function showLevel(iconFrame, link)
-    if not iconFrame then
-        return
-    end
-    local text = levels[iconFrame]
-    local level = module.enabled and module.db.itemLevel and itemLevel(link)
-    if not level then
-        if text then
-            text:Hide()
-        end
-        return
-    end
-    if not text then
-        text = iconFrame:CreateFontString(nil, "OVERLAY", "NumberFontNormalSmall")
-        text:SetPoint("BOTTOM", 0, 2)
-        levels[iconFrame] = text
-    end
-    text:SetText(level)
-    text:Show()
 end
 
 -- Time left ------------------------------------------------------------------------------------------
@@ -305,8 +263,6 @@ local function countFromHistory(frame)
 end
 
 local function onRollShow(frame)
-    local link = frame.rollID and GetLootRollItemLink and GetLootRollItemLink(frame.rollID)
-    showLevel(frame.IconFrame, link)
     countFromHistory(frame)
 end
 
@@ -411,7 +367,6 @@ local function fillExample(frame, example)
         frame.Name:SetTextColor(color.r, color.g, color.b)
     end
     local link = format("item:%d", id)
-    showLevel(frame.IconFrame, link)
     showSeconds(frame.Timer, 42)
     showCounts(frame, 2, 1, 1)
     -- The marks Upgrade Arrows, Appearance Icons, and the others put on a real roll's icon.
@@ -500,9 +455,6 @@ function module:OnDisable()
     showPreview()
     giveBack()
     refreshRolls()
-    for _, text in pairs(levels) do
-        text:Hide()
-    end
     for _, texts in pairs(tallies) do
         for _, text in ipairs(texts) do
             text:Hide()
