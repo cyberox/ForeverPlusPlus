@@ -387,6 +387,11 @@ function Plates:Fade(unit)
         fadeLevel(record, shown)
         -- Blizzard's name is always hidden: our label draws the name in both views.
         record.name:SetAlpha(0)
+        -- Blizzard's raid icon sits at the bar's left end, far from a name-only plate's name, so
+        -- it shows with the bar and our label's own beside the name otherwise.
+        if record.raidTarget then
+            record.raidTarget:SetAlpha(shown)
+        end
         label.barFrame:SetAlpha(shown)
         label:SetAlpha(hidden)
     end
@@ -442,6 +447,7 @@ function Plates:Add(unit, frame)
         record.castBar = parts.castBar
         record.buffs = parts.buffs
         record.classification = parts.classification
+        record.raidTarget = parts.raidTarget
         record.label = PlateLabel.Show(frame)
         hookName(name)
         mirrored[name] = { self, unit }
@@ -464,6 +470,9 @@ function Plates:Remove(unit)
     if record.name then
         record.name:SetAlpha(1)
         mirrored[record.name] = nil
+    end
+    if record.raidTarget then
+        record.raidTarget:SetAlpha(1)
     end
     if record.label then
         PlateLabel.Hide(record.label)
@@ -501,6 +510,8 @@ function Plates:Enable()
         end
     end
     module:On("UNIT_FACTION", self.onFaction)
+    -- A raid icon set or cleared: the label's moves the name over.
+    module:On("RAID_TARGET_UPDATE", self.onSocialChange)
     -- UNIT_FLAGS covers other units' combat; these cover the fallback to our own.
     module:On("PLAYER_REGEN_DISABLED", self.onPlayerCombat)
     module:On("PLAYER_REGEN_ENABLED", self.onPlayerCombat)

@@ -223,7 +223,7 @@ end
 ---12.x and breaks Blizzard's own anchors on the plate.
 ---@param frame table plate.UnitFrame
 ---@return table parts name, container (the health bar's frame), level, levelDiff, castBar, buffs,
----classification, elite
+---classification, elite, raidTarget
 function Nameplates.Parts(frame)
     local auras = frame.AurasFrame
     return {
@@ -238,5 +238,7 @@ function Nameplates.Parts(frame)
         level = frame.LevelFrame, -- Forever-only: the level badge at the bar's end
         levelDiff = frame.PlayerLevelDiffFrame,
         castBar = frame.CastBarsContainer,
+        -- The raid icon, at the bar's left end (Blizzard_NamePlateUnitFrame.lua, `forever` branch).
+        raidTarget = frame.RaidTargetFrame,
     }
 end
