@@ -49,6 +49,9 @@ internal.POPULAR = {
         { "nameplateOccludedAlphaMult", L.CONSOLEVARIABLES_POP_PLATE_HIDDEN,
             L.CONSOLEVARIABLES_POP_PLATE_HIDDEN_DESC },
         { "nameplateSelectedScale", L.CONSOLEVARIABLES_POP_PLATE_TARGET, L.CONSOLEVARIABLES_POP_PLATE_TARGET_DESC },
+        -- Asked for by a player; the game doesn't seem to save it (docs/forever-api.md), so it wants a lock.
+        { "nameplateSimplifiedScale", L.CONSOLEVARIABLES_POP_PLATE_SIMPLIFIED,
+            L.CONSOLEVARIABLES_POP_PLATE_SIMPLIFIED_DESC },
         { "nameplateShowEnemyTotems", L.CONSOLEVARIABLES_POP_PLATE_TOTEMS, L.CONSOLEVARIABLES_POP_PLATE_TOTEMS_DESC },
         { "nameplateShowEnemyPets", L.CONSOLEVARIABLES_POP_PLATE_PETS, L.CONSOLEVARIABLES_POP_PLATE_PETS_DESC },
     },
