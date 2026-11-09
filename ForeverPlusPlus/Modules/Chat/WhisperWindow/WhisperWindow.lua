@@ -60,8 +60,9 @@ module.options = {
         section = WINDOW },
     { key = "hideInChat", name = L.WHISPERWINDOW_HIDE, description = L.WHISPERWINDOW_HIDE_DESC,
         section = WINDOW },
+    -- Changed: above Chat Copy's, and in the speech bubble's menu on a short chat window.
     { key = "chatButton", name = L.WHISPERWINDOW_BUTTON, description = L.WHISPERWINDOW_BUTTON_DESC,
-        section = WINDOW },
+        section = WINDOW, changed = "1.4.0" },
     percent({ key = "alpha", name = L.WHISPERWINDOW_ALPHA, description = L.WHISPERWINDOW_ALPHA_DESC }),
     percent({ key = "movingAlpha", name = L.WHISPERWINDOW_MOVING,
         description = L.WHISPERWINDOW_MOVING_DESC }),
