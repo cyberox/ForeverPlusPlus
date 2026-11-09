@@ -20,6 +20,7 @@
 local _, ns = ...
 
 local pairs, ipairs, setmetatable, hooksecurefunc = pairs, ipairs, setmetatable, hooksecurefunc
+local CreateFrame = CreateFrame
 local UnitIsPlayer, UnitIsFriend, UnitIsUnit = UnitIsPlayer, UnitIsFriend, UnitIsUnit
 local UnitAffectingCombat, UnitHealthPercent = UnitAffectingCombat, UnitHealthPercent
 local UnitHealth, UnitHealthMax, pcall, max, floor = UnitHealth, UnitHealthMax, pcall, math.max, math.floor
@@ -224,11 +225,23 @@ local function raidReach(label)
 end
 
 local function setRaidAnchor(record, where, y)
-    local icon = record.raidTarget
+    local icon, label = record.raidTarget, record.label
     icon:ClearAllPoints()
-    if where == "name" or where == "unsure" then
+    if where == "name" then
+        icon:SetPoint("RIGHT", label.name, "LEFT", -raidReach(label), 0)
+    elseif where == "unsure" then
         -- "unsure" passes the client's height: level with the name, or up with it over the bar.
-        icon:SetPoint("RIGHT", record.label.name, "LEFT", -raidReach(record.label), y or 0)
+        -- With a secret height the sideways offset beside it was lost and the icon sat on the
+        -- level, so the sideways part goes on a spot of ours and the icon takes only the height.
+        local spot = label.raidSpot
+        if not spot then
+            spot = CreateFrame("Frame", nil, label)
+            spot:SetSize(1, 1)
+            label.raidSpot = spot
+        end
+        spot:ClearAllPoints()
+        spot:SetPoint("RIGHT", label.name, "LEFT", -raidReach(label), 0)
+        icon:SetPoint("RIGHT", spot, "RIGHT", 0, y)
     else
         icon:SetPoint("RIGHT", record.container, "LEFT", 0, 0)
     end
