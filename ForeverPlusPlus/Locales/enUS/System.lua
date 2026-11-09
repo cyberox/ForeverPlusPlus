@@ -99,7 +99,8 @@ L.ADDONSLIST_CHAT_DESC = "Say in chat when a set is saved, and how many of a set
 -- MinimapButton
 L.MINIMAPBUTTON_TITLE = "Minimap Button"
 L.MINIMAPBUTTON_DESC = "A Forever++ button on the minimap, in the addon compartment, or both: click it for quick "
-    .. "toggles, right-click it for settings, and Shift-click it for caught errors."
+    .. "toggles (Customize, at the bottom, picks which modules they offer), right-click it for "
+    .. "settings, and Shift-click it for caught errors."
 L.MINIMAPBUTTON_WHERE = "Show In"
 L.MINIMAPBUTTON_WHERE_DESC = "Where the button goes: on the minimap, in the addon compartment "
     .. "under it, or both. Drag the minimap button to move it around the minimap."
@@ -114,9 +115,15 @@ L.MINIMAPBUTTON_TIP_NONE = "None" -- a count of 0 errors
 L.MINIMAPBUTTON_GROUP_LOOT = "Vendors and Loot"
 L.MINIMAPBUTTON_GROUP_NPCS = "NPCs and Quests"
 L.MINIMAPBUTTON_GROUP_WORLD = "Out in the World"
+L.MINIMAPBUTTON_GROUP_NAMEPLATES = "Nameplates"
 L.MINIMAPBUTTON_GROUP_GATHERING = "Gathering"
 L.MINIMAPBUTTON_GATHERING_SHOWS = "Gathering Map Shows" -- over its kinds' checkboxes: Herbs, Ore...
 L.MINIMAPBUTTON_GROUP_OTHER = "Other"
+-- The submenu at the bottom of the quick toggles: a submenu per module category, with checkboxes.
+L.MINIMAPBUTTON_CUSTOMIZE = "Customize"
+L.MINIMAPBUTTON_CUSTOMIZE_DESC = "Pick which modules this menu offers, by category. Changes show "
+    .. "the next time the menu opens."
+L.MINIMAPBUTTON_CUSTOMIZE_RESET = "Reset to Default"
 -- The tooltip's hints: what a click does, then the click.
 L.MINIMAPBUTTON_HINT_SETTINGS = "Open Settings"
 L.MINIMAPBUTTON_HINT_WELCOME = "About Forever++"

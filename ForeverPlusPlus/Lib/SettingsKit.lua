@@ -14,6 +14,42 @@ ns.SettingsKit = Kit
 
 local LIST_LEFT, LIST_ROW = 7, 20 -- a split page's list, and its rows
 
+-- Module categories ---------------------------------------------------------------------------
+-- The Modules page's groups: a module's `category` and its label, in the order their labels sort
+-- in the player's language, with Other last. A module without one goes under Other. Here rather
+-- than in Settings, so a module that lists modules by category (the Minimap Button's quick
+-- toggles) groups them the same way.
+local L = ns.L
+local CATEGORIES = {
+    { "automation", L.CATEGORY_AUTOMATION },
+    { "character", L.CATEGORY_CHARACTER },
+    { "chat", L.CATEGORY_CHAT },
+    { "interface", L.CATEGORY_INTERFACE },
+    { "items", L.CATEGORY_ITEMS },
+    { "map", L.CATEGORY_MAP },
+    { "quests", L.CATEGORY_QUESTS },
+    { "system", L.CATEGORY_SYSTEM },
+    { "tools", L.CATEGORY_TOOLS },
+    { "units", L.CATEGORY_UNITS },
+}
+table.sort(CATEGORIES, function(a, b) return string.lower(a[2]) < string.lower(b[2]) end)
+CATEGORIES[#CATEGORIES + 1] = { "other", L.CATEGORY_OTHER }
+local CATEGORY_NAMES, CATEGORY_RANKS = {}, {} -- by `category`: its label, its place in that order
+for i, group in ipairs(CATEGORIES) do
+    CATEGORY_NAMES[group[1]] = group[2]
+    CATEGORY_RANKS[group[1]] = i
+end
+---Each category as { key, label }, in the Modules page's order.
+Kit.CATEGORIES = CATEGORIES
+Kit.CATEGORY_NAMES, Kit.CATEGORY_RANKS = CATEGORY_NAMES, CATEGORY_RANKS
+
+---A module's category key, "other" when it has none of the list.
+---@param module table
+---@return string
+function Kit.CategoryOf(module)
+    return CATEGORY_NAMES[module.category] and module.category or "other"
+end
+
 ---Puts a page's title and the divider under it at the top of a drawn page, like Blizzard's own
 ---Settings pages.
 ---@param frame table the page

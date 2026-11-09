@@ -10,7 +10,8 @@ local _, ns = ...
 local format, type, tremove, sort = string.format, type, table.remove, table.sort
 local cos, sin, rad, deg, atan2, floor = math.cos, math.sin, math.rad, math.deg, math.atan2, math.floor
 local abs, max = math.abs, math.max
-local ipairs, CreateFrame, GetCursorPosition = ipairs, CreateFrame, GetCursorPosition
+local ipairs, pairs, next, wipe = ipairs, pairs, next, wipe
+local CreateFrame, GetCursorPosition = CreateFrame, GetCursorPosition
 
 local L = ns.L
 local Errors = ns.Errors
@@ -39,6 +40,8 @@ local module = ns.NewModule("MinimapButton", L.MINIMAPBUTTON_DESC, {
     saved = {
         angle = 200, -- the button's place around the minimap, in degrees
     },
+    -- Module name -> true (the player added it to the quick toggles) or false (took it out).
+    quickToggles = {},
 })
 module.title = L.MINIMAPBUTTON_TITLE
 module.category = "system"
@@ -93,75 +96,197 @@ end
 -- group lists its modules by title in alphabetical order, so the order holds in every language.
 -- One that isn't available on this client (Hide Beta Feedback off the beta) is left out, and so
 -- is a group left empty.
+-- The player picks more or fewer in the menu's Customize submenu (`quickToggles`); a module they
+-- add that has no group of its own shows under its Modules page category, after these groups and
+-- before Other.
 local QUICK_GROUPS = {
     { L.MINIMAPBUTTON_GROUP_LOOT, key = "loot" },
     { L.MINIMAPBUTTON_GROUP_NPCS, key = "npcs" },
     { L.MINIMAPBUTTON_GROUP_WORLD, key = "world" },
+    { L.MINIMAPBUTTON_GROUP_NAMEPLATES, key = "nameplates" },
     -- Then, while Gathering Map is on, the kinds it shows (its Kinds, through ns.Providers).
     { L.MINIMAPBUTTON_GROUP_GATHERING, key = "gathering", kinds = true },
     { L.MINIMAPBUTTON_GROUP_OTHER, key = "other" },
 }
-
--- The names of the modules that joined a group.
-local function groupNames(key)
-    local names = {}
-    for _, name in ipairs(ns.order) do
-        if ns.modules[name].quickToggle == key then
-            names[#names + 1] = name
-        end
-    end
-    return names
+local QUICK_KEYS = {}
+for _, group in ipairs(QUICK_GROUPS) do
+    QUICK_KEYS[group.key] = true
 end
 
+local Kit = ns.SettingsKit
 local GROUP_COLOR = Colors.Code(GRAY[1], GRAY[2], GRAY[3])
+-- A Customize category with more modules than this scrolls, since submenus don't fit themselves
+-- to the screen. Menu rows are 20 high (MenuTemplates).
+local MAX_ROWS, ROW_HEIGHT = 18, 20
 
 local function byTitle(a, b)
     return a.title < b.title
 end
 
--- Each group's modules this client has, sorted by title. A locked one (the game broke it) can't
--- be turned on, so it isn't offered.
-local function quickEntries(names)
-    local entries = {}
-    for _, name in ipairs(names) do
+-- Whether a module can be offered at all: one with a checkbox, that this client has. A locked one
+-- (the game broke it) can't be turned on, so it isn't offered.
+local function offerable(other)
+    return other and not other.alwaysOn and not other.unavailable and not other.locked
+end
+
+-- The group a module joined in its own file, if it's one of ours.
+local function defaultGroup(other)
+    return QUICK_KEYS[other.quickToggle] and other.quickToggle or nil
+end
+
+-- Whether the menu offers a module: the player's pick, or else whether it joined a group.
+local function isQuick(name, other)
+    local picked = module.db.quickToggles[name]
+    if picked ~= nil then
+        return picked and true or false
+    end
+    return defaultGroup(other) ~= nil
+end
+
+-- Saves only a pick that differs from the module's own default, so a later default reaches it.
+local function setQuick(name, other, on)
+    local picked = nil
+    if on ~= (defaultGroup(other) ~= nil) then
+        picked = on
+    end
+    module.db.quickToggles[name] = picked
+end
+
+-- The modules the menu offers, by group key: a quick group's, or the category of one added
+-- without a group (`added[category]`). Each list sorted by title.
+local function quickLists()
+    local groups, added = {}, {}
+    for _, name in ipairs(ns.order) do
         local other = ns.modules[name]
-        if other and not other.unavailable and not other.locked then
-            entries[#entries + 1] = { name = name, module = other, title = other.title or name }
+        if offerable(other) and isQuick(name, other) then
+            local key, lists = defaultGroup(other), groups
+            if not key then
+                -- An added module of no category goes under our own Other, not a second one.
+                key = Kit.CategoryOf(other)
+                lists = key == "other" and groups or added
+            end
+            local list = lists[key] or {}
+            lists[key] = list
+            list[#list + 1] = { name = name, module = other, title = other.title or name }
         end
     end
-    sort(entries, byTitle)
-    return entries
+    for _, lists in ipairs({ groups, added }) do
+        for _, list in pairs(lists) do
+            sort(list, byTitle)
+        end
+    end
+    return groups, added
 end
 
 -- Turned on and off through Core, as the Modules page does, so Settings and /fpp follow along.
-local function quickMenuItems(_, root)
-    root:CreateTitle(ns.title)
-    for _, group in ipairs(QUICK_GROUPS) do
-        local entries = quickEntries(groupNames(group.key))
-        if #entries > 0 then
-            root:CreateTitle(GROUP_COLOR .. group[1] .. "|r")
+local function addGroup(root, label, entries)
+    if not (entries and #entries > 0) then
+        return false
+    end
+    root:CreateTitle(GROUP_COLOR .. label .. "|r")
+    for _, entry in ipairs(entries) do
+        local name, other = entry.name, entry.module
+        root:CreateCheckbox(entry.title,
+            function() return other.db.enabled end,
+            function()
+                ns.SetEnabled(name, not other.db.enabled) -- Settings follows by itself
+            end)
+    end
+    return true
+end
+
+-- Gathering Map's kinds after its group's modules, while it's on to offer them.
+local function addKinds(root)
+    local gathering = ns.Providers.Get("gatheringNodes")
+    local kinds = gathering and gathering.Kinds and gathering.Kinds() or {}
+    if #kinds > 0 then
+        root:CreateTitle(GROUP_COLOR .. L.MINIMAPBUTTON_GATHERING_SHOWS .. "|r")
+        for _, kind in ipairs(kinds) do
+            root:CreateCheckbox(kind.name, kind.IsShown, function()
+                kind.Toggle()
+                ns.RefreshSetting("GatheringMap")
+            end)
+        end
+    end
+end
+
+-- A module's title and description, as the Modules page shows them, on its Customize checkbox.
+local function moduleTooltip(entry)
+    local other = entry.module
+    return function(tooltip)
+        tooltip:SetText(entry.title, 1, 1, 1)
+        if type(other.description) == "string" and other.description ~= "" then
+            tooltip:AddLine(other.description, GOLD[1], GOLD[2], GOLD[3], true)
+        end
+    end
+end
+
+-- Customize: a submenu per Modules page category, each with a checkbox per module for whether this
+-- menu offers it. Checking one redraws the checks; the menu itself shows the change the next
+-- time it opens.
+local function addCustomize(root)
+    local customize = root:CreateButton(L.MINIMAPBUTTON_CUSTOMIZE)
+    if customize.SetTooltip then
+        customize:SetTooltip(function(tooltip)
+            tooltip:SetText(L.MINIMAPBUTTON_CUSTOMIZE, 1, 1, 1)
+            tooltip:AddLine(L.MINIMAPBUTTON_CUSTOMIZE_DESC, GOLD[1], GOLD[2], GOLD[3], true)
+        end)
+    end
+    local byCategory = {}
+    for _, name in ipairs(ns.order) do
+        local other = ns.modules[name]
+        if offerable(other) then
+            local key = Kit.CategoryOf(other)
+            local list = byCategory[key] or {}
+            byCategory[key] = list
+            list[#list + 1] = { name = name, module = other, title = other.title or name }
+        end
+    end
+    for _, category in ipairs(Kit.CATEGORIES) do
+        local entries = byCategory[category[1]]
+        if entries then
+            sort(entries, byTitle)
+            local sub = customize:CreateButton(category[2])
+            if #entries > MAX_ROWS and sub.SetScrollMode then
+                sub:SetScrollMode(MAX_ROWS * ROW_HEIGHT)
+            end
             for _, entry in ipairs(entries) do
                 local name, other = entry.name, entry.module
-                root:CreateCheckbox(entry.title,
-                    function() return other.db.enabled end,
-                    function()
-                        ns.SetEnabled(name, not other.db.enabled) -- Settings follows by itself
-                    end)
-            end
-            -- Gathering Map's kinds after its modules, while it's on to offer them.
-            local gathering = group.kinds and ns.Providers.Get("gatheringNodes")
-            local kinds = gathering and gathering.Kinds and gathering.Kinds() or {}
-            if #kinds > 0 then
-                root:CreateTitle(GROUP_COLOR .. L.MINIMAPBUTTON_GATHERING_SHOWS .. "|r")
-                for _, kind in ipairs(kinds) do
-                    root:CreateCheckbox(kind.name, kind.IsShown, function()
-                        kind.Toggle()
-                        ns.RefreshSetting("GatheringMap")
-                    end)
+                local box = sub:CreateCheckbox(entry.title,
+                    function() return isQuick(name, other) end,
+                    function() setQuick(name, other, not isQuick(name, other)) end)
+                if box.SetTooltip then
+                    box:SetTooltip(moduleTooltip(entry))
                 end
             end
         end
     end
+    customize:CreateDivider()
+    local reset = customize:CreateButton(L.MINIMAPBUTTON_CUSTOMIZE_RESET, function()
+        wipe(module.db.quickToggles)
+        return MenuResponse and MenuResponse.Refresh
+    end)
+    if reset.SetEnabled then
+        reset:SetEnabled(function() return next(module.db.quickToggles) ~= nil end)
+    end
+end
+
+local function quickMenuItems(_, root)
+    root:CreateTitle(ns.title)
+    local groups, added = quickLists()
+    for _, group in ipairs(QUICK_GROUPS) do
+        if group.key == "other" then
+            -- The categories of modules the player added, before Other.
+            for _, category in ipairs(Kit.CATEGORIES) do
+                addGroup(root, category[2], added[category[1]])
+            end
+        end
+        if addGroup(root, group[1], groups[group.key]) and group.kinds then
+            addKinds(root)
+        end
+    end
+    root:CreateDivider()
+    addCustomize(root)
 end
 
 -- Menu Side's anchor: a corner of the menu on the cursor, the right one for Left and the left one

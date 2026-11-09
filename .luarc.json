@@ -327,6 +327,7 @@
     "MAP_AREA_LABEL_TYPE",
     "NineSliceUtil",
     "MenuUtil",
+    "MenuResponse",
     "Menu",
     "MenuVariants",
     "AnchorUtil",

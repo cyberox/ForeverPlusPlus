@@ -18,6 +18,7 @@ local module = ns.NewModule("NpcNameplates", L.NPCNAMEPLATES_DESC, ns.FriendlyPl
 }))
 module.title = L.NPCNAMEPLATES_TITLE
 module.category = "units"
+module.quickToggle = "nameplates"
 
 -- Health Bar When Hurt (a checkbox) became Health Bar, with Never: off meant only in combat.
 ns.Migrate(5, function(db)

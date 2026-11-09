@@ -156,7 +156,7 @@ for _, name in ipairs(ns.order or {}) do
         problem("added %s isn't a version", tostring(module.added))
     end
     -- The Minimap Button's quick toggles group a module by its own field.
-    local QUICK = { loot = true, npcs = true, world = true, gathering = true, other = true }
+    local QUICK = { loot = true, npcs = true, world = true, nameplates = true, gathering = true, other = true }
     if module.quickToggle ~= nil and not QUICK[module.quickToggle] then
         problem("quickToggle %s isn't one of the Minimap Button's groups", tostring(module.quickToggle))
     end
@@ -298,3 +298,11 @@ eq(on.healthBar, "hurt", "modules: Health Bar When Hurt on stays When Hurt")
 eq(off.healthBar, "combat", "modules: Health Bar When Hurt off becomes Only in Combat")
 eq(chosen.healthBar, "never", "modules: a Health Bar already chosen is kept")
 eq(none.healthBar, nil, "modules: no saved checkbox leaves Health Bar at its default")
+
+-- The Modules page's categories, which the Minimap Button's Customize submenu shares.
+local Kit = ns.SettingsKit
+eq(Kit.CATEGORIES[#Kit.CATEGORIES][1], "other", "modules: Other is the last category")
+eq(#Kit.CATEGORIES, 11, "modules: every category has a place")
+eq(Kit.CategoryOf({ category = "units" }), "units", "modules: a module's own category")
+eq(Kit.CategoryOf({ category = "nonsense" }), "other", "modules: an unknown category is Other")
+eq(Kit.CategoryOf({}), "other", "modules: no category is Other")

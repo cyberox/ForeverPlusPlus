@@ -373,31 +373,11 @@ S.actionFn = actionFn
 
 -- Module categories ---------------------------------------------------------------------------
 
--- The Modules page's groups: a module's `category` and its label. They show in the order their
--- labels sort in the player's language, with Other last. A module without one goes under Other.
-local CATEGORIES = {
-    { "automation", L.CATEGORY_AUTOMATION },
-    { "character", L.CATEGORY_CHARACTER },
-    { "chat", L.CATEGORY_CHAT },
-    { "interface", L.CATEGORY_INTERFACE },
-    { "items", L.CATEGORY_ITEMS },
-    { "map", L.CATEGORY_MAP },
-    { "quests", L.CATEGORY_QUESTS },
-    { "system", L.CATEGORY_SYSTEM },
-    { "tools", L.CATEGORY_TOOLS },
-    { "units", L.CATEGORY_UNITS },
-}
-sort(CATEGORIES, function(a, b) return strlower(a[2]) < strlower(b[2]) end)
-CATEGORIES[#CATEGORIES + 1] = { "other", L.CATEGORY_OTHER }
-local CATEGORY_NAMES, CATEGORY_RANKS = {}, {} -- by `category`: its label, its place in that order
-for i, group in ipairs(CATEGORIES) do
-    CATEGORY_NAMES[group[1]] = group[2]
-    CATEGORY_RANKS[group[1]] = i
-end
-
-local function categoryOf(module)
-    return CATEGORY_NAMES[module.category] and module.category or "other"
-end
+-- The Modules page's groups: a module's `category` and its label, in the order their labels sort
+-- in the player's language, with Other last (ns.SettingsKit, which the quick toggles share).
+local CATEGORIES = Kit.CATEGORIES
+local CATEGORY_NAMES, CATEGORY_RANKS = Kit.CATEGORY_NAMES, Kit.CATEGORY_RANKS
+local categoryOf = Kit.CategoryOf
 S.CATEGORY_NAMES, S.CATEGORY_RANKS, S.categoryOf = CATEGORY_NAMES, CATEGORY_RANKS, categoryOf
 
 -- Modules page --------------------------------------------------------------------------------
