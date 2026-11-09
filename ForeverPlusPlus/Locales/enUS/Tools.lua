@@ -12,8 +12,12 @@ L.DEBUG_DESC = "Show every module's debug options and the testing tools (Self Te
     .. "Screenshots) on a Debug page in the Settings sidebar, and turn on their commands."
 L.DEBUG_NOTICE = "Turning Debug off puts every debug option back to its default." -- a gray row atop the module
 L.DEBUG_NOTICE_DESC = "So nothing set here goes on working out of sight."
-L.CONSOLEVARIABLES_DESC ="Browse the game's console variables (CVars) on a page in Settings, and "
-    .. "change them."
+L.CONSOLEVARIABLES_DESC ="Browse the game's console variables (CVars) on a page in Settings, "
+    .. "change them, and lock the ones you want kept, even those the game puts back at every login."
+L.CONSOLEVARIABLES_CHAT_DESC = "Say in chat when a locked console variable can't be kept at its value."
+-- A gray row atop the module while it's off with console variables locked
+L.CONSOLEVARIABLES_LOCKS_OFF = "Locked console variables aren't kept while this is off."
+L.CONSOLEVARIABLES_LOCKS_OFF_DESC = "They go back to what the game sets, until it's on again."
 L.CONSOLEVARIABLES_COMMAND = "open Console Variables, searching for [search]"
 L.CONSOLEVARIABLES_NO_PAGE = "This client's Settings can't open the Console Variables page."
 L.CONSOLEVARIABLES_AFTER_COMBAT = "%s changes after combat." -- CVar name
@@ -22,6 +26,7 @@ L.CONSOLEVARIABLES_KEPT = "%s kept %s: the game didn't take %s." -- CVar name, i
 L.CONSOLEVARIABLES_SEARCH = "Search console variables" -- gray text in the empty search box
 L.CONSOLEVARIABLES_POPULAR = "Popular" -- the group of CVars players most often look for
 L.CONSOLEVARIABLES_FAVORITES = "Favorites" -- the group of CVars the player starred
+L.CONSOLEVARIABLES_LOCKED = "Locked" -- the group of CVars the player locked at a value
 L.CONSOLEVARIABLES_CHANGED = "Changed" -- the group of CVars not at their default
 L.CONSOLEVARIABLES_ALL = "All"
 -- The client's own CVar categories (Enum.ConsoleCategory). Default, Gm, Reveal, and None read badly
@@ -52,6 +57,18 @@ L.CONSOLEVARIABLES_ACCOUNT = "Saved for your account."
 L.CONSOLEVARIABLES_CHARACTER = "Saved for this character."
 L.CONSOLEVARIABLES_READ_ONLY = "Can't be changed."
 L.CONSOLEVARIABLES_SECURE = "Protected: changes wait until combat ends."
+L.CONSOLEVARIABLES_NO_LOCKS = "Click the lock on a console variable to keep its value through every "
+    .. "login and change."
+-- Locks: a locked CVar is put back to its value at login and whenever something changes it.
+L.CONSOLEVARIABLES_LOCKED_AT = "Locked at %s: put back at every login and whenever something "
+    .. "changes it." -- the locked value
+L.CONSOLEVARIABLES_LOCK_HINT = "Click the lock to keep this value." -- tooltip of an open lock
+L.CONSOLEVARIABLES_UNLOCK_HINT = "Click the lock to stop keeping it." -- tooltip of a closed lock
+L.CONSOLEVARIABLES_LOCK_STOPPED = "Not kept until you reload or log in again: it wouldn't hold."
+L.CONSOLEVARIABLES_LOCK_FAILED = "%s couldn't be put back to its locked %s (it's %s). Its lock waits "
+    .. "until you reload or log in again." -- CVar name, the locked value, its value now
+L.CONSOLEVARIABLES_LOCK_FIGHT = "%s keeps being changed by something else. Its lock waits until you "
+    .. "reload or log in again." -- CVar name
 -- Popular: the section headers, then each CVar's plain name and what it does.
 L.CONSOLEVARIABLES_POP_CAMERA = "Camera"
 L.CONSOLEVARIABLES_POP_EFFECTS = "Screen Effects"

@@ -1,17 +1,18 @@
 -- Console Variables: a page under Forever++ in Settings that lists the game's console variables
 -- (CVars) the player can change, laid out like the Modules page: a list of groups on the left
--- (Popular, Favorites, Changed, All, and the client's own categories), each with how many match
--- the search box at the top right, and the selected group's CVars beside it. Each shows a star
--- for Favorites, its name (gold while changed) over its help text, a box for its value, and a
--- Default button. A Popular one (Popular.lua: ones players look for, with a plain name and help of
--- our own) shows that name with the CVar's own in gray, in every group. Read-only CVars are left
--- out. Changes made in combat wait for it to end (ns.CVars.Apply), and one the game takes as
--- something else (a value past its range) says so in chat with its box flashing red.
--- Nothing is built until the page is first shown; `/fpp cvar <search>` opens it.
+-- (Popular, Favorites, Locked, Changed, All, and the client's own categories), each with how many
+-- match the search box at the top right, and the selected group's CVars beside it. Each shows a
+-- star for Favorites, a padlock that keeps its value (Locks.lua), its name (gold while changed)
+-- over its help text, a box for its value, and a Default button. A Popular one (Popular.lua: ones
+-- players look for, with a plain name and help of our own) shows that name with the CVar's own in
+-- gray, in every group. Read-only CVars are left out. Changes made in combat wait for it to end
+-- (ns.CVars.Apply), and one the game takes as something else (a value past its range) says so in
+-- chat with its box flashing red. Nothing is built until the page is first shown; `/fpp cvar
+-- <search>` opens it. While it's on, Locks.lua puts locked CVars back, page or not.
 local _, ns = ...
 
-local ipairs, pairs, type, sort = ipairs, pairs, type, table.sort
-local format, tostring, tonumber = string.format, tostring, tonumber
+local ipairs, pairs, next, type, sort = ipairs, pairs, next, type, table.sort
+local format, tostring = string.format, tostring
 local strlower, strfind, strtrim, tinsert = string.lower, string.find, strtrim, table.insert
 local CreateFrame, InCombatLockdown, GetTime = CreateFrame, InCombatLockdown, GetTime
 local C_CVar, C_Timer = C_CVar, C_Timer
@@ -22,8 +23,11 @@ local L = ns.L
 
 local module = ns.NewModule("ConsoleVariables", L.CONSOLEVARIABLES_DESC, {
     enabled = false,
+    chat = true,
     -- Data, not settings: the starred CVars, by lowercase name, for the account.
     favorites = {},
+    -- Data: the locked CVars, by lowercase name, for the account: { name, value } (Locks.lua).
+    locks = {},
 })
 module.title = L.CONSOLEVARIABLES_TITLE
 module.category = "tools" -- off, its page and command are gone; it costs nothing until opened
@@ -31,14 +35,32 @@ module.developer = { enabled = true }
 module.internal = {}
 local internal = module.internal
 
+local chatOption = ns.ChatOption(L.CONSOLEVARIABLES_CHAT_DESC)
+chatOption.added = "1.4.0"
+module.options = { chatOption }
+-- Locks hold only while the module is on, so say so where it's turned off.
+module.notice = {
+    text = L.CONSOLEVARIABLES_LOCKS_OFF,
+    description = L.CONSOLEVARIABLES_LOCKS_OFF_DESC,
+    shown = function()
+        return not module.db.enabled and next(module.db.locks) ~= nil
+    end,
+}
+
 local LIST_WIDTH = 160 -- the group list, a little narrower than the module list
 local ROW_HEIGHT = 40 -- a CVar's row: its name over its help text
 local HEADER_HEIGHT = 26 -- a Popular section's header
 local RESET_WIDTH, VALUE_WIDTH, GAP = 78, 112, 10
 local STAR_SIZE = 16 -- the Favorites star at the row's left
-local TEXT_LEFT = 6 + STAR_SIZE + 6 -- the name and help, past the star
+local LOCK_SIZE = 16 -- the padlock beside it
+local TEXT_LEFT = 6 + STAR_SIZE + 4 + LOCK_SIZE + 6 -- the name and help, past the star and lock
 local FLASH_SECONDS = 1.5 -- a box flashes red this long when the game kept another value
 local STAR_ON, STAR_OFF = "auctionhouse-icon-favorite", "auctionhouse-icon-favorite-off"
+-- The padlock Settings shows for a locked module (the group finder's, the quest log's), in color
+-- while locked and gray while not. Probe: Mainline's atlases (Forever UI source, build 70862).
+local LOCK_ATLAS = ns.Frames.FirstAtlas("LFG-lock", "groupfinder-icon-lock", "QuestSharing-Padlock")
+local LOCK_FILE = "Interface\\LFGFrame\\UI-LFG-ICON-LOCK"
+local LOCK_OFF_ALPHA = 0.4
 
 -- Names for the client's categories (Enum.ConsoleCategory keys). Some read badly to players, so
 -- they get plainer ones (see the locale file). A key the client adds later shows as it is.
@@ -62,12 +84,16 @@ local CATEGORY_NAMES = {
 local all
 local byKey = {} -- lowercase name -> entry in `all`
 local popularCount = 0 -- how many Popular CVars this client has
--- the list's groups in order, Popular, Favorites, Changed, and All first: { key, label,
+-- the list's groups in order, Popular, Favorites, Locked, Changed, and All first: { key, label,
 -- has(entry, changed), popular (listed in Popular's order, under its headers) }
 local groups
 
 local function isFavorite(entry)
     return module.db.favorites[entry.key] == true
+end
+
+local function isLocked(entry)
+    return internal.IsLocked(entry.key)
 end
 local search, selected = "", nil -- the search text, and the selected group's key
 local ui -- the page's parts, once built
@@ -96,8 +122,8 @@ local function isChanged(name)
     return default ~= nil and value ~= default
 end
 
--- Popular, Favorites, Changed, All, then a group for each of the client's categories that has a
--- CVar, by name.
+-- Popular, Favorites, Locked, Changed, All, then a group for each of the client's categories that
+-- has a CVar, by name.
 local function loadGroups(present)
     local keys = {}
     for key, value in pairs(Enum.ConsoleCategory or {}) do
@@ -125,6 +151,7 @@ local function loadGroups(present)
     end
     local fixed = {
         { key = "favorites", label = L.CONSOLEVARIABLES_FAVORITES, has = isFavorite },
+        { key = "locked", label = L.CONSOLEVARIABLES_LOCKED, has = isLocked },
         {
             key = "changed",
             label = L.CONSOLEVARIABLES_CHANGED,
@@ -138,6 +165,27 @@ local function loadGroups(present)
     for _, group in ipairs(categories) do
         groups[#groups + 1] = group
     end
+end
+
+-- What the search box looks through.
+local function setText(entry)
+    entry.text = entry.key .. " " .. strlower(entry.title or "") .. " " .. strlower(entry.help)
+end
+
+-- Lists a CVar the command list leaves out but the client knows (GetCVar answers), unless it's
+-- read-only. The entry, or nil.
+local function addHidden(name)
+    local key = strlower(name)
+    if byKey[key] then
+        return byKey[key]
+    end
+    if C_CVar.GetCVar(name) == nil or isReadOnly(name) then
+        return
+    end
+    local entry = { name = name, key = key, help = "" }
+    byKey[key] = entry
+    all[#all + 1] = entry
+    return entry
 end
 
 -- Every CVar this client lists that the player can change (read-only ones are left out), and the
@@ -174,13 +222,7 @@ local function loadAll()
     for _, section in ipairs(internal.POPULAR or {}) do
         for _, item in ipairs(section) do
             local name, title, help = item[1], item[2], item[3]
-            local key = strlower(name)
-            local entry = byKey[key]
-            if not entry and C_CVar.GetCVar(name) ~= nil and not isReadOnly(name) then
-                entry = { name = name, key = key, help = "" }
-                byKey[key] = entry
-                all[#all + 1] = entry
-            end
+            local entry = addHidden(name)
             if entry and not entry.popular then
                 popularCount = popularCount + 1
                 entry.title, entry.section, entry.popular = title, section.header, popularCount
@@ -188,8 +230,12 @@ local function loadAll()
             end
         end
     end
+    -- A locked CVar found by its exact name, so Locked lists it too.
+    for _, lock in pairs(module.db.locks) do
+        addHidden(lock.name)
+    end
     for _, entry in ipairs(all) do
-        entry.text = entry.key .. " " .. strlower(entry.title or "") .. " " .. strlower(entry.help)
+        setText(entry)
     end
     sort(all, function(a, b) return a.key < b.key end)
     loadGroups(present)
@@ -271,6 +317,8 @@ local function refresh(top)
             empty = L.CONSOLEVARIABLES_NO_LIST
         elseif group.key == "favorites" then
             empty = L.CONSOLEVARIABLES_NO_FAVORITES
+        elseif group.key == "locked" then
+            empty = L.CONSOLEVARIABLES_NO_LOCKS
         else
             empty = L.CONSOLEVARIABLES_NONE_CHANGED
         end
@@ -279,31 +327,32 @@ local function refresh(top)
     ui.empty:SetShown(empty ~= nil)
 end
 
--- Whether the game holds `value` as `wanted`: the same text, or the same number ("1.50" is 1.5).
-local function holds(value, wanted)
-    if value == wanted then
-        return true
-    end
-    local a, b = tonumber(value), tonumber(wanted)
-    return a ~= nil and a == b
-end
-
 local flashUntil = {} -- lowercase name -> when its box stops flashing red
 
 local function apply(name, value)
     if InCombatLockdown() then
         ns.Print(format(L.CONSOLEVARIABLES_AFTER_COMBAT, name))
     end
+    -- A locked one's lock moves to the new value, so it isn't put back meanwhile.
+    local key = strlower(name)
+    local locked = internal.IsLocked(key)
+    if locked then
+        internal.PauseLock(key)
+    end
     ns.CVars.Apply(name, value, function(ok)
+        local held = read(name)
+        if locked and internal.IsLocked(key) and held ~= nil then
+            -- What the game holds now: the new value, what it kept instead, or the old one.
+            internal.Lock(name, held)
+        end
         if not ok then
             ns.Print(format(L.CONSOLEVARIABLES_REFUSED, name))
         else
             -- Taken, but as something else: a value past its range is held at the end of it, and
             -- some CVars round. Say so, and flash the box, rather than let it snap back quietly.
-            local now = read(name)
-            if now ~= nil and not holds(now, value) then
-                ns.Print(format(L.CONSOLEVARIABLES_KEPT, name, tostring(now), value))
-                flashUntil[strlower(name)] = GetTime() + FLASH_SECONDS
+            if held ~= nil and not ns.CVars.Same(held, value) then
+                ns.Print(format(L.CONSOLEVARIABLES_KEPT, name, tostring(held), value))
+                flashUntil[key] = GetTime() + FLASH_SECONDS
                 C_Timer.After(FLASH_SECONDS, function() refresh() end)
             end
         end
@@ -344,7 +393,8 @@ end
 
 -- Rows -----------------------------------------------------------------------------------------
 
-local function showTooltip(row)
+-- `onLock`: over the padlock, which adds what a click does.
+local function showTooltip(row, onLock)
     local entry = row.entry
     local value, default, flags = read(entry.name)
     GameTooltip:SetOwner(row, "ANCHOR_RIGHT")
@@ -374,15 +424,26 @@ local function showTooltip(row)
     elseif flags.secure then
         GameTooltip:AddLine(L.CONSOLEVARIABLES_SECURE, unpack(ns.Colors.GRAY))
     end
+    local locked = internal.LockedValue(entry.key)
+    if locked then
+        GameTooltip:AddLine(format(L.CONSOLEVARIABLES_LOCKED_AT, locked), unpack(ns.Colors.GRAY))
+        if internal.IsStuck(entry.key) then
+            GameTooltip:AddLine(L.CONSOLEVARIABLES_LOCK_STOPPED, unpack(ns.Colors.RED))
+        end
+    end
+    if onLock then
+        GameTooltip:AddLine(locked and L.CONSOLEVARIABLES_UNLOCK_HINT or L.CONSOLEVARIABLES_LOCK_HINT,
+            unpack(ns.Colors.GRAY))
+    end
     GameTooltip:Show()
 end
 
--- The row and its box and button all highlight the row and show its tooltip: moving onto a child
--- frame is a leave for the row, which would drop the highlight over the box and the button.
-local function enterRow(row)
+-- The row and its box and buttons all highlight the row and show its tooltip: moving onto a child
+-- frame is a leave for the row, which would drop the highlight over the box and the buttons.
+local function enterRow(row, onLock)
     if row.entry then
         row.highlight:Show()
-        showTooltip(row)
+        showTooltip(row, onLock)
     end
 end
 
@@ -393,6 +454,55 @@ end
 
 local function paintStar(row)
     row.star:SetNormalAtlas(isFavorite(row.entry) and STAR_ON or STAR_OFF)
+end
+
+-- The padlock in color while locked; gray and faint while not, like the star's empty outline.
+local function paintLock(row)
+    local locked = isLocked(row.entry)
+    local art = row.lock:GetNormalTexture()
+    if art then
+        art:SetDesaturated(not locked)
+        art:SetAlpha(locked and 1 or LOCK_OFF_ALPHA)
+    end
+end
+
+local function setLockArt(button)
+    if LOCK_ATLAS then
+        button:SetNormalAtlas(LOCK_ATLAS)
+        button:SetHighlightAtlas(LOCK_ATLAS, "ADD")
+    else
+        button:SetNormalTexture(LOCK_FILE)
+        button:SetHighlightTexture(LOCK_FILE, "ADD")
+    end
+end
+
+-- Locks the CVar at the value it has now, or unlocks it.
+local function toggleLock(row)
+    local entry = row.entry
+    if isLocked(entry) then
+        internal.Unlock(entry.key)
+    else
+        local value = read(entry.name)
+        if value == nil then
+            return
+        end
+        internal.Lock(entry.name, value)
+        -- Found by its exact name: list it, so Locked has it.
+        if not byKey[entry.key] then
+            local listed = addHidden(entry.name)
+            if listed then
+                setText(listed)
+                sort(all, function(a, b) return a.key < b.key end)
+            end
+        end
+    end
+    paintLock(row)
+    refresh()
+    -- The tooltip says what a click does, so it changes with it. The refresh may have given the
+    -- row another CVar (or none, unlocking in Locked); the tooltip follows what's under the mouse.
+    if row.entry and row:IsVisible() and row.lock:IsMouseOver() then
+        showTooltip(row, true)
+    end
 end
 
 local function buildRow(row)
@@ -421,9 +531,22 @@ local function buildRow(row)
     row.star:HookScript("OnEnter", function() enterRow(row) end)
     row.star:HookScript("OnLeave", function() leaveRow(row) end)
 
+    -- Locks: keeps the CVar at its value through logins and changes made anywhere else.
+    row.lock = CreateFrame("Button", nil, row)
+    row.lock:SetSize(LOCK_SIZE, LOCK_SIZE)
+    row.lock:SetPoint("LEFT", row.star, "RIGHT", 4, 0)
+    setLockArt(row.lock)
+    row.lock:SetScript("OnClick", function() toggleLock(row) end)
+    row.lock:HookScript("OnEnter", function() enterRow(row, true) end)
+    row.lock:HookScript("OnLeave", function() leaveRow(row) end)
+
+    -- Back to the game's own value, and unlocked: Default hands the CVar back to the game.
     row.reset = ns.Frames.Button(row, L.CONSOLEVARIABLES_DEFAULT, RESET_WIDTH, function()
         local _, default = read(row.entry.name)
         if default ~= nil then
+            if isLocked(row.entry) then
+                internal.Unlock(row.entry.key)
+            end
             apply(row.entry.name, default)
         end
     end)
@@ -475,6 +598,7 @@ end
 -- The parts of a CVar's row, hidden while the row is a header.
 local function showParts(row, shown)
     row.star:SetShown(shown)
+    row.lock:SetShown(shown)
     row.value:SetShown(shown)
     row.reset:SetShown(shown)
     row.name:SetShown(shown)
@@ -512,6 +636,7 @@ local function initRow(row, entry)
     showParts(row, true)
     row.entry = entry
     paintStar(row)
+    paintLock(row)
     paintBox(row)
     local value, default, flags = read(entry.name)
     local changed = default ~= nil and value ~= default
