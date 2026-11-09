@@ -26,6 +26,7 @@ local L = ns.L
 local module = ns.NewModule("ErrorCatcher", L.ERRORCATCHER_DESC, {
     enabled = true,
     chat = false,
+    sound = "off", -- a key of SOUNDS, played with the chat message (issue #4)
     -- Data, not settings: a table, so presets leave it alone.
     saved = {
         session = 0, -- counts logins and reloads
@@ -39,7 +40,24 @@ module.category = "system"
 local MAX_ERRORS = 100 -- the oldest go first
 local MAX_TEXT = 2000 -- letters kept of a stack or the locals, so the saved file stays small
 local PER_SECOND = 10 -- errors caught a second at most; an error in OnUpdate repeats every frame
-local ANNOUNCE_EVERY = 10 -- seconds between chat messages about new errors
+local ANNOUNCE_EVERY = 10 -- seconds between chat messages and sounds about new errors
+
+-- The Sound choices: Blizzard's own alert sounds, by SOUNDKIT name, read when played since a
+-- patch can drop one (it then plays nothing).
+local SOUNDS = {
+    raidwarning = "RAID_WARNING",
+    whisper = "TELL_MESSAGE",
+    readycheck = "READY_CHECK",
+    alarm = "ALARM_CLOCK_WARNING_3",
+}
+
+local function playSound()
+    local kit = SOUNDS[module.db.sound]
+    local id = kit and SOUNDKIT and SOUNDKIT[kit]
+    if id and PlaySound then
+        PlaySound(id, "Master")
+    end
+end
 
 local previous -- the handler before ours, given back when the module turns off
 local pending = {} -- errors caught before saved variables loaded
@@ -147,6 +165,7 @@ local function store(entry, announce)
     if announce and GetTime() - lastAnnounced >= ANNOUNCE_EVERY then
         lastAnnounced = GetTime()
         module:Print(format(L.ERRORCATCHER_CAUGHT, shownLine(entry.message)))
+        playSound()
     end
     changed()
 end
@@ -752,8 +771,26 @@ local provider = {
 }
 
 module.options = {
+    {
+        key = "sound", name = L.ERRORCATCHER_SOUND, description = L.ERRORCATCHER_SOUND_DESC,
+        added = "1.3.1",
+        choices = {
+            { "off", L.ERRORCATCHER_SOUND_OFF },
+            { "raidwarning", L.ERRORCATCHER_SOUND_RAIDWARNING },
+            { "whisper", L.ERRORCATCHER_SOUND_WHISPER },
+            { "readycheck", L.ERRORCATCHER_SOUND_READYCHECK },
+            { "alarm", L.ERRORCATCHER_SOUND_ALARM },
+        },
+    },
     ns.ChatOption(L.ERRORCATCHER_CHAT_DESC),
 }
+
+-- Picking a sound plays it, so the player knows what they picked.
+function module:OnOptionChanged(key)
+    if key == "sound" then
+        playSound()
+    end
+end
 
 module.actions = {
     {
