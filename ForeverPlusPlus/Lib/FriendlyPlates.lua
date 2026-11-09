@@ -223,24 +223,42 @@ local function raidReach(label)
     return (label.leftWidth or 0) + (label.gap or 3) * 2 + 2
 end
 
-local function setRaidAnchor(record, where, x)
+local function setRaidAnchor(record, where, y)
     local icon = record.raidTarget
     icon:ClearAllPoints()
-    if where == "name" then
-        icon:SetPoint("RIGHT", record.label.name, "LEFT", -raidReach(record.label), 0)
+    if where == "name" or where == "unsure" then
+        -- "unsure" passes the client's height: level with the name, or up with it over the bar.
+        icon:SetPoint("RIGHT", record.label.name, "LEFT", -raidReach(record.label), y or 0)
     else
-        -- "unsure" passes the client's offset from the bar's end; Blizzard's own place is at it.
-        icon:SetPoint("RIGHT", record.container, "LEFT", x or 0, 0)
+        icon:SetPoint("RIGHT", record.container, "LEFT", 0, 0)
     end
 end
 
-local function leftEdges(record)
-    return record.label.name:GetLeft(), record.container:GetLeft()
-end
-
--- Offsets from the bar's left end to beside the name, as step curves by health (cached by offset):
--- hurt (the bar shows) 0, full (only the name shows) the offset.
+-- Heights by health, as step curves (cached by height): hurt (the bar shows) up by how far the
+-- name rises over the bar, full (only the name shows) level with it.
 local raidCurves = {}
+
+-- How far the bar view's name sits above the name-only one, middle to middle (the icon is centered
+-- on the name), like nameRise. A player's name can be secret, and then so are its text heights:
+-- the font size stands in for them, and a bar's usual height for the row's.
+local ROW_HEIGHT = 12
+local function raidRise(label)
+    local ok, rowHeight = pcall(label.row.GetHeight, label.row)
+    if not (ok and readable(rowHeight) and rowHeight) then
+        rowHeight = ROW_HEIGHT
+    end
+    local size = label.nameSize or 12
+    local barHeight, nameHeight = label.barName:GetStringHeight(), label.name:GetStringHeight()
+    if not readable(barHeight) then
+        barHeight = size
+    end
+    if not readable(nameHeight) then
+        nameHeight = size
+    end
+    local barMiddle = rowHeight / 2 + 2 + barHeight / 2 -- see PlateLabel.Layout
+    local nameMiddle = label.subtitle:IsShown() and 1 + nameHeight / 2 or 0
+    return max(barMiddle - nameMiddle, 0)
+end
 
 ---@param where string "name" (the bar is hidden: beside our name), "unsure" (the bar shows when
 ---the unit is hurt, but its health is secret: the client picks between the two from it), or
@@ -251,18 +269,19 @@ local function anchorRaidTarget(record, where, unit)
         return
     end
     if where == "unsure" then
-        -- A friendly player's health reads as secret, so their plate is usually unsure. Measured
-        -- on the plate as laid out; a spot that can't be read yet goes to the bar's end, which
-        -- never covers the bar, until the next fade measures it again.
-        local ok, nameLeft, barLeft = pcall(leftEdges, record)
-        if ok and unit and curve and readable(nameLeft) and readable(barLeft) and nameLeft and barLeft then
-            local dx = floor(nameLeft - barLeft - raidReach(record.label) + 0.5)
-            local stepped = raidCurves[dx]
+        -- A friendly player's health reads as secret, so their plate is usually unsure. Where
+        -- things sit on it can be secret too (a player's name was), so nothing is read from the
+        -- plate: the icon stays beside our name, and the client raises it with the name over the
+        -- bar when it shows (raidRise). A client that won't take the height puts it at the bar's
+        -- end, clear of the bar.
+        local rise = floor(raidRise(record.label) + 0.5)
+        if unit and curve and rise > 0 then
+            local stepped = raidCurves[rise]
             if not stepped then
-                stepped = ns.HealthStepCurve(0, dx)
-                raidCurves[dx] = stepped
+                stepped = ns.HealthStepCurve(rise, 0)
+                raidCurves[rise] = stepped
             end
-            -- A secret offset can't be compared, so this one is set every time.
+            -- A secret height can't be compared, so this one is set every time.
             record.raidWhere, record.raidX = "unsure", nil
             if stepped and pcall(setRaidAnchor, record, "unsure", UnitHealthPercent(unit, true, stepped)) then
                 return
