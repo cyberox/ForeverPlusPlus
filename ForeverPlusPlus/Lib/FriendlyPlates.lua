@@ -69,17 +69,13 @@ local anchoredFrames = setmetatable({}, weak)
 local hookedFrames = setmetatable({}, weak)
 
 -- Blizzard places its plate's parts again (NamePlateUnitFrameMixin:UpdateAnchors, as it sets the
--- plate up, after we took it): what we placed, the raid icon and the buff row, went back to
--- Blizzard's places, so read those and place ours again.
+-- plate up, maybe after we took it): what we placed, the raid icon and the buff row, went back to
+-- Blizzard's places, so place ours again.
 local function onAnchors(frame)
     local entry = anchoredFrames[frame]
     local record = entry and entry[1].records[entry[2]]
     if not record then
         return
-    end
-    if record.raidTarget then
-        local ok, points = pcall(ns.Frames.GetPoints, record.raidTarget)
-        record.raidPoints = ok and points and points[1] and points or record.raidPoints
     end
     record.raidWhere, record.buffsWhere = nil, "stale"
     entry[1]:PlaceBuffs(entry[2], record.buffsInCombat)
@@ -217,22 +213,23 @@ end
 
 -- Blizzard's raid icon sits at the bar's left end, so on a name-only plate it was far from our
 -- centered name. Without the bar it goes just left of our row (the level and icons there), and
--- with it back where Blizzard had it, as its points were when the plate came to us. Moved rather
--- than drawn again: which icon a unit has can be secret (a friendly player's was), and Blizzard's
--- own frame shows it whatever it is. Blizzard places it again only when it sets the plate up.
+-- with it back at the bar's left end, as Blizzard places it (NamePlateUnitFrameMixin:
+-- UpdateAnchors). Moved rather than drawn again: which icon a unit has can be secret (a friendly
+-- player's was), and Blizzard's own frame shows it whatever it is. Its anchors are set, never
+-- read: like the buff row, reading them threw, and the icon never moved.
 local function setRaidAnchor(record, where)
     local icon, label = record.raidTarget, record.label
+    icon:ClearAllPoints()
     if where == "name" then
-        icon:ClearAllPoints()
         icon:SetPoint("RIGHT", label.name, "LEFT", -((label.leftWidth or 0) + (label.gap or 3)), 0)
     else
-        ns.Frames.SetPoints(icon, record.raidPoints)
+        icon:SetPoint("RIGHT", record.container, "LEFT", 0, 0)
     end
 end
 
 ---@param where string "name" (beside our name) or "blizzard" (its own place)
 local function anchorRaidTarget(record, where)
-    if not (record.raidTarget and record.raidPoints and record.label) then
+    if not (record.raidTarget and record.label) then
         return
     end
     local x = where == "name" and record.label.leftWidth or nil
@@ -504,10 +501,6 @@ function Plates:Add(unit, frame)
         record.buffs = parts.buffs
         record.classification = parts.classification
         record.raidTarget = parts.raidTarget
-        if record.raidTarget then
-            local ok, points = pcall(ns.Frames.GetPoints, record.raidTarget)
-            record.raidPoints = ok and points and points[1] and points or nil
-        end
         record.label = PlateLabel.Show(frame)
         hookName(name)
         mirrored[name] = { self, unit }
