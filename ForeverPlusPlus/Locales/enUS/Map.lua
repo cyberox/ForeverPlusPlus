@@ -202,10 +202,23 @@ L.SQUAREMINIMAP_TITLE = "Square Minimap"
 L.SQUAREMINIMAP_DESC = "Make the minimap square, with a square border in place of its round frame. "
     .. "Minimap buttons and Forever++'s minimap icons follow the square edge."
 L.SQUAREMINIMAP_BORDER = "Border"
-L.SQUAREMINIMAP_BORDER_DESC = "The border around the square minimap, in Blizzard's own art."
-L.SQUAREMINIMAP_BORDER_TOOLTIP = "Thin" -- the tooltip border
+L.SQUAREMINIMAP_BORDER_DESC = "The border around the square minimap, in Blizzard's own art. Window is "
+    .. "the frame the game's windows have; Faction is the Alliance or Horde war table's."
+L.SQUAREMINIMAP_BORDER_WINDOW = "Window" -- the frame of the game's windows
+L.SQUAREMINIMAP_BORDER_PANEL = "Panel" -- the thinner frame of simple panels
+L.SQUAREMINIMAP_BORDER_METAL = "Metal" -- the generic metal frame
+L.SQUAREMINIMAP_BORDER_DIAMOND = "Diamond" -- the diamond-studded metal of dialogs
+L.SQUAREMINIMAP_BORDER_WOOD = "Wood"
+L.SQUAREMINIMAP_BORDER_FACTION = "Faction" -- Alliance or Horde, by the player's side
+L.SQUAREMINIMAP_BORDER_DRAGON = "Dragon Isles"
+L.SQUAREMINIMAP_BORDER_ORIBOS = "Oribos"
 L.SQUAREMINIMAP_BORDER_DIALOG = "Stone" -- the dialog border
+L.SQUAREMINIMAP_BORDER_GOLD = "Gold" -- the gold dialog border
+L.SQUAREMINIMAP_BORDER_ACHIEVEMENT = "Achievement" -- the achievement window's wood border
+L.SQUAREMINIMAP_BORDER_TOOLTIP = "Thin" -- the tooltip border
 L.SQUAREMINIMAP_BORDER_NONE = "None"
+L.SQUAREMINIMAP_BORDER_SCALE = "Border Size"
+L.SQUAREMINIMAP_BORDER_SCALE_DESC = "How big the border's art is."
 L.SQUAREMINIMAP_OTHER = "Another addon shapes the minimap, so this leaves it alone."
 L.SQUAREMINIMAP_OTHER_DESC = "That addon decides the minimap's shape. Use its own setting for a "
     .. "square minimap, or turn its shape off and reload."
