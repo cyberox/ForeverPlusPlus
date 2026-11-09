@@ -28,8 +28,9 @@ ns.changelog = {
                     .. "unlock it. Locked ones have a group of their own, and Simplified Nameplate Size "
                     .. "is in Popular." },
                 { L.MINIMAPBUTTON_TITLE, "Pick which modules the quick toggles offer with Customize in "
-                    .. "its settings (or the last line of the menu). Player Nameplates and NPC "
-                    .. "Nameplates are in a new Nameplates group." },
+                    .. "its settings (or the last line of the menu), and lay them out by activity, by "
+                    .. "category, or A to Z with Menu Order. Player Nameplates and NPC Nameplates are "
+                    .. "in a new Nameplates group." },
                 { L.PLAYERNAMEPLATES_TITLE, "Names Only in Dungeons (on by default). In dungeons and "
                     .. "raids Blizzard draws friendly players' plates itself, and they showed health "
                     .. "bars; now they show only names there." },

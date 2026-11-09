@@ -32,6 +32,7 @@ local module = ns.NewModule("MinimapButton", L.MINIMAPBUTTON_DESC, {
     swapClicks = true, -- the quick toggles on a click and settings on a right-click
     keysLeftClick = true, -- with Swap Clicks, the error keys stay on a click
     menuSide = "auto", -- the quick toggles at the cursor as Blizzard opens them, or left or right
+    menuOrder = "groups", -- the quick toggles by what you're doing, by category, or A to Z
     -- Keys held with a click, while Error Catcher is on.
     errorsKey = "shift", -- shows the errors
     clearModifier = "ctrl", -- clears this session's errors
@@ -183,7 +184,9 @@ local function addGroup(root, label, entries)
     if not (entries and #entries > 0) then
         return false
     end
-    root:CreateTitle(GROUP_COLOR .. label .. "|r")
+    if label then
+        root:CreateTitle(GROUP_COLOR .. label .. "|r")
+    end
     for _, entry in ipairs(entries) do
         local name, other = entry.name, entry.module
         root:CreateCheckbox(entry.title,
@@ -267,18 +270,49 @@ local function customizeItems(_, root)
     end
 end
 
+-- Menu Order's Category and A to Z: every module the menu offers by its Modules page category
+-- (`byCategory`) or in one list, each sorted by title.
+local function offeredLists(byCategory)
+    local lists = {}
+    for _, name in ipairs(ns.order) do
+        local other = ns.modules[name]
+        if offerable(other) and isQuick(name, other) then
+            local key = byCategory and Kit.CategoryOf(other) or "all"
+            local list = lists[key] or {}
+            lists[key] = list
+            list[#list + 1] = { name = name, module = other, title = other.title or name }
+        end
+    end
+    for _, list in pairs(lists) do
+        sort(list, byTitle)
+    end
+    return lists
+end
+
 local function quickMenuItems(_, root)
     root:CreateTitle(ns.title)
-    local groups, added = quickLists()
-    for _, group in ipairs(QUICK_GROUPS) do
-        if group.key == "other" then
-            -- The categories of modules the player added, before Other.
-            for _, category in ipairs(Kit.CATEGORIES) do
-                addGroup(root, category[2], added[category[1]])
-            end
+    local order = module.db.menuOrder
+    if order == "category" then
+        local lists = offeredLists(true)
+        for _, category in ipairs(Kit.CATEGORIES) do
+            addGroup(root, category[2], lists[category[1]])
         end
-        if addGroup(root, group[1], groups[group.key]) and group.kinds then
-            addKinds(root)
+        addKinds(root)
+    elseif order == "title" then
+        addGroup(root, nil, offeredLists(false).all)
+        addKinds(root)
+    else
+        local groups, added = quickLists()
+        for _, group in ipairs(QUICK_GROUPS) do
+            if group.key == "other" then
+                -- The categories of modules the player added, before Other.
+                for _, category in ipairs(Kit.CATEGORIES) do
+                    addGroup(root, category[2], added[category[1]])
+                end
+            end
+            if addGroup(root, group[1], groups[group.key]) and group.kinds then
+                addKinds(root)
+            end
         end
     end
     root:CreateDivider()
@@ -620,6 +654,17 @@ module.options = {
             { "right", L.MINIMAPBUTTON_MENU_SIDE_RIGHT },
         },
         added = "1.0.0-beta.1",
+    },
+    {
+        key = "menuOrder",
+        name = L.MINIMAPBUTTON_MENU_ORDER,
+        description = L.MINIMAPBUTTON_MENU_ORDER_DESC,
+        choices = {
+            { "groups", L.MINIMAPBUTTON_MENU_ORDER_GROUPS },
+            { "category", L.MINIMAPBUTTON_MENU_ORDER_CATEGORY },
+            { "title", L.MINIMAPBUTTON_MENU_ORDER_TITLE },
+        },
+        added = "1.4.0",
     },
     Keys.Option("errorsKey", L.MINIMAPBUTTON_ERRORS_KEY, L.MINIMAPBUTTON_ERRORS_KEY_DESC),
     -- Changed: a click instead of a right-click, and Shift is a choice.
