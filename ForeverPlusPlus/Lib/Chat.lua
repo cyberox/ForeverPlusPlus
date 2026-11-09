@@ -497,13 +497,26 @@ local function show(button, shown)
 end
 
 -- The chat window's size and the menu button change what fits, so the column is laid out again
--- then. Hooked once for each frame, since a hook can't be taken off.
+-- then, and once more on the next frame, when every button's place has caught up with the new
+-- size. Hooked once for each frame, since a hook can't be taken off.
+local again
+local function layoutAgain()
+    again = nil
+    Chat.Layout()
+end
+local function onResize()
+    Chat.Layout()
+    if not again and C_Timer then
+        again = true
+        C_Timer.After(0, layoutAgain)
+    end
+end
 local watched = setmetatable({}, { __mode = "k" })
 local function watch(frame, ...)
     if frame and not watched[frame] and frame.HookScript then
         watched[frame] = true
         for i = 1, select("#", ...) do
-            frame:HookScript((select(i, ...)), Chat.Layout)
+            frame:HookScript((select(i, ...)), onResize)
         end
     end
 end
@@ -561,9 +574,11 @@ function Chat.Layout()
         previous = button
         local fits = true
         if y then
+            -- Where it really is now, read back; where it should be when that isn't known yet.
             local scale = button:GetEffectiveScale()
             y = y - (2 + button:GetHeight()) * scale
-            fits = y >= bottom
+            local real = button:GetBottom()
+            fits = (real and real * scale or y) >= bottom
         end
         if not fits and not folded[entry.key] then
             folded[entry.key] = button
