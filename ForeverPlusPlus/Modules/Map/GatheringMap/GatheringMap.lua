@@ -449,7 +449,8 @@ local KINDS = {
 internal.KINDS = KINDS
 
 -- What the public API (API.lua's GetGatheringMaps and GetGatheringNodes, which copy what they
--- give out) and the Minimap Button (Kinds) read while the module is on.
+-- give out), the Minimap Button (Kinds), and the Compass Bar (Maps, Shown, Icon) read while the
+-- module is on.
 local provider = {
     Maps = function()
         return module.db.nodes
@@ -674,6 +675,11 @@ end
 function internal.ShownOnMinimap(node)
     return internal.Shown(node, "minimap")
 end
+
+-- What the Compass Bar reads through the provider: whether a node shows, as on the minimap, and
+-- its icon (nil for a node whose item isn't known yet).
+provider.Shown = internal.ShownOnMinimap
+provider.Icon = itemIcon
 
 -- Whether a tooltip line set to `key` ("always", "shift", or "never") shows now.
 local function wants(key)

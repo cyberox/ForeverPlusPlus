@@ -10,6 +10,17 @@ local L = ns.L
 
 ns.changelog = {
     {
+        version = L.CHANGELOG_UNRELEASED,
+        sections = {
+            { L.CHANGELOG_ADDED, {
+                { L.COMPASSBAR_TITLE, "A new module, off by default. A compass across the top of the "
+                    .. "screen with your selected quest, map pin, and corpse on it in the direction they "
+                    .. "are, and how far away. Every quest on the map, group members, flight masters, "
+                    .. "gathering nodes, and rares can go on it too. Set its size in Edit Mode." },
+            } },
+        },
+    },
+    {
         version = "1.4.0",
         date = "2026-11-09",
         sections = {

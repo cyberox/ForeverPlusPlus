@@ -2,6 +2,12 @@
 
 What changed in each release of Forever++. The same notes show in game under Settings > AddOns > Forever++ > Changelog, from [`ForeverPlusPlus/Changelog.lua`](ForeverPlusPlus/Changelog.lua); change both together.
 
+## Unreleased
+
+### Added
+
+- **Compass Bar**: a new module, off by default. A compass across the top of the screen with your selected quest, map pin, and corpse on it in the direction they are, and how far away. Every quest on the map, group members, flight masters, gathering nodes, and rares can go on it too. Set its size in Edit Mode.
+
 ## 1.4.0 (2026-11-09)
 
 ### Added

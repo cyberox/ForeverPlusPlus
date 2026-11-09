@@ -170,6 +170,7 @@ Modules\Map\FlightTimer.lua
 Modules\Map\HideFilterReset.lua
 Modules\Map\SquareMinimap.lua
 Modules\Map\Waypoints.lua
+Modules\Map\CompassBar.lua
 Modules\Map\MinimapNodeIcons\MinimapNodeIcons.lua
 Modules\Map\MinimapNodeIcons\Probe.lua
 Modules\Map\MinimapNodeIcons\Nodes.lua
