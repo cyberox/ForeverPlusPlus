@@ -14,7 +14,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 ### Fixed
 
-- **Whisper Window**: on a short chat window, the Chat Button hid under the speech bubble button. A button that doesn't fit now goes in the speech bubble's menu, and Settings says so. The same for Chat Copy's and Social Button's buttons. Thanks to ryansouza.
+- **Whisper Window**: on a short chat window, the Chat Button hid under the speech bubble button. A button that doesn't fit now goes in the speech bubble's menu, and Settings says so. The same for Chat Copy's and Social Button's buttons. The Chat Button now comes before Chat Copy's, so it's the last to go, and while it's in the menu the speech bubble glows with how many whispers are waiting. Thanks to ryansouza.
 
 ## 1.3.1 (2026-11-09)
 

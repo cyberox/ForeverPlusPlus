@@ -4,7 +4,7 @@
 local _, ns = ...
 
 local _G, ipairs, type, tonumber, gsub, format = _G, ipairs, type, tonumber, string.gsub, string.format
-local select = select
+local select, pairs = select, pairs
 local setmetatable, CreateFrame, UIParent = setmetatable, CreateFrame, UIParent
 local byte, find, match, sub = string.byte, string.find, string.match, string.sub
 local min, concat = math.min, table.concat
@@ -521,6 +521,62 @@ local function watch(frame, ...)
     end
 end
 
+-- What a button has waiting (Whisper Window's unread whispers), by key: shown on the button by
+-- its module, and on the chat menu button and in its menu while the button is folded there.
+local badges = {}
+local menuBadge -- our glow and count over the chat menu button, made when first needed
+
+local function updateMenuBadge()
+    local total = 0
+    for key, count in pairs(badges) do
+        if folded[key] then
+            total = total + count
+        end
+    end
+    local menu = _G.ChatFrameMenuButton
+    if total == 0 or not menu then
+        if menuBadge then
+            menuBadge.pulse:Stop()
+            menuBadge:Hide()
+        end
+        return
+    end
+    if not menuBadge then
+        -- Like Whisper Window's own button: the chat buttons' highlight pulsing, and the count.
+        menuBadge = CreateFrame("Frame", nil, menu)
+        menuBadge:SetAllPoints()
+        menuBadge:SetFrameLevel(menu:GetFrameLevel() + 2)
+        local glow = menuBadge:CreateTexture(nil, "OVERLAY")
+        glow:SetAllPoints()
+        glow:SetAtlas("chatframe-button-highlight")
+        glow:SetBlendMode("ADD")
+        local pulse = glow:CreateAnimationGroup()
+        pulse:SetLooping("BOUNCE")
+        local fade = pulse:CreateAnimation("Alpha")
+        fade:SetFromAlpha(0.1)
+        fade:SetToAlpha(1)
+        fade:SetDuration(0.8)
+        fade:SetSmoothing("IN_OUT")
+        menuBadge.pulse = pulse
+        menuBadge.count = menuBadge:CreateFontString(nil, "OVERLAY", "NumberFontNormal")
+        menuBadge.count:SetPoint("BOTTOMRIGHT", 0, 0)
+    end
+    menuBadge.count:SetText(total)
+    menuBadge:Show()
+    if not menuBadge.pulse:IsPlaying() then
+        menuBadge.pulse:Play()
+    end
+end
+
+---Says how many things the button `key` added has waiting (0 for none). While the button is in the
+---chat menu, the chat menu button glows with the count, and the button's line shows it.
+---@param key string
+---@param count number
+function Chat.SetBadge(key, count)
+    badges[key] = count and count > 0 and count or nil
+    updateMenuBadge()
+end
+
 -- The folded buttons at the end of Blizzard's chat menu, after a line, in the column's order.
 local function addFolded(_, root)
     local any = false
@@ -531,7 +587,11 @@ local function addFolded(_, root)
                 root:CreateDivider()
             end
             local button = entry.button
-            root:CreateButton(entry.label or entry.key, function()
+            local label = entry.label or entry.key
+            if badges[entry.key] then
+                label = format("%s |cffffd200(%d)|r", label, badges[entry.key])
+            end
+            root:CreateButton(label, function()
                 button:Click()
             end)
         end
@@ -590,6 +650,7 @@ function Chat.Layout()
         end
     end
     laying = false
+    updateMenuBadge()
 end
 
 ---Whether the column is being laid out right now, so a hook on SetPoint can ignore our own moves.
@@ -626,6 +687,8 @@ function Chat.RemoveButton(key, quiet)
             break
         end
     end
+    badges[key] = nil
+    updateMenuBadge()
     if not quiet then
         Chat.Layout()
     end

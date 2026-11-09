@@ -661,6 +661,8 @@ local function updateButton()
     end
     local unread = internal.UnreadTotal()
     button.count:SetText(unread > 0 and unread or "")
+    -- On the chat menu button too, while a short chat window has put this one in its menu.
+    ns.Chat.SetBadge(module.name, unread)
     -- It pulses while whispers wait, like Blizzard's chat tabs with new messages.
     if unread > 0 then
         button.glow:Show()
@@ -705,7 +707,9 @@ local function showButton()
             button.glow, button.pulse = glow, pulse
         end
         button:Show()
-        ns.Chat.AddButton(module.name, button, 30)
+        -- Before Chat Copy's (20), so on a short chat window whispers keep their button and
+        -- copying is the one that goes in the chat menu.
+        ns.Chat.AddButton(module.name, button, 15)
         updateButton()
     elseif button then
         ns.Chat.RemoveButton(module.name)

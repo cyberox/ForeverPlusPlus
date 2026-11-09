@@ -108,6 +108,7 @@ local function updateButton()
     end
     local waiting = tonumber(internal.counts and internal.counts.waiting) or 0
     button.count:SetText(waiting > 0 and waiting or "")
+    ns.Chat.SetBadge(module.name, waiting)
     if waiting > 0 then
         button.glow:Show()
         if not button.pulse:IsPlaying() then
