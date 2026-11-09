@@ -30,7 +30,6 @@ local _, ns = ...
 local ipairs, setmetatable, unpack, floor = ipairs, setmetatable, unpack, math.floor
 local type, lower, format = type, string.lower, string.format
 local CreateFrame, UnitLevel, UnitClass = CreateFrame, UnitLevel, UnitClass
-local GetRaidTargetIndex, SetRaidTargetIconTexture = GetRaidTargetIndex, SetRaidTargetIconTexture
 local UnitGroupRolesAssigned, GetTexCoordsForRoleSmallCircle =
     UnitGroupRolesAssigned, GetTexCoordsForRoleSmallCircle
 
@@ -339,9 +338,6 @@ local function createLabel(frame)
     label.barIcons = createIcons(label.barFrame)
     label.classIcon = newClassIcon(label)
     label.barClassIcon = newClassIcon(label.barFrame)
-    -- The unit's raid icon beside the name; with the bar up, Blizzard's shows at the bar instead.
-    label.raidIcon = label:CreateTexture(nil, "OVERLAY")
-    label.raidIcon:Hide()
     return label
 end
 
@@ -651,20 +647,7 @@ function PlateLabel.Layout(label, record, unit, style)
     add(classLeft, classWidth)
     add(levelLeft, levelWidth)
     add(iconsLeft, iconsWidth)
-    -- The raid icon, past everything else on the left, as Blizzard puts it left of the bar. It
-    -- counts in the row, so the row stays centered and buffs beside the name clear it.
-    local raidIcon = label.raidIcon
-    local index = GetRaidTargetIndex and GetRaidTargetIndex(unit)
-    raidIcon:ClearAllPoints()
-    if readable(index) and index and SetRaidTargetIconTexture then
-        SetRaidTargetIconTexture(raidIcon, index)
-        raidIcon:SetSize(size, size)
-        raidIcon:SetPoint("RIGHT", label.name, "LEFT", -(leftWidth + gap), 0)
-        raidIcon:Show()
-        add(true, size + gap)
-    else
-        raidIcon:Hide()
-    end
+    label.gap = gap -- FriendlyPlates places Blizzard's raid icon this far past the row
     -- With the bar up: our bar-view name centered on the plate just above the bar, the class
     -- icon and other icons beside it, all shifted so they're centered together. Blizzard's level
     -- stays on the bar.

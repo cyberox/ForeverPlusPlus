@@ -20,8 +20,6 @@
     "hooksecurefunc",
     "securecallfunction",
     "InCombatLockdown",
-    "GetRaidTargetIndex",
-    "SetRaidTargetIconTexture",
     "GetMouseFoci",
     "GetMouseFocus",
     "SetOverrideBindingSpell",

@@ -187,6 +187,34 @@ local function anchorBuffs(record, where, unit, state)
     pcall(setBuffAnchor, record, label, where, x, y, secretY)
 end
 
+-- Blizzard's raid icon sits at the bar's left end, so on a name-only plate it was far from our
+-- centered name. Without the bar it goes just left of our row (the level and icons there), and
+-- with it back where Blizzard had it, as its points were when the plate came to us. Moved rather
+-- than drawn again: which icon a unit has can be secret (a friendly player's was), and Blizzard's
+-- own frame shows it whatever it is. Blizzard places it again only when it sets the plate up.
+local function setRaidAnchor(record, where)
+    local icon, label = record.raidTarget, record.label
+    if where == "name" then
+        icon:ClearAllPoints()
+        icon:SetPoint("RIGHT", label.name, "LEFT", -((label.leftWidth or 0) + (label.gap or 3)), 0)
+    else
+        ns.Frames.SetPoints(icon, record.raidPoints)
+    end
+end
+
+---@param where string "name" (beside our name) or "blizzard" (its own place)
+local function anchorRaidTarget(record, where)
+    if not (record.raidTarget and record.raidPoints and record.label) then
+        return
+    end
+    local x = where == "name" and record.label.leftWidth or nil
+    if record.raidWhere == where and record.raidX == x then
+        return
+    end
+    record.raidWhere, record.raidX = where, x
+    pcall(setRaidAnchor, record, where)
+end
+
 ---Friendly plates for one module (see the top of this file).
 ---@param module table
 ---@param spec table players, cvars, style, and optional OnEnable and Skip
@@ -349,6 +377,10 @@ function Plates:Layout(unit)
     if record and record.label then
         PlateLabel.Layout(record.label, record, unit, self.style)
         record.label.rise = nameRise(record.label)
+        -- The row may be wider or narrower now; keep the raid icon just past it.
+        if record.raidWhere == "name" then
+            anchorRaidTarget(record, "name")
+        end
         -- The name, level, or icons may have moved; keep the buffs placed against them.
         if record.buffsWhere and record.buffsWhere ~= "blizzard" then
             self:PlaceBuffs(unit, record.buffsInCombat)
@@ -387,11 +419,6 @@ function Plates:Fade(unit)
         fadeLevel(record, shown)
         -- Blizzard's name is always hidden: our label draws the name in both views.
         record.name:SetAlpha(0)
-        -- Blizzard's raid icon sits at the bar's left end, far from a name-only plate's name, so
-        -- it shows with the bar and our label's own beside the name otherwise.
-        if record.raidTarget then
-            record.raidTarget:SetAlpha(shown)
-        end
         label.barFrame:SetAlpha(shown)
         label:SetAlpha(hidden)
     end
@@ -424,6 +451,7 @@ function Plates:PlaceBuffs(unit, inCombat)
         end
     end
     record.buffsInCombat = inCombat
+    anchorRaidTarget(record, state == "bar" and "blizzard" or "name")
     local where = db.buffs
     -- Beside the name would sit on the bar. (Unsure, it stays beside the name: that's the usual
     -- case on a name-only plate, and a sideways move can't follow a secret like a height can.)
@@ -448,6 +476,10 @@ function Plates:Add(unit, frame)
         record.buffs = parts.buffs
         record.classification = parts.classification
         record.raidTarget = parts.raidTarget
+        if record.raidTarget then
+            local ok, points = pcall(ns.Frames.GetPoints, record.raidTarget)
+            record.raidPoints = ok and points and points[1] and points or nil
+        end
         record.label = PlateLabel.Show(frame)
         hookName(name)
         mirrored[name] = { self, unit }
@@ -471,9 +503,7 @@ function Plates:Remove(unit)
         record.name:SetAlpha(1)
         mirrored[record.name] = nil
     end
-    if record.raidTarget then
-        record.raidTarget:SetAlpha(1)
-    end
+    anchorRaidTarget(record, "blizzard")
     if record.label then
         PlateLabel.Hide(record.label)
     end
@@ -510,8 +540,6 @@ function Plates:Enable()
         end
     end
     module:On("UNIT_FACTION", self.onFaction)
-    -- A raid icon set or cleared: the label's moves the name over.
-    module:On("RAID_TARGET_UPDATE", self.onSocialChange)
     -- UNIT_FLAGS covers other units' combat; these cover the fallback to our own.
     module:On("PLAYER_REGEN_DISABLED", self.onPlayerCombat)
     module:On("PLAYER_REGEN_ENABLED", self.onPlayerCombat)
