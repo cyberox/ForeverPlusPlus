@@ -23,11 +23,11 @@ local module = ns.NewModule("ForeverQuestIcons", L.FOREVERQUESTICONS_DESC, {
     tracker = true,
     givers = true,
     details = true,
-    icon = "medallion", -- a key of ICONS
-    color = "art", -- a key of COLORS, for an icon that takes one
-    -- Icon size in each place, in percent.
-    logSize = 80,
-    trackerSize = 80,
+    icon = "logo", -- a key of ICONS
+    color = "blue", -- a key of COLORS, for an icon that takes one
+    -- Icon size in each place, in percent, picked by eye in game.
+    logSize = 100,
+    trackerSize = 110,
     giversSize = 80,
     -- The details title's font is larger, so a smaller share keeps the icon near the lists' size.
     detailsSize = 60,
@@ -83,7 +83,7 @@ module.options = {
             { "coin", L.FOREVERQUESTICONS_ICON_COIN },
             { "star", L.FOREVERQUESTICONS_ICON_STAR },
         },
-        changed = "1.5.0", -- more icons, and the medallion first
+        changed = "1.5.0", -- more icons, and the Forever logo in blue by default
     },
     {
         key = "color", name = L.FOREVERQUESTICONS_COLOR, description = L.FOREVERQUESTICONS_COLOR_DESC,
