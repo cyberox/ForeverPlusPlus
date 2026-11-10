@@ -6,7 +6,7 @@
 local _, ns = ...
 
 local pairs, ipairs, gsub, tonumber, concat = pairs, ipairs, string.gsub, tonumber, table.concat
-local find, sub, type, _G = string.find, string.sub, type, _G
+local find, sub, type, tostring, _G = string.find, string.sub, type, tostring, _G
 
 local L = ns.L
 local Chat = ns.Chat
@@ -49,13 +49,15 @@ local FIRST_CHARACTER = "^[%z\1-\127\194-\244][\128-\191]*"
 
 ---A channel's initials: the first character of each word, and each capital inside a word, of
 ---its name before any " - Zone" part. General and Trade give G and T, LocalDefense and
----LookingForGroup give LD and LFG. Nil for an empty name.
+---LookingForGroup give LD and LFG, and Forever's Trade (Services) TS: punctuation around a word
+---is skipped. Nil for an empty name.
 ---@param name string
 ---@return string?
 local function initials(name)
     local base = name:match("^(.-) %- ") or name
     local letters = {}
     for word in base:gmatch("%S+") do
+        word = gsub(word, "^%p+", "")
         local first = word:match(FIRST_CHARACTER)
         if first then
             letters[#letters + 1] = first
@@ -176,6 +178,72 @@ local function onMessage(frame, text)
     end)
 end
 
+-- The chat box's header ----------------------------------------------------------------------
+-- While typing, the box starts with where the line goes: "[2. Trade - City]: " or "Party: ".
+-- Blizzard writes it in the edit box's UpdateHeader (ChatFrameEditBoxMixin, Gethe forever branch)
+-- and makes room for it with the box's text insets; after it, the same short form as in chat goes
+-- in its place and the insets shrink by the width saved. Each window's box is hooked, since the
+-- method is copied onto each from the mixin.
+
+-- The chat types whose header has a short form, by the edit box's chat type.
+local SEND_TYPES = {
+    GUILD = L.SHORTCHANNELNAMES_GUILD,
+    OFFICER = L.SHORTCHANNELNAMES_OFFICER,
+    PARTY = L.SHORTCHANNELNAMES_PARTY,
+    RAID = L.SHORTCHANNELNAMES_RAID,
+    RAID_WARNING = L.SHORTCHANNELNAMES_RAID_WARNING,
+    INSTANCE_CHAT = L.SHORTCHANNELNAMES_INSTANCE,
+}
+
+-- The header's text shortened, or nil to leave it. A header already short isn't matched again,
+-- so running twice (UpdateHeader calls itself when it switches party to instance) changes nothing.
+local function shortHeader(editBox, text)
+    local chatType = editBox.GetChatType and editBox:GetChatType()
+    if chatType == "CHANNEL" and editBox.GetChannelTarget then
+        local id, name, instanceID = GetChannelName(editBox:GetChannelTarget())
+        if type(id) ~= "number" or type(name) ~= "string" or name == "" then
+            return nil
+        end
+        -- As Blizzard names it there: a channel of an instance has its number after the name.
+        if type(instanceID) == "number" and instanceID > 0 then
+            name = name .. " " .. instanceID
+        end
+        local number = tostring(id)
+        return swap(text, number .. ". " .. name, shortName(module.db.style, number, name))
+    end
+    local short = module.db.chatTypes and SEND_TYPES[chatType]
+    local full = short and _G["CHAT_" .. chatType .. "_SEND"]
+    local label = type(full) == "string" and full:match("^(.-)%s*:")
+    if label and label ~= "" then
+        return swap(text, label, short)
+    end
+end
+
+local function onUpdateHeader(editBox)
+    local name = editBox.GetName and editBox:GetName()
+    local header = name and _G[name .. "Header"]
+    local text = header and header:GetText()
+    if not ns.IsText(text) then
+        return
+    end
+    local short = shortHeader(editBox, text)
+    if not short or short == text then
+        return
+    end
+    -- The room Blizzard left: the header, and the "..." after one it cut short.
+    local suffix = _G[name .. "HeaderSuffix"]
+    local before = header:GetWidth() + (suffix and suffix:IsShown() and suffix:GetWidth() or 0)
+    header:SetWidth(0)
+    header:SetText(short)
+    if suffix then
+        suffix:Hide()
+    end
+    local left, right, top, bottom = editBox:GetTextInsets()
+    if left then
+        editBox:SetTextInsets(left - before + header:GetStringWidth(), right, top, bottom)
+    end
+end
+
 function module:IsAvailable()
     return ChatFrame1 ~= nil and ChatFrame1.TransformMessages ~= nil
 end
@@ -184,6 +252,8 @@ function module:OnEnable()
     -- Every window, and one added later.
     Chat.EachWindow(self, function(frame)
         module:Hook(frame, "AddMessage", onMessage)
+        local editBox = frame.editBox or _G[(frame:GetName() or "") .. "EditBox"]
+        module:Hook(editBox, "UpdateHeader", onUpdateHeader)
     end)
 end
 

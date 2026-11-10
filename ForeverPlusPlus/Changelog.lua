@@ -33,6 +33,11 @@ ns.changelog = {
                 { L.WAYPOINTS_TITLE, "The arrow sits a little lower by default, under the Compass Bar. "
                     .. "If you moved it in Edit Mode, it stays where you put it." },
             } },
+            { L.CHANGELOG_FIXED, {
+                { L.SHORTCHANNELNAMES_TITLE, "The chat box shows the short name of the channel or "
+                    .. "group you're typing to, as chat does, instead of its full name. Trade (Services) "
+                    .. "shortens to TS instead of T(S." },
+            } },
         },
     },
     {

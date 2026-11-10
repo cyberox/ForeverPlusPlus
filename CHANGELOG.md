@@ -14,6 +14,11 @@ What changed in each release of Forever++. The same notes show in game under Set
 ### Changed
 
 - **Waypoints**: the arrow sits a little lower by default, under the Compass Bar. If you moved it in Edit Mode, it stays where you put it.
+
+### Fixed
+
+- **Short Channel Names**: the chat box shows the short name of the channel or group you're typing to, as chat does, instead of its full name. Trade (Services) shortens to TS instead of T(S.
+
 ## 1.4.0 (2026-11-09)
 
 ### Added
