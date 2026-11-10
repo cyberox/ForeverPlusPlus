@@ -35,6 +35,7 @@
     "GetBindingKey",
     "WorldFrame",
     "GetInventoryItemID",
+    "GetInventoryItemTexture",
     "GetUnitSpeed",
     "IsInInstance",
     "GameTooltip_SetDefaultAnchor",

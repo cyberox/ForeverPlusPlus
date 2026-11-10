@@ -112,6 +112,14 @@ L.COMBATALERT_SOUND = "Play Sound"
 L.COMBATALERT_SOUND_DESC = "Play a sound with each alert: the raid warning going in and a soft "
     .. "chime coming out, for when you're looking somewhere else."
 
+-- MacroIconSearch
+L.MACROICONSEARCH_TITLE = "Macro Icon Search"
+L.MACROICONSEARCH_DESC = "Add a search box to the macro window's icon picker. Type part of a spell's "
+    .. "or item's name to see the icons of your spells and of the items you carry or wear that match."
+L.MACROICONSEARCH_BOX = "Spell or Item"
+L.MACROICONSEARCH_TIP = "Shows the icons of the spells you know and the items you carry or wear "
+    .. "whose name has this in it. Clear it to see every icon again."
+
 -- MovableWindows
 L.MOVABLEWINDOWS_TITLE = "Movable Windows"
 L.MOVABLEWINDOWS_DESC = "Hold the move key and drag Blizzard's windows, like your character, "

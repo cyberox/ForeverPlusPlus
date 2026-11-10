@@ -20,6 +20,9 @@ ns.changelog = {
                 { L.QUESTITEMSPARKLES_TITLE, "A new module, off by default. Quest items you can pick up "
                     .. "in the world sparkle, so they're easy to spot, and stay that way after you change "
                     .. "your graphics settings." },
+                { L.MACROICONSEARCH_TITLE, "A new module, off by default. A search box in the macro "
+                    .. "window's icon picker: type part of a spell's or item's name to see the icons of "
+                    .. "your spells and of the items you carry or wear that match." },
                 { L.QUESTLINKS_TITLE, "A new module, off by default. Quests linked in chat by players "
                     .. "with Questie, which show as plain text like [[34] A Grim Task (304)], become quest "
                     .. "links you can click to see the quest." },

@@ -1,0 +1,191 @@
+-- Macro Icon Search: a search box in the macro window's icon picker. Type part of a spell's or
+-- item's name and the picker shows the icons of your spells and of the items you carry or wear
+-- that match, in place of the whole list.
+-- The game gives addons the macro icons as file numbers with no names (GetMacroIcons), so an
+-- icon can only be found through something that has both a name and an icon: the spellbook, bags,
+-- and worn gear. Searching every icon by its file name would need a list of them shipped with the
+-- addon and redone each patch.
+-- Blizzard's picker (MacroPopupFrame, from IconSelectorPopupFrameTemplate; Gethe forever branch,
+-- Blizzard_MacroUI/Blizzard_MacroIconSelector.lua, read 2026-11-10) shows whatever its
+-- IconSelector's two functions return and saves the texture of the icon clicked, so a search hands
+-- it our own short list and, when cleared, Blizzard's again. Nothing of Blizzard's is replaced.
+local _, ns = ...
+
+local pairs, ipairs, type, sort, lower, find = pairs, ipairs, type, table.sort, string.lower, string.find
+local C_Container, C_Item, C_Spell = C_Container, C_Item, C_Spell
+local GetInventoryItemID, GetInventoryItemTexture = GetInventoryItemID, GetInventoryItemTexture
+
+local L = ns.L
+
+local module = ns.NewModule("MacroIconSearch", L.MACROICONSEARCH_DESC, {
+    enabled = false,
+})
+module.title = L.MACROICONSEARCH_TITLE
+module.category = "interface"
+module.added = "1.5.0"
+
+local MACRO_UI = "Blizzard_MacroUI"
+local BAGS, WORN = 4, 19 -- the backpack and four bags; the worn slots
+
+local box -- our search box, made the first time the picker shows
+local named -- { { name (lowercase), texture } } for this showing of the picker
+local searching = false -- the picker shows our list
+
+-- Every spell known and item carried or worn, with its icon. Built when the picker shows, since
+-- both change between showings.
+local function gather()
+    local list = {}
+    local function add(name, texture)
+        if ns.IsText(name) and name ~= "" and texture then
+            list[#list + 1] = { name = lower(name), texture = texture }
+        end
+    end
+    for name, ranks in pairs(ns.Spellbook.Ranks()) do
+        local top = ranks[#ranks]
+        add(name, top and C_Spell.GetSpellTexture and C_Spell.GetSpellTexture(top.id))
+    end
+    if C_Container and C_Container.GetContainerNumSlots and C_Item and C_Item.GetItemNameByID then
+        for bag = 0, BAGS do
+            for slot = 1, C_Container.GetContainerNumSlots(bag) or 0 do
+                local info = C_Container.GetContainerItemInfo(bag, slot)
+                if info and info.itemID then
+                    add(C_Item.GetItemNameByID(info.itemID), info.iconFileID)
+                end
+            end
+        end
+        for slot = 1, WORN do
+            local id = GetInventoryItemID("player", slot)
+            if id then
+                add(C_Item.GetItemNameByID(id), GetInventoryItemTexture("player", slot))
+            end
+        end
+    end
+    sort(list, function(a, b)
+        return a.name < b.name
+    end)
+    return list
+end
+
+-- The icons whose spell or item name has `query` in it, each once, in name order.
+local function matches(query)
+    named = named or gather()
+    local icons, seen = {}, {}
+    for _, entry in ipairs(named) do
+        if not seen[entry.texture] and find(entry.name, query, 1, true) then
+            seen[entry.texture] = true
+            icons[#icons + 1] = entry.texture
+        end
+    end
+    return icons
+end
+
+local function selector()
+    local popup = _G.MacroPopupFrame
+    local icons = popup and popup.IconSelector
+    if icons and type(icons.SetSelectionsDataProvider) == "function" then
+        return icons, popup
+    end
+end
+
+-- Blizzard's own list again, as MacroPopupFrameMixin:Update gives it.
+local function restore()
+    if not searching then
+        return
+    end
+    searching = false
+    local icons, popup = selector()
+    if icons and popup.GetIconByIndex and popup.GetNumIcons then
+        icons:SetSelectionsDataProvider(function(index)
+            return popup:GetIconByIndex(index)
+        end, function()
+            return popup:GetNumIcons()
+        end)
+    end
+end
+
+local function search(text)
+    if not module.enabled then
+        return
+    end
+    local query = lower(text)
+    if query == "" then
+        restore()
+        return
+    end
+    local icons = selector()
+    if not icons then
+        return
+    end
+    local found = matches(query)
+    searching = true
+    icons:SetSelectionsDataProvider(function(index)
+        return found[index]
+    end, function()
+        return #found
+    end)
+end
+
+local function tooltip(self)
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    GameTooltip:SetText(L.MACROICONSEARCH_TITLE, 1, 1, 1)
+    GameTooltip:AddLine(L.MACROICONSEARCH_TIP, nil, nil, nil, true)
+    GameTooltip:Show()
+end
+
+-- The box sits left of the picker's Okay button, in its bottom row.
+local function makeBox(popup)
+    local border = popup.BorderBox
+    local okay = border and border.OkayButton
+    if not okay then
+        return
+    end
+    local made = ns.SettingsKit.AddSearchBox(border, okay, L.MACROICONSEARCH_BOX, search)
+    if not made then
+        return
+    end
+    made:SetSize(150, 20)
+    made:HookScript("OnEnter", tooltip)
+    made:HookScript("OnLeave", GameTooltip_Hide)
+    return made
+end
+
+-- The picker shows Blizzard's list each time it opens (its OnShow runs Update), so ours starts
+-- empty with it.
+local function onShow(popup)
+    named, searching = nil, false
+    box = box or makeBox(popup)
+    if box then
+        box:SetText("")
+        box:Show()
+    end
+end
+
+local function onHide()
+    named, searching = nil, false
+end
+
+local function setup()
+    local popup = _G.MacroPopupFrame
+    if not (popup and selector()) then
+        return
+    end
+    module:HookScript(popup, "OnShow", onShow)
+    module:HookScript(popup, "OnHide", onHide)
+    if popup:IsShown() then
+        onShow(popup)
+    end
+end
+
+function module:OnEnable()
+    ns.AddOns.WhenLoaded(MACRO_UI, setup)
+end
+
+function module:OnDisable()
+    ns.AddOns.Cancel(MACRO_UI, setup)
+    restore()
+    named = nil
+    if box then
+        box:SetText("")
+        box:Hide()
+    end
+end
