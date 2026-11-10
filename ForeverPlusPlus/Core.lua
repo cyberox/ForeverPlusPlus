@@ -981,6 +981,7 @@ function ns.Start()
     ForeverPlusPlusPlayersDB = type(ForeverPlusPlusPlayersDB) == "table" and ForeverPlusPlusPlayersDB or {}
     ns.playersDB = ForeverPlusPlusPlayersDB
     addCoreSteps()
+    local freshCharacter = next(ns.charDB) == nil
     local fresh = Store.Upgrade(ns.db, ns.charDB)
     -- The last version whose Modules page the player has seen all of, and the version each module
     -- clicked since was seen in; Settings/Settings.lua marks what's added or changed after them as
@@ -1002,6 +1003,8 @@ function ns.Start()
         known[name] = true
     end
     Store.Prune(ns.db, ns.charDB, known)
+    -- The profile this character uses, before any module reads its settings.
+    ns.Profiles.Login(freshCharacter)
     ns.GameData.Prune(ns.db)
     ns.Players.Prune(ns.playersDB)
     -- Before the game writes the saved variables, drop what's empty so the file holds only what
@@ -1034,6 +1037,52 @@ function ns.Start()
         end
     end
     started = true
+end
+
+---Moves every module to another profile, live (Lib/Profiles.lua calls it out of combat): the
+---modules that are on turn off, so each puts back what it changed (CVars, frames), `swap()` points
+---Store at the other profile, and the modules that profile has on turn on and read it. A tool
+---that is always on stays on and hears about each option that now reads differently. Settings
+---redraws, and the API's listeners hear of each module that turned on or off.
+---@param swap fun()
+function ns.ChangeProfile(swap)
+    local was, values = {}, {}
+    for i = #ns.order, 1, -1 do -- the last loaded first, as a module may build on one before it
+        local module = ns.modules[ns.order[i]]
+        was[module.name] = module.enabled and true or false
+        if module.alwaysOn then
+            local before = {}
+            for _, option in ipairs(module.options or {}) do
+                before[option.key] = module.db[option.key]
+            end
+            values[module.name] = before
+        else
+            disable(module)
+        end
+    end
+    swap()
+    for _, name in ipairs(ns.order) do
+        local module = ns.modules[name]
+        checkValues(module)
+        if module.alwaysOn then
+            module.db.enabled = not module.defaults.enabled or nil -- as at login
+            for key, value in pairs(values[name]) do
+                if module.db[key] ~= value then
+                    optionChanged(module, key)
+                end
+            end
+        elseif module.db.enabled and not module.unavailable and not module.locked then
+            enable(module)
+        end
+        if was[name] ~= (module.enabled and true or false) then
+            moduleChanged(name, nil)
+        end
+    end
+    if ns.RefreshSetting then
+        for _, name in ipairs(ns.order) do
+            ns.RefreshSetting(name)
+        end
+    end
 end
 
 ---Turns a module on or off and remembers it.

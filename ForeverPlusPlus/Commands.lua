@@ -28,7 +28,7 @@ local function developerPreset()
 end
 
 ---Puts every module's options (`module.options`) back to their defaults, then turns on the
----modules in `enable`. Everything else a module saves stays: data (prices, seen cinematics, chat
+---modules in `enable`, in the profile in use only (Lib/Profiles.lua); the others stay as they are. Everything else a module saves stays: data (prices, seen cinematics, chat
 ---history) and what's set in Edit Mode (positions and scale). What it puts back to the default is
 ---forgotten, not saved as a choice, so a later release's better default reaches it; what it sets
 ---otherwise (an override, a module turned on) is saved like the player's own choice.

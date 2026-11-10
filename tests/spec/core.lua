@@ -106,8 +106,9 @@ do
     end
 
     local core = {}
-    local files = { "Core", "Commands", "Locales/enUS/Core", "Lib/Store", "Lib/Frames", "Lib/Players",
-        "Lib/CVars" }
+    UnitGUID = function() return "Player-1-A" end
+    local files = { "Core", "Commands", "Locales/enUS/Core", "Lib/Store", "Lib/Profiles", "Lib/Frames",
+        "Lib/Players", "Lib/CVars", "Lib/Text", "Lib/Secret" }
     for _, path in ipairs(files) do
         T.load(path, core)
     end
@@ -164,6 +165,13 @@ do
     locked.locked = true
     local lockedEnables = 0
     function locked:OnEnable() lockedEnables = lockedEnables + 1 end
+
+    -- A tool that is always on, with an option, for switching profiles.
+    local tool = core.NewModule("Tool", "test", { enabled = true, mode = "a" })
+    tool.alwaysOn = true
+    tool.options = { { key = "mode", name = "Mode", choices = { { "a" }, { "b" } } } }
+    local toolHeard = {}
+    tool.OnOptionChanged = function(_, key) toolHeard[#toolHeard + 1] = key end
 
     eq(host.defaults.extra, true, "lifecycle: a checkbox part defaults to on")
     eq(host.defaults.where, "bottom", "lifecycle: a dropdown part keeps its default")
@@ -398,4 +406,44 @@ do
     eq(linePre[1][2]({}, { skip = true }), nil, "hooks: a line pre call does nothing while off")
     core.SetEnabled("Plain", true)
     TooltipDataProcessor = nil
+
+    -- Profiles: a switch turns off what's on, reads the other profile, and turns on what it has
+    -- on, live; in combat it waits. Presets reset only the profile in use.
+    local Profiles = core.Profiles
+    eq(Profiles.Current(), "default", "profiles: the character starts on Default")
+    core.SetOption("Plain", "loud", true)
+    local two = Profiles.Create("Two")
+    core.db.profiles[two].settings = { Plain = { enabled = false, mode = "gone" }, Host = { extra = false },
+        Tool = { mode = "b" } }
+    local switchedTold = {}
+    core.OnModuleChanged(function(name, key) switchedTold[#switchedTold + 1] = name .. ":" .. tostring(key) end)
+    refreshed = {}
+    eq(Profiles.Switch(two), true, "profiles: a switch out of combat")
+    eq(plain.enabled, false, "profiles: a module the new profile has off turns off")
+    eq(registered("PLAYER_LEVEL_UP"), false, "profiles: and its events stop")
+    eq(host.enabled and not check.enabled, true, "profiles: a module on in both reads the new profile's parts")
+    eq(plain.db.loud, false, "profiles: settings read the new profile")
+    eq(plain.db.mode, "a", "profiles: a saved choice that isn't one goes back to its default")
+    eq(tool.enabled and tool.db.mode == "b", true, "profiles: a tool stays on and reads the new profile")
+    eq(toolHeard[#toolHeard], "mode", "profiles: and hears the option that changed")
+    eq(table.concat(switchedTold, ","):find("Plain:nil", 1, true) ~= nil, true,
+        "profiles: listeners hear of a module turned off")
+    eq(#refreshed >= #core.order, true, "profiles: every module's page redraws")
+    core.SetOption("Plain", "mode", "b")
+    eq(core.db.settings.Plain.mode, nil, "profiles: a change goes to the profile in use, not Default")
+    core.ApplyPreset()
+    eq(core.db.profiles[two].settings.Plain == nil or core.db.profiles[two].settings.Plain.mode == nil, true,
+        "profiles: Defaults resets the profile in use")
+    eq(core.db.settings.Plain.loud, true, "profiles: and leaves the other profiles alone")
+    core.SetEnabled("Plain", false)
+    inCombat = true
+    eq(Profiles.Switch("default"), false, "profiles: in combat a switch waits")
+    eq(plain.enabled, false, "profiles: and nothing changes yet")
+    inCombat = false
+    fire("PLAYER_REGEN_ENABLED")
+    eq(Profiles.Current(), "default", "profiles: once combat ends it switches")
+    eq(plain.enabled and plain.db.loud, true, "profiles: and Default's modules and settings are back")
+    eq(registered("PLAYER_LEVEL_UP"), true, "profiles: with their events")
+    eq(check.enabled, true, "profiles: and parts")
+    eq(tool.db.mode, "a", "profiles: and the tool's option")
 end

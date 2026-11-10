@@ -68,6 +68,19 @@ L.OPTION_STATE = "%s %s is %s." -- module, option, value
 L.OPTION_STATE_ALLOWED = "%s %s is |cffffd100%s|r (%s)." -- module, option, value, allowed values
 L.CHAT_MESSAGES = "Chat Messages" -- a module's checkbox for what it says in chat by itself
 
+-- Lib/Profiles.lua: profiles, and /fpp profile
+L.PROFILES_DEFAULT = "Default" -- the profile everyone starts with, which is always there
+L.PROFILES_NAME_EMPTY = "A profile needs a name."
+L.PROFILES_NAME_TAKEN = "There is already a profile called %s." -- name
+L.PROFILES_DEFAULT_ALWAYS = "Default is always there, so it can't be renamed or deleted."
+L.SLASH_PROFILE = "list the profiles, or switch this character to one"
+L.PROFILES_HEADER = "profiles (/fpp profile <name> to switch):"
+L.PROFILES_CHARACTERS = "%d characters" -- how many characters use a profile, more than one
+L.PROFILES_ONE_CHARACTER = "1 character"
+L.PROFILES_SWITCHED = "Now using the %s profile." -- profile name
+L.PROFILES_AFTER_COMBAT = "Switching to the %s profile once combat ends." -- profile name
+L.PROFILES_NO_SUCH = "No profile called %s. /fpp profile lists them." -- what was typed
+
 -- Settings
 -- The Modules page's groups of modules.
 L.CATEGORY_AUTOMATION = "Automation"
