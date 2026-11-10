@@ -146,6 +146,7 @@ Modules\System\MinimapButton.lua
 Modules\Chat\ChatCopy.lua
 Modules\Chat\ShortChannelNames.lua
 Modules\Chat\ChatLevels.lua
+Modules\Chat\QuestLinks.lua
 Modules\Chat\ChatFont.lua
 Modules\Chat\PersistentChat.lua
 Modules\Chat\ChatHistory.lua

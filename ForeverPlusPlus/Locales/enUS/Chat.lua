@@ -67,6 +67,11 @@ L.SHORTCHANNELNAMES_RAID_WARNING = "RW"
 L.SHORTCHANNELNAMES_INSTANCE = "I"
 L.SHORTCHANNELNAMES_INSTANCE_LEADER = "IL"
 
+-- QuestLinks
+L.QUESTLINKS_TITLE = "Quest Links"
+L.QUESTLINKS_DESC = "Make the quests players with Questie link in chat, like [[34] A Grim Task (304)], "
+    .. "into quest links you can click to see the quest, as if they'd linked it from their quest log."
+
 -- ChatHistory
 L.CHATHISTORY_TITLE = "Chat History"
 L.CHATHISTORY_DESC = "Keep the chat windows' latest lines when you log out or reload, and "

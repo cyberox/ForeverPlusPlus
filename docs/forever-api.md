@@ -157,6 +157,7 @@ Forever inherits Midnight's addon restrictions. `AGENTS.md` has the rules for wr
 - `COMBAT_LOG_EVENT_UNFILTERED` never fires for addons. **[addon]** (Manners `Core.lua`) **[web]** Use `C_DamageMeter` (Blizzard's built-in meter) or events like `UNIT_COMBAT`.
 - Swing timer events `PLAYER_SWING(duration, swingType)` and `PLAYER_SWING_RANGE_UPDATE`, with `Enum.PlayerSwingType` MainHand 0, OffHand 1, Ranged 2. `C_SwingTimer.IsTargetWithinSwingRange` returns nil to addons. **[dump]** **[web]**
 - Chatify doesn't attach chat message filters by default on Retail and Forever because of these restrictions. **[addon]**
+- A quest Questie links reaches players without it as plain text, `[[34] A Grim Task (304)]`: its own `|Hquestie:` hyperlink doesn't survive the server. **[in-game]** (2026-11-10, Cameron's screenshot of LFG chat) Quest Links turns it into `|Hquest:304:34|h`. Whether clicking a quest link for a quest not in your log shows it on Forever, as on Retail, is **Unverified**.
 
 ## Secure code and Blizzard systems
 

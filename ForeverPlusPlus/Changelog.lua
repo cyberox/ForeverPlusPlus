@@ -20,6 +20,9 @@ ns.changelog = {
                 { L.QUESTITEMSPARKLES_TITLE, "A new module, off by default. Quest items you can pick up "
                     .. "in the world sparkle, so they're easy to spot, and stay that way after you change "
                     .. "your graphics settings." },
+                { L.QUESTLINKS_TITLE, "A new module, off by default. Quests linked in chat by players "
+                    .. "with Questie, which show as plain text like [[34] A Grim Task (304)], become quest "
+                    .. "links you can click to see the quest." },
                 { L.WORLDMAP_TITLE, "Zone Info's panel can have a minus button (Fold Button, off by "
                     .. "default) that folds it down to the zone's name when it covers part of the map, or to "
                     .. "only the button if you pick that, and a plus button to open it again. It can also sit "
