@@ -116,6 +116,16 @@ export("IsModuleEnabled", function(name)
     return module.enabled and true or false
 end)
 
+---The name of the profile this character uses ("Default" until the player makes another one), and
+---how many profiles there are. Nil before READY.
+export("GetProfile", function()
+    if not ns.db then
+        return nil
+    end
+    local Profiles = ns.Profiles
+    return Profiles.Name(Profiles.Current()), Profiles.Count()
+end)
+
 -- The module called `name`, when this client gets it.
 local function findModule(name)
     local module = type(name) == "string" and ns.modules[name]
@@ -779,6 +789,8 @@ end)
 --                     one too high for their skill (listened for only once someone registers)
 --   FLIGHT_STARTED    fromNodeID, toNodeID: a flight took off (while Flight Timer is on)
 --   FLIGHT_ENDED      fromNodeID, toNodeID, seconds: it landed
+--   PROFILE_CHANGED   name: this character switched to another profile, or the one it uses was
+--                     renamed or replaced by an import
 -- What a game event drives (WAYPOINT_CHANGED) is listened to only once someone registers for it.
 
 local listen = {} -- event -> fn that starts listening, run on the first registration
@@ -820,12 +832,16 @@ end
 
 local EVENTS = { READY = true, PRICES_UPDATED = true, UPGRADES_UPDATED = true, MODULE_TOGGLED = true,
     OPTION_CHANGED = true, WAYPOINT_CHANGED = true, GATHERING_NODES_UPDATED = true, GATHERED = true,
-    FLIGHT_STARTED = true, FLIGHT_ENDED = true }
+    FLIGHT_STARTED = true, FLIGHT_ENDED = true, PROFILE_CHANGED = true }
 local callbacks = {} -- event -> owner -> fn
+local profileName -- the profile name PROFILE_CHANGED last told (or READY's), so a rename of another isn't told
 
 ---Calls every function registered for `event`, each wrapped so one failing can't stop the rest.
 ---@param event string
 function API.Fire(event, ...)
+    if event == "READY" then
+        profileName = ns.Profiles.Name(ns.Profiles.Current())
+    end
     local owners = callbacks[event]
     if not owners then
         return
@@ -898,6 +914,14 @@ end)
 ns.Providers.OnChanged("gatheringNodes", ns.Frames.Coalesce(function()
     API.Fire("GATHERING_NODES_UPDATED")
 end, 0.5))
+
+ns.Profiles.OnChanged(function(switched)
+    local name = ns.Profiles.Name(ns.Profiles.Current())
+    if switched or name ~= profileName then
+        profileName = name
+        API.Fire("PROFILE_CHANGED", name)
+    end
+end)
 
 ns.OnModuleChanged(function(name, key)
     local module = ns.modules[name]

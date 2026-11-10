@@ -15,6 +15,8 @@ do
         bob = { class = "MAGE", level = 42, race = "Gnome", guild = "Tinkers", seen = 5000 },
     }
     local moduleChanged -- what Core would call when a module or option changes
+    local profilesChanged -- what Lib/Profiles.lua would call
+    local api
     local gameEvents = {} -- event -> fn, what the API listens to
     local tooltips = {
         title = "Item Tooltips", description = "Tooltip lines.", category = "items", enabled = true,
@@ -27,7 +29,7 @@ do
             { key = "trace", name = "Trace", debug = true },
         },
     }
-    local api = setmetatable({
+    api = setmetatable({
         modules = {
             ItemTooltips = tooltips,
             Gone = { title = "Gone", unavailable = true, defaults = {} },
@@ -42,6 +44,13 @@ do
         On = function(event, fn) gameEvents[event] = fn end,
         OpenSettings = function(name) return name == "ItemTooltips" end,
         Frames = { Coalesce = function(fn) return fn end }, -- runs at once, so tests see each call
+        Profiles = {
+            current = "default", names = { default = "Default", p1 = "Raid", p2 = "Solo" },
+            Current = function() return api.Profiles.current end,
+            Name = function(id) return api.Profiles.names[id] end,
+            Count = function() return 3 end,
+            OnChanged = function(fn) profilesChanged = fn end,
+        },
         Players = {
             Get = function(_, name)
                 return name and seenPlayers[name:lower():match("^[^%-]+")]
@@ -175,6 +184,25 @@ do
     moduleChanged("ItemTooltips", "trace") -- a debug option isn't told
     eq(table.concat(toggled, ","), "ItemTooltips:false", "api: MODULE_TOGGLED")
     eq(table.concat(changed, ","), "ItemTooltips.align=inline", "api: OPTION_CHANGED, not for debug options")
+
+    -- The profile in use, and PROFILE_CHANGED on a switch or its rename, not another's.
+    local savedDB = api.db
+    api.db = nil
+    eq(v1.GetProfile(), nil, "api: no profile before READY")
+    api.db = savedDB or {}
+    local profileName, profileCount = v1.GetProfile()
+    eq(profileName .. "," .. profileCount, "Default,3", "api: the profile in use and how many")
+    local told = {}
+    v1.RegisterCallback("PROFILE_CHANGED", function(_, name) told[#told + 1] = name end)
+    api.API.Fire("READY")
+    api.Profiles.names.p2 = "Solo 2"
+    profilesChanged(false)
+    api.Profiles.current = "p1"
+    profilesChanged(true)
+    api.Profiles.names.p1 = "Raids"
+    profilesChanged(false)
+    eq(table.concat(told, ","), "Raid,Raids", "api: PROFILE_CHANGED")
+    api.db = savedDB
 
     -- Upgrade scores, while Upgrade Arrows offers them.
     C_Item.GetItemInfo = function(id)

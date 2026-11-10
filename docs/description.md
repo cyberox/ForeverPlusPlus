@@ -17,6 +17,8 @@ Forever++ isn't a UI replacement: no new unit frames, action bars, or skins. It 
 
 Open Game Menu > Options > AddOns > Forever++, or type `/fpp`. The Modules page lists every module by category with a checkbox each. Click one to see what it does and its options beside the list. A search box finds a module by its name, description, or options, and the New checkbox shows only what's new since you last looked. A setting you change stays changed, even if a later update changes its default; its undo arrow, or the Defaults button for everything, puts it back. When a module needs one of Blizzard's own settings on, its options say so with a Turn On button.
 
+The Profiles page gives characters sets of settings of their own. Everyone starts on Default, used by every character; make another profile as a copy or from the defaults, pick which one each character uses and which one new characters start on, and switch live, with no reload. A profile holds which modules are on, their settings, where you put Forever++'s frames and windows, and the Minimap Button's quick toggles. Export a profile as a line of text to share or keep, and Import one someone shared.
+
 ## Modules
 
 Everything is on by default except where noted. Each module can be turned off, and most have options.
@@ -132,6 +134,7 @@ Everything is on by default except where noted. Each module can be turned off, a
 - `/fpp options <module>`: Lists a module's options and their values.
 - `/fpp set <module> <option> [value]`: Changes an option: `on`/`off`, a choice such as `/fpp set PlayerNameplates level after`, or a number such as `/fpp set WorldMap dungeonSize 150`. Leave out the value to see the choices.
 - `/fpp reset`: Asks, then puts every setting back to its default, clears what Forever++ saved, and reloads.
+- `/fpp profiles [name]`: Lists the profiles and how many characters use each, or with a name, switches this character to that profile.
 - `/fpp cvar [search]`: Opens Console Variables.
 - `/fpp profile`: Opens the Profiler.
 - `/fpp weights`: Opens Upgrade Arrows' Stat Weights page in Settings (the Modules page while the module is off): Class and Tree dropdowns and a weight slider per stat, for your class or one you'll play later.

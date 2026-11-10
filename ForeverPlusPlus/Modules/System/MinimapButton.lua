@@ -293,6 +293,23 @@ local function offeredLists(byCategory)
     return lists
 end
 
+-- A Profile submenu to switch this character's profile, only once there is more than one.
+local function addProfiles(root)
+    local Profiles = ns.Profiles
+    if Profiles.Count() < 2 then
+        return
+    end
+    root:CreateDivider()
+    local sub = root:CreateButton(format(L.MINIMAPBUTTON_PROFILE, Profiles.Name(Profiles.Current())))
+    for _, id in ipairs(Profiles.List()) do
+        sub:CreateRadio(Profiles.Name(id), function(value)
+            return Profiles.Current() == value
+        end, function(value)
+            Profiles.SwitchAndSay(value)
+        end, id)
+    end
+end
+
 local function quickMenuItems(_, root)
     root:CreateTitle(ns.title)
     local order = module.db.menuOrder
@@ -319,6 +336,7 @@ local function quickMenuItems(_, root)
             end
         end
     end
+    addProfiles(root)
     if not module.db.menuCustomize then
         return
     end

@@ -141,6 +141,8 @@ L.MINIMAPBUTTON_CUSTOMIZE_NAME = "Quick Toggles"
 L.MINIMAPBUTTON_CUSTOMIZE = "Customize"
 L.MINIMAPBUTTON_CUSTOMIZE_DESC = "Pick which modules the button's quick toggles offer, by category."
 L.MINIMAPBUTTON_CUSTOMIZE_OPEN = "Customize..."
+-- The quick toggles' submenu of profiles, with more than one: the profile in use
+L.MINIMAPBUTTON_PROFILE = "Profile: %s"
 L.MINIMAPBUTTON_CUSTOMIZE_OPEN_DESC = "Pick which modules this menu offers, in the Minimap Button's "
     .. "settings."
 L.MINIMAPBUTTON_CUSTOMIZE_RESET = "Reset to Default"

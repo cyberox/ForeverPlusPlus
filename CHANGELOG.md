@@ -15,6 +15,8 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Settings**: click a category in the Modules list to fold it away, and again to open it. It stays folded next time, says NEW while something in it is, and a search still finds what's in it.
 - **Minimap Button**: Customize in Menu (on by default) can take the Customize... line off the bottom of the quick toggles. The Customize button in its settings still picks them.
 - **Error Catcher**: a blocked action says what was going on when it happened: combat, the instance, what the mouse was over, and the menus open. A Taint Log checkbox turns on the game's log of which addon caused it.
+- **Settings**: profiles. A new Profiles page gives characters sets of settings of their own: which modules are on, their settings, where you put frames in Edit Mode and windows with Movable Windows, and the Minimap Button's quick toggles. Everyone starts on Default, as before. Make a profile as a copy or from the defaults, pick which one each character uses and which one new characters start on, and switch live, with no reload. Export a profile as a line of text and Import one someone shared. The Minimap Button's menu has a Profile submenu once there's more than one.
+- **Commands**: `/fpp profiles` lists the profiles, and `/fpp profiles <name>` switches to one.
 
 ### Changed
 

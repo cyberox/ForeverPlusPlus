@@ -157,9 +157,9 @@ Profiles.Replace("default", { Win = { size = 5 } }, { Win = { positions = { B = 
 eq(swaps, 1, "profiles: replacing the profile in use is live")
 eq(ns.db.settings.Win.size .. "," .. ns.db.data.Win.positions.B.x, "5,4", "profiles: Default's contents replaced")
 eq(ns.db.data.Win.positions.Bags, nil, "profiles: its old profile data is gone")
-commands.profile("imported")
-eq(Profiles.Current(), made, "profiles: /fpp profile <name> switches")
+commands.profiles("imported")
+eq(Profiles.Current(), made, "profiles: /fpp profiles <name> switches")
 said = {}
-commands.profile("nothing")
-eq(#said, 1, "profiles: /fpp profile with a name that isn't one says so")
+commands.profiles("nothing")
+eq(#said, 1, "profiles: /fpp profiles with a name that isn't one says so")
 eq(Profiles.UsersText(1) .. "|" .. Profiles.UsersText(3), "1 character|3 characters", "profiles: users text")

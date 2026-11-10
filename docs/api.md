@@ -28,6 +28,7 @@ Colors come back as `r, g, b` (0 to 1) plus a hex string `"ffrrggbb"`, the same 
 | --- | --- |
 | `GetVersion()` | The API version (`1`) and Forever++'s version, such as `"1.0.0"`. |
 | `IsReady()` | Whether saved data has loaded (after `PLAYER_LOGIN`). |
+| `GetProfile()` | The name of the settings profile this character uses (`"Default"` until the player makes another), and how many profiles there are. `nil` before `READY`. Which modules are on and their options follow the profile, so after `PROFILE_CHANGED` read them again. |
 | `IsModuleEnabled(name)` | Whether a module is on, by its internal name (`"ItemTooltips"`, `"ClassColors"`), or `nil` for a name Forever++ doesn't have (or doesn't offer on this client). Use it to skip something Forever++ is already showing. |
 | `GetModules()` | A list of `{ name, title, category, enabled }` for every module this client gets. |
 | `GetModuleInfo(name)` | One module in full: `{ name, title, description, category, enabled, locked, problem, options }`. `locked` is true for a module the game broke, which can't be turned on, so don't send the player to; `problem` is true while it has found it can't work (its name is red in Settings). Each option is `{ key, name, kind, value, default, choices, min, max }`, where `kind` is `"checkbox"`, `"dropdown"` (its `choices` are the values), or `"slider"`. The options are the ones the Modules page shows. |
@@ -166,3 +167,4 @@ FPP.UnregisterCallback("PRICES_UPDATED", myAddon)
 | `GATHERED` | `gather`: the player gathered a herb, vein, chest, or fishing pool (only a real gather, not a failed or interrupted cast), or tried a herb or vein too high for their skill. `gather` is `{ name, kind, skillLine, mapID, x, y, objectID, items, requires }`: where they stood on the zone's map (for a pool, where the line landed), `items` as `{ id, count }` each, and `requires` the skill it takes when it was too high (then `items` is empty). Works whether or not Gathering Map is on. Forever++ only listens for this once something registers for it. |
 | `FLIGHT_STARTED` | `fromNodeID, toNodeID`: a flight took off. While Flight Timer is on. |
 | `FLIGHT_ENDED` | `fromNodeID, toNodeID, seconds`: it landed, and how long it took. |
+| `PROFILE_CHANGED` | `name`: this character switched to another settings profile, or the one it uses was renamed or replaced by an import. Modules the switch turned on or off also fire `MODULE_TOGGLED`; options that changed with it don't fire `OPTION_CHANGED`, so read again what you need. |

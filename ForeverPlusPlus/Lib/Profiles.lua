@@ -594,8 +594,8 @@ function Profiles.SwitchAndSay(id)
     end
 end
 
--- /fpp profile lists them; /fpp profile <name> switches this character to one.
-ns.AddCommand("profile", "[name]", L.SLASH_PROFILE, function(rest)
+-- /fpp profiles lists them; /fpp profiles <name> switches this character to one.
+ns.AddCommand("profiles", "[name]", L.SLASH_PROFILE, function(rest)
     rest = gsub(gsub(rest or "", "^%s+", ""), "%s+$", "")
     if rest ~= "" then
         local id = Profiles.Find(rest)

@@ -103,7 +103,10 @@ local commands, commandOrder = {}, {} -- name -> { usage, description, fn }, and
 ---@param fn fun(rest: string)
 ---@param owner? string a module the command needs: it works and is listed only while that one is on
 function ns.AddCommand(name, usage, description, fn, owner)
-    commands[name] = { usage = usage, description = description, fn = fn, owner = owner }
+    if commands[name] then
+        error("Forever++: /fpp " .. name .. " already exists", 2) -- the later one would hide it
+    end
+    commands[name] ={ usage = usage, description = description, fn = fn, owner = owner }
     commandOrder[#commandOrder + 1] = name
 end
 
