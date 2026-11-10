@@ -34,6 +34,9 @@ ns.changelog = {
                     .. "skill-ups it has left before it turns gray, and the selected recipe says the same "
                     .. "under its name. Pick Gray At to see the skill it turns gray at instead, or turn "
                     .. "either off." },
+                { L.CHANGELOG_SETTINGS, "Click a category in the Modules list to fold it away, and "
+                    .. "again to open it. It stays folded next time, and a search still finds what's "
+                    .. "in it." },
             } },
             { L.CHANGELOG_CHANGED, {
                 { L.WAYPOINTS_TITLE, "The arrow sits a little lower by default, under the Compass Bar. "

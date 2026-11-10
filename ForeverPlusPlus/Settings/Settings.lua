@@ -2,7 +2,7 @@
 -- templates so they look like any other options page. Few entries, so the sidebar stays short:
 --   Forever++        the Modules page: every module (the only place modules turn on and off) in
 --                    a list on the left, with a checkbox each, under a label per
---                    `module.category`. Clicking one shows it on the right: its title, category
+--                    `module.category` that folds its modules away when clicked. Clicking one shows it on the right: its title, category
 --                    and description, its Enabled checkbox, its `notice` (a warning) while that
 --                    applies, then its options (checkboxes, dropdowns and sliders) and buttons
 --                    (from `module.actions`), greyed out while it's off. An option can sit under
@@ -424,6 +424,19 @@ local function anyNew()
         end
     end
     return false
+end
+
+-- Whether the player folded a category of the list, kept for the account. A search or the New
+-- checkbox shows what it finds in a folded one too, so nothing it finds is hidden.
+local function folded(group)
+    local folds = ns.db.foldedCategories
+    return type(folds) == "table" and folds[group] == true and not (filter or newOnly)
+end
+
+local function setFolded(group, fold)
+    local folds = type(ns.db.foldedCategories) == "table" and ns.db.foldedCategories or {}
+    folds[group] = fold or nil
+    ns.db.foldedCategories = next(folds) and folds or nil
 end
 
 -- Whether the search shows a module of `group` (any module, without one).
@@ -1153,8 +1166,13 @@ local function choose(name)
     end
 end
 
--- Shows `name` on the right and scrolls the list to it.
+-- Shows `name` on the right and scrolls the list to it, opening its category if it's folded.
 function selectModule(name)
+    local group = categoryOf(ns.modules[name])
+    if folded(group) then
+        setFolded(group, false)
+        layoutStack(page.list)
+    end
     choose(name)
     scrollTo(page.listScroll, page.list, page.rows[name])
 end
@@ -1253,6 +1271,46 @@ function refreshAll()
     relayout()
 end
 
+-- A category's gold label, with Blizzard's minus and plus button before it: clicking the label
+-- folds its modules away and opens them again. Folded, it says how many modules are in it. While
+-- a search or the New checkbox narrows the list, every category is open and a click does nothing.
+local function newCategoryLabel(group)
+    local label = CreateFrame("Button", nil, page.list)
+    label:SetSize(LIST_WIDTH, 16)
+    local button = label:CreateTexture(nil, "ARTWORK")
+    button:SetSize(14, 14)
+    button:SetPoint("BOTTOMLEFT", 0, 1)
+    local glow = label:CreateTexture(nil, "HIGHLIGHT")
+    glow:SetTexture("Interface\\Buttons\\UI-PlusButton-Hilight")
+    glow:SetBlendMode("ADD")
+    glow:SetAllPoints(button)
+    local text = label:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    text:SetPoint("LEFT", button, "RIGHT", 3, 0)
+    local count = label:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    count:SetPoint("LEFT", text, "RIGHT", 4, 0)
+    text:SetText(CATEGORY_NAMES[group])
+    local total = 0
+    for _, name in ipairs(listed) do
+        if categoryOf(ns.modules[name]) == group then
+            total = total + 1
+        end
+    end
+    function label.draw()
+        local fold = folded(group)
+        button:SetTexture("Interface\\Buttons\\UI-" .. (fold and "Plus" or "Minus") .. "Button-Up")
+        button:SetDesaturated((filter or newOnly) and true or false)
+        count:SetText(fold and format("(%d)", total) or "")
+    end
+    label:SetScript("OnClick", function()
+        if filter or newOnly then
+            return
+        end
+        setFolded(group, not folded(group))
+        relayout()
+    end)
+    return label
+end
+
 -- The Modules page's search: the list narrows to the modules whose title or description has the
 -- text, or an option's name or description, and those options are highlighted on the right.
 local function searchModules(text)
@@ -1346,15 +1404,14 @@ local function buildModules(frame)
         local current = categoryOf(ns.modules[name])
         if current ~= group then
             group = current
-            local label = CreateFrame("Frame", nil, page.list)
-            label:SetSize(LIST_WIDTH, 16)
-            local text = label:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-            text:SetPoint("BOTTOMLEFT", 2, 2)
-            text:SetText(CATEGORY_NAMES[current])
-            addEntry(page.list, label, function() return anyMatch(current) end, 12)
+            local label = newCategoryLabel(current)
+            addEntry(page.list, label, function()
+                label.draw()
+                return anyMatch(current)
+            end, 12)
         end
         page.rows[name] = newListRow(name)
-        addEntry(page.list, page.rows[name], function() return matches(name) end)
+        addEntry(page.list, page.rows[name], function() return matches(name) and not folded(current) end)
     end
 
     -- Opens on the module ns.OpenSettings asked for, or the first with a new option to see, or

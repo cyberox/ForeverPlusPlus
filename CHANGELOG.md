@@ -11,6 +11,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **World Map**: Zone Info's panel can have a minus button (Fold Button, off by default) that folds it down to the zone's name when it covers part of the map, or to only the button if you pick that, and a plus button to open it again. It can also sit in the middle of any edge of the map, not only a corner, and has an Opacity slider.
 - **Forever Quest Icons**: more icons: the blue Forever medallion from the login screen, a WoW coin, and a star, beside the infinity sign and the Forever logo, which a new Color option turns gold or blue. The Forever logo in blue is now the default, a little bigger in the quest log and the objective tracker, and sits level with the tracker's text. Each icon is cut to its art, so the Forever logo no longer makes a quest giver's rows taller.
 - **Recipe Colors**: Each recipe that can still raise your skill shows how many skill-ups it has left before it turns gray, and the selected recipe says the same under its name. Pick Gray At to see the skill it turns gray at instead, or turn either off.
+- **Settings**: click a category in the Modules list to fold it away, and again to open it. It stays folded next time, and a search still finds what's in it.
 
 ### Changed
 
