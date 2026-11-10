@@ -37,6 +37,9 @@ ns.changelog = {
                 { L.CHANGELOG_SETTINGS, "Click a category in the Modules list to fold it away, and "
                     .. "again to open it. It stays folded next time, and a search still finds what's "
                     .. "in it." },
+                { L.MINIMAPBUTTON_TITLE, "Customize in Menu (on by default) can take the Customize... "
+                    .. "line off the bottom of the quick toggles. The Customize button in its settings "
+                    .. "still picks them." },
             } },
             { L.CHANGELOG_CHANGED, {
                 { L.WAYPOINTS_TITLE, "The arrow sits a little lower by default, under the Compass Bar. "

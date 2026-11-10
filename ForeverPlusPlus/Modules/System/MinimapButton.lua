@@ -33,6 +33,7 @@ local module = ns.NewModule("MinimapButton", L.MINIMAPBUTTON_DESC, {
     keysLeftClick = true, -- with Swap Clicks, the error keys stay on a click
     menuSide = "auto", -- the quick toggles at the cursor as Blizzard opens them, or left or right
     menuOrder = "groups", -- the quick toggles by what you're doing, by category, or A to Z
+    menuCustomize = true, -- Customize... at the bottom of the quick toggles
     -- Keys held with a click, while Error Catcher is on.
     errorsKey = "shift", -- shows the errors
     clearModifier = "ctrl", -- clears this session's errors
@@ -315,6 +316,9 @@ local function quickMenuItems(_, root)
                 addKinds(root)
             end
         end
+    end
+    if not module.db.menuCustomize then
+        return
     end
     root:CreateDivider()
     local customize = root:CreateButton(L.MINIMAPBUTTON_CUSTOMIZE_OPEN, function()
@@ -708,6 +712,12 @@ module.options = {
             { "title", L.MINIMAPBUTTON_MENU_ORDER_TITLE },
         },
         added = "1.4.0",
+    },
+    {
+        key = "menuCustomize",
+        name = L.MINIMAPBUTTON_MENU_CUSTOMIZE,
+        description = L.MINIMAPBUTTON_MENU_CUSTOMIZE_DESC,
+        added = "1.5.0",
     },
     Keys.Option("errorsKey", L.MINIMAPBUTTON_ERRORS_KEY, L.MINIMAPBUTTON_ERRORS_KEY_DESC),
     -- Changed: a click instead of a right-click, and Shift is a choice.

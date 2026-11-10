@@ -12,6 +12,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Forever Quest Icons**: more icons: the blue Forever medallion from the login screen, a WoW coin, and a star, beside the infinity sign and the Forever logo, which a new Color option turns gold or blue. The Forever logo in blue is now the default, a little bigger in the quest log and the objective tracker, and sits level with the tracker's text. Each icon is cut to its art, so the Forever logo no longer makes a quest giver's rows taller.
 - **Recipe Colors**: Each recipe that can still raise your skill shows how many skill-ups it has left before it turns gray, and the selected recipe says the same under its name. Pick Gray At to see the skill it turns gray at instead, or turn either off.
 - **Settings**: click a category in the Modules list to fold it away, and again to open it. It stays folded next time, and a search still finds what's in it.
+- **Minimap Button**: Customize in Menu (on by default) can take the Customize... line off the bottom of the quick toggles. The Customize button in its settings still picks them.
 
 ### Changed
 
