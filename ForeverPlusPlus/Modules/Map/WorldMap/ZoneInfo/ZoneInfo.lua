@@ -569,11 +569,10 @@ local function draw(mapID)
     -- In a right corner the text lines up on the right, and a later row of a list is set in from
     -- there, past where the icon is.
     local side = onRight() and "RIGHT" or "LEFT"
-    -- The button is always at the right: after the title, or in a right corner at the edge the
-    -- panel is anchored to, so folding doesn't move it. There the title starts left of it.
-    local titleInset = side == "RIGHT" and beside or 0
+    -- The button sits at the edge the panel is anchored to, so folding doesn't move it, and the
+    -- title starts past it.
     panel.title:ClearAllPoints()
-    panel.title:SetPoint("TOP" .. side, side == "RIGHT" and -(PADDING + titleInset) or PADDING,
+    panel.title:SetPoint("TOP" .. side, side == "RIGHT" and -(PADDING + beside) or PADDING + beside,
         -PADDING)
     panel.title:SetJustifyH(side)
     local titleHeight = panel.title:GetStringHeight()
@@ -581,9 +580,10 @@ local function draw(mapID)
     foldLook(folded)
     local fold = panel.fold
     fold:ClearAllPoints()
-    fold:SetPoint("RIGHT", panel, "TOPRIGHT", -(PADDING - 2), -(PADDING + titleHeight / 2))
+    fold:SetPoint(side, panel, "TOP" .. side, side == "RIGHT" and -(PADDING - 2) or PADDING - 2,
+        -(PADDING + titleHeight / 2))
     -- The first row lines up with the panel's edge, not the title set in from it.
-    local above, aboveIndent = panel.title, titleInset
+    local above, aboveIndent = panel.title, beside
     for i, row in ipairs(panel.rows) do
         local entry = list[i]
         if entry then
