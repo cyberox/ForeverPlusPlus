@@ -20,10 +20,10 @@ ns.changelog = {
                 { L.QUESTITEMSPARKLES_TITLE, "A new module, off by default. Quest items you can pick up "
                     .. "in the world sparkle, so they're easy to spot, and stay that way after you change "
                     .. "your graphics settings." },
-                { L.WORLDMAP_TITLE, "Zone Info's panel has a minus button that folds it down to the "
-                    .. "zone's name when it covers part of the map, or to only the button if you pick that, "
-                    .. "and a plus button to open it again. It can also sit in the middle of any edge of the "
-                    .. "map, not only a corner, and has an Opacity slider." },
+                { L.WORLDMAP_TITLE, "Zone Info's panel can have a minus button (Fold Button, off by "
+                    .. "default) that folds it down to the zone's name when it covers part of the map, or to "
+                    .. "only the button if you pick that, and a plus button to open it again. It can also sit "
+                    .. "in the middle of any edge of the map, not only a corner, and has an Opacity slider." },
                 { L.RECIPECOLORS_TITLE, "Each recipe that can still raise your skill shows how many "
                     .. "skill-ups it has left before it turns gray, and the selected recipe says the same "
                     .. "under its name. Pick Gray At to see the skill it turns gray at instead, or turn "

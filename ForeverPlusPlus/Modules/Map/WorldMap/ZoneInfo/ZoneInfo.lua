@@ -30,6 +30,7 @@ local module = ns.modules.WorldMap:NewPart({
 }, {
     corner = "BOTTOMLEFT", -- a corner, or the middle of an edge ("TOP", "LEFT", ...)
     opacity = 100,
+    foldButton = false, -- the minus and plus button; without it the panel is always open
     foldTo = "title", -- what the minus button leaves: "title" (name and levels) or "button"
     hover = true, -- on continent maps, the zone under the cursor
     hideLabel = true, -- and then the map's own zone name at the top, which says the same
@@ -88,12 +89,16 @@ module:AddOptions({
         min = 20, max = 100, step = 5, format = "%d%%", section = GENERAL, added = "1.5.0",
     },
     {
+        key = "foldButton", name = L.ZONEINFO_FOLD_BUTTON_SHOW,
+        description = L.ZONEINFO_FOLD_BUTTON_SHOW_DESC, section = GENERAL, added = "1.5.0",
+    },
+    {
         key = "foldTo", name = L.ZONEINFO_FOLD_TO, description = L.ZONEINFO_FOLD_TO_DESC,
         choices = {
             { "title", L.ZONEINFO_FOLD_TITLE },
             { "button", L.ZONEINFO_FOLD_BUTTON },
         },
-        section = GENERAL, added = "1.5.0",
+        requires = "foldButton", section = GENERAL, added = "1.5.0",
     },
     { key = "hover", name = L.ZONEINFO_HOVER, description = L.ZONEINFO_HOVER_DESC, section = GENERAL },
     {
@@ -518,7 +523,11 @@ local function draw(mapID)
         return
     end
     panel:SetAlpha(module.db.opacity / 100)
-    local folded = module.db.folded
+    -- With the button hidden the panel can't be opened again, so it shows open, keeping the fold
+    -- for when the button comes back.
+    local hasButton = module.db.foldButton
+    local folded = hasButton and module.db.folded
+    panel.fold:SetShown(hasButton)
     -- Folded to only the button: a small box around the plus, with no text.
     if folded and module.db.foldTo == "button" then
         panel.title:SetText("")
@@ -548,7 +557,7 @@ local function draw(mapID)
     local list = folded and {} or rows(zone, low, high)
     -- As wide as the longest line, up to MAX_WIDTH; longer lines wrap. The title leaves room for
     -- the button beside it.
-    local beside = BUTTON + BUTTON_GAP
+    local beside = hasButton and BUTTON + BUTTON_GAP or 0
     panel.title:SetWidth(0)
     panel.title:SetText(title)
     local width = textWidth(panel.title) + beside
