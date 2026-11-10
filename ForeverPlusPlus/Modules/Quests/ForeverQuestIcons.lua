@@ -27,7 +27,7 @@ local module = ns.NewModule("ForeverQuestIcons", L.FOREVERQUESTICONS_DESC, {
     color = "blue", -- a key of COLORS, for an icon that takes one
     -- Icon size in each place, in percent, picked by eye in game.
     logSize = 100,
-    trackerSize = 110,
+    trackerSize = 100,
     giversSize = 80,
     -- The details title's font is larger, so a smaller share keeps the icon near the lists' size.
     detailsSize = 60,
@@ -139,7 +139,12 @@ local function source(icon)
         info.topTexCoord + t * height, info.topTexCoord + b * height
 end
 
-local function iconFor(fontString, percent)
+-- How far to raise the icon in a place, as a share of the font's size. The game centers it on
+-- the whole line, descenders included, so in the tracker it sat about 2 px below the letters'
+-- middle (measured on a screenshot, 2026-11-10).
+local LIFT = { tracker = 0.15 }
+
+local function iconFor(fontString, percent, place)
     local icon = ICONS[module.db.icon] or ICONS.medallion
     local file, l, r, t, b = source(icon)
     if not file then
@@ -147,11 +152,13 @@ local function iconFor(fontString, percent)
         icon = ICONS.medallion
         file, l, r, t, b = source(icon)
     end
-    local _, size = fontString:GetFont()
-    size = (size or 12) * (percent or 100) / 100
+    local _, fontSize = fontString:GetFont()
+    fontSize = fontSize or 12
+    local size = fontSize * (percent or 100) / 100
     local height = floor(size * icon.height + 0.5)
     local width = floor(height * icon.aspect + 0.5)
-    local markup = format("|T%s:%d:%d:0:0:%d:%d:%d:%d:%d:%d", file, height, width, TEXELS, TEXELS,
+    local lift = floor(fontSize * (LIFT[place] or 0) + 0.5)
+    local markup = format("|T%s:%d:%d:0:%d:%d:%d:%d:%d:%d:%d", file, height, width, lift, TEXELS, TEXELS,
         floor(l * TEXELS + 0.5), floor(r * TEXELS + 0.5), floor(t * TEXELS + 0.5),
         floor(b * TEXELS + 0.5))
     local color = icon.tint and COLORS[module.db.color]
@@ -194,7 +201,7 @@ local function mark(fontString, questID, place)
     text = plain(fontString, text)
     local db = module.db
     local icon = module.enabled and db[place] and isNew(questID)
-        and iconFor(fontString, db[place .. "Size"])
+        and iconFor(fontString, db[place .. "Size"], place)
     local suffix = icon and " " .. icon or nil
     local wanted = suffix and text .. suffix or text
     if wanted ~= fontString:GetText() then

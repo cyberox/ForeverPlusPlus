@@ -27,7 +27,8 @@ ns.changelog = {
                 { L.FOREVERQUESTICONS_TITLE, "More icons: the blue Forever medallion from the login "
                     .. "screen, a WoW coin, and a star, beside the infinity sign and the Forever logo, "
                     .. "which a new Color option turns gold or blue. The Forever logo in blue is now the "
-                    .. "default, a little bigger in the quest log and the objective tracker. Each icon is "
+                    .. "default, a little bigger in the quest log and the objective tracker, and sits level with "
+                    .. "the tracker's text. Each icon is "
                     .. "cut to its art, so the Forever logo no longer makes a quest giver's rows taller." },
                 { L.RECIPECOLORS_TITLE, "Each recipe that can still raise your skill shows how many "
                     .. "skill-ups it has left before it turns gray, and the selected recipe says the same "
