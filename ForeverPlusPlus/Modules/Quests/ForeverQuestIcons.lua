@@ -139,10 +139,10 @@ local function source(icon)
         info.topTexCoord + t * height, info.topTexCoord + b * height
 end
 
--- How far to raise the icon in a place, as a share of the font's size. The game centers it on
--- the whole line, descenders included, so in the tracker it sat about 2 px below the letters'
--- middle (measured on a screenshot, 2026-11-10).
-local LIFT = { tracker = 0.15 }
+-- How far to raise the icon in a place (lower, when negative), as a share of the font's size, so
+-- its middle meets the letters'. Measured on screenshots, 2026-11-10: in the tracker it sat about
+-- 2 px low, in a quest giver's list about 1 px high.
+local LIFT = { tracker = 0.15, givers = -0.08 }
 
 local function iconFor(fontString, percent, place)
     local icon = ICONS[module.db.icon] or ICONS.medallion
