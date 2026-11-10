@@ -152,6 +152,8 @@ L.ZONEINFO_DUNGEONS_DESC = "The dungeons and raids whose entrance is in the zone
     .. "range colored against yours."
 L.ZONEINFO_SIZE = "Size"
 L.ZONEINFO_SIZE_DESC = "How big the panel is, compared with its normal size."
+L.ZONEINFO_FOLD = "Show Less"
+L.ZONEINFO_UNFOLD = "Show More"
 L.ZONEINFO_TITLE_LEVELS = "%s  %s" -- zone, its levels ("10-20")
 L.ZONEINFO_RANGE = "%s-%s" -- lowest, highest
 L.ZONEINFO_SKILL = "%s %s" -- profession, skill needed ("Fishing 55")
@@ -410,8 +412,8 @@ L.GATHERINGMAP_ONLY_MINE = "Only My Professions"
 L.GATHERINGMAP_ONLY_MINE_DESC = "Show herbs only on a character with Herbalism, ore only with Mining, "
     .. "and fishing pools only with Fishing. Chests show for everyone."
 L.GATHERINGMAP_ONLY_TRACKING = "Only While Tracking"
-L.GATHERINGMAP_ONLY_TRACKING_DESC = "Show herbs only while Find Herbs is on, and ore only while Find "
-    .. "Minerals is on."
+L.GATHERINGMAP_ONLY_TRACKING_DESC = "On the minimap, show herbs only while Find Herbs is on, and ore "
+    .. "only while Find Minerals is on. The world map shows them either way."
 L.GATHERINGMAP_EXPORT = "Share Nodes"
 L.GATHERINGMAP_EXPORT_BUTTON = "Export"
 L.GATHERINGMAP_EXPORT_DESC = "Every node remembered, as a line of text to copy and give to someone "

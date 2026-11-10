@@ -17,10 +17,18 @@ ns.changelog = {
                     .. "screen with your selected quest, map pin, corpse, and group on it in the direction "
                     .. "they are, and how far away. Every quest on the map, flight masters, gathering "
                     .. "nodes, and rares can go on it too. Set its size in Edit Mode." },
+                { L.QUESTITEMSPARKLES_TITLE, "A new module, off by default. Quest items you can pick up "
+                    .. "in the world sparkle, so they're easy to spot, and stay that way after you change "
+                    .. "your graphics settings." },
+                { L.WORLDMAP_TITLE, "Zone Info's panel has a minus button that folds it down to the "
+                    .. "zone's name when it covers part of the map, and a plus button to open it again." },
             } },
             { L.CHANGELOG_CHANGED, {
                 { L.WAYPOINTS_TITLE, "The arrow sits a little lower by default, under the Compass Bar. "
                     .. "If you moved it in Edit Mode, it stays where you put it." },
+                { L.GATHERINGMAP_TITLE, "Only While Tracking hides herbs and ore on the minimap only. "
+                    .. "The game turns tracking off when you log out or die, which made your remembered "
+                    .. "nodes look gone from the world map until you turned it back on." },
             } },
         },
     },

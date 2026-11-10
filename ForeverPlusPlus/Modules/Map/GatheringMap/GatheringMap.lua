@@ -168,7 +168,7 @@ module.options = {
     },
     {
         key = "onlyTracking", name = L.GATHERINGMAP_ONLY_TRACKING, description = L.GATHERINGMAP_ONLY_TRACKING_DESC,
-        section = L.GATHERINGMAP_SECTION_GENERAL,
+        section = L.GATHERINGMAP_SECTION_GENERAL, changed = "1.5.0", -- the minimap only
     },
     skillOption("tooHigh", L.GATHERINGMAP_TOO_HIGH, L.GATHERINGMAP_TOO_HIGH_DESC),
     skillOption("trivial", L.GATHERINGMAP_TRIVIAL, L.GATHERINGMAP_TRIVIAL_DESC),
@@ -630,7 +630,7 @@ local TRACKED = { herb = true, ore = true }
 ---Whether a node is shown on the world map ("world") or the minimap ("minimap"): not while this
 ---character turned it or its kind off (the Gathering Map page), or turned it off on that map; with
 ---Only My Professions, only while this character has the skill that gathers it; and with Only
----While Tracking, only while its tracking is on.
+---While Tracking, on the minimap only while its tracking is on.
 ---@param node table
 ---@param where "world"|"minimap"
 ---@return boolean
@@ -650,7 +650,9 @@ function internal.Shown(node, where)
             return false
         end
     end
-    if db.onlyTracking and TRACKED[kind] and not tracking[kind] then
+    -- The minimap only, beside the game's own tracking dots: the game turns tracking off at logout
+    -- and death, and the world map is for planning, so remembered nodes stay there.
+    if db.onlyTracking and where == "minimap" and TRACKED[kind] and not tracking[kind] then
         return false
     end
     if internal.JustLook(where) == "hide" and internal.JustGathered(node) then

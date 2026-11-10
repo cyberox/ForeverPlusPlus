@@ -138,3 +138,11 @@ L.QUESTNAMEPLATES_TEST = "Test Quest Icons"
 L.QUESTNAMEPLATES_TEST_DESC = "Show made-up quest progress on every creature's nameplate, a "
     .. "different kind on each, to see how they look without the quests."
 L.QUESTNAMEPLATES_PART_SCAN = "reading unit tooltips" -- its row on the Profiler page
+
+-- Quest Item Sparkles
+L.QUESTITEMSPARKLES_TITLE = "Quest Item Sparkles"
+L.QUESTITEMSPARKLES_DESC = "Make quest items you can pick up in the world sparkle, so they're easy "
+    .. "to spot. Keeps the game's own setting for it on, even after you change your graphics settings."
+L.QUESTITEMSPARKLES_NOTICE = "Turning it off takes a restart of the game."
+L.QUESTITEMSPARKLES_NOTICE_DESC = "The game keeps drawing the sparkle until it restarts, even after "
+    .. "your own setting is back. A /reload isn't enough."

@@ -41,6 +41,7 @@ local module = ns.modules.WorldMap:NewPart({
     ore = "known",
     skinning = "known",
     scale = 100, -- percent of the panel's normal size
+    folded = false, -- down to its title, from the panel's minus button; not an option
 })
 
 -- What a line can be: never, always, or only while holding the detail key, and for professions
@@ -130,6 +131,8 @@ local INDENT = ICON_SIZE + 4 -- a list's later rows start under its names, past 
 local SECTION_GAP = 7 -- above the instances, to set them apart
 local PER_ROW = 4 -- the most herbs or ores on a row
 local THROTTLE = 0.1 -- seconds between looks at where the cursor is
+local BUTTON = 14 -- the minus and plus button, pixels
+local BUTTON_GAP = 6 -- between the title and the button
 
 local colored = ns.Colors.Text
 
@@ -386,6 +389,17 @@ end
 local panel, driver
 local shownHeld -- whether the detail key was held then
 local shown -- the zone the panel shows now, or false for none; nil to draw again
+local toggleFolded -- the minus and plus button's click, set once draw is
+
+local function foldTip(button)
+    GameTooltip:SetOwner(button, "ANCHOR_RIGHT")
+    GameTooltip:SetText(module.db.folded and L.ZONEINFO_UNFOLD or L.ZONEINFO_FOLD, 1, 1, 1)
+    GameTooltip:Show()
+end
+
+local function hideTip()
+    GameTooltip:Hide()
+end
 
 -- A tooltip's look, which Blizzard uses for small boxes over the map.
 local function newPanel(parent)
@@ -395,6 +409,18 @@ local function newPanel(parent)
     -- The fonts of a GameTooltip: a white title, white rows.
     frame.title = frame:CreateFontString(nil, "OVERLAY", "GameTooltipHeaderText")
     frame.rows = {}
+    -- Blizzard's minus and plus buttons, folding the panel down to its title and out again, for
+    -- when it covers part of the map. The rest of the panel lets the mouse through.
+    local fold = CreateFrame("Button", nil, frame)
+    fold:SetSize(BUTTON, BUTTON)
+    fold:SetHighlightTexture("Interface\\Buttons\\UI-PlusButton-Hilight", "ADD")
+    fold:SetScript("OnClick", function(self)
+        toggleFolded()
+        foldTip(self)
+    end)
+    fold:SetScript("OnEnter", foldTip)
+    fold:SetScript("OnLeave", hideTip)
+    frame.fold = fold
     frame:Hide()
     return frame
 end
@@ -476,11 +502,14 @@ local function draw(mapID)
     if module.db.levels and low then
         title = format(L.ZONEINFO_TITLE_LEVELS, title, levelText(low, high))
     end
-    local list = rows(zone, low, high)
-    -- As wide as the longest line, up to MAX_WIDTH; longer lines wrap.
+    local folded = module.db.folded
+    local list = folded and {} or rows(zone, low, high)
+    -- As wide as the longest line, up to MAX_WIDTH; longer lines wrap. The title leaves room for
+    -- the button beside it.
+    local beside = BUTTON + BUTTON_GAP
     panel.title:SetWidth(0)
     panel.title:SetText(title)
-    local width = textWidth(panel.title)
+    local width = textWidth(panel.title) + beside
     for i = #panel.rows + 1, #list do
         rowAt(i)
     end
@@ -494,14 +523,24 @@ local function draw(mapID)
         end
     end
     width = min(width, MAX_WIDTH)
-    panel.title:SetWidth(width)
+    panel.title:SetWidth(width - beside)
     -- In a right corner the text lines up on the right, and a later row of a list is set in from
     -- there, past where the icon is.
     local side = onRight() and "RIGHT" or "LEFT"
     panel.title:ClearAllPoints()
     panel.title:SetPoint("TOP" .. side, side == "RIGHT" and -PADDING or PADDING, -PADDING)
     panel.title:SetJustifyH(side)
-    local height = PADDING * 2 + panel.title:GetStringHeight()
+    local titleHeight = panel.title:GetStringHeight()
+    local height = PADDING * 2 + titleHeight
+    -- The button at the title's other end: a minus while the rows show, a plus while folded.
+    local other = side == "RIGHT" and "LEFT" or "RIGHT"
+    local look = folded and "Plus" or "Minus"
+    local fold = panel.fold
+    fold:SetNormalTexture("Interface\\Buttons\\UI-" .. look .. "Button-Up")
+    fold:SetPushedTexture("Interface\\Buttons\\UI-" .. look .. "Button-Down")
+    fold:ClearAllPoints()
+    fold:SetPoint(other, panel, "TOP" .. other, other == "RIGHT" and -(PADDING - 2) or PADDING - 2,
+        -(PADDING + titleHeight / 2))
     local above, aboveIndent = panel.title, 0
     for i, row in ipairs(panel.rows) do
         local entry = list[i]
@@ -520,6 +559,11 @@ local function draw(mapID)
     end
     panel:SetSize(width + PADDING * 2, height)
     panel:Show()
+end
+
+toggleFolded = function()
+    module.db.folded = not module.db.folded
+    draw(shown or nil)
 end
 
 -- Blizzard's zone name ------------------------------------------------------------------------
