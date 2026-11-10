@@ -215,6 +215,25 @@ L.PROFILES_NOTE = "A profile is which modules are on, their settings, where you 
     .. "frames in Edit Mode and windows with Movable Windows, and the Minimap Button's quick toggles. "
     .. "Auction prices, gathering nodes, players seen, and what each character keeps of its own, "
     .. "such as talent plans, aren't part of it."
+L.PROFILES_SHARE = "Share"
+L.PROFILES_EXPORT = "Export"
+L.PROFILES_EXPORT_DESC = "Shows %s as a line of text to copy and send to someone, or to keep as a "
+    .. "backup." -- profile
+L.PROFILES_EXPORT_ASK = "%s as text. Copy it with Ctrl+C and send it to someone, or keep it as a "
+    .. "backup." -- profile
+L.PROFILES_IMPORT = "Import"
+L.PROFILES_IMPORT_DESC = "Paste a profile someone exported, as a new profile or over %s." -- profile
+L.PROFILES_IMPORT_ASK = "Paste a profile someone exported, with Ctrl+V."
+-- What the pasted text holds: name, Forever++ version, modules on, settings changed
+L.PROFILES_IMPORT_FOUND = "%s, made with Forever++ %s.\n%d modules on, %d settings changed from "
+    .. "their defaults."
+L.PROFILES_IMPORT_NEW = "Import as New"
+L.PROFILES_IMPORT_REPLACE = "Replace %s" -- the selected profile
+L.PROFILES_IMPORT_BAD = "That isn't a Forever++ profile. Copy the whole line and paste it again."
+L.PROFILES_IMPORT_CANT = "This client can't read compressed profiles."
+L.PROFILES_IMPORT_NEWER = "That profile is from a newer Forever++. Update to import it."
+L.PROFILES_IMPORTED = "Imported Profile" -- the name of an import whose own name is empty
+L.PROFILES_IMPORT_DONE = "Imported %s." -- profile
 L.PROFILES_MODULES_NOTE = "Profile: %s" -- beside the Modules page's title, with more than one
 L.DEFAULTS_ASK_PROFILE = "Put the %s profile's Forever++ settings back to defaults? Every character "
     .. "using it changes too. The rest of the game's settings stay as they are." -- profile

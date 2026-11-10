@@ -122,6 +122,33 @@ local function newProfile()
     end)
 end
 
+-- Import: paste, see what it holds, then add it as a new profile or put it over the selected one.
+local function importProfile()
+    local into = selectedID
+    ns.Prompt("PROFILES_IMPORT", L.PROFILES_IMPORT_ASK, "", function(text)
+        local profile, why = ns.ProfileShare.Import(text)
+        if not profile then
+            ns.Print(why)
+            return
+        end
+        local intoName = Profiles.Name(into) or L.PROFILES_DEFAULT
+        ns.ConfirmChoice("PROFILES_IMPORT_AS", format(L.PROFILES_IMPORT_FOUND, profile.name,
+            profile.addon, profile.modulesOn, profile.changed), L.PROFILES_IMPORT_NEW, function()
+            local id, reason = Profiles.CreateFrom(Profiles.FreeName(profile.name), profile.settings,
+                profile.data)
+            if not id then
+                ns.Print(reason)
+                return
+            end
+            selectedID = id
+            ns.Print(format(L.PROFILES_IMPORT_DONE, Profiles.Name(id)))
+            draw()
+        end, format(L.PROFILES_IMPORT_REPLACE, intoName), function()
+            switched(Profiles.Replace(into, profile.settings, profile.data), into)
+        end)
+    end, true)
+end
+
 -- One profile's row in the list: a mark on this character's, its name, and how many use it.
 local function newListRow(list)
     local row = Kit.NewListButton(list, function() return false end)
@@ -412,9 +439,18 @@ function S.BuildProfiles(frame)
     page.characters:SetSize(width, 1)
     Kit.AddEntry(stack, page.characters, nil, 2)
 
-    if S.AddProfileShare then
-        S.AddProfileShare(stack, width, function() return selectedID end)
-    end
+    Kit.AddEntry(stack, newHeader(stack, width, L.PROFILES_SHARE), nil, 10)
+    Kit.AddEntry(stack, newButtonRow(stack, width, {
+        { text = L.PROFILES_EXPORT, fn = function()
+            ns.Prompt("PROFILES_EXPORT", format(L.PROFILES_EXPORT_ASK, selectedName()),
+                ns.ProfileShare.Export(selectedID), nil, true)
+        end, tooltip = function()
+            return L.PROFILES_EXPORT, format(L.PROFILES_EXPORT_DESC, selectedName())
+        end },
+        { text = L.PROFILES_IMPORT, fn = importProfile, tooltip = function()
+            return L.PROFILES_IMPORT, format(L.PROFILES_IMPORT_DESC, selectedName())
+        end },
+    }), nil, 8)
 
     local note = newText(stack, width, "GameFontDisableSmall")
     note:Set(L.PROFILES_NOTE)

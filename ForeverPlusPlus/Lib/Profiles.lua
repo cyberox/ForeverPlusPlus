@@ -180,6 +180,23 @@ local function checkName(name, except)
 end
 Profiles.CheckName = checkName
 
+---A name no profile has yet: `name` cleaned, or with " 2", " 3" after it when that's taken.
+---@param name string
+---@return string
+function Profiles.FreeName(name)
+    local clean = Profiles.CleanName(name)
+    if clean == "" then
+        clean = L.PROFILES_IMPORTED
+    end
+    local try, n = clean, 1
+    while Profiles.Find(try) do
+        n = n + 1
+        local suffix = " " .. n
+        try = gsub(sub(clean, 1, Profiles.MAX_NAME - #suffix), "%s+$", "") .. suffix
+    end
+    return try
+end
+
 -- What a profile holds, as plain tables: its settings, and its profile data by module and key.
 -- Default's profile data is in the account's data, beside the account's own.
 local function contents(id)

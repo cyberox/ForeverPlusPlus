@@ -23,6 +23,7 @@ Locales\enUS\Map.lua
 Locales\enUS\Tools.lua
 Lib\Store.lua
 Lib\Profiles.lua
+Lib\ProfileShare.lua
 Lib\Profiler.lua
 Lib\Secret.lua
 Lib\Colors.lua

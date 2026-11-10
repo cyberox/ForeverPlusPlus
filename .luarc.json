@@ -49,6 +49,7 @@
     "C_XMLUtil",
     "C_NamePlate",
     "C_CurveUtil",
+    "C_EncodingUtil",
     "Enum",
     "issecretvalue",
     "UnitHealth",
