@@ -82,7 +82,7 @@ module.options = {
 
 -- Data ---------------------------------------------------------------------------------------
 -- The skill each gathers at, from Classic. Forever may change some; fix them here. Herbs and
--- veins are in Lib/Professions, which Minimap Node Icons shares and which learns them in game.
+-- veins are in Lib/Professions, which Gathering Map shares and which learns them in game.
 
 local NODES = setmetatable({ -- object name -> { skill line, skill }
     -- Locked chests in the world; add more (and doors) here as they're confirmed in game.

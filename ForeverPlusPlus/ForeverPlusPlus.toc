@@ -172,11 +172,6 @@ Modules\Map\HideFilterReset.lua
 Modules\Map\SquareMinimap.lua
 Modules\Map\Waypoints.lua
 Modules\Map\CompassBar.lua
-Modules\Map\MinimapNodeIcons\MinimapNodeIcons.lua
-Modules\Map\MinimapNodeIcons\Probe.lua
-Modules\Map\MinimapNodeIcons\Nodes.lua
-Modules\Map\MinimapNodeIcons\Learn.lua
-Modules\Map\MinimapNodeIcons\Report.lua
 Modules\Map\GatheringMap\GatheringMap.lua
 Modules\Map\GatheringMap\Map.lua
 Modules\Map\GatheringMap\Minimap.lua

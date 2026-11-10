@@ -38,6 +38,13 @@ ns.changelog = {
                     .. "group you're typing to, as chat does, instead of its full name. Trade (Services) "
                     .. "shortens to TS instead of T(S." },
             } },
+            { L.CHANGELOG_REMOVED, {
+                { L.MINIMAPNODEICONS_TITLE, "Removed. It's been turned off since the game's update of "
+                    .. "November 7, when the minimap stopped saying what's on it unless you point at it "
+                    .. "yourself. Gathering Map still remembers every node you gather and shows it on the "
+                    .. "minimap, and its settings now have the Clear button for the herbs and veins "
+                    .. "learned in game." },
+            } },
         },
     },
     {

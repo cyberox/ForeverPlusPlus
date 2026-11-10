@@ -321,95 +321,8 @@ L.WAYPOINTS_NO_MAP = "There's no map here. Name a zone: /way Elwynn Forest 45 67
 L.WAYPOINTS_NOT_HERE = "Can't put a waypoint on the %s map." -- zone
 L.WAYPOINTS_UNAVAILABLE = "This client has no map waypoints."
 
--- MinimapNodeIcons
+-- MinimapNodeIcons, removed after 1.4.0: its title stays for its notes in the changelog.
 L.MINIMAPNODEICONS_TITLE = "Minimap Node Icons"
-L.MINIMAPNODEICONS_DESC = "Put the herb's or ore's own icon on each tracking dot on the minimap "
-    .. "while Find Herbs or Find Minerals is on. A node it doesn't know gets its icon once you "
-    .. "gather it."
-L.MINIMAPNODEICONS_SIZE = "Icon Size"
-L.MINIMAPNODEICONS_SIZE_DESC = "How big the icons are on the minimap."
-L.MINIMAPNODEICONS_BORDER = "Round Border"
-L.MINIMAPNODEICONS_BORDER_DESC = "A gold ring around each icon, like the minimap's tracking button."
-L.MINIMAPNODEICONS_LEVELS = "Gray Other Levels"
-L.MINIMAPNODEICONS_LEVELS_DESC = "Show a node's icon in gray when the minimap does, as for a node "
-    .. "above or below you, like in a cave."
-L.MINIMAPNODEICONS_TINT = "Tint Unusable"
-L.MINIMAPNODEICONS_TINT_DESC = "Tint a node's icon red while your skill is too low to gather it."
-L.MINIMAPNODEICONS_GRAY = "Gray Out Trivial"
-L.MINIMAPNODEICONS_GRAY_DESC = "Show a node's icon in gray once gathering it no longer raises your "
-    .. "skill."
-L.MINIMAPNODEICONS_DETAIL = "Scan Detail"
-L.MINIMAPNODEICONS_DETAIL_DESC = "How closely the minimap is checked for dots. Higher finds dots "
-    .. "that sit close together, but takes more of your computer's time."
-L.MINIMAPNODEICONS_DETAIL_LOW = "Low"
-L.MINIMAPNODEICONS_DETAIL_MEDIUM = "Medium"
-L.MINIMAPNODEICONS_DETAIL_HIGH = "High"
-L.MINIMAPNODEICONS_CHAT_DESC = "Say in chat when the game stops Minimap Node Icons from checking "
-    .. "the minimap."
-L.MINIMAPNODEICONS_FAILED = "Minimap Node Icons couldn't check the minimap: %s" -- error
--- The gray notice above the module's options while it can work (it has no button).
-L.MINIMAPNODEICONS_NOTICE = "Not fully accurate, and uses more CPU than other modules."
-L.MINIMAPNODEICONS_NOTICE_DESC = "The game lists its tracking dots nowhere an addon can read, so "
-    .. "this module asks the minimap what is under many spots, several times a second. That "
-    .. "takes more of your computer's time than other modules, and an icon can sit a little off "
-    .. "its dot or go missing for a moment. Icons update only out of combat, while your cursor "
-    .. "isn't on the minimap. This should improve over time with optimizations and changes."
--- Shown once it found the minimap no longer answers its probes, as since the game's patch of
--- November 7, 2026 (build 70862).
-L.MINIMAPNODEICONS_BROKEN = "A game update broke it, so it's turned off for now."
-L.MINIMAPNODEICONS_BROKEN_DESC = "Since the November 7, 2026 update, the minimap only names what's "
-    .. "under your own mouse, so this module can't find the dots. If a later update fixes that, it "
-    .. "comes back; if not, it will be removed. Gathering Map still remembers what you gather."
--- Its rows on the Profiler page, after "Minimap Node Icons: ".
-L.MINIMAPNODEICONS_PART_VIEW = "reading your spot"
-L.MINIMAPNODEICONS_PART_FOLLOW = "following dots"
-L.MINIMAPNODEICONS_PART_FIND = "finding new dots"
-L.MINIMAPNODEICONS_PART_ASK = "asking the game"
-L.MINIMAPNODEICONS_PART_DRAW = "drawing icons"
-L.MINIMAPNODEICONS_COMMAND = "Check what Minimap Node Icons sees on the minimap right now."
-L.MINIMAPNODEICONS_HERE_START = "Point at a dot on the minimap; reading it in %d seconds." -- seconds
-L.MINIMAPNODEICONS_HERE_NONE = "Nothing under the cursor. Point at a dot and try again."
--- name, cursor right and up of the minimap's center, zoom level
-L.MINIMAPNODEICONS_HERE_CURSOR = "%s: cursor at %.1f, %.1f. Zoom %d."
-L.MINIMAPNODEICONS_HERE_COLOR = "Name color: %s, %s, %s. Gray: %s." -- red, green, blue, yes/no
--- icon right and up of the minimap's center, then where the dot answered last
-L.MINIMAPNODEICONS_HERE_ICON = "Its icon is at %.1f, %.1f; it last answered at %.1f, %.1f."
--- trail right and up, standing still (yes/no)
-L.MINIMAPNODEICONS_HERE_LAG = "Trail while moving: %.1f, %.1f. Standing still: %s."
-L.MINIMAPNODEICONS_HERE_MISSED = "No icon for it yet."
--- /fpp nodes probe: which ways of probing a spot still read the dot there.
-L.MINIMAPNODEICONS_PROBE_START = "Point at a dot on the minimap and hold still; reading it in %d seconds." -- seconds
-L.MINIMAPNODEICONS_PROBE_MOVE = "Got %s at %.0f, %.0f. Now move the mouse off the minimap; probing in %d seconds." -- name, x, y, seconds
-L.MINIMAPNODEICONS_PROBE_API = "API: SetUsingSoftCursor %s, UpdateMouseoverAtPoint %s, UpdateBlips %s, GamePadEnable %s, scale %.2f." -- yes/no x3, CVar, scale
-L.MINIMAPNODEICONS_PROBE_RESULT = "%s: %s" -- way, what it read
-L.MINIMAPNODEICONS_PROBE_NOTHING = "nothing"
-L.MINIMAPNODEICONS_PROBE_ERROR = "error: %s"
-L.MINIMAPNODEICONS_PROBE_DONE = "Done. Paste these lines to the developer."
-L.MINIMAPNODEICONS_PROBE_SOFT = "1 soft cursor, screen pixels, read now"
-L.MINIMAPNODEICONS_PROBE_PLAIN = "2 no soft cursor, screen pixels, read now"
-L.MINIMAPNODEICONS_PROBE_UNITS = "3 soft cursor, UI units, read now"
-L.MINIMAPNODEICONS_PROBE_BLIPS = "4 soft cursor, after UpdateBlips, read now"
-L.MINIMAPNODEICONS_PROBE_NEXT = "5 soft cursor kept on, read next frame"
-L.MINIMAPNODEICONS_PROBE_LATER = "6 soft cursor kept on, read after 0.2 s"
-L.MINIMAPNODEICONS_PROBE_HOVER = "7 soft cursor off, point left there, read after 0.2 s"
-L.MINIMAPNODEICONS_REPORT_COMBAT = "Can't check the minimap in combat."
-L.MINIMAPNODEICONS_REPORT_YES = "yes"
-L.MINIMAPNODEICONS_REPORT_NO = "no"
--- tracking on (yes/no), position readable (yes/no), minimap width, minimap units per 100 yards
-L.MINIMAPNODEICONS_REPORT_STATE = "Tracking on: %s. Position: %s. Minimap: %d wide, %s per 100 yards."
--- space name, names found, nodes known among them, the first few names
-L.MINIMAPNODEICONS_REPORT_SPACE = "%s: %d names, %d nodes known: %s"
-L.MINIMAPNODEICONS_REPORT_NONE = "none"
-L.MINIMAPNODEICONS_REPORT_SAVED = "Using %s from now on." -- space name
-L.MINIMAPNODEICONS_REPORT_NOTHING = "No node found. Stand near a herb or vein with tracking on, "
-    .. "and keep the cursor off the minimap."
-L.MINIMAPNODEICONS_CLEAR = "Learned Nodes"
-L.MINIMAPNODEICONS_CLEAR_BUTTON = "Clear"
-L.MINIMAPNODEICONS_CLEAR_DESC = "Forget the herbs and veins learned in game, with their icons "
-    .. "and skills (Profession Tooltips uses them too). They're learned again as you see and "
-    .. "gather them."
-L.MINIMAPNODEICONS_CLEAR_CONFIRM = "Forget every herb and vein Forever++ has learned?"
-L.MINIMAPNODEICONS_CLEAR_DONE = "Learned herbs and veins cleared."
 
 -- GatheringMap
 L.GATHERINGMAP_TITLE = "Gathering Map"
@@ -447,6 +360,13 @@ L.GATHERINGMAP_FORGET_ZONE_DESC = "Forget every node remembered in the zone you'
 L.GATHERINGMAP_FORGET_ALL_DESC = "Forget every node remembered in every zone, for all your characters."
 L.GATHERINGMAP_FORGET_ZONE_CONFIRM = "Forget every node remembered in the zone you're in?"
 L.GATHERINGMAP_FORGET_ALL_CONFIRM = "Forget every node Gathering Map remembers, in every zone?"
+L.GATHERINGMAP_CLEAR_LEARNED = "Learned Herbs and Veins"
+L.GATHERINGMAP_CLEAR_LEARNED_BUTTON = "Clear"
+L.GATHERINGMAP_CLEAR_LEARNED_DESC = "Forget the items and skills of the herbs and veins learned in "
+    .. "game (Profession Tooltips uses them too). The nodes you've gathered stay, and they're learned "
+    .. "again as you gather them."
+L.GATHERINGMAP_CLEAR_LEARNED_CONFIRM = "Forget every herb and vein Forever++ has learned?"
+L.GATHERINGMAP_CLEAR_LEARNED_DONE = "Learned herbs and veins cleared."
 L.GATHERINGMAP_FORGOT = "Forgot %d nodes." -- count
 L.GATHERINGMAP_FORGOT_ONE = "Forgot %s." -- node name
 L.GATHERINGMAP_FORGET_HINT = "Shift+right-click to forget it."

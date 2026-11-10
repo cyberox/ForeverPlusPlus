@@ -30,27 +30,6 @@ local moved = MinimapPins.NewMotion()
 
 local zoneMap = internal.ZoneMap
 
-local LIVE_YARDS = 10 -- a remembered node this close to a live icon of its name is that node
-
--- Whether Minimap Node Icons draws `node` on its live dot now, so ours would sit under it.
--- Minimap Node Icons' nodes are on the map the player stands on, which in a cave or a city's
--- district isn't the zone's map ours are on, so their spots are moved onto ours to compare.
-local function isLive(node, liveList, liveMap, v)
-    for i = 1, #liveList do
-        local other = liveList[i]
-        if other.name == node.name and other.x then
-            local x, y = other.x, other.y
-            if liveMap ~= v.mapID then
-                x, y = ns.MapPins.Translate(liveMap, v.mapID, x, y)
-            end
-            if x and Distance(node.x, node.y, x, y, v.width, v.height) <= LIVE_YARDS then
-                return true
-            end
-        end
-    end
-    return false
-end
-
 -- How far each node followed is from the player, squared in minimap units, as findNear found it:
 -- kept apart from the node, which is saved data.
 local away = setmetatable({}, { __mode = "k" })
@@ -59,8 +38,7 @@ local function byAway(a, b)
     return (away[a] or 0) < (away[b] or 0)
 end
 
--- The nodes within NEAR radii of the player on view `v`'s map, nearest first, but for those
--- Minimap Node Icons draws on their live dots already.
+-- The nodes within NEAR radii of the player on view `v`'s map, nearest first.
 local function findNear(v)
     local count = 0
     local list = module.db.nodes[v.mapID]
@@ -68,12 +46,8 @@ local function findNear(v)
         local reach = v.half * NEAR
         local reach2 = reach * reach
         local shown = internal.ShownOnMinimap
-        local liveMap, liveList = ns.Gathering.Live()
-        if not (liveMap and liveList and #liveList > 0) then
-            liveList = nil
-        end
         for _, node in pairs(list) do
-            if shown(node) and not (liveList and isLive(node, liveList, liveMap, v)) then
+            if shown(node) then
                 local right, up = ToMinimap(v, node.x, node.y)
                 local far2 = right * right + up * up
                 if far2 <= reach2 then
@@ -232,7 +206,6 @@ local function apply()
     if on and not frame then
         frame = CreateFrame("Frame", nil, Minimap)
         frame:SetAllPoints(Minimap)
-        -- Under Minimap Node Icons' icons, which sit on the game's live dots.
         frame:SetFrameLevel(Minimap:GetFrameLevel() + 4)
     end
     if not frame then

@@ -175,6 +175,7 @@ L.CHANGELOG_CHANGES = "%d changes" -- how many entries a release has
 L.CHANGELOG_ADDED = "Added"
 L.CHANGELOG_CHANGED = "Changed"
 L.CHANGELOG_FIXED = "Fixed"
+L.CHANGELOG_REMOVED = "Removed"
 L.CHANGELOG_SETTINGS = "Settings"
 L.CHANGELOG_COMMANDS = "Commands"
 

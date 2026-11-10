@@ -373,6 +373,19 @@ module.actions = {
             forgetAll(nil)
         end,
     },
+    -- The items and skills of herbs and veins learned in game (Lib/Professions.lua), which the
+    -- maps' icons and Profession Tooltips read; the remembered nodes stay.
+    {
+        name = L.GATHERINGMAP_CLEAR_LEARNED,
+        button = L.GATHERINGMAP_CLEAR_LEARNED_BUTTON,
+        description = L.GATHERINGMAP_CLEAR_LEARNED_DESC,
+        confirm = L.GATHERINGMAP_CLEAR_LEARNED_CONFIRM,
+        section = NODES,
+        fn = function()
+            ns.Professions.ForgetNodes()
+            ns.Print(L.GATHERINGMAP_CLEAR_LEARNED_DONE)
+        end,
+    },
 }
 
 -- What decides which nodes show: the player's professions, and their tracking.
@@ -872,22 +885,6 @@ local function mapNodes(mapID, make)
     return list, width, height
 end
 
--- A node Minimap Node Icons saw where it really is, while the player stood still.
-local function onSighting(sighting)
-    if not RECORDED[sighting.kind] then
-        return
-    end
-    local list, width, height = mapNodes(sighting.mapID, true)
-    if not list then
-        return
-    end
-    local _, new = Gathering.See(list, sighting.name, sighting.kind, sighting.x, sighting.y, width,
-        height, time())
-    if new then
-        internal.NodesChanged(sighting.mapID)
-    end
-end
-
 ---The zone map the player is on, for a cave or a district too, or nil.
 ---@return number? mapID
 function internal.ZoneMap()
@@ -901,22 +898,6 @@ end
 -- Nodes the player only hovers on the minimap aren't remembered: a hover says only roughly where
 -- the dot is, so the node it saved sat off the vein, and mining the vein made another beside it
 -- (in game, 2026-11-07).
-
-local LOOKUP = 25 -- yards from a dot first seen while moving to the node remembered for it
-
--- For Minimap Node Icons: the spot of the node remembered nearest where it saw a dot.
-local function rememberedSpot(name, mapID, x, y)
-    local list, width, height = mapNodes(mapID)
-    if not list then
-        return nil
-    end
-    local node = Gathering.Nearest(list, x, y, width, height, LOOKUP, function(known)
-        return known.name == name
-    end)
-    if node then
-        return node.x, node.y
-    end
-end
 
 local function onGather(gather)
     if not RECORDED[gather.kind] then
@@ -994,8 +975,6 @@ function module:OnEnable()
     self:Hook(GameTooltip, "SetMinimapMouseover", onMinimapTooltip)
     self:HookScript(Minimap, "OnMouseUp", onMinimapClick)
     Gathering.Listen(onGather, true)
-    Gathering.ListenSightings(onSighting, true)
-    Gathering.SetRemembered(rememberedSpot)
     ns.Providers.Set("gatheringNodes", provider)
     if internal.EnableMap then
         internal.EnableMap()
@@ -1011,8 +990,6 @@ end
 function module:OnDisable()
     Gathering.SetTrace(nil)
     Gathering.Listen(onGather, false)
-    Gathering.ListenSightings(onSighting, false)
-    Gathering.SetRemembered(nil)
     ns.Providers.Set("gatheringNodes", nil)
     if internal.DisableMap then
         internal.DisableMap()

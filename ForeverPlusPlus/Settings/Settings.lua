@@ -1190,7 +1190,7 @@ local function newListRow(name)
     bind(name, function()
         local font = module.db.enabled and not module.locked and GameFontHighlight or GameFontDisable
         text:SetFontObject(font)
-        -- Red while it says it can't work, on or off (Minimap Node Icons turns itself off then).
+        -- Red while it says it can't work, on or off (a module may turn itself off then).
         -- The color is set either way, since a color set on the text outlasts a change of font
         -- object.
         if RED and module.Problem and module:Problem() then

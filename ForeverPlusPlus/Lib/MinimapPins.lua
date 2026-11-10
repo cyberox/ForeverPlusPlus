@@ -8,7 +8,7 @@ local _, ns = ...
 
 local sin, cos, pairs, next, type = math.sin, math.cos, pairs, next, type
 local abs, max, sqrt, _G = math.abs, math.max, math.sqrt, _G
-local CreateFrame, C_TooltipInfo, strtrim = CreateFrame, C_TooltipInfo, strtrim
+local C_TooltipInfo, strtrim = C_TooltipInfo, strtrim
 local Minimap, GetCVarBool, GetPlayerFacing, GetUnitSpeed = Minimap, GetCVarBool, GetPlayerFacing, GetUnitSpeed
 local C_Minimap, GetCursorPosition = C_Minimap, GetCursorPosition
 
@@ -181,17 +181,7 @@ end
 
 -- Hovering a dot -----------------------------------------------------------------------------------
 -- What the player's own mouse points at on the minimap: the game names the dots under the mouse
--- (C_TooltipInfo.GetMinimapMouseover), and the middle of everywhere the mouse was while it named
--- the same ones is the dot's middle. Read a few times a second only while the mouse is on the
--- minimap and a module listens; each hover is told once, when the names change or the mouse
--- leaves, so moving across the minimap tells each dot once rather than at every spot. Minimap Node
--- Icons is the only listener, and it's locked off for now (since build 70862), so nothing reads.
-
-local hoverListeners = {} -- fn -> true
-local hoverFrame -- runs the reads while the mouse is on the minimap
-local HOVER_READ = 0.05 -- seconds between reads
-local sinceRead = 0
-local hoverText, sumR, sumU, reads -- the names read now, and the mouse spots while they were
+-- (C_TooltipInfo.GetMinimapMouseover).
 
 -- The names in the mouseover's first line, one a row (overlapping dots each add one), as plain
 -- text, or nil.
@@ -222,81 +212,6 @@ end
 function MinimapPins.MouseoverNames()
     local text = mouseoverText()
     return text and hoverNames(text) or nil
-end
-
-local function flushHover()
-    local text = hoverText
-    hoverText = nil
-    if not (text and reads and reads > 0) then
-        return
-    end
-    local names = hoverNames(text)
-    local right, up = sumR / reads, sumU / reads
-    for fn in pairs(hoverListeners) do
-        fn(names, right, up)
-    end
-end
-
-local function readHover()
-    local text = mouseoverText()
-    if not text then
-        flushHover()
-        return
-    end
-    if text ~= hoverText then
-        flushHover()
-        hoverText, sumR, sumU, reads = text, 0, 0, 0
-    end
-    local right, up = MinimapPins.CursorOffset()
-    sumR, sumU, reads = sumR + right, sumU + up, reads + 1
-end
-
-local function onHoverUpdate(_, elapsed)
-    sinceRead = sinceRead + elapsed
-    if sinceRead < HOVER_READ then
-        return
-    end
-    sinceRead = 0
-    if not Minimap:IsMouseOver() then
-        flushHover()
-        hoverFrame:Hide()
-        return
-    end
-    readHover()
-end
-
-local hookedHover = false
-
-local function onMinimapEnter()
-    if hoverFrame and next(hoverListeners) then
-        sinceRead = HOVER_READ
-        hoverFrame:Show()
-    end
-end
-
----Calls `fn(names, right, up)` once for each dot (or overlapping dots) the player points at on
----the minimap, while `on`: the names the game gives for it, and its middle in minimap units
----right and up of the minimap's center. Told when the mouse moves off it or leaves the minimap.
----@param fn fun(names: string[], right: number, up: number)
----@param on boolean
-function MinimapPins.OnHover(fn, on)
-    hoverListeners[fn] = on and true or nil
-    if on and not hoverFrame then
-        hoverFrame = CreateFrame("Frame")
-        hoverFrame:Hide()
-        hoverFrame:SetScript("OnUpdate", onHoverUpdate)
-    end
-    -- A script hook can't come off, so it's added once and does nothing while no one listens.
-    if on and not hookedHover then
-        hookedHover = true
-        Minimap:HookScript("OnEnter", onMinimapEnter)
-    end
-    if next(hoverListeners) == nil and hoverFrame then
-        hoverText = nil
-        hoverFrame:Hide()
-    elseif Minimap:IsMouseOver() then
-        onMinimapEnter()
-    end
 end
 
 -- The ring ---------------------------------------------------------------------------------------
