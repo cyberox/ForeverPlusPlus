@@ -1,6 +1,8 @@
 -- Recipe Colors: colors each recipe in the professions window by its chance of a skill-up, as the
 -- old trade skill window did: orange always, yellow usually, green sometimes, gray never. Blizzard
 -- shows that with small arrows; this adds the color. Ideas from ColorCraft; none of its code.
+-- It also shows how long a recipe keeps giving skill-ups: the skill it turns gray at, from the
+-- game's recipe info (maxTrivialLevel), as a number on its row and a line on its details.
 --
 -- Blizzard's recipe row sets its name color when it is built (Init) and after the mouse leaves
 -- (OnLeave), so both are hooked and the color put back after them. Guild, NPC, and runeforging
@@ -17,6 +19,8 @@ local module = ns.NewModule("RecipeColors", L.RECIPECOLORS_DESC, {
     enabled = true,
     highlight = true, -- tint the row's selected and mouse-over highlights too
     gray = true, -- learned recipes that can't raise the skill any more are gray
+    points = "left", -- the number on a row: "left" (skill-ups left), "gray" (the skill it's gray at), "off"
+    detail = true, -- "Skill-ups until 125 (7 more)" by the selected recipe's name
 })
 module.title = L.RECIPECOLORS_TITLE
 module.category = "interface"
@@ -24,6 +28,16 @@ module.category = "interface"
 module.options = {
     { key = "highlight", name = L.RECIPECOLORS_HIGHLIGHT, description = L.RECIPECOLORS_HIGHLIGHT_DESC },
     { key = "gray", name = L.RECIPECOLORS_GRAY, description = L.RECIPECOLORS_GRAY_DESC },
+    {
+        key = "points", name = L.RECIPECOLORS_POINTS, description = L.RECIPECOLORS_POINTS_DESC,
+        choices = {
+            { "left", L.RECIPECOLORS_POINTS_LEFT },
+            { "gray", L.RECIPECOLORS_POINTS_GRAY },
+            { "off", L.RECIPECOLORS_POINTS_OFF },
+        },
+        added = "1.5.0",
+    },
+    { key = "detail", name = L.RECIPECOLORS_DETAIL, description = L.RECIPECOLORS_DETAIL_DESC, added = "1.5.0" },
 }
 
 -- Blizzard's own difficulty colors (FrameXML's), by Enum.TradeskillRelativeDifficulty. Probe: the
@@ -86,21 +100,99 @@ local function tint(row, r, g, b)
     end
 end
 
+-- Gray levels --------------------------------------------------------------------------------------
+-- A recipe turns gray at its maxTrivialLevel: on Forever every known recipe has one, and it matched
+-- Classic's gray levels and the colors the game showed (2026-11-09, docs/forever-api.md). The
+-- yellow and green levels aren't given, so this says how long a recipe gives skill-ups, never the
+-- chance of one.
+
+-- The skill the recipe's colors are measured against: the profession's level as its window shows
+-- it (Professions.Progress), by the recipe's skill line or its parent's, whichever the player has.
+-- Probe: GetTradeSkillLineForRecipe is Mainline's; which of the two lines Forever's recipes give is
+-- Unverified, so both are tried.
+local function skillOf(recipeID)
+    local T = C_TradeSkillUI
+    if not (T and T.GetTradeSkillLineForRecipe and recipeID) then
+        return nil
+    end
+    local line, _, parent = T.GetTradeSkillLineForRecipe(recipeID)
+    local progress = ns.Professions.Progress
+    return (parent and progress(parent)) or (line and progress(line)) or nil
+end
+
+-- The skill a learned recipe turns gray at, or nil when the game doesn't say.
+local function grayAt(info)
+    local level = info and info.maxTrivialLevel
+    if type(level) == "number" and level > 0 then
+        return level
+    end
+end
+
+-- The recipe a row or the form is about: a recipe with ranks shows its best one you know.
+local function bestRank(info)
+    if info and Professions and Professions.GetHighestLearnedRecipe then
+        return Professions.GetHighestLearnedRecipe(info) or info
+    end
+    return info
+end
+
+-- Whether a recipe gets a gray level shown: a known one, in a list with skill-ups.
+local function counts(info)
+    return info and info.learned and not info.disabled and grayAt(info) and listHasSkillUps()
+end
+
+-- The number on a row: the skill-ups left until gray, or the skill it turns gray at, as the Row
+-- Number option says. Nothing on a recipe that's gray already. Its own column, an icon's width in
+-- from the right end (or from a disabled recipe's lock), so Appearance Icons' mark at the right end
+-- fits beside it.
+local NUMBER_RIGHT = -18 -- 2 from the edge, 14 for an icon, 2 between
+local numbers = ns.ItemButtons.Overlays(function(row)
+    local text = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    text:SetJustifyH("RIGHT")
+    text:SetTextColor(GRAY_FONT_COLOR:GetRGB())
+    return text
+end)
+
+local function rowNumber(row, info)
+    local mode = module.db.points
+    local gray = module.enabled and mode ~= "off" and counts(info) and info.canSkillUp and grayAt(info)
+    local value = gray
+    if gray and mode == "left" then
+        local skill = skillOf(info.recipeID)
+        value = skill and gray - skill
+        if value and value <= 0 then
+            value = nil -- the colors say it can still skill up; trust them over the sum
+        end
+    end
+    local text = numbers:Set(row, value)
+    if not text then
+        return
+    end
+    text:SetText(value)
+    text:ClearAllPoints()
+    local lock = row.LockedIcon
+    if lock and lock:IsShown() then
+        text:SetPoint("RIGHT", lock, "LEFT", NUMBER_RIGHT + 2, 0)
+    else
+        text:SetPoint("RIGHT", row, "RIGHT", NUMBER_RIGHT, 0)
+    end
+end
+
+-- Rows -------------------------------------------------------------------------------------------
+
 local function paint(row, node)
     if not (row and row.Label) then
         return
     end
     if not module.enabled then
         tint(row)
+        numbers:Set(row, false)
         return
     end
     node = node or (row.GetElementData and row:GetElementData())
     local data = node and (node.GetData and node:GetData() or node.data)
-    local info = data and data.recipeInfo
-    -- A recipe with ranks shows its best one you know.
-    if info and Professions and Professions.GetHighestLearnedRecipe then
-        info = Professions.GetHighestLearnedRecipe(info) or info
-    end
+    local info = bestRank(data and data.recipeInfo)
+    rowNumber(row, info)
     local all = colors()
     if not (all and info and info.learned and not info.disabled and listHasSkillUps()) then
         tint(row)
@@ -135,12 +227,69 @@ end
 local recipeRows = ns.Professions.EachRecipeRow
 local ROW_HOOKS = { Init = paint, OnLeave = onLeave }
 
-local function catchUp()
-    recipeRows(paint)
+-- The selected recipe ------------------------------------------------------------------------------
+-- A line by the recipe's name on Blizzard's recipe form: "Skill-ups until 125 (7 more)". The form
+-- (Blizzard_ProfessionsRecipeSchematicForm, Gethe forever branch) puts the name beside the output
+-- icon, 17 pixels above its middle, and the tools it needs ("Requires: Anvil") under the name; this
+-- line goes 17 below the icon's middle, so it sits under both without moving anything of Blizzard's.
+
+local DETAIL_X, DETAIL_Y = 14, -17
+local detail -- our font string on the form, made the first time a recipe shows
+
+local function craftForm()
+    local frame = _G.ProfessionsFrame
+    local page = frame and frame.CraftingPage
+    return page and page.SchematicForm
 end
 
--- The rows' mixin is in a load-on-demand Blizzard addon: hooked once it's there.
+local function detailText(info)
+    local gray = counts(info) and grayAt(info)
+    if not gray then
+        return nil
+    elseif not info.canSkillUp then
+        return format(L.RECIPECOLORS_DETAIL_DONE, gray)
+    end
+    local skill = skillOf(info.recipeID)
+    local left = skill and gray - skill
+    if left and left > 0 then
+        return format(L.RECIPECOLORS_DETAIL_MORE, gray,
+            GRAY_FONT_COLOR:WrapTextInColorCode(format(L.RECIPECOLORS_DETAIL_LEFT, left)))
+    end
+    return format(L.RECIPECOLORS_DETAIL_UNTIL, gray)
+end
+
+-- After the form shows a recipe (its Init), or with the recipe it shows now.
+local function drawDetail(form, info)
+    local icon, name = form and form.OutputIcon, form and form.OutputText
+    local text = module.enabled and module.db.detail and icon and name and icon:IsShown()
+        and name:IsShown() and detailText(info)
+    if not text then
+        if detail then
+            detail:Hide()
+        end
+        return
+    end
+    if not detail then
+        local font = _G.GameFontHighlightSmall2 and "GameFontHighlightSmall2" or "GameFontHighlightSmall"
+        detail = form:CreateFontString(nil, "OVERLAY", font)
+        detail:SetJustifyH("LEFT")
+        detail:SetPoint("LEFT", icon, "RIGHT", DETAIL_X, DETAIL_Y)
+    end
+    detail:SetText(text)
+    detail:Show()
+end
+
+local function catchUp()
+    recipeRows(paint)
+    local form = craftForm()
+    if form then
+        drawDetail(form, form.currentRecipeInfo)
+    end
+end
+
+-- The rows' mixin and the form are in a load-on-demand Blizzard addon: hooked once they're there.
 local function hook()
+    module:Hook(craftForm(), "Init", drawDetail)
     return ns.Professions.HookRecipeRows(module, ROW_HOOKS)
 end
 
@@ -158,6 +307,9 @@ function module:OnEnable()
     self:On("ADDON_LOADED", onEvent)
     self:On("TRADE_SKILL_SHOW", onEvent)
     self:On("TRADE_SKILL_LIST_UPDATE", onEvent)
+    -- A skill-up changes how many are left.
+    self:On("SKILL_LINES_CHANGED", catchUpSoon)
+    self:On("CHAT_MSG_SKILL", catchUpSoon)
     catchUp()
 end
 
@@ -167,6 +319,10 @@ end
 function module:OnDisable()
     for row in pairs(tinted) do
         tint(row)
+    end
+    numbers:HideAll()
+    if detail then
+        detail:Hide()
     end
     local page = ProfessionsFrame and ProfessionsFrame.CraftingPage
     local hideCount = page and page.RecipeList and page.RecipeList.hideCraftableCount
@@ -182,7 +338,7 @@ end
 
 function module:OnOptionChanged()
     if self.enabled then
-        recipeRows(paint)
+        catchUp()
     end
 end
 
@@ -244,6 +400,14 @@ local function dumpRecipes()
     end
     if selected then
         ns.Print(format(L.RECIPECOLORS_DUMP_FIELDS, tostring(selected.name), fields(selected)))
+        -- The skill line the recipe gives and the skill the row numbers count from.
+        local line, parent
+        if T.GetTradeSkillLineForRecipe then
+            local first, _, third = T.GetTradeSkillLineForRecipe(selected.recipeID)
+            line, parent = first, third
+        end
+        ns.Print(format(L.RECIPECOLORS_DUMP_LINE, tostring(line), tostring(parent),
+            tostring(skillOf(selected.recipeID))))
     end
     ns.Print(format(L.RECIPECOLORS_DUMP_COUNT, given, known))
 end

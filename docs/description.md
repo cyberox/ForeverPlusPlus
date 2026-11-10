@@ -60,7 +60,7 @@ Everything is on by default except where noted. Each module can be turned off, a
 
 ### Interface
 
-- **Recipe Colors**: Colors recipes in the professions window by your chance of a skill-up: orange, yellow, green, or gray, with the row's highlight to match.
+- **Recipe Colors**: Colors recipes in the professions window by your chance of a skill-up: orange, yellow, green, or gray, with the row's highlight to match. A number on each row, and a line under the selected recipe's name, say how many skill-ups it has left before it turns gray (or the skill it turns gray at).
 - **Combat Alert**: Floats a red "Entering Combat" or green "Leaving Combat" line up and away from the middle of the screen, each with its own checkbox, plus how long it stays and an optional sound (move and resize it in Edit Mode). Off by default.
 - **Currency Bar**: Shows your gold in a small tooltip-styled box, all three coins always, and optionally the currencies you tick Show on Backpack. Hovering it lists your gold and currencies with what this session gained or spent and your gold per hour. Options for the tooltip, the session figures, and a column layout (move and resize it in Edit Mode). Off by default.
 - **Loot Rolls**: Place the Need, Greed, and Pass rolls where you want in Edit Mode, with their scale, which way more rolls stack (up, down, left, or right), the gap between them, and how many example rolls show while you place them. Each roll also shows the seconds left and how many in your group picked each choice (each an option), and Appearance Icons, Already Known, and Unusable Items Tint mark them as they do your bags. Off by default.

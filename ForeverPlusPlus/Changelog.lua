@@ -24,6 +24,10 @@ ns.changelog = {
                     .. "zone's name when it covers part of the map, or to only the button if you pick that, "
                     .. "and a plus button to open it again. It can also sit in the middle of any edge of the "
                     .. "map, not only a corner, and has an Opacity slider." },
+                { L.RECIPECOLORS_TITLE, "Each recipe that can still raise your skill shows how many "
+                    .. "skill-ups it has left before it turns gray, and the selected recipe says the same "
+                    .. "under its name. Pick Gray At to see the skill it turns gray at instead, or turn "
+                    .. "either off." },
             } },
             { L.CHANGELOG_CHANGED, {
                 { L.WAYPOINTS_TITLE, "The arrow sits a little lower by default, under the Compass Bar. "

@@ -9,6 +9,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Compass Bar**: a new module, off by default. A compass across the top of the screen with your selected quest, map pin, corpse, and group on it in the direction they are, and how far away. Every quest on the map, flight masters, gathering nodes, and rares can go on it too. Set its size in Edit Mode.
 - **Quest Item Sparkles**: a new module, off by default. Quest items you can pick up in the world sparkle, so they're easy to spot, and stay that way after you change your graphics settings.
 - **World Map**: Zone Info's panel has a minus button that folds it down to the zone's name when it covers part of the map, or to only the button if you pick that, and a plus button to open it again. It can also sit in the middle of any edge of the map, not only a corner, and has an Opacity slider.
+- **Recipe Colors**: Each recipe that can still raise your skill shows how many skill-ups it has left before it turns gray, and the selected recipe says the same under its name. Pick Gray At to see the skill it turns gray at instead, or turn either off.
 
 ### Changed
 
