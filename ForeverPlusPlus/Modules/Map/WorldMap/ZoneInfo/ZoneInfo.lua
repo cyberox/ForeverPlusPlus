@@ -29,7 +29,7 @@ local module = ns.modules.WorldMap:NewPart({
     section = L.ZONEINFO_TITLE,
 }, {
     corner = "BOTTOMLEFT", -- a corner, or the middle of an edge ("TOP", "LEFT", ...)
-    opacity = 100,
+    opacity = 80,
     foldButton = false, -- the minus and plus button; without it the panel is always open
     foldTo = "title", -- what the minus button leaves: "title" (name and levels) or "button"
     hover = true, -- on continent maps, the zone under the cursor
