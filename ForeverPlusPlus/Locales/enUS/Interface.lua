@@ -71,6 +71,14 @@ L.RECIPECOLORS_HIGHLIGHT = "Tint Row Highlights"
 L.RECIPECOLORS_HIGHLIGHT_DESC = "Color the selected and mouse-over highlight of a recipe to match its name."
 L.RECIPECOLORS_GRAY = "Gray Out Finished Recipes"
 L.RECIPECOLORS_GRAY_DESC = "Show recipes you know that can't raise your skill any more in gray."
+L.RECIPECOLORS_DUMP = "Recipe Skill-Up Levels"
+L.RECIPECOLORS_DUMP_BUTTON = "Print"
+L.RECIPECOLORS_DUMP_DESC = "With a profession window open, print what the game says about its recipes: the skill each turns gray at (maxTrivialLevel), its difficulty, and its skill-ups, then every field of the selected recipe."
+L.RECIPECOLORS_DUMP_NONE = "Open a profession window first."
+L.RECIPECOLORS_DUMP_SKILL = "%s: skill %s of %s" -- profession, skill, its most
+L.RECIPECOLORS_DUMP_ROW = "%s (%d): maxTrivialLevel %s, relativeDifficulty %s, numSkillUps %s" -- recipe, its ID, then its fields
+L.RECIPECOLORS_DUMP_FIELDS = "%s: %s" -- recipe, every field as key=value
+L.RECIPECOLORS_DUMP_COUNT = "maxTrivialLevel is given for %d of the %d recipes you know."
 
 -- CombatAlert
 L.COMBATALERT_TITLE = "Combat Alert"

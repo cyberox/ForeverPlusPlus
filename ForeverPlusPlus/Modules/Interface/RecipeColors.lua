@@ -8,6 +8,7 @@
 local _, ns = ...
 
 local setmetatable, ipairs, pairs, pcall = setmetatable, ipairs, pairs, pcall
+local format, tostring, type, sort, concat = string.format, tostring, type, table.sort, table.concat
 local C_TradeSkillUI = C_TradeSkillUI
 
 local L = ns.L
@@ -184,3 +185,68 @@ function module:OnOptionChanged()
         recipeRows(paint)
     end
 end
+
+-- Debug: what the game says about the open profession's recipes, to see whether it gives the
+-- skill each one turns gray at (maxTrivialLevel, undocumented), which a skill-up chance would
+-- need. Probe: every call is Mainline's; whether Forever fills the field is Unverified.
+
+local DUMP_ROWS = 10 -- recipes listed one per line; the count covers the rest
+
+-- Every plain field of a recipe's info, sorted by name: "key=value, ...".
+local function fields(info)
+    local list = {}
+    for key, value in pairs(info) do
+        if type(value) ~= "table" and type(value) ~= "function" then
+            list[#list + 1] = tostring(key) .. "=" .. tostring(value)
+        end
+    end
+    sort(list)
+    return concat(list, ", ")
+end
+
+local function dumpRecipes()
+    local T = C_TradeSkillUI
+    local ids = T and T.GetAllRecipeIDs and T.GetAllRecipeIDs()
+    if not (ids and #ids > 0 and T.GetRecipeInfo) then
+        ns.Print(L.RECIPECOLORS_DUMP_NONE)
+        return
+    end
+    local profession = T.GetChildProfessionInfo and T.GetChildProfessionInfo()
+    if profession and profession.professionName then
+        ns.Print(format(L.RECIPECOLORS_DUMP_SKILL, profession.professionName,
+            tostring(profession.skillLevel), tostring(profession.maxSkillLevel)))
+    end
+    -- The recipe selected in the window, in full, or else the first one known.
+    local page = ProfessionsFrame and ProfessionsFrame.CraftingPage
+    local form = page and page.SchematicForm
+    local selected = form and form.currentRecipeInfo
+    local known, given, listed = 0, 0, 0
+    for _, id in ipairs(ids) do
+        local info = T.GetRecipeInfo(id)
+        if info and info.learned then
+            known = known + 1
+            selected = selected or info
+            if type(info.maxTrivialLevel) == "number" and info.maxTrivialLevel > 0 then
+                given = given + 1
+            end
+            if listed < DUMP_ROWS then
+                listed = listed + 1
+                ns.Print(format(L.RECIPECOLORS_DUMP_ROW, tostring(info.name), id,
+                    tostring(info.maxTrivialLevel), tostring(info.relativeDifficulty),
+                    tostring(info.numSkillUps)))
+            end
+        end
+    end
+    if selected then
+        ns.Print(format(L.RECIPECOLORS_DUMP_FIELDS, tostring(selected.name), fields(selected)))
+    end
+    ns.Print(format(L.RECIPECOLORS_DUMP_COUNT, given, known))
+end
+
+module.debugActions = {
+    {
+        name = L.RECIPECOLORS_DUMP, button = L.RECIPECOLORS_DUMP_BUTTON,
+        description = L.RECIPECOLORS_DUMP_DESC, section = L.DEBUG_SECTION_DIAGNOSTICS,
+        whileOff = true, fn = dumpRecipes,
+    },
+}
