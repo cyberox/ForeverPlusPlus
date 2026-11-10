@@ -182,6 +182,7 @@ Modules\Map\GatheringMap\Filter.lua
 API.lua
 Changelog.lua
 Settings\Settings.lua
+Settings\Profiles.lua
 Settings\Debug.lua
 Settings\Changelog.lua
 Settings\About.lua

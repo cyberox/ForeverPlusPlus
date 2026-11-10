@@ -135,7 +135,8 @@ function Profiles.Count()
 end
 
 ---A name as a profile may have it: no color codes, textures, links or other escapes, no control
----characters, trimmed, and at most MAX_NAME characters. "" when nothing is left.
+---characters, no % (popups format their text, and a name goes into it), trimmed, and at most
+---MAX_NAME characters. "" when nothing is left.
 ---@param text any
 ---@return string
 function Profiles.CleanName(text)
@@ -143,7 +144,7 @@ function Profiles.CleanName(text)
         return ""
     end
     text = ns.Text.Plain(text)
-    text = gsub(text, "|", "")
+    text = gsub(text, "[|%%]", "")
     text = gsub(text, "[%c]", "")
     text = gsub(gsub(text, "^%s+", ""), "%s+$", "")
     text = gsub(text, "%s+", " ")

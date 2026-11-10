@@ -175,6 +175,50 @@ L.DEBUG_RELOAD = "Reload UI"
 L.DEBUG_RELOAD_BUTTON = "Reload"
 L.DEBUG_RELOAD_DESC = "Reload the interface, like /rl, to load changes to the addon's files."
 
+-- Settings: the Profiles page
+L.PROFILES = "Profiles"
+L.PROFILES_USES = "%s Uses" -- a character's name, before the dropdown of its profile
+L.PROFILES_USES_TITLE = "This Character's Profile"
+L.PROFILES_USES_DESC = "The profile %s uses. What you change in Forever++ saves to it, for every "
+    .. "character that uses it." -- character
+L.PROFILES_NEW_CHARACTERS = "New Characters Use"
+L.PROFILES_NEW_CHARACTERS_DESC = "The profile a character starts on the first time it logs in."
+L.PROFILES_NEW = "New Profile"
+L.PROFILES_NEW_DESC = "Make a profile, as a copy of the one selected or from the defaults."
+L.PROFILES_NEW_ASK = "Name the new profile."
+L.PROFILES_NEW_FROM = "Make %s as a copy of %s, or from the defaults?" -- new name, selected profile
+L.PROFILES_COPY_OF = "Copy of %s" -- a profile
+L.PROFILES_FROM_DEFAULTS = "From Defaults"
+L.PROFILES_IN_USE = "In use by this character"
+L.PROFILES_SUMMARY = "%d modules on, %d settings changed from their defaults."
+L.PROFILES_USED_BY = "Used by %s." -- character names
+L.PROFILES_UNUSED = "No character uses it."
+L.PROFILES_USE = "Use on This Character"
+L.PROFILES_USE_DESC = "Switches %s to %s right away, with no reload." -- character, profile
+L.PROFILES_RENAME = "Rename"
+L.PROFILES_RENAME_DESC = "Give %s another name." -- profile
+L.PROFILES_RENAME_ASK = "Rename %s to:" -- profile
+L.PROFILES_DELETE = "Delete"
+L.PROFILES_DELETE_DESC = "Delete %s. Characters using it go back to Default." -- profile
+L.PROFILES_DELETE_ASK = "Delete %s? Characters using it go back to Default." -- profile
+L.PROFILES_CHARACTERS_HEADER = "Characters"
+L.PROFILES_CHARACTER_LINE = "Level %d %s" -- level, class
+L.PROFILES_THIS_CHARACTER = "this character"
+L.PROFILES_USES_OTHER = "uses %s" -- the profile another character uses
+L.PROFILES_CHECK_DESC = "Check to have %s use %s." -- character, profile
+L.PROFILES_UNCHECK_DESC = "Uncheck to put %s back on Default." -- character
+L.PROFILES_ON_DEFAULT_DESC = "Every character uses a profile. To move %s off Default, check it on "
+    .. "another profile." -- character
+L.PROFILES_FORGET_HINT = "Right-click to forget this character."
+L.PROFILES_FORGET_ASK = "Forget %s? It leaves this list until it logs in again." -- character
+L.PROFILES_NOTE = "A profile is which modules are on, their settings, where you put Forever++'s "
+    .. "frames in Edit Mode and windows with Movable Windows, and the Minimap Button's quick toggles. "
+    .. "Auction prices, gathering nodes, players seen, and what each character keeps of its own, "
+    .. "such as talent plans, aren't part of it."
+L.PROFILES_MODULES_NOTE = "Profile: %s" -- beside the Modules page's title, with more than one
+L.DEFAULTS_ASK_PROFILE = "Put the %s profile's Forever++ settings back to defaults? Every character "
+    .. "using it changes too. The rest of the game's settings stay as they are." -- profile
+
 -- Settings: Changelog page. The notes themselves are in Changelog.lua.
 L.CHANGELOG = "Changelog"
 L.CHANGELOG_RELEASE = "%s (%s)" -- version, date
@@ -200,7 +244,8 @@ L.HOME_THANKS = "Thanks to %s" -- the contributors, each as HOME_CREDIT, joined 
 L.HOME_CREDIT = "%s (%s)" -- contributor's name, what they added
 L.HOME_INTRO = "Each module is one small change to Blizzard's interface, made to look like it "
     .. "shipped with the game. Turn them on and off on the Modules page, and click one there to "
-    .. "see what it does and its options. Settings are saved for your whole account."
+    .. "see what it does and its options. Settings are saved for your whole account, and the "
+    .. "Profiles page gives characters sets of their own."
 L.HOME_MODULES_ON = "%d of %d modules on" -- on, total
 L.HOME_DEFAULTS = "Defaults"
 -- The popup of the Defaults button at the top right of the Modules, Changelog, and About pages

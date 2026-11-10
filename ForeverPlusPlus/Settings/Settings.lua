@@ -16,6 +16,9 @@
 --                    description, and highlights those options; a New checkbox beside it lists
 --                    only modules marked NEW. A module or option added since the player last
 --                    looked (`added`), or an option changed since then (`changed`), is marked NEW.
+--     Profiles       which profile this character and new characters use, and the profiles with
+--                    who uses each, to make, rename, delete, share, and move characters between
+--                    (Profiles.lua)
 --     <Tool>         a page a module draws itself (`BuildPage`), in the sidebar always for a tool
 --                    and only while it's on for a module the player turns on and off. The Debug
 --                    module's is one: the rows Debug.lua adds, Forever++'s own buttons and
@@ -58,6 +61,7 @@ local modulesCategory -- the Modules page, the top Forever++ entry, for /fpp
 local pages = {} -- module name -> the page it draws itself, for ns.OpenSettings(name)
 local pageOrder = {} -- the modules with a page of their own, in sidebar order
 local aboutCategory -- the About page, for ns.OpenAbout
+local leadingPages = 0 -- subpages always before the tool pages (Profiles)
 
 -- Opens a Forever++ page (after combat, if the player is in combat).
 local function open(category)
@@ -122,7 +126,7 @@ local function updatePage(name)
     if not list then
         return
     end
-    local at, index = 1, nil
+    local at, index = 1 + leadingPages, nil
     for _, other in ipairs(pageOrder) do
         if other == name then
             break
@@ -149,8 +153,14 @@ end
 
 -- Our Defaults popup, laid out like Blizzard's, that offers only Forever++'s two presets:
 -- Developer's Defaults | Cancel | Recommended Defaults.
+-- With more than one profile, it says it resets the profile in use (Lib/Profiles.lua).
 local function askDefaults()
-    ns.ConfirmChoice("DEFAULTS_CHOICE", L.DEFAULTS_ASK, L.DEFAULTS_DEVELOPER,
+    local Profiles = ns.Profiles
+    local text = L.DEFAULTS_ASK
+    if Profiles.Count() > 1 then
+        text = format(L.DEFAULTS_ASK_PROFILE, Profiles.Name(Profiles.Current()))
+    end
+    ns.ConfirmChoice("DEFAULTS_CHOICE", text, L.DEFAULTS_DEVELOPER,
         ns.ApplyDeveloperDefaults, L.DEFAULTS_RECOMMENDED, function() ns.ApplyPreset() end)
 end
 
@@ -1396,8 +1406,23 @@ local function followCVars(frame)
     end)
 end
 
+-- "Profile: Raid" beside the Modules page's title while there is more than one profile, so the
+-- player knows which one the checkboxes change.
+local function addProfileNote(frame, title)
+    local note = frame:CreateFontString(nil, "OVERLAY", "GameFontDisable")
+    note:SetPoint("BOTTOMLEFT", title, "BOTTOMRIGHT", 12, 2)
+    local Profiles = ns.Profiles
+    local function update()
+        note:SetShown(Profiles.Count() > 1)
+        note:SetText(format(L.PROFILES_MODULES_NOTE, Profiles.Name(Profiles.Current())))
+    end
+    update()
+    frame:HookScript("OnShow", update)
+    Profiles.OnChanged(update)
+end
+
 local function buildModules(frame)
-    Kit.AddPageTitle(frame, L.MODULES)
+    addProfileNote(frame, Kit.AddPageTitle(frame, L.MODULES))
     page = newSplit(frame, LIST_WIDTH)
     page.rows, page.views = {}, {}
 
@@ -1516,6 +1541,9 @@ function ns.RegisterSettings()
         return
     end
 
+    -- Profiles first, right after the Modules entry.
+    addCanvasPage(category, L.PROFILES, S.BuildProfiles)
+    leadingPages = 1
     -- Pages modules draw themselves (tools such as Console Variables).
     for _, name in ipairs(grouped) do
         local module = ns.modules[name]

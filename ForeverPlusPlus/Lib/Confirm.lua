@@ -64,6 +64,11 @@ function ns.ConfirmChoice(key, text, first, onFirst, second, onSecond)
         return
     end
     choices[key] = { onFirst, onSecond }
+    -- The buttons are this call's too, for a choice whose buttons name something ("Copy of Raid").
+    local made = StaticPopupDialogs["FOREVERPLUSPLUS_" .. key]
+    if made then
+        made.button1, made.button3 = first, second
+    end
     show(key, text, function()
         return {
             text = text,

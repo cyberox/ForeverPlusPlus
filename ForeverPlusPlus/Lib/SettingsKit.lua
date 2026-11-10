@@ -272,19 +272,22 @@ end
 ---A list `listWidth` wide and a pane right of it and its scroll bar, as `split.listScroll` and
 ---`split.list` (a stack), and `split.pane` and `split.paneContent` (`split.paneWidth` wide). With
 ---`scrollBox`, the pane is a WowScrollBoxList instead, with `split.scrollBar` and no paneContent,
----for a page with too many rows to make a frame for each.
+---for a page with too many rows to make a frame for each. `top` moves both down from under the
+---title, for a page with rows of its own above them (the Profiles page).
 ---@param frame table the page
 ---@param listWidth number
 ---@param scrollBox? boolean
+---@param top? number how far down from the page's top they start, 60 by default
 ---@return table split
-function Kit.NewSplit(frame, listWidth, scrollBox)
+function Kit.NewSplit(frame, listWidth, scrollBox, top)
     local width = frame:GetWidth()
     width = width > 0 and width or 615
     local paneLeft = LIST_LEFT + listWidth + 41
     local split = {}
+    top = top or 60
 
     local list = Kit.NewScroll(frame)
-    list:SetPoint("TOPLEFT", LIST_LEFT, -60)
+    list:SetPoint("TOPLEFT", LIST_LEFT, -top)
     list:SetPoint("BOTTOMLEFT", LIST_LEFT, 8)
     list:SetWidth(listWidth)
     split.listScroll = list
@@ -295,7 +298,7 @@ function Kit.NewSplit(frame, listWidth, scrollBox)
     local line = frame:CreateTexture(nil, "ARTWORK")
     line:SetColorTexture(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b, 0.25)
     line:SetWidth(1)
-    line:SetPoint("TOPLEFT", paneLeft - 12, -66)
+    line:SetPoint("TOPLEFT", paneLeft - 12, -(top + 6))
     line:SetPoint("BOTTOMLEFT", paneLeft - 12, 14)
 
     local pane
@@ -307,7 +310,7 @@ function Kit.NewSplit(frame, listWidth, scrollBox)
     else
         pane = Kit.NewScroll(frame)
     end
-    pane:SetPoint("TOPLEFT", paneLeft, -60)
+    pane:SetPoint("TOPLEFT", paneLeft, -top)
     pane:SetPoint("BOTTOMRIGHT", -32, 8)
     split.pane, split.paneWidth = pane, width - paneLeft - 32
     if not scrollBox then
