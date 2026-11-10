@@ -50,6 +50,8 @@ module.title = L.MINIMAPBUTTON_TITLE
 module.category = "system"
 module.developer = { options = { menuSide = "left" } }
 module.added = "0.8.0"
+-- The quick toggles the player picked are a choice like a setting, so each profile keeps its own.
+module.perProfile = { quickToggles = true }
 
 -- Before 0.8.0 the button was Error Catcher's, with its Minimap Button checkbox, Clear Key, and the
 -- button's place. A player who had turned that button off keeps it off the minimap.

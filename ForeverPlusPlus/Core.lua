@@ -651,7 +651,8 @@ end
 ---nothing to turn off sets `module.alwaysOn`: it has no toggle and stays on. A module only for
 ---some clients gives `module:IsAvailable()`; when it returns false at login, the module stays off
 ---and out of Settings and /fpp list. A default that is a table is data the module collects, not a
----setting; one kept for each character on its own goes in `module.perCharacter` ({ [key] = true }).
+---setting; one kept for each character on its own goes in `module.perCharacter` ({ [key] = true }),
+---and one that belongs to the profile, like a setting (window positions), in `module.perProfile`.
 ---@param name string shown in /fpp
 ---@param description string one line for /fpp
 ---@param defaults? table its settings and data; `enabled` defaults to true
@@ -1014,7 +1015,7 @@ function ns.Start()
     for _, name in ipairs(ns.order) do
         local module = ns.modules[name]
         module.db = Store.Load(ns.db, ns.charDB, name, module.defaults, module.perCharacter,
-            cvarOptions(module))
+            cvarOptions(module), module.perProfile)
         for _, part in ipairs(module.parts or {}) do
             part.db = module.db
         end

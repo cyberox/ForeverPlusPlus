@@ -110,3 +110,46 @@ eq(oldDB.settings.BagSlotCounter.position, "top", "store: a write after tidy is 
 eq(type(view.seen.list), "table", "store: data after tidy is made again")
 view.banks.x = 1
 eq(oldDB.data.BagSlotCounter.banks.x, 1, "store: data made again is saved")
+
+-- Profiles: Default is the account's own settings and data, so 1.5.0's saved variables read the
+-- same; another profile is a root of its own, read through the same view once it's in use.
+local pdb = {
+    version = 5,
+    settings = { Win = { enabled = true, size = 3, gone = 1 } },
+    data = { Win = { positions = { Bags = { x = 1 } }, prices = { a = 5 } } },
+    profiles = { raid = { name = "Raid",
+        settings = { Win = { size = 9, stale = true }, Gone = { enabled = true } },
+        data = { Win = { positions = { Bags = { x = 2 } }, prices = { stray = 1 } }, Gone = { list = { a = {} } } } } },
+}
+local pchar = { version = 5 }
+Store.Upgrade(pdb, pchar)
+eq(pdb.version, 6, "profiles: the layout is version 6")
+eq(pdb.settings.Win.size, 3, "profiles: updating keeps Default's settings where they were")
+local winDefaults = { enabled = false, size = 1, positions = {}, prices = {} }
+local win = Store.Load(pdb, pchar, "Win", winDefaults, nil, nil, { positions = true })
+eq(win.size, 3, "profiles: Default reads the account's settings")
+eq(win.positions.Bags.x, 1, "profiles: Default's profile data is where it always was")
+eq(pdb.settings.Win.gone, nil, "profiles: Default's dropped settings are cleared")
+eq(pdb.profiles.raid.settings.Win.stale, nil, "profiles: another profile's dropped settings are cleared too")
+eq(pdb.profiles.raid.data.Win.prices, nil, "profiles: a profile keeps only its profile data")
+eq(pdb.profiles.raid.data.Win.positions.Bags.x, 2, "profiles: and keeps its own profile data")
+Store.profile = "raid"
+eq(win.size, 9, "profiles: switching changes what the view reads")
+eq(win.enabled, false, "profiles: what a profile hasn't set reads the default")
+eq(win.positions.Bags.x, 2, "profiles: profile data follows the profile")
+eq(win.prices.a, 5, "profiles: account data stays the account's")
+win.size = 4
+eq(pdb.profiles.raid.settings.Win.size, 4, "profiles: a write goes to the profile in use")
+eq(pdb.settings.Win.size, 3, "profiles: and leaves Default alone")
+Store.profile = "missing"
+eq(win.size, 3, "profiles: a profile that isn't there reads Default")
+Store.profile = nil
+Store.Prune(pdb, pchar, { Win = true })
+eq(pdb.profiles.raid.settings.Gone, nil, "profiles: prune treats every profile")
+eq(pdb.profiles.raid.data.Gone, nil, "profiles: prune treats every profile's data")
+pdb.profiles.empty = { name = "Empty", settings = { Win = {} }, data = { Win = { positions = {} } } }
+Store.Tidy(pdb, pchar)
+eq(next(pdb.profiles.empty.settings), nil, "profiles: tidy treats every profile")
+eq(pdb.profiles.empty.name, "Empty", "profiles: tidy keeps a profile with nothing changed")
+Store.Rename(pdb, { Win = "Window" })
+eq(pdb.profiles.raid.settings.Window.size, 4, "profiles: renaming a module renames it in every profile")

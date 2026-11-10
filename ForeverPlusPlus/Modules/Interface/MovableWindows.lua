@@ -35,6 +35,8 @@ module.title = L.MOVABLEWINDOWS_TITLE
 module.category = "interface"
 module.developer = { enabled = true }
 module.added = "1.0.0"
+-- Where windows go is a layout, so each profile keeps its own.
+module.perProfile = { positions = true }
 
 module.options = {
     Keys.Option("moveKey", L.MOVABLEWINDOWS_KEY, L.MOVABLEWINDOWS_KEY_DESC),

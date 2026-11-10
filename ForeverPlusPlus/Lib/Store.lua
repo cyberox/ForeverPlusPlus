@@ -2,16 +2,23 @@
 -- and the table each module reads its settings and data through (`module.db`).
 --
 --   ForeverPlusPlusDB = {
---       version = 5,            -- the layout, so each step below runs once
---       settings = { [module] = { [key] = value } },  -- only what the player changed
---       data = { [module] = { [key] = table } },      -- what modules collect: prices, flight times
+--       version = 6,            -- the layout, so each step below runs once
+--       settings = { [module] = { [key] = value } },  -- the Default profile's: only what the player changed
+--       data = { [module] = { [key] = table } },      -- what modules collect: prices, flight times;
+--                                                     -- and the Default profile's data
+--       profiles = { [id] = { name = "Raid",          -- every profile but Default, by an id of
+--           settings = { [module] = { [key] = value } },  -- its own, laid out as Default is
+--           data = { [module] = { [key] = table } } } },  -- (only `module.perProfile` keys)
+--       newCharacters = id,                           -- the profile a new character starts on
+--       characters = { [guid] = { name, realm, class, level, profile, moved } },
+--                                                     -- every character seen, for the Profiles page
 --       unclaimed = { [module] = { [key] = table } }, -- per-character data from version 1, until
 --                                                     -- each character logs in and takes its own
 --       gameData = { [set] = { values, build } },     -- what play taught Lib/GameData.lua
 --       seenVersion, seenModules, foldedCategories, welcome, changelogByModule, selfTest, ...
 --                                                     -- the core's own
 --   }
---   ForeverPlusPlusCharDB = { version = 5, data = { [module] = { [key] = table } } }
+--   ForeverPlusPlusCharDB = { version = 6, profile = id, data = { [module] = { [key] = table } } }
 --   ForeverPlusPlusPlayersDB: players seen, kept by Lib/Players.lua apart from all this
 --
 -- A module's settings are its scalar defaults. What the player sets is saved, even when it's the
@@ -19,7 +26,13 @@
 -- undo arrow, Defaults, `/fpp reset`) forgets it, by setting it to nil, and then a better default
 -- reaches them, as it does everyone who never touched the setting. Its data is every default that is a table;
 -- presets and Defaults never touch it. Keys listed in `module.perCharacter` keep their data in the
--- character's table instead of the account's.
+-- character's table instead of the account's, and keys in `module.perProfile` in the profile's.
+--
+-- Profiles: the Default profile is the account's own `settings` and `data`, where they always were,
+-- so a player with one profile has the layout they had before profiles; another profile is a root
+-- of its own in `profiles` with the same two tables. `Store.profile` is the id of the one in use
+-- (nil for Default), and every `module.db` reads through it, so switching needs no new views.
+-- Lib/Profiles.lua keeps the rest: names, characters, and switching.
 local _, ns = ...
 
 local pairs, ipairs, type, next, setmetatable, sort = pairs, ipairs, type, next, setmetatable, table.sort
@@ -27,7 +40,12 @@ local pairs, ipairs, type, next, setmetatable, sort = pairs, ipairs, type, next,
 local Store = {}
 ns.Store = Store
 
-Store.VERSION = 5
+-- Version 6 adds profiles beside the settings; nothing moves, since Default is where settings were.
+Store.VERSION = 6
+
+---The id of the profile every `module.db` reads, or nil for Default. Lib/Profiles.lua sets it.
+---@type string?
+Store.profile = nil
 
 -- `t[key]`, made a table first when it isn't one.
 local function child(t, key)
@@ -37,6 +55,36 @@ local function child(t, key)
         t[key] = value
     end
     return value
+end
+
+---The table that holds a profile's `settings` and `data`: the account's own for Default (nil) or
+---a profile that isn't there, else the profile's entry in `db.profiles`.
+---@param db table ForeverPlusPlusDB
+---@param id? string
+---@return table
+function Store.Root(db, id)
+    local profiles = db.profiles
+    local profile = id and type(profiles) == "table" and profiles[id]
+    if type(profile) == "table" then
+        return profile
+    end
+    return db
+end
+
+---Every profile's root, Default's (the account's) first, for whatever must treat them all alike:
+---tidying, pruning, renaming a module.
+---@param db table
+---@return table[]
+function Store.Roots(db)
+    local roots = { db }
+    if type(db.profiles) == "table" then
+        for _, profile in pairs(db.profiles) do
+            if type(profile) == "table" then
+                roots[#roots + 1] = profile
+            end
+        end
+    end
+    return roots
 end
 
 -- Steps -----------------------------------------------------------------------------------------
@@ -139,20 +187,38 @@ function Store.Split(db, perCharacter)
     db.modules = nil
 end
 
----Renames modules everywhere the account keeps them by name: settings, data, unclaimed data, and
----the version each was last seen in. `names` is { [old] = new }.
+-- Every table the account keeps by module name: each profile's settings and data, unclaimed
+-- data, and (with `seen`) the version each module was last seen in.
+local function byModule(db, seen)
+    local list = {}
+    for _, root in ipairs(Store.Roots(db)) do
+        list[#list + 1] = root.settings
+        list[#list + 1] = root.data
+    end
+    list[#list + 1] = db.unclaimed
+    if seen then
+        list[#list + 1] = db.seenModules
+    end
+    local tables = {}
+    for _, byName in pairs(list) do
+        if type(byName) == "table" then
+            tables[#tables + 1] = byName
+        end
+    end
+    return tables
+end
+
+---Renames modules everywhere the account keeps them by name: every profile's settings and data,
+---unclaimed data, and the version each was last seen in. `names` is { [old] = new }.
 ---@param db table
 ---@param names table<string, string>
 function Store.Rename(db, names)
-    for _, part in ipairs({ "settings", "data", "unclaimed", "seenModules" }) do
-        local byName = db[part]
-        if type(byName) == "table" then
-            for old, new in pairs(names) do
-                if byName[old] ~= nil and byName[new] == nil then
-                    byName[new] = byName[old]
-                end
-                byName[old] = nil
+    for _, byName in ipairs(byModule(db, true)) do
+        for old, new in pairs(names) do
+            if byName[old] ~= nil and byName[new] == nil then
+                byName[new] = byName[old]
             end
+            byName[old] = nil
         end
     end
 end
@@ -208,9 +274,12 @@ end
 ---Gets a module's saved settings and data ready and returns the table it reads them through:
 ---a setting reads what the player chose or else its default; setting one saves it, even at the
 ---default, and setting it to nil forgets the choice, so it reads the default again. A data key
----reads its table, in the account's or the character's saved variables. Settings and data the
----defaults no longer have are dropped (and settings at their default when they came from the 0.8
----layout, which saved them all). Data whose key moved in or out of `perCharacter` moves with it.
+---reads its table, in the account's, the character's, or (`perProfile`) the profile's saved
+---variables. Settings read the profile in use (`Store.profile`) on every read and write, so a
+---switch changes what the view reads. Settings and data the defaults no longer have are dropped,
+---in every profile (and settings at their default when they came from the 0.8 layout, which saved
+---them all). Data whose key moved in or out of `perCharacter` moves with it; a key moved into
+---`perProfile` stays with Default, which keeps its data in the account's table.
 ---A `linked` setting is kept somewhere else (one of Blizzard's settings): it reads `get()` and
 ---setting it calls `set(value)`, nil for the default, and nothing of it is saved here.
 ---@param db table ForeverPlusPlusDB
@@ -219,17 +288,25 @@ end
 ---@param defaults table
 ---@param perCharacter? table<string, boolean>
 ---@param linked? table<string, { get: fun(): any, set: fun(value: any) }>
+---@param perProfile? table<string, boolean>
 ---@return table view
-function Store.Load(db, char, name, defaults, perCharacter, linked)
+function Store.Load(db, char, name, defaults, perCharacter, linked, perProfile)
     perCharacter = perCharacter or {}
     linked = linked or {}
+    perProfile = perProfile or {}
     -- Looked up on each use, not kept: Store.Tidy drops empty tables before the game saves, and
-    -- a write after it (a module saving at logout) makes them again.
+    -- a write after it (a module saving at logout) makes them again; and the profile can change.
     local function settingsTable()
-        return child(child(db, "settings"), name)
+        return child(child(Store.Root(db, Store.profile), "settings"), name)
     end
     local function dataTable(key)
-        return child(child(perCharacter[key] and char or db, "data"), name)
+        local home = db
+        if perCharacter[key] then
+            home = char
+        elseif perProfile[key] then
+            home = Store.Root(db, Store.profile)
+        end
+        return child(child(home, "data"), name)
     end
     local function dataFor(key)
         local store = dataTable(key)
@@ -239,21 +316,33 @@ function Store.Load(db, char, name, defaults, perCharacter, linked)
         fill(store[key], defaults[key])
         return store[key]
     end
-    local settings = settingsTable()
-    for key, value in pairs(settings) do
-        if defaults[key] == nil or isData(defaults, key) or linked[key]
-            or (loose and value == defaults[key]) then
-            settings[key] = nil
+    for _, root in ipairs(Store.Roots(db)) do
+        local settings = type(root.settings) == "table" and root.settings[name]
+        for key, value in pairs(type(settings) == "table" and settings or {}) do
+            if defaults[key] == nil or isData(defaults, key) or linked[key]
+                or (loose and root == db and value == defaults[key]) then
+                settings[key] = nil
+            end
+        end
+        -- A profile other than Default keeps only its own data.
+        local data = root ~= db and type(root.data) == "table" and root.data[name]
+        for key in pairs(type(data) == "table" and data or {}) do
+            if not (isData(defaults, key) and perProfile[key] and not perCharacter[key]) then
+                data[key] = nil
+            end
         end
     end
-    for _, store in ipairs({ child(child(db, "data"), name), child(child(char, "data"), name) }) do
+    -- The account's table holds account data and Default's profile data; the character's its own.
+    -- A key `perCharacter` moved between the two takes its data along, unless the other side
+    -- already has some.
+    local account, own = child(child(db, "data"), name), child(child(char, "data"), name)
+    for _, pair in ipairs({ { account, own, true }, { own, account, false } }) do
+        local store, other, belongsElsewhere = pair[1], pair[2], pair[3]
         for key, value in pairs(store) do
-            local home = isData(defaults, key) and dataTable(key)
-            if home ~= store then
-                -- A key `perCharacter` moved between the account and the character takes its data
-                -- along, unless the other side already has some.
-                if home and home[key] == nil then
-                    home[key] = value
+            local data = isData(defaults, key)
+            if not data or (perCharacter[key] and true or false) == belongsElsewhere then
+                if data and other[key] == nil then
+                    other[key] = value
                 end
                 store[key] = nil
             end
@@ -302,11 +391,14 @@ end
 
 ---Drops what's left empty before the game writes the saved variables (at logout or /reload):
 ---a module with no changed settings, and data with nothing collected, which Store.Load makes
----again. Keeps the file to what was actually saved.
+---again, in every profile. Keeps the file to what was actually saved. A profile itself stays,
+---even with nothing changed: the player made it.
 ---@param db table
 ---@param char table
 function Store.Tidy(db, char)
-    for _, byName in ipairs({ db.settings or {}, db.data or {}, db.unclaimed or {}, char.data or {} }) do
+    local tables = byModule(db)
+    tables[#tables + 1] = char.data
+    for _, byName in ipairs(tables) do
         for name, byKey in pairs(byName) do
             for key, value in pairs(byKey) do
                 if type(value) == "table" and hollow(value) then
@@ -320,13 +412,15 @@ function Store.Tidy(db, char)
     end
 end
 
----Drops the settings and data of modules that no longer exist, unclaimed data included. `known` is
----{ [name] = true }.
+---Drops the settings and data of modules that no longer exist, in every profile, unclaimed data
+---included. `known` is { [name] = true }.
 ---@param db table
 ---@param char table
 ---@param known table<string, boolean>
 function Store.Prune(db, char, known)
-    for _, byName in ipairs({ db.settings or {}, db.data or {}, db.unclaimed or {}, char.data or {} }) do
+    local tables = byModule(db)
+    tables[#tables + 1] = char.data
+    for _, byName in ipairs(tables) do
         for name in pairs(byName) do
             if not known[name] then
                 byName[name] = nil
