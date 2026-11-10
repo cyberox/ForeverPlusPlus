@@ -31,6 +31,7 @@ local module = ns.NewModule("CompassBar", L.COMPASSBAR_DESC, {
     numbers = true,
     heading = false,
     background = "frame",
+    opacity = 100, -- percent
     fadeEdges = true,
     quests = "selected",
     pin = true,
@@ -45,7 +46,9 @@ local module = ns.NewModule("CompassBar", L.COMPASSBAR_DESC, {
     names = false,
     distanceFade = true,
     edgeArrows = true,
-    hideCombat = false,
+    combat = "show",
+    combatOpacity = 30, -- percent
+    hideEmpty = false,
     hideTaxi = true,
 })
 module.title = L.COMPASSBAR_TITLE
@@ -84,6 +87,8 @@ module.options = {
             { "frame", L.COMPASSBAR_BACKGROUND_FRAME },
             { "none", L.COMPASSBAR_BACKGROUND_NONE },
         } },
+    { key = "opacity", name = L.COMPASSBAR_OPACITY, description = L.COMPASSBAR_OPACITY_DESC,
+        section = L.COMPASSBAR_SECTION_BAR, min = 10, max = 100, step = 5, format = "%d%%" },
     { key = "fadeEdges", name = L.COMPASSBAR_FADE_EDGES, description = L.COMPASSBAR_FADE_EDGES_DESC,
         section = L.COMPASSBAR_SECTION_BAR },
     { key = "quests", name = L.COMPASSBAR_QUESTS, description = L.COMPASSBAR_QUESTS_DESC,
@@ -123,7 +128,16 @@ module.options = {
         section = L.COMPASSBAR_SECTION_DISTANCE },
     { key = "edgeArrows", name = L.COMPASSBAR_EDGE_ARROWS, description = L.COMPASSBAR_EDGE_ARROWS_DESC,
         section = L.COMPASSBAR_SECTION_DISTANCE },
-    { key = "hideCombat", name = L.COMPASSBAR_HIDE_COMBAT, description = L.COMPASSBAR_HIDE_COMBAT_DESC,
+    { key = "combat", name = L.COMPASSBAR_COMBAT, description = L.COMPASSBAR_COMBAT_DESC,
+        section = L.COMPASSBAR_SECTION_SHOW, choices = {
+            { "show", L.COMPASSBAR_COMBAT_SHOW },
+            { "fade", L.COMPASSBAR_COMBAT_FADE },
+            { "hide", L.COMPASSBAR_COMBAT_HIDE },
+        } },
+    { key = "combatOpacity", name = L.COMPASSBAR_COMBAT_OPACITY, description = L.COMPASSBAR_COMBAT_OPACITY_DESC,
+        section = L.COMPASSBAR_SECTION_SHOW, shown = function(db) return db.combat == "fade" end,
+        min = 0, max = 80, step = 5, format = "%d%%" },
+    { key = "hideEmpty", name = L.COMPASSBAR_HIDE_EMPTY, description = L.COMPASSBAR_HIDE_EMPTY_DESC,
         section = L.COMPASSBAR_SECTION_SHOW },
     { key = "hideTaxi", name = L.COMPASSBAR_HIDE_TAXI, description = L.COMPASSBAR_HIDE_TAXI_DESC,
         section = L.COMPASSBAR_SECTION_SHOW },
@@ -191,7 +205,7 @@ end
 
 -- The bar ------------------------------------------------------------------------------------------
 
-local bar, strip, layer, notch, headingText, watcher
+local bar, content, strip, layer, notch, headingText, watcher
 local backdrop = {} -- the Shade's three parts, and the Frame's box
 local marks = {} -- { angle, region } for each letter, number, dot, or line on the bar
 local fontStrings, textures = {}, {} -- made for marks, kept for the next build
@@ -199,14 +213,17 @@ local fontStrings, textures = {}, {} -- made for marks, kept for the next build
 local function newBar()
     bar = CreateFrame("Frame", nil, UIParent)
     bar:SetFrameStrata("LOW")
+    -- Everything the bar draws, so Opacity fades it and not Edit Mode's selection box on the bar.
+    content = CreateFrame("Frame", nil, bar)
+    content:SetAllPoints()
     -- The marks, cut off at the bar's ends.
-    strip = CreateFrame("Frame", nil, bar)
+    strip = CreateFrame("Frame", nil, content)
     strip:SetAllPoints()
     if strip.SetClipsChildren then
         strip:SetClipsChildren(true)
     end
     -- The markers, above the marks and free to reach past the bar (edge arrows, distances).
-    layer = CreateFrame("Frame", nil, bar)
+    layer = CreateFrame("Frame", nil, content)
     layer:SetAllPoints()
     layer:SetFrameLevel(strip:GetFrameLevel() + 2)
     notch = layer:CreateTexture(nil, "OVERLAY")
@@ -225,7 +242,7 @@ local function paintBackground()
     if kind == "shade" and not backdrop.middle then
         local alpha = 0.55
         local function part()
-            local t = bar:CreateTexture(nil, "BACKGROUND")
+            local t = content:CreateTexture(nil, "BACKGROUND")
             t:SetColorTexture(0, 0, 0, alpha)
             return t
         end
@@ -237,7 +254,7 @@ local function paintBackground()
             backdrop.right:SetGradient("HORIZONTAL", CreateColor(0, 0, 0, alpha), CreateColor(0, 0, 0, 0))
         end
     elseif kind == "frame" and not backdrop.box then
-        backdrop.box = ns.Frames.TooltipBox(bar)
+        backdrop.box = ns.Frames.TooltipBox(content)
         backdrop.box:SetPoint("TOPLEFT", -3, 3)
         backdrop.box:SetPoint("BOTTOMRIGHT", 3, -3)
         backdrop.box:SetFrameLevel(max(0, strip:GetFrameLevel() - 1))
@@ -268,6 +285,24 @@ local function fontOf(template)
     local font = _G[template]
     local path = font and font:GetFont()
     return path or STANDARD_TEXT_FONT
+end
+
+-- The names and distances under the markers: the game's small font at the default Marker Size,
+-- growing and shrinking with it.
+local labelBase
+local function labelSize()
+    if not labelBase then
+        local font = _G.GameFontNormalSmall
+        local _, size = font and font:GetFont()
+        labelBase = size or 10
+    end
+    return floor(labelBase * module.db.markerSize / 16 + 0.5)
+end
+
+local function setLabelFont(text, template, size)
+    local font = _G[template]
+    local path, _, flags = font and font:GetFont()
+    text:SetFont(path or STANDARD_TEXT_FONT, size, flags or "")
 end
 
 -- Lays out the marks for the bar's settings: a letter at each of the eight directions (or the
@@ -614,6 +649,12 @@ local function placeMarker(target, delta, yards, edge, alpha)
         m.shownYards, m.shownName = nil, nil
     end
     m.yards = yards
+    local text = labelSize()
+    if m.labelSize ~= text then
+        m.labelSize = text
+        setLabelFont(m.name, "GameFontNormalSmall", text)
+        setLabelFont(m.distance, "GameFontHighlightSmall", text)
+    end
     local size = floor(db.markerSize * (target.important and 1.15 or 1))
     m:SetSize(size, size)
     m:SetFrameLevel(layer:GetFrameLevel() + (target.important and 10 or 1))
@@ -668,7 +709,17 @@ local SAMPLES -- Edit Mode's example markers, made at first use
 
 local function hidden()
     local db = module.db
-    return (db.hideCombat and InCombatLockdown()) or (db.hideTaxi and UnitOnTaxi("player"))
+    return (db.combat == "hide" and InCombatLockdown()) or (db.hideTaxi and UnitOnTaxi("player"))
+end
+
+-- Opacity, or Combat Opacity while in combat with Fade, whichever is fainter.
+local function opacity()
+    local db = module.db
+    local alpha = db.opacity
+    if db.combat == "fade" and InCombatLockdown() then
+        alpha = min(alpha, db.combatOpacity)
+    end
+    return alpha / 100
 end
 
 -- Where a target is from the player now: yards and its angle, or nil.
@@ -766,7 +817,7 @@ local function draw(heading, facing, sample)
         local direction = LETTERS[(floor((heading + 22.5) / 45) % 8) * 45]
         headingText:SetText(format(L.COMPASSBAR_HEADING_TEXT, direction, floor(heading + 0.5) % 360))
         headingText:ClearAllPoints()
-        headingText:SetPoint("TOP", bar, "BOTTOM", 0, under and -30 or -3)
+        headingText:SetPoint("TOP", bar, "BOTTOM", 0, under and -(2 * labelSize() + 10) or -3)
         headingText:Show()
     else
         headingText:Hide()
@@ -787,6 +838,11 @@ local function update()
     end
     -- Facing is counter-clockwise from north in radians; the bar reads clockwise in degrees.
     draw((360 - deg(facing)) % 360, facing, false)
+    if used == 0 and module.db.hideEmpty then
+        bar:Hide()
+        return
+    end
+    content:SetAlpha(opacity())
     bar:Show()
 end
 
@@ -816,6 +872,7 @@ local function sample(active)
             }
         end
         draw(0, 0, true)
+        content:SetAlpha(module.db.opacity / 100)
         bar:Show()
     else
         bar:Hide()

@@ -28,7 +28,7 @@ local module = ns.NewModule("Waypoints", L.WAYPOINTS_DESC, {
     clearOnArrival = true,
     scale = 100, -- percent
     x = 0, -- the arrow's offset from the center of the screen
-    y = 340, -- near the top, clear of a windowed game's title bar
+    y = 296, -- near the top, under the Compass Bar's spot
 })
 module.title = L.WAYPOINTS_TITLE
 module.category = "map"

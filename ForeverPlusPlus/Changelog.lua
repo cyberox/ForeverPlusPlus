@@ -18,6 +18,10 @@ ns.changelog = {
                     .. "they are, and how far away. Every quest on the map, flight masters, gathering "
                     .. "nodes, and rares can go on it too. Set its size in Edit Mode." },
             } },
+            { L.CHANGELOG_CHANGED, {
+                { L.WAYPOINTS_TITLE, "The arrow sits a little lower by default, under the Compass Bar. "
+                    .. "If you moved it in Edit Mode, it stays where you put it." },
+            } },
         },
     },
     {
