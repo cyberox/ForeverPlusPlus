@@ -211,10 +211,15 @@ local function dumpRecipes()
         ns.Print(L.RECIPECOLORS_DUMP_NONE)
         return
     end
-    local profession = T.GetChildProfessionInfo and T.GetChildProfessionInfo()
-    if profession and profession.professionName then
-        ns.Print(format(L.RECIPECOLORS_DUMP_SKILL, profession.professionName,
-            tostring(profession.skillLevel), tostring(profession.maxSkillLevel)))
+    -- The window's profession: on Forever the child profession's info came back empty (2026-11-09,
+    -- "skill 0 of 0"), so both are printed with their skill line, to learn which one has it.
+    for _, get in ipairs({ "GetBaseProfessionInfo", "GetChildProfessionInfo" }) do
+        local profession = T[get] and T[get]()
+        if profession then
+            ns.Print(format(L.RECIPECOLORS_DUMP_SKILL, get, tostring(profession.professionName),
+                tostring(profession.professionID), tostring(profession.skillLevel),
+                tostring(profession.maxSkillLevel)))
+        end
     end
     -- The recipe selected in the window, in full, or else the first one known.
     local page = ProfessionsFrame and ProfessionsFrame.CraftingPage
