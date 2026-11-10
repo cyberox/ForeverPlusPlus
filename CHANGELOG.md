@@ -13,6 +13,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Recipe Colors**: Each recipe that can still raise your skill shows how many skill-ups it has left before it turns gray, and the selected recipe says the same under its name. Pick Gray At to see the skill it turns gray at instead, or turn either off.
 - **Settings**: click a category in the Modules list to fold it away, and again to open it. It stays folded next time, says NEW while something in it is, and a search still finds what's in it.
 - **Minimap Button**: Customize in Menu (on by default) can take the Customize... line off the bottom of the quick toggles. The Customize button in its settings still picks them.
+- **Error Catcher**: a blocked action says what was going on when it happened: combat, the instance, what the mouse was over, and the menus open. A Taint Log checkbox turns on the game's log of which addon caused it.
 
 ### Changed
 

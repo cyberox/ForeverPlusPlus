@@ -12,7 +12,7 @@
 -- first among the modules, so their load errors are caught too.
 local _, ns = ...
 
-local format, tostring, pcall, select, ipairs = string.format, tostring, pcall, select, ipairs
+local format, tostring, pcall, select, ipairs, type = string.format, tostring, pcall, select, ipairs, type
 local min = math.min
 local concat, tremove, wipe, time, date = table.concat, table.remove, wipe, time, date
 local CreateFrame, GetTime = CreateFrame, GetTime
@@ -20,6 +20,7 @@ local C_Timer, error = C_Timer, error
 local seterrorhandler, geterrorhandler = seterrorhandler, geterrorhandler
 local debugstack, debuglocals = debugstack, debuglocals
 local GetCallstackHeight, GetErrorCallstackHeight = GetCallstackHeight, GetErrorCallstackHeight
+local InCombatLockdown, IsInInstance, GetMouseFoci = InCombatLockdown, IsInInstance, GetMouseFoci
 
 local L = ns.L
 
@@ -27,6 +28,7 @@ local module = ns.NewModule("ErrorCatcher", L.ERRORCATCHER_DESC, {
     enabled = true,
     chat = false,
     sound = "off", -- a key of SOUNDS, played with the chat message (issue #4)
+    taintLog = false, -- Blizzard's taintLog CVar (a `cvar` option), whose default is the client's
     -- Data, not settings: a table, so presets leave it alone.
     saved = {
         session = 0, -- counts logins and reloads
@@ -150,7 +152,7 @@ local function store(entry, announce)
             if old.session ~= data.session then
                 old.session = data.session
                 old.first = entry.time
-                old.stack, old.locals = entry.stack, entry.locals
+                old.stack, old.locals, old.context = entry.stack, entry.locals, entry.context
                 tremove(errors, i)
                 errors[#errors + 1] = old
             end
@@ -242,16 +244,70 @@ local function onError(message)
     busy = false
 end
 
+local function taintLogOn()
+    local value = C_CVar and C_CVar.GetCVar("taintLog")
+    return value ~= nil and value ~= "0"
+end
+
+-- The frame under the mouse, usually what was just clicked, by its name in the frame tree.
+local function mouseFrame()
+    local foci = GetMouseFoci and GetMouseFoci()
+    local focus = foci and foci[1]
+    if not (focus and focus.GetDebugName) then
+        return nil
+    end
+    local ok, name = pcall(focus.GetDebugName, focus)
+    return ok and readable(name, nil) or nil
+end
+
+-- The tags of the menus open, such as MENU_UNIT_TARGET for the target's right-click menu.
+-- Blizzard reads them through securecallfunction, so asking taints nothing.
+local function openMenus()
+    local manager = Menu and Menu.GetManager and Menu.GetManager()
+    if not (manager and manager.GetOpenMenuTags) then
+        return nil
+    end
+    local ok, tags = pcall(manager.GetOpenMenuTags, manager)
+    if not (ok and type(tags) == "table") then
+        return nil
+    end
+    local names = {}
+    for _, tag in ipairs(tags) do
+        names[#names + 1] = readable(tag, nil)
+    end
+    return #names > 0 and concat(names, ", ") or nil
+end
+
+-- What was going on when an action was blocked, since it comes with no stack: combat, the kind
+-- of instance, the frame under the mouse, the menus open, and whether the taint log was writing.
+local function blockedContext()
+    local none = L.ERRORCATCHER_CONTEXT_NONE
+    local _, instance = IsInInstance()
+    local lines = {
+        format(L.ERRORCATCHER_CONTEXT_COMBAT, InCombatLockdown() and L.ERRORCATCHER_CONTEXT_YES
+            or L.ERRORCATCHER_CONTEXT_NO),
+        format(L.ERRORCATCHER_CONTEXT_INSTANCE, readable(instance, none)),
+        format(L.ERRORCATCHER_CONTEXT_MOUSE, mouseFrame() or none),
+        format(L.ERRORCATCHER_CONTEXT_MENUS, openMenus() or none),
+        format(L.ERRORCATCHER_CONTEXT_TAINT_LOG, taintLogOn() and L.ERRORCATCHER_CONTEXT_YES
+            or L.ERRORCATCHER_CONTEXT_NO),
+    }
+    return concat(lines, "\n")
+end
+
 -- ADDON_ACTION_BLOCKED and ADDON_ACTION_FORBIDDEN: an addon called something only Blizzard's
--- code may. The stack here would only be this handler's, so there's none.
+-- code may. The stack here would only be this handler's, so there's none; what was going on
+-- stands in for it.
 local function onBlocked(event, addon, fn)
     if not allowed() then
         return
     end
+    local ok, context = pcall(blockedContext)
     catch({
         kind = "blocked",
         message = format(L.ERRORCATCHER_BLOCKED, event, readable(addon, L.ERRORCATCHER_UNKNOWN),
             readable(fn, L.ERRORCATCHER_UNKNOWN)),
+        context = ok and context or nil,
         time = time(),
     })
 end
@@ -387,6 +443,15 @@ local function addBody(lines, entry)
     if not any then
         lines[#lines + 1] = ""
         lines[#lines + 1] = L.ERRORCATCHER_NO_STACK
+    end
+    if entry.context then
+        lines[#lines + 1] = ""
+        lines[#lines + 1] = L.ERRORCATCHER_CONTEXT
+        lines[#lines + 1] = entry.context
+    end
+    if entry.kind == "blocked" and not taintLogOn() then
+        lines[#lines + 1] = ""
+        lines[#lines + 1] = L.ERRORCATCHER_TAINT_HINT
     end
 end
 
@@ -789,6 +854,10 @@ module.options = {
             { "alarm", L.ERRORCATCHER_SOUND_ALARM },
             { "whisper", L.ERRORCATCHER_SOUND_WHISPER },
         },
+    },
+    {
+        key = "taintLog", name = L.ERRORCATCHER_TAINT_LOG, description = L.ERRORCATCHER_TAINT_LOG_DESC,
+        cvar = "taintLog", added = "1.5.0",
     },
     ns.ChatOption(L.ERRORCATCHER_CHAT_DESC),
 }

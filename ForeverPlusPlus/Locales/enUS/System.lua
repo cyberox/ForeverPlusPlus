@@ -56,6 +56,22 @@ L.ERRORCATCHER_META = "Seen %d times in session %d, first at %s, last at %s (%s)
 L.ERRORCATCHER_STACK = "Stack:"
 L.ERRORCATCHER_LOCALS = "Locals:"
 L.ERRORCATCHER_NO_STACK = "No stack: blocked actions and warnings don't come with one."
+-- What was going on when an action was blocked, in place of a stack.
+L.ERRORCATCHER_CONTEXT = "When it happened:"
+L.ERRORCATCHER_CONTEXT_COMBAT = "In combat: %s"
+L.ERRORCATCHER_CONTEXT_INSTANCE = "Instance: %s" -- none, party, raid, pvp, arena, scenario
+L.ERRORCATCHER_CONTEXT_MOUSE = "Mouse over: %s" -- a frame's name, such as TargetFrame
+L.ERRORCATCHER_CONTEXT_MENUS = "Menus open: %s" -- menu tags, such as MENU_UNIT_TARGET
+L.ERRORCATCHER_CONTEXT_TAINT_LOG = "Taint log on: %s"
+L.ERRORCATCHER_CONTEXT_YES = "yes"
+L.ERRORCATCHER_CONTEXT_NO = "no"
+L.ERRORCATCHER_CONTEXT_NONE = "none"
+L.ERRORCATCHER_TAINT_HINT = "Turn on Taint Log in Error Catcher's settings, and the next time this "
+    .. "happens the game writes which addon's code caused it to Logs\\taint.log in the game folder."
+L.ERRORCATCHER_TAINT_LOG = "Taint Log"
+L.ERRORCATCHER_TAINT_LOG_DESC = "One of the game's own settings: it writes which addon's code was "
+    .. "behind each blocked action to Logs\\taint.log in the game folder. Turn it on while tracking "
+    .. "one down and off after, since the file grows quickly."
 L.ERRORCATCHER_COPY = "Copy Bug Report"
 L.ERRORCATCHER_COPY_HINT = "Selected. Press Ctrl+C to copy."
 L.ERRORCATCHER_REPORT_HEADER = "Forever++ %s bug report" -- the addon's version

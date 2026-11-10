@@ -40,6 +40,9 @@ ns.changelog = {
                 { L.MINIMAPBUTTON_TITLE, "Customize in Menu (on by default) can take the Customize... "
                     .. "line off the bottom of the quick toggles. The Customize button in its settings "
                     .. "still picks them." },
+                { L.ERRORCATCHER_TITLE, "A blocked action says what was going on when it happened: "
+                    .. "combat, the instance, what the mouse was over, and the menus open. A Taint Log "
+                    .. "checkbox turns on the game's log of which addon caused it." },
             } },
             { L.CHANGELOG_CHANGED, {
                 { L.WAYPOINTS_TITLE, "The arrow sits a little lower by default, under the Compass Bar. "
