@@ -63,11 +63,6 @@ local ICONS = {
         atlas = "logo-wow-forever", crop = { 0.2562, 0.7688, 0.2281, 0.7906 }, aspect = 164 / 180,
         height = 1.35, tint = true,
     },
-    -- Forever's own NEW tag, from its mode selection, with part of its glow.
-    new = {
-        atlas = "mode-selection-new-c60", crop = { 0.17, 0.84, 0.18, 0.82 },
-        aspect = (0.67 * 64) / (0.64 * 43), height = 1.3,
-    },
     coin = { atlas = "tokens-wow-generic-small", aspect = 1, height = 1.2 },
     star = { atlas = "campcollection-icon-star", aspect = 20 / 19, height = 1.1 },
 }
@@ -85,7 +80,6 @@ module.options = {
             { "medallion", L.FOREVERQUESTICONS_ICON_MEDALLION },
             { "infinity", L.FOREVERQUESTICONS_ICON_INFINITY },
             { "logo", L.FOREVERQUESTICONS_ICON_LOGO },
-            { "new", L.FOREVERQUESTICONS_ICON_NEW },
             { "coin", L.FOREVERQUESTICONS_ICON_COIN },
             { "star", L.FOREVERQUESTICONS_ICON_STAR },
         },

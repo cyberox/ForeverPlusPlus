@@ -25,8 +25,7 @@ ns.changelog = {
                     .. "only the button if you pick that, and a plus button to open it again. It can also sit "
                     .. "in the middle of any edge of the map, not only a corner, and has an Opacity slider." },
                 { L.FOREVERQUESTICONS_TITLE, "More icons: the blue Forever medallion from the login "
-                    .. "screen (now the default), Forever's NEW tag, a WoW coin, and a star, beside the "
-                    .. "infinity sign and the Forever logo, which a new Color option turns gold or blue. "
+                    .. "screen (now the default), a WoW coin, and a star, beside the infinity sign and the Forever logo, which a new Color option turns gold or blue. "
                     .. "Each icon is cut to its art, so the Forever logo no longer makes a quest giver's "
                     .. "rows taller." },
                 { L.RECIPECOLORS_TITLE, "Each recipe that can still raise your skill shows how many "
