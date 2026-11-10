@@ -111,7 +111,7 @@ eq(type(view.seen.list), "table", "store: data after tidy is made again")
 view.banks.x = 1
 eq(oldDB.data.BagSlotCounter.banks.x, 1, "store: data made again is saved")
 
--- Profiles: Default is the account's own settings and data, so 1.5.0's saved variables read the
+-- Profiles: Default is the account's own settings and data, so saved variables from before profiles read the
 -- same; another profile is a root of its own, read through the same view once it's in use.
 local pdb = {
     version = 5,

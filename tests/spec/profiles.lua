@@ -38,7 +38,7 @@ ns.modules = {
 T.load("Lib/Profiles")
 local Profiles, Store = ns.Profiles, ns.Store
 
--- Updating from 1.5.0: one profile, Default, the settings the player had.
+-- Updating from a release before profiles: one profile, Default, the settings the player had.
 ns.db = { settings = { Win = { enabled = true, size = 3 } }, data = { Win = { positions = { Bags = { x = 1 } } } } }
 ns.charDB = { version = 5 }
 local heard = {}
