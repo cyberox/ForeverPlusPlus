@@ -28,7 +28,9 @@ local module = ns.modules.WorldMap:NewPart({
     key = "zoneInfo", name = L.ZONEINFO_TITLE, description = L.ZONEINFO_DESC,
     section = L.ZONEINFO_TITLE,
 }, {
-    corner = "BOTTOMLEFT",
+    corner = "BOTTOMLEFT", -- a corner, or the middle of an edge ("TOP", "LEFT", ...)
+    opacity = 100,
+    foldTo = "title", -- what the minus button leaves: "title" (name and levels) or "button"
     hover = true, -- on continent maps, the zone under the cursor
     hideLabel = true, -- and then the map's own zone name at the top, which says the same
     levels = true,
@@ -64,18 +66,34 @@ local GENERAL, ZONE, PROFESSIONS = L.ZONEINFO_SECTION_GENERAL, L.ZONEINFO_SECTIO
     L.ZONEINFO_SECTION_PROFESSIONS
 module:AddOptions({
     {
-        key = "corner", name = L.ZONEINFO_CORNER, description = L.ZONEINFO_CORNER_DESC,
+        key = "corner", name = L.ZONEINFO_POSITION, description = L.ZONEINFO_POSITION_DESC,
         choices = {
-            { "BOTTOMLEFT", L.ZONEINFO_BOTTOMLEFT },
-            { "BOTTOMRIGHT", L.ZONEINFO_BOTTOMRIGHT },
             { "TOPLEFT", L.ZONEINFO_TOPLEFT },
+            { "TOP", L.ZONEINFO_TOP },
             { "TOPRIGHT", L.ZONEINFO_TOPRIGHT },
+            { "LEFT", L.ZONEINFO_LEFT },
+            { "RIGHT", L.ZONEINFO_RIGHT },
+            { "BOTTOMLEFT", L.ZONEINFO_BOTTOMLEFT },
+            { "BOTTOM", L.ZONEINFO_BOTTOM },
+            { "BOTTOMRIGHT", L.ZONEINFO_BOTTOMRIGHT },
         },
-        section = GENERAL,
+        section = GENERAL, changed = "1.5.0", -- the middle of each edge
     },
     {
         key = "scale", name = L.ZONEINFO_SIZE, description = L.ZONEINFO_SIZE_DESC,
         min = 70, max = 150, step = 10, format = "%d%%", section = GENERAL,
+    },
+    {
+        key = "opacity", name = L.ZONEINFO_OPACITY, description = L.ZONEINFO_OPACITY_DESC,
+        min = 20, max = 100, step = 5, format = "%d%%", section = GENERAL, added = "1.5.0",
+    },
+    {
+        key = "foldTo", name = L.ZONEINFO_FOLD_TO, description = L.ZONEINFO_FOLD_TO_DESC,
+        choices = {
+            { "title", L.ZONEINFO_FOLD_TITLE },
+            { "button", L.ZONEINFO_FOLD_BUTTON },
+        },
+        section = GENERAL, added = "1.5.0",
     },
     { key = "hover", name = L.ZONEINFO_HOVER, description = L.ZONEINFO_HOVER_DESC, section = GENERAL },
     {
@@ -178,10 +196,10 @@ local function levelsOf(mapID, zone)
     return zone[1], zone[2]
 end
 
--- Whether the panel is in a right corner, where everything is mirrored: the icons come after
--- their text and the text lines up on the right.
+-- Whether the panel is on the right side, where everything is mirrored: the icons come after
+-- their text and the text lines up on the right. The top and bottom middles read from the left.
 local function onRight()
-    return module.db.corner == "TOPRIGHT" or module.db.corner == "BOTTOMRIGHT"
+    return module.db.corner:find("RIGHT") ~= nil
 end
 
 -- A profession's icon in text, bigger than the small font so it reads at a glance, on the side of
@@ -391,8 +409,9 @@ local shownHeld -- whether the detail key was held then
 local shown -- the zone the panel shows now, or false for none; nil to draw again
 local toggleFolded -- the minus and plus button's click, set once draw is
 
+-- Out to the side the button is on, away from the panel.
 local function foldTip(button)
-    GameTooltip:SetOwner(button, "ANCHOR_RIGHT")
+    GameTooltip:SetOwner(button, onRight() and "ANCHOR_LEFT" or "ANCHOR_RIGHT")
     GameTooltip:SetText(module.db.folded and L.ZONEINFO_UNFOLD or L.ZONEINFO_FOLD, 1, 1, 1)
     GameTooltip:Show()
 end
@@ -477,9 +496,17 @@ local function anchor()
     -- Offsets are in the panel's own scale, so divide to keep them the same on screen.
     panel:SetScale(scale)
     panel:ClearAllPoints()
-    local x = onRight() and -8 or 8
-    local y = corner:find("TOP") and -offset or offset
+    -- 8 pixels in from each edge it's against; none along the edge it's centered on.
+    local x = corner:find("RIGHT") and -8 or corner:find("LEFT") and 8 or 0
+    local y = corner:find("TOP") and -offset or corner:find("BOTTOM") and offset or 0
     panel:SetPoint(corner, panel:GetParent(), corner, x / scale, y / scale)
+end
+
+-- The minus button while the rows show, the plus while folded.
+local function foldLook(folded)
+    local look = folded and "Plus" or "Minus"
+    panel.fold:SetNormalTexture("Interface\\Buttons\\UI-" .. look .. "Button-Up")
+    panel.fold:SetPushedTexture("Interface\\Buttons\\UI-" .. look .. "Button-Down")
 end
 
 local function draw(mapID)
@@ -488,6 +515,22 @@ local function draw(mapID)
     local zone = mapID and internal.zones[mapID]
     if not zone then
         panel:Hide()
+        return
+    end
+    panel:SetAlpha(module.db.opacity / 100)
+    local folded = module.db.folded
+    -- Folded to only the button: a small box around the plus, with no text.
+    if folded and module.db.foldTo == "button" then
+        panel.title:SetText("")
+        for _, row in ipairs(panel.rows) do
+            row:Hide()
+        end
+        foldLook(true)
+        panel.fold:ClearAllPoints()
+        panel.fold:SetPoint("CENTER")
+        local size = BUTTON + (PADDING - 2) * 2
+        panel:SetSize(size, size)
+        panel:Show()
         return
     end
     local info = C_Map.GetMapInfo(mapID)
@@ -502,7 +545,6 @@ local function draw(mapID)
     if module.db.levels and low then
         title = format(L.ZONEINFO_TITLE_LEVELS, title, levelText(low, high))
     end
-    local folded = module.db.folded
     local list = folded and {} or rows(zone, low, high)
     -- As wide as the longest line, up to MAX_WIDTH; longer lines wrap. The title leaves room for
     -- the button beside it.
@@ -532,12 +574,10 @@ local function draw(mapID)
     panel.title:SetJustifyH(side)
     local titleHeight = panel.title:GetStringHeight()
     local height = PADDING * 2 + titleHeight
-    -- The button at the title's other end: a minus while the rows show, a plus while folded.
+    -- The button at the title's other end.
     local other = side == "RIGHT" and "LEFT" or "RIGHT"
-    local look = folded and "Plus" or "Minus"
+    foldLook(folded)
     local fold = panel.fold
-    fold:SetNormalTexture("Interface\\Buttons\\UI-" .. look .. "Button-Up")
-    fold:SetPushedTexture("Interface\\Buttons\\UI-" .. look .. "Button-Down")
     fold:ClearAllPoints()
     fold:SetPoint(other, panel, "TOP" .. other, other == "RIGHT" and -(PADDING - 2) or PADDING - 2,
         -(PADDING + titleHeight / 2))

@@ -21,11 +21,14 @@ ns.changelog = {
                     .. "in the world sparkle, so they're easy to spot, and stay that way after you change "
                     .. "your graphics settings." },
                 { L.WORLDMAP_TITLE, "Zone Info's panel has a minus button that folds it down to the "
-                    .. "zone's name when it covers part of the map, and a plus button to open it again." },
+                    .. "zone's name when it covers part of the map, or to only the button if you pick that, "
+                    .. "and a plus button to open it again. It can also sit in the middle of any edge of the "
+                    .. "map, not only a corner, and has an Opacity slider." },
             } },
             { L.CHANGELOG_CHANGED, {
                 { L.WAYPOINTS_TITLE, "The arrow sits a little lower by default, under the Compass Bar. "
-                    .. "If you moved it in Edit Mode, it stays where you put it." },            } },
+                    .. "If you moved it in Edit Mode, it stays where you put it." },
+            } },
         },
     },
     {
