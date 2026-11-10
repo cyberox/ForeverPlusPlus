@@ -25,11 +25,7 @@ ns.changelog = {
             } },
             { L.CHANGELOG_CHANGED, {
                 { L.WAYPOINTS_TITLE, "The arrow sits a little lower by default, under the Compass Bar. "
-                    .. "If you moved it in Edit Mode, it stays where you put it." },
-                { L.GATHERINGMAP_TITLE, "Only While Tracking hides herbs and ore on the minimap only. "
-                    .. "The game turns tracking off when you log out or die, which made your remembered "
-                    .. "nodes look gone from the world map until you turned it back on." },
-            } },
+                    .. "If you moved it in Edit Mode, it stays where you put it." },            } },
         },
     },
     {

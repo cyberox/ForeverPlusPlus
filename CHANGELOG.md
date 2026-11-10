@@ -13,8 +13,6 @@ What changed in each release of Forever++. The same notes show in game under Set
 ### Changed
 
 - **Waypoints**: the arrow sits a little lower by default, under the Compass Bar. If you moved it in Edit Mode, it stays where you put it.
-- **Gathering Map**: Only While Tracking hides herbs and ore on the minimap only. The game turns tracking off when you log out or die, which made your remembered nodes look gone from the world map until you turned it back on.
-
 ## 1.4.0 (2026-11-09)
 
 ### Added
