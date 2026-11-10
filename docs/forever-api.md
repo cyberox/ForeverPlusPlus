@@ -485,6 +485,12 @@ Results of the 2026-10-14 run (build 70338, out of combat, no flight master open
 - `C_TaxiMap.GetDestinationMap` isn't there. Nothing uses it.
 - Every other seeded item, spell, and map ID the addon ships was found: lockboxes, weapon buffs, Comprehend Scroll items, Zone Info's maps, Skyborne spells, Pick Lock, Find Herbs, Find Minerals, Comprehend Scroll, and Azeroth (947).
 
+## Forever's art
+
+- Build 1.60.1.70862's atlas table (wago.tools' `UiTextureAtlasMember`) has one Forever logo, `logo-wow-forever`: the medallion in one flat beige, with room around it (the art is about the middle half of its 320 by 320). **[web]** (wago.tools, 2026-11-10)
+- The blue medallion of the login screen and the launcher is in no atlas, only loose files: `Interface\Glues\Common\Glues-WoW-ForeverLogo-Infinity` (a W on the infinity loop, file 8363869, 512 by 256 with the art in about its left 0.12 to 0.55), `Glues-WoW-ForeverLogo` (with "World of Warcraft Forever", 8205333), `Glues-WoW-ForeverLogo-FreeTrial` (8480349), and the loading screens' `Interface\Glues\LoadingScreens\Camelot160\Logo\Logo_Camelot` (7961223). They're uncompressed BLPs (encoding 3, BGRA). Forever Quest Icons draws the first with `|T` markup. **[web]** (wago.tools files, 2026-11-10) **Unverified** that an addon can draw it in game.
+- About 2,900 atlas names are in Forever but not retail 12.1.5; most are its own `-c60` versions of Blizzard's UI art (`mode-selection-new-c60`, a NEW tag in a blue glow, `ui-legacy-points-icon-c60`, the `ui-questtracker-*-c60` buttons). **[web]** (wago.tools, against 12.1.5.70783, 2026-11-10)
+
 ## Framerate text
 
 - `FramerateFrame` (Ctrl+R, from `Blizzard_FramerateFrame`) is parented to `WorldFrame`, inherits `ResizeLayoutFrame` (its width follows the text), and on Forever stays at its XML anchor, `BOTTOMRIGHT` of `WorldFrame` at (-2, 2): `FramerateFrameOverrides.lua`, which moves it beside the micro menu on Retail, is `[ExcludeLoadGameType camelot, classic]`, so `UpdatePosition` and `OnLoad` do nothing. Movable Framerate anchors it to a frame of its own once moved. **[web]** (Gethe `forever` branch, 2026-10-02) **Unverified** in game.

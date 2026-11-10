@@ -79,8 +79,18 @@ L.FOREVERQUESTICONS_SIZE_DESC = "How big the icon is here, next to the quest's n
     .. "push a name onto another line leaves that name without the icon."
 L.FOREVERQUESTICONS_ICON = "Icon"
 L.FOREVERQUESTICONS_ICON_DESC = "The icon after the quest's name."
+L.FOREVERQUESTICONS_ICON_MEDALLION = "Forever Medallion"
 L.FOREVERQUESTICONS_ICON_INFINITY = "Infinity"
 L.FOREVERQUESTICONS_ICON_LOGO = "Forever Logo"
+L.FOREVERQUESTICONS_ICON_NEW = "New Tag"
+L.FOREVERQUESTICONS_ICON_COIN = "WoW Coin"
+L.FOREVERQUESTICONS_ICON_STAR = "Star"
+L.FOREVERQUESTICONS_COLOR = "Color"
+L.FOREVERQUESTICONS_COLOR_DESC = "The color of the icon, for one in a single color: in gold or blue it "
+    .. "stands out on the parchment of the quest windows."
+L.FOREVERQUESTICONS_COLOR_ART = "Its Own"
+L.FOREVERQUESTICONS_COLOR_GOLD = "Gold"
+L.FOREVERQUESTICONS_COLOR_BLUE = "Forever Blue"
 
 -- AutoQuest
 L.AUTOQUEST_TITLE = "Auto Quest"
