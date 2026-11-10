@@ -35,8 +35,8 @@ ns.changelog = {
                     .. "under its name. Pick Gray At to see the skill it turns gray at instead, or turn "
                     .. "either off." },
                 { L.CHANGELOG_SETTINGS, "Click a category in the Modules list to fold it away, and "
-                    .. "again to open it. It stays folded next time, and a search still finds what's "
-                    .. "in it." },
+                    .. "again to open it. It stays folded next time, says NEW while something in it is, "
+                    .. "and a search still finds what's in it." },
                 { L.MINIMAPBUTTON_TITLE, "Customize in Menu (on by default) can take the Customize... "
                     .. "line off the bottom of the quick toggles. The Customize button in its settings "
                     .. "still picks them." },

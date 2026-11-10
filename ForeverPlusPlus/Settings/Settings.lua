@@ -1289,17 +1289,28 @@ local function newCategoryLabel(group)
     local count = label:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     count:SetPoint("LEFT", text, "RIGHT", 4, 0)
     text:SetText(CATEGORY_NAMES[group])
-    local total = 0
+    local names = {}
     for _, name in ipairs(listed) do
         if categoryOf(ns.modules[name]) == group then
-            total = total + 1
+            names[#names + 1] = name
         end
+    end
+    -- NEW after the count while folded over a module marked NEW, which would show otherwise.
+    local showNew = newLabel(label, count, 60)
+    local function anyNewIn()
+        for _, name in ipairs(names) do
+            if isNew(name) then
+                return true
+            end
+        end
+        return false
     end
     function label.draw()
         local fold = folded(group)
         button:SetTexture("Interface\\Buttons\\UI-" .. (fold and "Plus" or "Minus") .. "Button-Up")
         button:SetDesaturated((filter or newOnly) and true or false)
-        count:SetText(fold and format("(%d)", total) or "")
+        count:SetText(fold and format("(%d)", #names) or "")
+        showNew(fold and anyNewIn())
     end
     label:SetScript("OnClick", function()
         if filter or newOnly then
