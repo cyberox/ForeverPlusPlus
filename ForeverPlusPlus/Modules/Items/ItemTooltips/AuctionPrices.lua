@@ -33,6 +33,7 @@ local module = itemTooltips:NewPart({
     scanAgeColor = "age", -- "age" (green when fresh to red when old), "gray", "white", or "gold"
     scanAgeRedHours = 12, -- hours old at which "age" is fully red
     crafting = true, -- costs, value, and profit under a recipe's reagents
+    craftingRows = false, -- each recipe's profit on its row of the recipe list
     scanOnOpen = true,
     auctionator = false, -- Auctionator's prices instead of our scans, while it's loaded
     chat = true,
@@ -88,6 +89,10 @@ module:AddOptions({
         min = 1, max = 48, step = 1, format = ns.Text.Hours,
     },
     { key = "crafting", name = L.AUCTIONPRICES_CRAFTING, description = L.AUCTIONPRICES_CRAFTING_DESC },
+    {
+        key = "craftingRows", name = L.AUCTIONPRICES_CRAFTING_ROWS, description = L.AUCTIONPRICES_CRAFTING_ROWS_DESC,
+        requires = "crafting", added = "1.5.0",
+    },
     { key = "scanOnOpen", name = L.AUCTIONPRICES_SCAN_ON_OPEN, description = L.AUCTIONPRICES_SCAN_ON_OPEN_DESC },
     {
         key = "auctionator", name = L.AUCTIONPRICES_AUCTIONATOR, description = L.AUCTIONPRICES_AUCTIONATOR_DESC,
@@ -615,6 +620,10 @@ end
 -- changed, to move them down under it, and put back when it goes. (Prices inside Blizzard's
 -- reagent slots didn't fit, and a row per reagent was too much.)
 
+-- The recipe list's profits, kept by recipe ID while it scrolls (see Profit in the recipe list
+-- below), and forgotten whenever a price they're made of may have changed.
+local profits = {} -- recipeID -> profit in copper, or false for none
+
 -- A merchant's item: its price, how many that price buys, how many are left (-1: unlimited),
 -- and whether it costs something besides money. Probe: C_MerchantFrame.GetItemInfo is newer
 -- Mainline; GetMerchantItemInfo the older one.
@@ -646,6 +655,7 @@ local function recordMerchant()
             vendor[id] = price / ((stack and stack > 0) and stack or 1)
         end
     end
+    wipe(profits) -- a reagent's merchant price may be new
 end
 
 -- What one of a reagent costs: the lower of its auction and merchant prices, or nil. Then when
@@ -712,6 +722,11 @@ local function coins(amount)
         return "-" .. ns.Money(-amount)
     end
     return ns.Money(amount)
+end
+
+-- Green for a profit, red for a loss, white for even: on the totals and the recipe list alike.
+local function profitColor(profit)
+    return profit > 0 and GREEN or profit < 0 and RED or WHITE
 end
 
 local CRAFT_WIDTH, ROW_HEIGHT = 280, 14
@@ -809,6 +824,57 @@ local function noPrice()
     return GRAY:WrapTextInColorCode(L.AUCTIONPRICES_CRAFT_NO_PRICE)
 end
 
+-- What one craft of a recipe costs and makes: the one sum both the selected recipe's totals and the
+-- recipe list's rows show, so they can't disagree. Nil for a recipe with no reagents every craft
+-- uses. Otherwise { cost (copper), missing (a reagent has no price), oldest (when the oldest auction
+-- price used was seen), output (the itemID made; nil for an enchant, which has no value or profit),
+-- low and high (how many it makes), value (of all it makes, or nil with no price), fromVendor,
+-- profit (after the auction house's cut; nil without a value or a reagent's price), loading (the
+-- output's item data hasn't come yet, so a merchant's price for it can't be read) }.
+local function craftSums(recipeID)
+    local schematic = recipeID and C_TradeSkillUI and C_TradeSkillUI.GetRecipeSchematic
+        and C_TradeSkillUI.GetRecipeSchematic(recipeID, false)
+    local reagents = schematic and basicReagents(schematic)
+    if not (reagents and #reagents > 0) then
+        return nil
+    end
+    local cost, missing, oldest = 0, false, nil
+    for _, reagent in ipairs(reagents) do
+        local unit, seenAt = reagentCost(reagent[1])
+        if unit then
+            cost = cost + unit * reagent[2]
+        else
+            missing = true
+        end
+        if seenAt and (not oldest or seenAt < oldest) then
+            oldest = seenAt
+        end
+    end
+    local sums = { cost = cost, missing = missing }
+    local output = schematic.outputItemID
+    if output then
+        sums.output = output
+        local low, high = schematic.quantityMin or 1, schematic.quantityMax or 1
+        sums.low, sums.high = low, high
+        local unit, fromVendor, seenAt = craftedValue(output)
+        if seenAt and (not oldest or seenAt < oldest) then
+            oldest = seenAt
+        end
+        if unit then
+            local value = unit * (low + high) / 2 -- some recipes make a random number: count the middle
+            sums.value, sums.fromVendor = value, fromVendor
+            if not missing then
+                -- Selling at auction loses the house's cut; a merchant pays in full.
+                sums.profit = (fromVendor and value or value * (1 - AUCTION_CUT)) - cost
+            end
+        elseif C_Item.IsItemDataCachedByID and not C_Item.IsItemDataCachedByID(output) then
+            sums.loading = true -- probe: IsItemDataCachedByID is Mainline's
+        end
+    end
+    sums.oldest = oldest
+    return sums
+end
+
 local function refreshCrafting(recipeInfo)
     local form = craftForm()
     if not form then
@@ -816,10 +882,8 @@ local function refreshCrafting(recipeInfo)
     end
     recipeInfo = recipeInfo or (form.GetRecipeInfo and form:GetRecipeInfo())
     local recipeID = module.enabled and module.db.crafting and recipeInfo and recipeInfo.recipeID
-    local schematic = recipeID and C_TradeSkillUI and C_TradeSkillUI.GetRecipeSchematic
-        and C_TradeSkillUI.GetRecipeSchematic(recipeID, false)
-    local reagents = schematic and basicReagents(schematic)
-    if not (reagents and #reagents > 0 and form.Reagents) then
+    local sums = recipeID and craftSums(recipeID)
+    if not (sums and form.Reagents) then
         if panel then
             panel:Hide()
             restoreReagents(form)
@@ -838,33 +902,11 @@ local function refreshCrafting(recipeInfo)
         panel:SetPoint("TOPLEFT", below, "BOTTOMLEFT", 0, -12)
     end
 
-    -- oldest: when the oldest auction price used was seen, for how much to trust the totals.
-    local total, missing, oldest = 0, false, nil
-    for _, reagent in ipairs(reagents) do
-        local unit, seenAt = reagentCost(reagent[1])
-        if unit then
-            total = total + unit * reagent[2]
-        else
-            missing = true
-        end
-        if seenAt and (not oldest or seenAt < oldest) then
-            oldest = seenAt
-        end
-    end
-    -- Enchants and other recipes that make no item have no value or profit.
-    local output = schematic.outputItemID
-    local unitValue, fromVendor, seenAt
-    if output then
-        unitValue, fromVendor, seenAt = craftedValue(output)
-        if seenAt and (not oldest or seenAt < oldest) then
-            oldest = seenAt
-        end
-    end
-
     local i, y = 0, 0
-    -- How old the oldest auction price in these totals is, colored like the tooltip's age.
-    if oldest then
-        local age = time() - oldest
+    -- How old the oldest auction price in these totals is, colored like the tooltip's age, for how
+    -- much to trust them.
+    if sums.oldest then
+        local age = time() - sums.oldest
         local color = module.db.scanAgeColor == "age" and ageColor(age) or module.db.scanAgeColor
         local text = ItemTooltip.ColorText(ns.Text.Ago(age), color)
         i = i + 1
@@ -873,22 +915,20 @@ local function refreshCrafting(recipeInfo)
     end
 
     i = i + 1
-    setRow(i, y, L.AUCTIONPRICES_CRAFT_COST, missing and noPrice() or coins(total))
+    setRow(i, y, L.AUCTIONPRICES_CRAFT_COST, sums.missing and noPrice() or coins(sums.cost))
     y = y - ROW_HEIGHT
 
-    if output then
-        local low, high = schematic.quantityMin or 1, schematic.quantityMax or 1
-        local made = (low + high) / 2 -- some recipes make a random number: count the middle
+    if sums.output then
+        local low, high = sums.low, sums.high
         local label = L.AUCTIONPRICES_CRAFT_VALUE
         if high > 1 then
             local amount = low == high and tostring(low) or format(L.AUCTIONPRICES_CRAFT_RANGE, low, high)
             label = format(L.AUCTIONPRICES_CRAFT_VALUE_COUNT, amount)
         end
         local valueText = noPrice()
-        if unitValue then
-            unitValue = unitValue * made
-            valueText = coins(unitValue)
-            if fromVendor then
+        if sums.value then
+            valueText = coins(sums.value)
+            if sums.fromVendor then
                 valueText = format(L.AUCTIONPRICES_CRAFT_EACH, valueText,
                     GRAY:WrapTextInColorCode(L.AUCTIONPRICES_CRAFT_VENDOR))
             end
@@ -897,12 +937,10 @@ local function refreshCrafting(recipeInfo)
         setRow(i, y, label, valueText)
         y = y - ROW_HEIGHT
 
-        -- Selling at auction loses the house's cut; a merchant pays in full.
+        local profit = sums.profit
         local profitText = noPrice()
-        if unitValue and not missing then
-            local profit = (fromVendor and unitValue or unitValue * (1 - AUCTION_CUT)) - total
-            local color = profit > 0 and GREEN or profit < 0 and RED or WHITE
-            profitText = color:WrapTextInColorCode(coins(profit))
+        if profit then
+            profitText = profitColor(profit):WrapTextInColorCode(coins(profit))
         end
         i = i + 1
         setRow(i, y, L.AUCTIONPRICES_CRAFT_PROFIT, profitText)
@@ -921,6 +959,123 @@ local function onRecipeInit(_, recipeInfo)
     refreshCrafting(recipeInfo)
 end
 
+-- Profit in the recipe list -------------------------------------------------------------------
+-- Each recipe's Estimated Profit, from the same sum as the totals, at the right end of its row,
+-- in the totals' colors. Nothing on a category header, an enchant, or a recipe missing a price.
+-- The last 40 pixels of a row are other modules' columns: Appearance Icons' 14-pixel mark at the
+-- end, and Recipe Colors' number (up to three digits) left of it. So the profit has a column of its
+-- own left of both, on every row whether they show or not, and moves left of a disabled recipe's
+-- lock as theirs do. Rows are built again as the list scrolls, so profits are kept by recipe.
+
+local PROFIT_RIGHT = -42 -- 2 from the edge, 14 for an icon, 2, about 20 for a number, 4 between
+
+local rowTexts = ns.ItemButtons.Overlays(function(row)
+    local text = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    text:SetJustifyH("RIGHT")
+    return text
+end)
+
+local waiting = {} -- itemIDs made by a recipe whose item data is loading: { [itemID] = true }
+
+local function rowsOn()
+    return module.enabled and module.db.crafting and module.db.craftingRows
+end
+
+-- The recipe a row is about: a recipe with ranks shows its best one known, as the form does.
+-- Probe: Professions.GetHighestLearnedRecipe is Mainline's (Blizzard_ProfessionsTemplates).
+local function bestRank(info)
+    local P = _G.Professions
+    if info and P and P.GetHighestLearnedRecipe then
+        return P.GetHighestLearnedRecipe(info) or info
+    end
+    return info
+end
+
+-- A recipe's profit, or nil. Not kept while the item it makes is still loading, since its
+-- merchant price may come with it.
+local function profitOf(recipeID)
+    local profit = profits[recipeID]
+    if profit == nil then
+        local sums = craftSums(recipeID)
+        if sums and sums.loading then
+            waiting[sums.output] = true
+            return nil
+        end
+        profit = sums and sums.profit or false
+        profits[recipeID] = profit
+    end
+    return profit or nil
+end
+
+local function profitRow(row, node)
+    if not (row and row.Label) then
+        return
+    end
+    local profit
+    if rowsOn() then
+        node = node or (row.GetElementData and row:GetElementData())
+        local data = node and (node.GetData and node:GetData() or node.data)
+        local info = bestRank(data and data.recipeInfo)
+        profit = info and info.recipeID and profitOf(info.recipeID)
+    end
+    local text = rowTexts:Set(row, profit)
+    if not text then
+        return
+    end
+    text:SetText(profitColor(profit):WrapTextInColorCode(ns.MoneyShort(profit)))
+    text:ClearAllPoints()
+    local lock = row.LockedIcon
+    if lock and lock:IsShown() then
+        text:SetPoint("RIGHT", lock, "LEFT", PROFIT_RIGHT + 2, 0)
+    else
+        text:SetPoint("RIGHT", row, "RIGHT", PROFIT_RIGHT, 0)
+    end
+end
+
+local ROW_HOOKS = { Init = profitRow }
+
+local function redrawRows()
+    ns.Professions.EachRecipeRow(profitRow)
+end
+
+-- Once for a burst: prices change many times a second while the auction house is browsed.
+local redrawSoon = ns.Frames.Coalesce(redrawRows, 0.5, module)
+
+-- The rows' mixin is in Blizzard's load-on-demand professions addons: hooked once it's there, and
+-- only once the option is on. A row hook does nothing while the part is off.
+local function hookRows()
+    if rowsOn() then
+        ns.Professions.HookRecipeRows(module, ROW_HOOKS)
+    end
+end
+
+-- Registered once; does nothing while the rows are off but forget what it kept.
+ns.Prices.OnChanged(function()
+    wipe(profits)
+    if rowsOn() then
+        redrawSoon()
+    end
+end)
+
+-- Auctionator's prices change without telling us, so each time the window opens they're read again.
+local function onTradeSkillShow()
+    wipe(profits)
+    hookRows()
+    redrawSoon()
+end
+
+local function onItemInfo(_, itemID)
+    if itemID and waiting[itemID] then
+        waiting[itemID] = nil
+        redrawSoon()
+    end
+end
+
+module:OnWhile(function(db) return db.crafting and db.craftingRows end, {
+    TRADE_SKILL_SHOW = onTradeSkillShow,
+    GET_ITEM_INFO_RECEIVED = onItemInfo,
+})
+
 -- Blizzard_Professions is load-on-demand: hook its recipe form once it has loaded. Init runs each
 -- time a recipe is picked.
 local function hookProfessions()
@@ -929,6 +1084,8 @@ local function hookProfessions()
         module:Hook(form, "Init", onRecipeInit)
         refreshCrafting()
     end
+    hookRows()
+    redrawRows()
 end
 
 local events = {
@@ -979,11 +1136,21 @@ function module:OnDisable()
     if form then
         restoreReagents(form)
     end
+    rowTexts:HideAll()
+    wipe(profits)
+    wipe(waiting)
 end
 
 function module:OnOptionChanged(key)
-    if key == "crafting" then
-        refreshCrafting()
+    if key == "crafting" or key == "craftingRows" then
+        if key == "crafting" then
+            refreshCrafting()
+        end
+        wipe(profits)
+        wipe(waiting)
+        hookRows()
+        redrawRows() -- hides every row's profit when they're off
+    elseif key == "auctionator" then
     elseif key == "auctionator" then
         ns.Prices.Changed() -- every price now comes from the other source
         -- A scan running when Auctionator's prices take over stops, keeping what it saw.

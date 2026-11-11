@@ -40,6 +40,9 @@ ns.changelog = {
                     .. "skill-ups it has left before it turns gray, and the selected recipe says the same "
                     .. "under its name. Pick Gray At to see the skill it turns gray at instead, or turn "
                     .. "either off." },
+                { L.ITEMTOOLTIPS_TITLE, "Profit in Recipe List (off by default) shows each recipe's "
+                    .. "Estimated Profit on its row of the professions window's recipe list, green for a "
+                    .. "profit and red for a loss, from the same prices as Crafting Costs." },
                 { L.CHANGELOG_SETTINGS, "Click a category in the Modules list to fold it away, and "
                     .. "again to open it. It stays folded next time, says NEW while something in it is, "
                     .. "and a search still finds what's in it." },
