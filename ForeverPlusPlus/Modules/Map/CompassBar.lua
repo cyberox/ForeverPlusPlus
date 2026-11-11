@@ -495,9 +495,21 @@ local function addGroup()
     end
     local raid = IsInRaid and IsInRaid()
     local count = raid and GetNumGroupMembers() or GetNumSubgroupMembers()
+    -- party1 to partyN never include the player; in a raid, the player's own index leaves them
+    -- out. Both that and UnitIsUnit can be secret: a member it can't tell from the player is left
+    -- out, since the player's own spot would put a dot at no real heading.
+    local own = raid and UnitInRaid("player")
     for i = 1, count do
         local unit = (raid and "raid" or "party") .. i
-        if not UnitIsUnit(unit, "player") then
+        local isSelf = false
+        if raid then
+            if ns.IsNumber(own) then
+                isSelf = own == i
+            else
+                isSelf = ns.IsTrueOrSecret(UnitIsUnit(unit, "player"))
+            end
+        end
+        if not isSelf then
             local name = UnitName(unit)
             local color = ns.Colors.Class(unit)
             targets[#targets + 1] = { kind = L.COMPASSBAR_KIND_GROUP, title = readable(name) and name or nil,

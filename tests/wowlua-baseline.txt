@@ -74,7 +74,6 @@
 1	ForeverPlusPlus/Modules/Items/UpgradeArrows/Page.lua: warning[undefined-field] undefined field 'maxValue' on class 'SettingsSliderOptionsMixin'
 1	ForeverPlusPlus/Modules/Items/UpgradeArrows/Page.lua: warning[undefined-field] undefined field 'minValue' on class 'SettingsSliderOptionsMixin'
 1	ForeverPlusPlus/Modules/Items/UpgradeArrows/Page.lua: warning[undefined-field] undefined field 'steps' on class 'SettingsSliderOptionsMixin'
-1	ForeverPlusPlus/Modules/Map/CompassBar.lua: warning[secret-condition] boolean from `UnitIsUnit` may be secret; testing it errors in addon code; guard with `canaccessvalue` or use a `...FromBoolean` API
 1	ForeverPlusPlus/Modules/Map/CompassBar.lua: warning[type-mismatch] expected `string?` for parameter 'text', got `number`
 1	ForeverPlusPlus/Modules/Map/CompassBar.lua: warning[unbalanced-assignments] 2 variable(s) but only 1 value(s)
 1	ForeverPlusPlus/Modules/Map/CompassBar.lua: warning[unbalanced-assignments] 3 variable(s) but only 1 value(s)
