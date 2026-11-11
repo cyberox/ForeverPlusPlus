@@ -1,5 +1,6 @@
 -- /fpp and the presets in the Defaults popup. Loaded right after Core.lua: modules add their own
--- commands with ns.AddCommand as they load. Everything here uses only Core's public functions.
+-- commands with ns.AddCommand as they load. Everything here uses only Core's public functions and
+-- Lib (Lib/Presets.lua and Lib/Store.lua, read once the addon has loaded).
 local _, ns = ...
 
 local ipairs, type, format, tostring = ipairs, type, string.format, tostring
@@ -9,80 +10,62 @@ local L = ns.L
 
 -- Presets -------------------------------------------------------------------------------------
 
--- What the Developer's Defaults preset does, on top of every module's default settings, as each
--- module declares it in its own file: `module.developer = { enabled = true, options = { key =
--- value } }`, turned on and set differently from its defaults. A locked module isn't turned on.
-local function developerPreset()
-    local enables, options = {}, {}
+-- What a preset does to each module is declared in the module's own file (`module.presets`) and
+-- read through Lib/Presets.lua. Here are the ways the Defaults popup puts the profile in use back:
+-- to the plain defaults with what `enable` and `options` say on top (ns.ApplyPreset), or based on
+-- a preset (ns.UsePreset), which then keeps following it.
+
+-- Bases the profile in use on `preset` (nil for none), puts every module's options
+-- (`module.options`) back to what a reset gives (ns.BaseValue: the preset's value, else the
+-- default) with `options` on top, and turns the modules on or off as their base says, or on for
+-- those in `enable`. What it puts back is forgotten, not saved as a choice, so a later release's
+-- better default, or a preset that grew, reaches it; what it sets otherwise (an override, a module
+-- in `enable`) is saved like the player's own choice. Modules that are always on, data, and
+-- options that are one of Blizzard's settings (`cvar`) are left as they are.
+local function reset(preset, enable, options)
+    local before = {}
     for _, name in ipairs(ns.order) do
         local module = ns.modules[name]
-        local developer = module.developer
-        if developer then
-            if developer.enabled and not module.locked then
-                enables[#enables + 1] = name
+        if not (module.alwaysOn or module.unavailable) then
+            for _, option in ipairs(module.options or {}) do
+                local key = option.key
+                if type(module.defaults[key]) ~= "table" and not option.cvar then
+                    before[#before + 1] = { module, key, module.db[key] }
+                end
             end
-            options[name] = developer.options
         end
     end
-    return enables, options
-end
-
----The Developer's Defaults preset as ns.ApplyPreset takes it, for a profile made from it
----(Profiles.CreateFromPreset) without applying it to the one in use.
----@return string[] enables module names it turns on
----@return table<string, table<string, any>> options per module, option values it sets
-function ns.DeveloperPreset()
-    return developerPreset()
-end
-
----Puts every module's options (`module.options`) back to their defaults, then turns on the
----modules in `enable`, in the profile in use only (Lib/Profiles.lua); the others stay as they are.
----Everything else a module saves stays: data (prices, seen cinematics, chat
----history) and what's set in Edit Mode (positions and scale). What it puts back to the default is
----forgotten, not saved as a choice, so a later release's better default reaches it; what it sets
----otherwise (an override, a module turned on) is saved like the player's own choice.
----Modules that are always on have nothing to reset. Applies live, like the checkboxes do.
----@param enable? string[] module names to turn on whatever their default is
----@param options? table<string, table<string, any>> per module, option values used instead of its defaults
-function ns.ApplyPreset(enable, options)
+    local Store = ns.Store
+    Store.SetPreset(ns.db, Store.profile, preset)
+    local changed = {}
+    for _, entry in ipairs(before) do
+        local module, key, was = entry[1], entry[2], entry[3]
+        local base = ns.BaseValue(module, key)
+        local overrides = options and options[module.name]
+        local value = overrides and overrides[key]
+        if value == nil or type(value) == "table" then
+            value = base
+        end
+        if value == base then
+            module.db[key] = nil -- forgotten: the base reads back
+        else
+            module.db[key] = value
+        end
+        if was ~= value then
+            changed[#changed + 1] = entry
+        end
+    end
     local wanted = {}
     for _, name in ipairs(enable or {}) do
         wanted[name] = true
     end
-    local changed = {}
     for _, name in ipairs(ns.order) do
         local module = ns.modules[name]
-        if not (module.alwaysOn or module.unavailable) then
-            local overrides = options and options[name]
-            for _, option in ipairs(module.options or {}) do
-                local key = option.key
-                local default = module.defaults[key]
-                local value = default
-                if overrides and overrides[key] ~= nil then
-                    value = overrides[key]
-                end
-                -- An option that is one of Blizzard's settings (`cvar`) stays the player's.
-                if type(value) ~= "table" and not option.cvar then
-                    local before = module.db[key]
-                    -- nil forgets the choice; the default reads back
-                    if value == default then
-                        module.db[key] = nil
-                    else
-                        module.db[key] = value
-                    end
-                    if before ~= value then
-                        changed[#changed + 1] = { module, key }
-                    end
-                end
-            end
-        end
-    end
-    for _, name in ipairs(ns.order) do
-        local module = ns.modules[name]
-        local on = wanted[name] or module.defaults.enabled
+        local base = ns.BaseValue(module, "enabled") and true or false
+        local on = wanted[name] or base
         ns.SetEnabled(name, on)
-        if on == module.defaults.enabled and not (module.alwaysOn or module.unavailable) then
-            module.db.enabled = nil -- at its default: forgotten, not a choice
+        if on == base and not (module.alwaysOn or module.unavailable) then
+            module.db.enabled = nil -- at its base: forgotten, not a choice
         end
     end
     for _, entry in ipairs(changed) do
@@ -96,9 +79,29 @@ function ns.ApplyPreset(enable, options)
     end
 end
 
----Defaults plus the modules the developer turns on (Developer's Defaults in the Defaults popup).
-function ns.ApplyDeveloperDefaults()
-    ns.ApplyPreset(developerPreset())
+---Puts the profile in use (Lib/Profiles.lua) back to the modules' defaults, then turns on the
+---modules in `enable` and sets the option values in `options`; the other profiles stay as they
+---are. Without either, it's Recommended Defaults in the Defaults popup. The profile is based on no
+---preset afterwards. Everything else a module saves stays: data (prices, seen cinematics, chat
+---history) and what's set in Edit Mode (positions and scale). Applies live, like the checkboxes.
+---@param enable? string[] module names to turn on whatever their default is
+---@param options? table<string, table<string, any>> per module, option values used instead of its defaults
+function ns.ApplyPreset(enable, options)
+    reset(nil, enable, options)
+end
+
+---Bases the profile in use on a preset (Lib/Presets.lua) and puts it back to it: every option
+---the player set reads the preset's value, else its default, and the modules are on as the preset
+---says. It looks as ns.ApplyPreset(Presets.Flat(name)) would leave it, but stays based on the
+---preset, so what a later release adds to it reaches this profile. Applies live.
+---@param name string
+---@return boolean done false for a preset this version doesn't have
+function ns.UsePreset(name)
+    if not ns.Presets.Exists(name) then
+        return false
+    end
+    reset(name)
+    return true
 end
 
 -- /fpp ----------------------------------------------------------------------------------------

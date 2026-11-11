@@ -90,3 +90,39 @@ eq(evil.data.Win.positions.Bags[2], nil, "share: not-a-number is dropped")
 eq(Share.Validate({ v = 1, name = "", s = "x" }).name, ns.L.PROFILES_IMPORTED, "share: an empty name gets one")
 eq(Share.Validate({ v = 1, s = { Win = { size = 20, mode = "a", x = 5 } } }).settings.Win.x, 5,
     "share: a setting without an option keeps its default's type")
+
+-- A profile based on a preset: the export holds the link and what the preset gives, so it looks
+-- the same imported where the preset isn't there.
+ns.Presets.Register("spec", { title = "Spec" })
+ns.modules.Win.presets = { spec = { enabled = true, options = { size = 15, mode = "b", coords = true } } }
+ns.order = { "Win", "Tool" }
+ns.db = { settings = {}, profiles = { p1 = { name = "Linked", preset = "spec",
+    settings = { Win = { loud = true, mode = "a" } } } } }
+local linked = Share.Decode(Share.Export("p1"))
+eq(linked.p, "spec", "share: the export names its preset")
+same(linked.s, { Win = { enabled = true, size = 15, mode = "a", loud = true } },
+    "share: and holds what it resolves to: the player's own over the preset's, not Blizzard's settings")
+local onDefault = Share.Decode(Share.Export("default"))
+eq(onDefault.p, nil, "share: a profile on no preset exports none")
+
+-- Imported where the preset is there: based on it, with what the preset still gives dropped.
+local back = Share.Validate(linked)
+eq(back.preset, "spec", "share: an import keeps a preset this version has")
+same(back.settings, { Win = { mode = "a", loud = true } },
+    "share: and drops the values the preset gives, so they go on following it")
+eq(back.modulesOn .. "," .. back.changed, "1,2", "share: counted with the preset's values")
+-- A later release changed the preset: the dropped values follow it, the player's stay.
+ns.modules.Win.presets.spec.options.size = 18
+same(Share.Validate(Share.Decode(Share.Export("p1"))).settings, { Win = { mode = "a", loud = true } },
+    "share: a round trip still follows the preset")
+
+-- Imported where it isn't: the values stay and the profile is based on none.
+local elsewhere = Share.Validate({ v = 1, name = "Linked", p = "fromnewer", s = linked.s })
+eq(elsewhere.preset, nil, "share: an unknown preset imports as none")
+same(elsewhere.settings, linked.s, "share: with every value it gave")
+eq(elsewhere.modulesOn .. "," .. elsewhere.changed, "1,2", "share: so it counts the same")
+-- The name is pasted text too.
+for _, bad in ipairs({ 5, { "spec" }, "Spec", "spec|cff", ("s"):rep(41), "spec " }) do
+    eq(Share.Validate({ v = 1, p = bad, s = { Win = { size = 15 } } }).preset, nil,
+        "share: a preset name that isn't a plain key is refused: " .. tostring(bad))
+end

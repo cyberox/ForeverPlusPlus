@@ -241,3 +241,61 @@ do
     eq(view.crafting, false, "professions: another profile reads its own part off")
     Store.profile = nil
 end
+
+-- Presets: a profile based on one (its root's `preset`) reads, for a setting it hasn't set, what
+-- the preset says (Lib/Presets.lua) before the default. One on no preset reads as it always did.
+do
+    ns.Presets.Register("spec", { title = "Spec" })
+    local module = {
+        name = "Bags", defaults = { enabled = false, size = 1, mode = "a", seen = {} },
+        options = { { key = "size" }, { key = "mode" } },
+        presets = { spec = { enabled = true, options = { size = 4 } } },
+    }
+    ns.modules, ns.order = { Bags = module }, { "Bags" }
+    local db = { settings = { Bags = { mode = "b" } },
+        profiles = { p1 = { name = "Plain", settings = { Bags = { size = 2 } } },
+            p2 = { name = "Linked", preset = "spec", settings = {} } } }
+    local view = Store.Load(db, {}, "Bags", module.defaults)
+    eq(Store.Preset(db, nil), nil, "store: Default on no preset")
+    eq(view.size .. "," .. view.mode .. "," .. tostring(view.enabled), "1,b,false",
+        "store: a profile on no preset reads the player's, then the default")
+    Store.SetPreset(db, nil, "spec")
+    eq(db.preset, "spec", "store: Default's link is beside its settings")
+    eq(Store.Preset(db, nil), "spec", "store: and reads back")
+    eq(view.size .. "," .. view.mode .. "," .. tostring(view.enabled), "4,b,true",
+        "store: then the player's, then the preset's, then the default, on/off too")
+    eq(Store.Base(db, nil, "Bags", "size", module.defaults) .. "," .. Store.Base(db, nil, "Bags", "mode", module.defaults),
+        "4,a", "store: the base is the preset's value, else the default")
+    eq(type(view.seen), "table", "store: data is never the preset's")
+    view.size = 1
+    eq(db.settings.Bags.size, 1, "store: a choice at the default is saved over the preset")
+    view.size = nil
+    eq(view.size, 4, "store: and forgetting it reads the preset again")
+    module.presets.spec.options.mode = "c" -- a later release adds to the preset
+    eq(view.mode, "b", "store: the player's own choice stays theirs")
+    view.mode = nil
+    eq(view.mode, "c", "store: and once forgotten the preset's new value reaches them")
+    module.presets.spec.options.mode = nil
+
+    -- A name this version doesn't have reads as none, and stays saved.
+    db.preset = "fromnewer"
+    eq(Store.Preset(db, nil), nil, "store: an unknown preset reads as none")
+    eq(view.size .. "," .. tostring(view.enabled), "1,false", "store: and the defaults read back")
+    db.preset = 42
+    eq(view.size, 1, "store: so does a value that isn't a name")
+    db.preset = "spec"
+
+    -- Each profile reads its own link.
+    Store.profile = "p1"
+    eq(view.size .. "," .. tostring(view.enabled), "2,false", "store: another profile on no preset")
+    Store.profile = "p2"
+    eq(view.size .. "," .. tostring(view.enabled), "4,true", "store: one based on the preset")
+    eq(Store.Preset(db, "p2"), "spec", "store: by id")
+    Store.profile = nil
+
+    -- Tidying and pruning keep the link.
+    Store.Tidy(db, {})
+    Store.Prune(db, {}, { Bags = true })
+    eq(db.preset .. "," .. db.profiles.p2.preset, "spec,spec", "store: tidying keeps the links")
+    ns.modules, ns.order = nil, nil
+end

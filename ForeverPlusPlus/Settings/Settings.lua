@@ -151,8 +151,10 @@ local function updatePage(name)
     end
 end
 
--- Our Defaults popup, laid out like Blizzard's, that offers only Forever++'s two presets:
--- Developer's Defaults | Cancel | Recommended Defaults.
+-- Our Defaults popup, laid out like Blizzard's, that offers Forever++'s presets (Lib/Presets.lua)
+-- and its plain defaults: Developer's Defaults | Cancel | Recommended Defaults. A preset bases
+-- the profile in use on it; Recommended Defaults on none. With more presets than the popup holds,
+-- one button opens a menu of them.
 -- With more than one profile, it says it resets the profile in use (Lib/Profiles.lua).
 local function askDefaults()
     local Profiles = ns.Profiles
@@ -160,8 +162,9 @@ local function askDefaults()
     if Profiles.Count() > 1 then
         text = format(L.DEFAULTS_ASK_PROFILE, Profiles.Name(Profiles.Current()))
     end
-    ns.ConfirmChoice("DEFAULTS_CHOICE", text, L.DEFAULTS_DEVELOPER,
-        ns.ApplyDeveloperDefaults, L.DEFAULTS_RECOMMENDED, function() ns.ApplyPreset() end)
+    local buttons = ns.Presets.Buttons(2, ns.UsePreset)
+    buttons[#buttons + 1] = { text = L.DEFAULTS_RECOMMENDED, fn = function() ns.ApplyPreset() end }
+    ns.ConfirmButtons("DEFAULTS_CHOICE", text, buttons)
 end
 
 -- NEW labels ----------------------------------------------------------------------------------
@@ -644,9 +647,10 @@ end
 -- The room the reset arrow takes at the end of an option's row.
 local RESET_SIZE = 20
 
--- An option's default as its control shows it: a slider's text, a dropdown's choice, or checked.
+-- What a reset gives an option (ns.BaseValue: its preset's value, else its default) as its control
+-- shows it: a slider's text, a dropdown's choice, or checked.
 local function defaultText(module, option)
-    local value = module.defaults[option.key]
+    local value = ns.BaseValue(module, option.key)
     local kind = ns.OptionKind(option)
     if kind == "slider" then
         return sliderText(option, value)
@@ -662,7 +666,8 @@ local function defaultText(module, option)
 end
 
 -- The undo arrow at the end of an option's row (and the slider in it, `pair`), shown while either
--- isn't at its default, that puts them back. Like the undo buttons on Blizzard's Talents and
+-- isn't what a reset gives (its base: the profile's preset's value, else its default), that puts
+-- them back. Like the undo buttons on Blizzard's Talents and
 -- Transmog windows. Probe: their atlases are Mainline's; without one, no arrow.
 local function addResetButton(view, row, module, option, pair, on)
     local keys = { option, pair }
@@ -677,7 +682,7 @@ local function addResetButton(view, row, module, option, pair, on)
     end
     local function changed()
         for _, each in ipairs(keys) do
-            if module.db[each.key] ~= module.defaults[each.key] then
+            if module.db[each.key] ~= ns.BaseValue(module, each.key) then
                 return true
             end
         end

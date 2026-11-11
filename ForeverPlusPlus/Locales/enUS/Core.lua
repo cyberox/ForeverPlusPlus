@@ -196,9 +196,20 @@ L.PROFILES_USES_DESC = "The profile %s uses. What you change in Forever++ saves 
 L.PROFILES_NEW_CHARACTERS = "New Characters Use"
 L.PROFILES_NEW_CHARACTERS_DESC = "The profile a character starts on the first time it logs in."
 L.PROFILES_NEW = "New Profile"
-L.PROFILES_NEW_DESC = "Make a profile, as a copy of the one selected, from the defaults, or from Developer's Defaults."
+L.PROFILES_NEW_DESC = "Make a profile, as a copy of the one selected, from the defaults, or from %s." -- a preset's name, or PRESETS_A_PRESET
 L.PROFILES_NEW_ASK = "Name the new profile."
-L.PROFILES_NEW_FROM = "Make %s as a copy of %s, from the defaults, or from Developer's Defaults?" -- new name, selected profile
+L.PROFILES_NEW_FROM = "Make %s as a copy of %s, from the defaults, or from %s?" -- new name, selected profile, a preset's name or PRESETS_A_PRESET
+L.PROFILES_PRESET = "Based On" -- beside the dropdown of the preset a profile follows
+L.PROFILES_PRESET_NONE = "None" -- a profile based on no preset
+L.PROFILES_PRESET_DESC = "The preset %s follows: what you haven't set yourself reads the preset, "
+    .. "so it keeps up as later versions change it, and an undo arrow puts a setting back to the "
+    .. "preset's value. Picking one keeps every setting you chose. None keeps what the profile "
+    .. "has now as your own settings, and stops following the preset." -- profile
+L.PROFILES_PRESET_AFTER_COMBAT = "Changing what %s is based on once combat ends." -- profile
+L.PRESETS_A_PRESET = "a preset" -- in PROFILES_NEW_DESC and PROFILES_NEW_FROM, with more than one
+L.PRESETS_MORE = "Presets..." -- a popup button that opens a menu of every preset
+L.PRESETS_NO_SUCH = "No preset called %s." -- what was asked for
+L.PRESETS_DEVELOPER_DESC = "The defaults with the modules and options the developer uses on top."
 L.PROFILES_COPY_OF = "Copy of %s" -- a profile
 L.PROFILES_FROM_DEFAULTS = "From Defaults"
 L.PROFILES_IN_USE = "In use by this character"

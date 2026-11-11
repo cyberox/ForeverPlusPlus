@@ -197,7 +197,8 @@ function Profiles.FreeName(name)
     return try
 end
 
--- What a profile holds, as plain tables: its settings, and its profile data by module and key.
+-- What a profile holds, as plain tables: its settings, its profile data by module and key, and the
+-- preset it's based on as saved (a name this version may not have, kept for one that does).
 -- Default's profile data is in the account's data, beside the account's own.
 local function contents(id)
     local root = Store.Root(db(), storeID(id))
@@ -212,14 +213,16 @@ local function contents(id)
             end
         end
     end
-    return settings, data
+    local preset = type(root.preset) == "string" and root.preset or nil
+    return settings, data, preset
 end
 Profiles.Contents = contents
 
--- Puts `settings` and `data` into a profile, in place of what it had.
-local function fill(id, settings, data)
+-- Puts `settings`, `data` and the preset it's based on into a profile, in place of what it had.
+local function fill(id, settings, data, preset)
     local root = Store.Root(db(), storeID(id))
     root.settings = copy(settings or {})
+    root.preset = type(preset) == "string" and preset or nil
     if root == db() then
         -- Default: only the profile data in the account's table changes.
         for name, module in pairs(ns.modules or {}) do
@@ -239,8 +242,9 @@ local function fill(id, settings, data)
     end
 end
 
----Makes a profile, with nothing changed from the defaults or as a copy of `from`, and returns its
----id, or nil and why not (the name is empty or taken). This character stays on its profile.
+---Makes a profile, with nothing changed from the defaults or as a copy of `from` (based on the
+---same preset, if it is), and returns its id, or nil and why not (the name is empty or taken). This
+---character stays on its profile.
 ---@param name string
 ---@param from? string a profile to copy
 ---@return string? id
@@ -501,13 +505,14 @@ function Profiles.Delete(id)
     return now
 end
 
----Puts new contents into a profile, in place of what it had (an import's Replace). The profile in
----use changes live, as a switch does.
+---Puts new contents into a profile, in place of what it had (an import's Replace), based on
+---`preset` or on none. The profile in use changes live, as a switch does.
 ---@param id string
 ---@param settings table
 ---@param data table
+---@param preset? string
 ---@return boolean?
-function Profiles.Replace(id, settings, data)
+function Profiles.Replace(id, settings, data, preset)
     if not Profiles.Exists(id) then
         return nil
     end
@@ -518,91 +523,166 @@ function Profiles.Replace(id, settings, data)
         end
         if Profiles.Current() == id then
             ns.ChangeProfile(function()
-                fill(id, settings, data)
+                fill(id, settings, data, preset)
             end)
         else
-            fill(id, settings, data)
+            fill(id, settings, data, preset)
         end
         changed(Profiles.Current() == id)
     end)
     return now
 end
 
----Makes a profile from contents (an import's Import as New). Returns its id, or nil and why not.
+---Makes a profile from contents (an import's Import as New), based on `preset` or on none. Returns
+---its id, or nil and why not.
 ---@param name string
 ---@param settings table
 ---@param data table
+---@param preset? string
 ---@return string? id
 ---@return string? reason
-function Profiles.CreateFrom(name, settings, data)
+function Profiles.CreateFrom(name, settings, data, preset)
     local clean, reason = checkName(name)
     if not clean then
         return nil, reason
     end
     local id = Profiles.Create(clean)
-    fill(id, settings, data)
+    fill(id, settings, data, preset)
     changed(false)
     return id
 end
 
--- A preset (as ns.ApplyPreset takes it) as the settings it leaves: the modules in `enable` on and
--- the option values in `options`, with only what differs from a module's defaults saved, as
--- ns.ApplyPreset forgets a value at its default. Modules that are always on or unavailable, and
--- options that are Blizzard's settings (`cvar`), are left out, as there.
-local function presetSettings(enable, options)
-    local settings = {}
-    local wanted = {}
-    for _, name in ipairs(enable or {}) do
-        wanted[name] = true
+-- Presets ---------------------------------------------------------------------------------------
+-- A profile based on a preset (Lib/Presets.lua) reads what the preset says for every setting the
+-- player hasn't set, so it follows the preset as releases change it (see Lib/Store.lua).
+
+---The preset a profile is based on, when this version has it; nil for none, or for a name saved
+---by a newer version (which stays saved).
+---@param id string
+---@return string?
+function Profiles.Preset(id)
+    if not Profiles.Exists(id) then
+        return nil
     end
-    for name, module in pairs(ns.modules or {}) do
-        if not (module.alwaysOn or module.unavailable) then
-            local defaults = module.defaults or {}
-            if wanted[name] and not defaults.enabled then
-                child(settings, name).enabled = true
-            end
-            local overrides = options and options[name]
-            for _, option in ipairs(overrides and module.options or {}) do
-                local value = overrides[option.key]
-                if value ~= nil and type(value) ~= "table" and not option.cvar
-                    and value ~= defaults[option.key] then
-                    child(settings, name)[option.key] = value
-                end
+    return Store.Preset(db(), storeID(id))
+end
+
+-- What a preset says that differs from the modules' defaults, as settings of the profile's own.
+local function snapshot(preset)
+    local settings = {}
+    for name, values in pairs(ns.Presets.Resolve(preset)) do
+        local module = ns.modules[name]
+        for key, value in pairs(values) do
+            if value ~= module.defaults[key] then
+                child(settings, name)[key] = value
             end
         end
     end
     return settings
 end
-Profiles.PresetSettings = presetSettings
+Profiles.Snapshot = snapshot
 
----Makes a profile from a preset, such as Developer's Defaults (ns.DeveloperPreset), written into
----its own settings: the profile in use isn't touched and nothing is applied live. Returns its id,
----or nil and why not.
----@param name string
----@param enable? string[] module names to turn on whatever their default is
----@param options? table<string, table<string, any>> per module, option values used instead of its defaults
----@return string? id
----@return string? reason
-function Profiles.CreateFromPreset(name, enable, options)
-    return Profiles.CreateFrom(name, presetSettings(enable, options), {})
+-- Bases a profile on `preset`, or (nil) on none, keeping what the player sees: before the link
+-- goes, what the preset gave and the player hadn't set becomes their own choice.
+local function link(id, preset)
+    local root = Store.Root(db(), storeID(id))
+    local old = Store.Preset(db(), storeID(id))
+    if not preset and old then
+        root.settings = type(root.settings) == "table" and root.settings or {}
+        for name, values in pairs(snapshot(old)) do
+            local own = child(root.settings, name)
+            for key, value in pairs(values) do
+                if own[key] == nil then
+                    own[key] = value
+                end
+            end
+        end
+    end
+    if preset or old then
+        Store.SetPreset(db(), storeID(id), preset)
+    end
 end
 
--- What a profile holds, counted: the modules it has on and the settings it changed from their
--- defaults, by the modules' own defaults.
-local function count(settings)
+---Bases a profile on a preset, or (nil) on none. Linking keeps every setting the player chose; only
+---the ones they haven't set read the preset. Unlinking first writes what the preset gives into the
+---profile as the player's own choices, so it looks the same, then drops the link. A name saved by a
+---newer version is left alone by an unlink (it already reads as none). The profile in use changes
+---live, as a switch does, or once combat ends. Returns true when it changed now, false when it waits
+---for combat, nil for a profile or preset that isn't there.
+---@param id string
+---@param preset? string
+---@return boolean?
+function Profiles.SetPreset(id, preset)
+    if not Profiles.Exists(id) or (preset ~= nil and not ns.Presets.Exists(preset)) then
+        return nil
+    end
+    local now = not (InCombatLockdown and InCombatLockdown())
+    ns.AfterCombat(function()
+        if not Profiles.Exists(id) or Profiles.Preset(id) == preset then
+            return
+        end
+        if Profiles.Current() == id then
+            ns.ChangeProfile(function()
+                link(id, preset)
+            end)
+        else
+            link(id, preset)
+        end
+        changed(Profiles.Current() == id)
+    end)
+    return now
+end
+
+---Makes a profile based on a preset, such as Developer's Defaults, with nothing of its own set: it
+---reads the preset's values, and follows the preset as later releases change it. The profile in
+---use isn't touched. Returns its id, or nil and why not.
+---@param name string
+---@param preset string
+---@return string? id
+---@return string? reason
+function Profiles.CreateFromPreset(name, preset)
+    if not ns.Presets.Exists(preset) then
+        return nil, format(L.PRESETS_NO_SUCH, tostring(preset))
+    end
+    return Profiles.CreateFrom(name, {}, {}, preset)
+end
+
+-- What a profile holds, counted: the modules it has on and the settings that differ from the
+-- modules' defaults, reading the preset it's based on for what it doesn't set itself.
+local function count(settings, preset)
+    if preset and not ns.Presets.Exists(preset) then
+        preset = nil
+    end
+    local resolved = preset and ns.Presets.Resolve(preset) or {}
     local on, changedCount = 0, 0
     for name, module in pairs(ns.modules or {}) do
         if not (module.alwaysOn or module.unavailable) then
             local own = type(settings[name]) == "table" and settings[name] or {}
+            local given = resolved[name] or {}
             local enabled = own.enabled
+            if enabled == nil then
+                enabled = given.enabled
+            end
             if enabled == nil then
                 enabled = module.defaults.enabled
             end
             if enabled and not module.locked then
                 on = on + 1
             end
-            for key, value in pairs(own) do
-                if key ~= "enabled" and module.defaults[key] ~= nil and value ~= module.defaults[key] then
+            local keys = {}
+            for key in pairs(own) do
+                keys[key] = true
+            end
+            for key in pairs(given) do
+                keys[key] = true
+            end
+            for key in pairs(keys) do
+                local value = own[key]
+                if value == nil then
+                    value = given[key]
+                end
+                local default = module.defaults[key]
+                if key ~= "enabled" and default ~= nil and type(default) ~= "table" and value ~= default then
                     changedCount = changedCount + 1
                 end
             end
@@ -612,12 +692,14 @@ local function count(settings)
 end
 Profiles.CountSettings = count
 
----How many modules a profile has on, and how many settings it changed from their defaults.
+---How many modules a profile has on, and how many settings differ from the modules' defaults (its
+---preset's values included).
 ---@param id string
 ---@return integer modules
 ---@return integer settings
 function Profiles.Summary(id)
-    return count((contents(id)))
+    local settings, _, preset = contents(id)
+    return count(settings, preset)
 end
 
 ---"1 character", "3 characters".

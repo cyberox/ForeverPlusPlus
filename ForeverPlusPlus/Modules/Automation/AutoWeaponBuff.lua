@@ -39,7 +39,7 @@ local module = ns.NewModule("AutoWeaponBuff", L.AUTOWEAPONBUFF_DESC, {
 })
 module.title = L.AUTOWEAPONBUFF_TITLE
 module.category = "automation"
-module.developer = { enabled = true }
+module.presets = { developer = { enabled = true } }
 module.added = "0.8.0"
 -- The game's rule, not ours, so say it where the player turns it on; a notice with no button.
 module.notice = { text = L.AUTOWEAPONBUFF_NOTICE, description = L.AUTOWEAPONBUFF_NOTICE_DESC }

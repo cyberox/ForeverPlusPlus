@@ -20,7 +20,7 @@ local Profiler = ns.Profiler
 local module = ns.NewModule("Profiler", L.PROFILER_DESC, { enabled = false })
 module.title = L.PROFILER_TITLE
 module.category = "system"
-module.developer = { enabled = true }
+module.presets = { developer = { enabled = true } }
 
 local ROW_HEIGHT = 22 -- a module's row
 local PART_HEIGHT = 18 -- a part's row under it

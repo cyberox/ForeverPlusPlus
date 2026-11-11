@@ -24,7 +24,7 @@ local module = ns.NewModule("AutoGossip", L.AUTOGOSSIP_DESC, {
 module.title = L.AUTOGOSSIP_TITLE
 module.category = "automation"
 module.quickToggle = "npcs"
-module.developer = { enabled = true, options = { other = true } }
+module.presets = { developer = { enabled = true, options = { other = true } } }
 
 -- Hold Shift to Skip was a checkbox, 0.8.4 and before.
 ns.Migrate(1, function(db)

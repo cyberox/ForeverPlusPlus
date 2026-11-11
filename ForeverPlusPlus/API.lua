@@ -160,6 +160,32 @@ export("GetProfile", function()
     return Profiles.Name(Profiles.Current()), Profiles.Count()
 end)
 
+---The preset the profile in use is based on, as { name, title }: `name` is its key ("developer"),
+---`title` its name in the player's language ("Developer's Defaults"). A profile based on a preset
+---reads the preset's values for what the player hasn't set, so GetModuleOption and IsModuleEnabled
+---already include them. Nil for a profile based on none, and before READY.
+export("GetProfilePreset", function()
+    if not ns.db then
+        return nil
+    end
+    local Profiles = ns.Profiles
+    local name = Profiles.Preset(Profiles.Current())
+    if not name then
+        return nil
+    end
+    return { name = name, title = ns.Presets.Title(name) }
+end)
+
+---Every preset Forever++ has, in order, as { name, title, description }.
+export("GetPresets", function()
+    local list = {}
+    for _, name in ipairs(ns.Presets.List()) do
+        list[#list + 1] = { name = name, title = ns.Presets.Title(name),
+            description = ns.Presets.Description(name) }
+    end
+    return list
+end)
+
 -- The module called `name`, when this client gets it.
 local function findModule(name)
     local module = type(name) == "string" and ns.modules[name]
@@ -248,8 +274,9 @@ export("GetModuleInfo", function(name)
     }
 end)
 
----One of a module's options as the player set it (or its default), or nil for an option the
----module doesn't have. Read only: the player's settings are theirs to change.
+---One of a module's options as the player set it (or, unset, what the profile's preset says, or
+---its default: what the module itself reads), or nil for an option the module doesn't have. Read
+---only: the player's settings are theirs to change.
 export("GetModuleOption", function(name, key)
     local module = findModule(name)
     local moved = MOVED_OPTIONS[name] and MOVED_OPTIONS[name][key]

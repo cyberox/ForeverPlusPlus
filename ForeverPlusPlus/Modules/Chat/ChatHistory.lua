@@ -20,7 +20,7 @@ local module = ns.NewModule("ChatHistory", L.CHATHISTORY_DESC, {
 })
 module.title = L.CHATHISTORY_TITLE
 module.category = "chat"
-module.developer = { options = { divider = true } }
+module.presets = { developer = { options = { divider = true } } }
 -- Each character's own chat, so an alt doesn't log in to another character's.
 module.perCharacter = { saved = true }
 

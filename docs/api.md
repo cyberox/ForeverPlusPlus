@@ -29,10 +29,12 @@ Colors come back as `r, g, b` (0 to 1) plus a hex string `"ffrrggbb"`, the same 
 | `GetVersion()` | The API version (`1`) and Forever++'s version, such as `"1.0.0"`. |
 | `IsReady()` | Whether saved data has loaded (after `PLAYER_LOGIN`). |
 | `GetProfile()` | The name of the settings profile this character uses (`"Default"` until the player makes another), and how many profiles there are. `nil` before `READY`. Which modules are on and their options follow the profile, so after `PROFILE_CHANGED` read them again. |
+| `GetProfilePreset()` | The preset the profile in use is based on, as `{ name, title }`: `name` its key (`"developer"`), `title` its name in the player's language (`"Developer's Defaults"`). A profile based on a preset reads the preset's values for every setting the player hasn't set, so `IsModuleEnabled`, `GetModuleOption`, and `GetModuleInfo`'s `value` already include them. `nil` for a profile based on none, and before `READY`. Added in 1.6.0. |
+| `GetPresets()` | Every preset Forever++ has, in order, as `{ name, title, description }`. Added in 1.6.0. |
 | `IsModuleEnabled(name)` | Whether a module is on, by its internal name (`"ItemTooltips"`, `"ClassColors"`), or `nil` for a name Forever++ doesn't have (or doesn't offer on this client). Use it to skip something Forever++ is already showing. |
 | `GetModules()` | A list of `{ name, title, category, enabled }` for every module this client gets. |
 | `GetModuleInfo(name)` | One module in full: `{ name, title, description, category, enabled, locked, problem, options }`. `locked` is true for a module the game broke, which can't be turned on, so don't send the player to; `problem` is true while it has found it can't work (its name is red in Settings). Each option is `{ key, name, kind, value, default, choices, min, max }`, where `kind` is `"checkbox"`, `"dropdown"` (its `choices` are the values), or `"slider"`. The options are the ones the Modules page shows. |
-| `GetModuleOption(name, key)` | One option's value as the player set it, or its default. `nil` for an option the module doesn't have. |
+| `GetModuleOption(name, key)` | One option's value as the player set it, or (unset) what the profile's preset says, or its default: what the module itself reads. `nil` for an option the module doesn't have. |
 | `OpenSettings(name)` | Opens Forever++'s settings on that module, or on the Modules page when `name` is left out. Use it for a button in your addon's options that sends the player here. Returns `false` in combat. |
 
 The API can read modules and options but can't change them: those are the player's choices. To have the player change one, open the page with `OpenSettings`.

@@ -12,7 +12,7 @@ local module = ns.NewModule("WorldMap", L.WORLDMAP_DESC, {
 })
 module.title = L.WORLDMAP_TITLE
 module.category = "map"
-module.developer = { options = { zoneDungeons = "key", fishing = "key" } }
+module.presets = { developer = { options = { zoneDungeons = "key", fishing = "key" } } }
 module.added = "0.8.0"
 
 -- Before 0.8.0 each part was a module of its own. World Map is on if any of them was, each part's
