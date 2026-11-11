@@ -77,7 +77,7 @@ ns.changelog = {
                     .. "\"Interface action failed because of an AddOn\" message when the game shows it "
                     .. "without naming an addon, as its controller interface does, with where it came "
                     .. "from." },
-                { L.CHATARROWKEYS_TITLE, "A new module, off by default. While you type in chat, Up "
+                { L.CHATARROWKEYS_TITLE, "A new module, on by default. While you type in chat, Up "
                     .. "and Down bring back what you sent before, without holding Alt." },
                 { L.APPEARANCEICONS_TITLE, "Hide Tooltip Line (off by default) leaves \"You haven't "
                     .. "collected this appearance\" out of item tooltips, since the icon says so." },

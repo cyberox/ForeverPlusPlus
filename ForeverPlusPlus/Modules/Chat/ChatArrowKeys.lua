@@ -13,12 +13,11 @@ local L = ns.L
 local Chat = ns.Chat
 
 local module = ns.NewModule("ChatArrowKeys", L.CHATARROWKEYS_DESC, {
-    enabled = false,
+    enabled = true,
 })
 module.title = L.CHATARROWKEYS_TITLE
 module.category = "chat"
 module.added = "1.5.0"
-module.developer = { enabled = true }
 
 local modes = setmetatable({}, { __mode = "k" }) -- edit box -> its mode before ours
 
