@@ -29,6 +29,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 ### Fixed
 
 - **Short Channel Names**: the chat box shows the short name of the channel or group you're typing to, as chat does, instead of its full name. Trade (Services) shortens to TS instead of T(S.
+- **Whisper Window**: in combat, right-clicking a player's name in a conversation opens a short menu with Invite, instead of the game's menu, which the game could block there. Out of combat it's the game's menu as before.
 
 ### Removed
 

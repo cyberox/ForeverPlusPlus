@@ -168,6 +168,7 @@ L.WHISPERWINDOW_UNKNOWN = "Level and zone show for friends, guildmates, and play
 L.WHISPERWINDOW_AFK = "Away: %s" -- the away message
 L.WHISPERWINDOW_DND = "Busy: %s" -- the busy message
 L.WHISPERWINDOW_INVITE = "Invite"
+L.WHISPERWINDOW_MENU_COMBAT = "More after combat" -- a gray line in the short menu a name gets in combat
 L.WHISPERWINDOW_REMOVE = "Remove Conversation"
 L.WHISPERWINDOW_REMOVE_CONFIRM = "Forget your conversation with %s?" -- name
 L.WHISPERWINDOW_NEW = "New Whisper"

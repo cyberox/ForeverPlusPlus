@@ -282,6 +282,30 @@ local function rowMenu(row)
     end)
 end
 
+-- A right-click on a player's name in the messages opens Blizzard's unit menu, run from our click:
+-- its Trade, Duel, and Follow lines ask how far the player is (UnitPopupSharedUtil.IsEnabled calls
+-- CheckInteractDistance), which only Blizzard's own code may ask in combat, so the game blocks it
+-- (the CheckInteractDistance block reported on 1.4.0; the cause is read from Blizzard's source and
+-- Unverified in game). In combat the name gets this short menu of our own instead; out of combat
+-- it's Blizzard's, as before. True when it showed one. Probe: Mainline's menus.
+local function playerMenu(owner, link)
+    if not (MenuUtil and MenuUtil.CreateContextMenu and ns.IsText(link)) then
+        return false
+    end
+    local kind, name = strsplit(":", link)
+    if kind ~= "player" or not name or name == "" then
+        return false
+    end
+    MenuUtil.CreateContextMenu(owner, function(_, root)
+        root:CreateTitle(name)
+        root:CreateButton(L.WHISPERWINDOW_INVITE, function()
+            internal.Invite({ name = name })
+        end)
+        root:CreateButton(L.WHISPERWINDOW_MENU_COMBAT):SetEnabled(false)
+    end)
+    return true
+end
+
 local function buildRow(row)
     row.selected = Frames.RowTexture(row, "BACKGROUND", "Options_List_Active", 1, 0.82, 0, 0.15)
     row:SetHighlightTexture(Frames.RowTexture(row, "HIGHLIGHT", "Options_List_Hover", 1, 1, 1, 0.08))
@@ -484,6 +508,9 @@ local function newMessages(parent)
         end
     end)
     messages:SetScript("OnHyperlinkClick", function(self, link, text, mouse)
+        if mouse == "RightButton" and InCombatLockdown() and playerMenu(self, link) then
+            return
+        end
         if SetItemRef then
             SetItemRef(link, text, mouse, self)
         end
