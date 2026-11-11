@@ -26,8 +26,19 @@ eq(Prices.Auction(10940), nil, "item the source has no price for")
 eq(Prices.ItemByName("Bolt of Silk Cloth"), 4305, "source finds a name the cache doesn't")
 eq(Prices.ItemByName("Strange Dust"), 10940, "item cache first")
 eq(Prices.Inline(), true, "source's alignment")
+eq(Prices.AgeColor(60), "gray", "a source without an age color gives gray")
 Prices.SetSource(nil)
 eq(Prices.Auction(4305), nil, "no prices once the source goes")
+eq(Prices.AgeColor(60), "gray", "no source, a gray age")
+Prices.SetSource({
+    price = function() return nil end,
+    itemByName = function() return nil end,
+    inline = function() return false end,
+    ageColor = function(seconds) return seconds > 100 and { 1, 0, 0 } or "white" end,
+})
+eq(Prices.AgeColor(10), "white", "the source's age color, by name")
+eq(Prices.AgeColor(200)[1], 1, "or as a color")
+Prices.SetSource(nil)
 
 -- Auctionator's prices, while the player chose them and it's loaded.
 local chooseAuctionator = false

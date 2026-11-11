@@ -1,6 +1,6 @@
 -- Store: the saved variables' layout, the steps that bring it up to date, and module.db.
 local T = ...
-local ns, eq = T.ns, T.eq
+local ns, eq, same = T.ns, T.eq, T.same
 
 local Store = ns.Store
 
@@ -123,7 +123,7 @@ local pdb = {
 }
 local pchar = { version = 5 }
 Store.Upgrade(pdb, pchar)
-eq(pdb.version, 6, "profiles: the layout is version 6")
+eq(pdb.version, Store.VERSION, "profiles: the layout is current")
 eq(pdb.settings.Win.size, 3, "profiles: updating keeps Default's settings where they were")
 local winDefaults = { enabled = false, size = 1, positions = {}, prices = {} }
 local win = Store.Load(pdb, pchar, "Win", winDefaults, nil, nil, { positions = true })
@@ -153,3 +153,91 @@ eq(next(pdb.profiles.empty.settings), nil, "profiles: tidy treats every profile"
 eq(pdb.profiles.empty.name, "Empty", "profiles: tidy keeps a profile with nothing changed")
 Store.Rename(pdb, { Win = "Window" })
 eq(pdb.profiles.raid.settings.Window.size, 4, "profiles: renaming a module renames it in every profile")
+
+-- Version 7: Recipe Colors and Item Tooltips' Crafting Costs become parts of the Professions module.
+-- Its step, from the module's own file, in an `ns` with only what the step and the file's load use.
+do
+    local into = {
+        L = {}, Store = Store, Prices = ns.Prices,
+        Migrate = function(version, fn) Store.Step(version, fn) end,
+        MoveSettings = function(from, to, keys) -- Core's
+            for new, old in pairs(keys) do
+                if type(new) == "number" then
+                    new = old
+                end
+                if from[old] ~= nil then
+                    to[new] = from[old]
+                end
+            end
+        end,
+        NewModule = function() return {} end,
+    }
+    T.load("Modules/Character/Professions/Professions", into)
+    eq(Store.VERSION, 7, "professions: the step is version 7")
+
+    -- As 1.4.0 saved it (layout 5), with three more profiles to see each case in every profile.
+    local db = {
+        version = 5,
+        seenModules = { RecipeColors = "1.4.0", ItemTooltips = "1.4.0" },
+        settings = {
+            -- Recipe Colors off, and Item Tooltips' Auction Prices off, so Crafting Costs showed nothing.
+            RecipeColors = { enabled = false, highlight = false },
+            ItemTooltips = { auction = false, mode = "one" },
+        },
+        data = {
+            ItemTooltips = { vendor = { [2320] = 9 }, houses = { ["Realm-Horde"] = { scannedAt = 1 } } },
+            MinimapButton = { quickToggles = { RecipeColors = true, ItemTooltips = false } },
+        },
+        profiles = {
+            -- Recipe Colors on with an option changed, Crafting Costs off, Profit in Recipe List on.
+            raid = { name = "Raid", settings = {
+                RecipeColors = { enabled = true, gray = false },
+                ItemTooltips = { crafting = false, craftingRows = true },
+            }, data = { MinimapButton = { quickToggles = { RecipeColors = false } } } },
+            -- Item Tooltips off: Crafting Costs showed nothing.
+            alt = { name = "Alt", settings = { ItemTooltips = { enabled = false } }, data = {} },
+            -- Everything at its default.
+            fresh = { name = "Fresh", settings = {}, data = {} },
+        },
+    }
+    Store.Upgrade(db, { version = 5 })
+    eq(db.version, 7, "professions: the layout is version 7")
+
+    local new = db.settings.Professions
+    same(new, { enabled = false, recipeColors = false, skillUps = false, crafting = false, highlight = false },
+        "professions: everything off leaves the module off, each part off")
+    eq(db.settings.RecipeColors, nil, "professions: Recipe Colors' settings are gone")
+    eq(db.settings.ItemTooltips.mode, "one", "professions: Item Tooltips keeps its own settings")
+    eq(db.settings.ItemTooltips.auction, false, "professions: and its Auction Prices stays off")
+    same(db.data.Professions, { vendor = { [2320] = 9 } }, "professions: merchant prices move")
+    eq(db.data.ItemTooltips.vendor, nil, "professions: and leave Item Tooltips")
+    eq(db.data.ItemTooltips.houses["Realm-Horde"].scannedAt, 1, "professions: auction prices stay")
+    same(db.data.MinimapButton.quickToggles, { Professions = true, ItemTooltips = false },
+        "professions: a quick toggle pick moves")
+    same(db.seenModules, { Professions = "1.4.0", ItemTooltips = "1.4.0" },
+        "professions: the version it was seen in moves")
+
+    local raid = db.profiles.raid.settings
+    same(raid.Professions, { recipeColors = true, gray = false, crafting = false },
+        "professions: a part off, another on with its option, the module on")
+    same(raid.ItemTooltips, {}, "professions: Crafting Costs' settings leave Item Tooltips")
+    same(db.profiles.raid.data.MinimapButton.quickToggles, { Professions = false },
+        "professions: a quick toggle taken out stays out, in another profile")
+
+    same(db.profiles.alt.settings.Professions, { crafting = false },
+        "professions: Item Tooltips off turns Crafting Costs off, the module stays on")
+    eq(db.profiles.fresh.settings.Professions, nil, "professions: untouched defaults save nothing")
+
+    -- What the module reads afterwards, through its defaults.
+    local defaults = { enabled = true, recipeColors = true, highlight = true, gray = true,
+        skillUps = true, points = "left", detail = true, crafting = true, craftingRows = false, vendor = {} }
+    local view = Store.Load(db, {}, "Professions", defaults)
+    eq(view.enabled, false, "professions: Default reads the module off")
+    eq(view.vendor[2320], 9, "professions: and the merchant prices")
+    Store.profile = "fresh"
+    eq(view.enabled and view.recipeColors and view.skillUps and view.crafting, true,
+        "professions: a profile at its defaults reads every part on")
+    Store.profile = "raid"
+    eq(view.crafting, false, "professions: another profile reads its own part off")
+    Store.profile = nil
+end

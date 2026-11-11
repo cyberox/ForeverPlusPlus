@@ -29,20 +29,40 @@ do
             { key = "trace", name = "Trace", debug = true },
         },
     }
+    -- The module Recipe Colors and Item Tooltips' Crafting Costs went into, for the old names.
+    local professions = {
+        title = "Professions", description = "The professions window.", category = "character",
+        enabled = true,
+        defaults = { enabled = true, recipeColors = true, highlight = true, gray = true, crafting = true },
+        db = { enabled = true, recipeColors = true, highlight = false, gray = true, crafting = false },
+        options = {
+            { key = "recipeColors", name = "Recipe Colors" },
+            { key = "highlight", name = "Tint Row Highlights" },
+            { key = "gray", name = "Gray Out Finished Recipes" },
+            { key = "crafting", name = "Crafting Costs" },
+        },
+    }
     api = setmetatable({
         modules = {
             ItemTooltips = tooltips,
+            Professions = professions,
             Gone = { title = "Gone", unavailable = true, defaults = {} },
         },
-        order = { "ItemTooltips", "Gone" },
+        order = { "ItemTooltips", "Professions", "Gone" },
         version = "1.0.0",
+        L = setmetatable({ PROFESSIONS_COLORS = "Recipe Colors", PROFESSIONS_COLORS_DESC = "Colors." },
+            { __index = ns.L }),
+        PartOn = function(module, key) -- Core's
+            local value = module.db[key]
+            return value ~= nil and value ~= false and value ~= "off"
+        end,
         OnModuleChanged = function(fn) moduleChanged = fn end,
         HasEvent = function() return true end,
         OptionKind = function(option) -- Core's: choices, then a range, else a checkbox
             return option.choices and "dropdown" or option.min and "slider" or "checkbox"
         end,
         On = function(event, fn) gameEvents[event] = fn end,
-        OpenSettings = function(name) return name == "ItemTooltips" end,
+        OpenSettings = function(name) return name == "ItemTooltips" or name == "Professions" end,
         Frames = { Coalesce = function(fn) return fn end }, -- runs at once, so tests see each call
         Profiles = {
             current = "default", names = { default = "Default", p1 = "Raid", p2 = "Solo" },
@@ -72,8 +92,9 @@ do
     eq(v1.IsModuleEnabled("ItemTooltips"), true, "api: a module that's on")
     eq(v1.IsModuleEnabled("Nope"), nil, "api: a module that isn't there")
     local listed = v1.GetModules()
-    eq(#listed, 1, "api: modules leave out unavailable ones")
+    eq(#listed, 2, "api: modules leave out unavailable ones")
     eq(listed[1].title, "Item Tooltips", "api: a module's title")
+    eq(listed[2].name, "Professions", "api: a moved module is listed by its new name only")
 
     -- Prices, and the callback that says they changed.
     local updates = 0
@@ -172,6 +193,30 @@ do
     eq(v1.GetModuleOption("ItemTooltips", "prices"), nil, "api: data isn't an option")
     eq(v1.GetModuleOption("ItemTooltips", "trace"), nil, "api: nor is a debug option")
     eq(v1.OpenSettings("ItemTooltips"), true, "api: opens settings on a module")
+
+    -- Old names: Recipe Colors is the Professions module's part, Crafting Costs its other one.
+    eq(v1.IsModuleEnabled("RecipeColors"), true, "api: an old module name answers while its part is on")
+    professions.db.recipeColors = false
+    eq(v1.IsModuleEnabled("RecipeColors"), false, "api: off while its part is off")
+    professions.db.recipeColors = true
+    professions.enabled = false
+    eq(v1.IsModuleEnabled("RecipeColors"), false, "api: and while its new module is off")
+    local old = v1.GetModuleInfo("RecipeColors")
+    eq(old and old.name, "RecipeColors", "api: an old module's info keeps its name")
+    eq(old and old.title, "Recipe Colors", "api: its title is its part's")
+    eq(old and old.enabled, false, "api: it says whether it's on")
+    eq(old and #old.options, 2, "api: only the options it had")
+    eq(old and old.options[1].key .. "=" .. tostring(old.options[1].value), "highlight=false",
+        "api: read where they are now")
+    professions.enabled = true
+    eq(v1.GetModuleInfo("RecipeColors").enabled, true, "api: on with its module and part")
+    eq(v1.GetModuleOption("RecipeColors", "highlight"), false, "api: an old module's option")
+    eq(v1.GetModuleOption("RecipeColors", "gray"), true, "api: another")
+    eq(v1.GetModuleOption("RecipeColors", "crafting"), nil, "api: not an option it had")
+    eq(v1.GetModuleOption("ItemTooltips", "crafting"), false, "api: a moved option reads its new home")
+    professions.db.crafting = true
+    eq(v1.GetModuleOption("ItemTooltips", "crafting"), true, "api: and follows it")
+    eq(v1.OpenSettings("RecipeColors"), true, "api: an old name opens its new module")
     local toggled, changed = {}, {}
     v1.RegisterCallback("MODULE_TOGGLED", function(_, name, on) toggled[#toggled + 1] = name .. ":" .. tostring(on) end)
     v1.RegisterCallback("OPTION_CHANGED", function(_, name, key, value)

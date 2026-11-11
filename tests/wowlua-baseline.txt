@@ -48,6 +48,8 @@
 1	ForeverPlusPlus/Modules/Character/CharacterWindow/Durability.lua: warning[type-mismatch] expected `number` for parameter 'invSlotId', got `number | string`
 1	ForeverPlusPlus/Modules/Character/CharacterWindow/Skills.lua: warning[type-mismatch] expected `number` for parameter 'invSlotId', got `number | string`
 1	ForeverPlusPlus/Modules/Character/CharacterWindow/Skills.lua: warning[undefined-field] undefined field 'ColorType' on class 'ColoredProgressBarMixin'
+1	ForeverPlusPlus/Modules/Character/Professions/CraftingCosts.lua: warning[deprecated] 'GetMerchantItemInfo' is deprecated
+1	ForeverPlusPlus/Modules/Character/Professions/CraftingCosts.lua: warning[wrong-flavor-api] API 'GetMerchantItemInfo' not available in flavor 'Forever' (available in: Classic, Classic Era)
 1	ForeverPlusPlus/Modules/Character/TalentPlanner/Tree.lua: warning[undefined-field] undefined field 'LegacyConsts' on class 'Constants'
 2	ForeverPlusPlus/Modules/Chat/ShortChannelNames.lua: warning[return-mismatch] expected return type `string`, got `string | number`
 1	ForeverPlusPlus/Modules/Chat/WhisperWindow/WhisperWindow.lua: warning[undefined-global] undefined global 'CHAT_TELL_ALERT_TIME'
@@ -55,16 +57,10 @@
 2	ForeverPlusPlus/Modules/Interface/LocalTime.lua: warning[missing-parameter] missing argument for parameter 'year'
 1	ForeverPlusPlus/Modules/Interface/LocalTime.lua: warning[type-mismatch] expected `string | number` for parameter 's', got `string | false`
 2	ForeverPlusPlus/Modules/Interface/LootRolls.lua: warning[undefined-field] undefined field 'rollFrames' on class 'GroupLootContainer'
-1	ForeverPlusPlus/Modules/Interface/RecipeColors.lua: warning[type-mismatch] expected `fun(row: table)` for parameter 'fn', got `fun(row: table?, node: table?)`
 1	ForeverPlusPlus/Modules/Interface/Tooltips.lua: warning[unbalanced-assignments] 2 variable(s) but only 1 value(s)
-1	ForeverPlusPlus/Modules/Items/AppearanceIcons.lua: warning[type-mismatch] expected `fun(row: table)` for parameter 'fn', got `fun(row: table?, node: table?)`
 1	ForeverPlusPlus/Modules/Items/BagSlotCounter.lua: warning[type-mismatch] expected `"LEFT" | "RIGHT" | "CENTER"` for parameter 'justifyH', got `string | number`
 1	ForeverPlusPlus/Modules/Items/BagSlotCounter.lua: warning[type-mismatch] expected `"TOPLEFT" | "TOPRIGHT" | "BOTTOMLEFT" | (6 more)` for parameter 'point', got `string | number`
 1	ForeverPlusPlus/Modules/Items/BagSlotCounter.lua: warning[type-mismatch] expected `"TOPLEFT" | "TOPRIGHT" | "BOTTOMLEFT" | nil | (6 more)` for parameter 'relativePoint', got `string | number`
-1	ForeverPlusPlus/Modules/Items/ItemTooltips/AuctionPrices.lua: warning[deprecated] 'GetMerchantItemInfo' is deprecated
-1	ForeverPlusPlus/Modules/Items/ItemTooltips/AuctionPrices.lua: warning[redefined-local] local 'waiting' is already defined in this scope
-1	ForeverPlusPlus/Modules/Items/ItemTooltips/AuctionPrices.lua: warning[type-mismatch] expected `fun(row: table)` for parameter 'fn', got `fun(row: table?, node: table?)`
-1	ForeverPlusPlus/Modules/Items/ItemTooltips/AuctionPrices.lua: warning[wrong-flavor-api] API 'GetMerchantItemInfo' not available in flavor 'Forever' (available in: Classic, Classic Era)
 1	ForeverPlusPlus/Modules/Items/ItemTooltips/CraftedCompare.lua: warning[missing-fields] missing required field 'overrideItemLevel' in class 'TooltipComparisonItem'
 1	ForeverPlusPlus/Modules/Items/UpgradeArrows/Page.lua: warning[undefined-field] undefined field 'maxValue' on class 'SettingsSliderOptionsMixin'
 1	ForeverPlusPlus/Modules/Items/UpgradeArrows/Page.lua: warning[undefined-field] undefined field 'minValue' on class 'SettingsSliderOptionsMixin'

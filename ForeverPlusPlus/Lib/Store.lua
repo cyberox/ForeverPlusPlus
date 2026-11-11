@@ -2,7 +2,7 @@
 -- and the table each module reads its settings and data through (`module.db`).
 --
 --   ForeverPlusPlusDB = {
---       version = 6,            -- the layout, so each step below runs once
+--       version = 7,            -- the layout, so each step below runs once
 --       settings = { [module] = { [key] = value } },  -- the Default profile's: only what the player changed
 --       data = { [module] = { [key] = table } },      -- what modules collect: prices, flight times;
 --                                                     -- and the Default profile's data
@@ -18,7 +18,7 @@
 --       seenVersion, seenModules, foldedCategories, welcome, changelogByModule, selfTest, ...
 --                                                     -- the core's own
 --   }
---   ForeverPlusPlusCharDB = { version = 6, profile = id, data = { [module] = { [key] = table } } }
+--   ForeverPlusPlusCharDB = { version = 7, profile = id, data = { [module] = { [key] = table } } }
 --   ForeverPlusPlusPlayersDB: players seen, kept by Lib/Players.lua apart from all this
 --
 -- A module's settings are its scalar defaults. What the player sets is saved, even when it's the
@@ -41,7 +41,8 @@ local Store = {}
 ns.Store = Store
 
 -- Version 6 adds profiles beside the settings; nothing moves, since Default is where settings were.
-Store.VERSION = 6
+-- Version 7 merges Recipe Colors and Item Tooltips' Crafting Costs into the Professions module.
+Store.VERSION = 7
 
 ---The id of the profile every `module.db` reads, or nil for Default. Lib/Profiles.lua sets it.
 ---@type string?

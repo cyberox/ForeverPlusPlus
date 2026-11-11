@@ -122,7 +122,10 @@ Modules\Character\SpellRanks.lua
 Modules\Character\BuffTimers.lua
 Modules\Character\Macros\Macros.lua
 Modules\Character\Macros\SmartBuff.lua
-Modules\Interface\RecipeColors.lua
+Modules\Character\Professions\Professions.lua
+Modules\Character\Professions\RecipeColors.lua
+Modules\Character\Professions\SkillUps.lua
+Modules\Character\Professions\CraftingCosts.lua
 Modules\Interface\CombatAlert.lua
 Modules\Interface\MovableWindows.lua
 Modules\Interface\MacroIconSearch.lua

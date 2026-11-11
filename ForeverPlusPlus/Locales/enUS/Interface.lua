@@ -63,35 +63,8 @@ L.TOOLTIPS_QUEST_LINES_SHOW = "Show"
 L.TOOLTIPS_QUEST_LINES_UNITS = "Hide on Players and NPCs"
 L.TOOLTIPS_QUEST_LINES_ALL = "Hide on Players, NPCs, and Objects"
 
--- RecipeColors
+-- RecipeColors, a part of Professions since 1.5.0: its title stays for its notes in the changelog.
 L.RECIPECOLORS_TITLE = "Recipe Colors"
-L.RECIPECOLORS_DESC = "Color recipes in the professions window by your chance of a skill-up: "
-    .. "orange always, yellow usually, green sometimes, gray never. Each also shows how many "
-    .. "skill-ups it has left before it turns gray."
-L.RECIPECOLORS_HIGHLIGHT = "Tint Row Highlights"
-L.RECIPECOLORS_HIGHLIGHT_DESC = "Color the selected and mouse-over highlight of a recipe to match its name."
-L.RECIPECOLORS_GRAY = "Gray Out Finished Recipes"
-L.RECIPECOLORS_GRAY_DESC = "Show recipes you know that can't raise your skill any more in gray."
-L.RECIPECOLORS_POINTS = "Row Number"
-L.RECIPECOLORS_POINTS_DESC = "A number at the end of each recipe that can still raise your skill: how many skill-ups are left before it turns gray, or the skill it turns gray at."
-L.RECIPECOLORS_POINTS_LEFT = "Skill-Ups Left"
-L.RECIPECOLORS_POINTS_GRAY = "Gray At"
-L.RECIPECOLORS_POINTS_OFF = "Off"
-L.RECIPECOLORS_DETAIL = "Skill-Ups on the Recipe"
-L.RECIPECOLORS_DETAIL_DESC = "Under the selected recipe's name, the skill it gives skill-ups until, and how many are left."
-L.RECIPECOLORS_DETAIL_UNTIL = "Skill-ups until %d" -- the skill a recipe turns gray at
-L.RECIPECOLORS_DETAIL_MORE = "Skill-ups until %d %s" -- the skill, then RECIPECOLORS_DETAIL_LEFT in gray
-L.RECIPECOLORS_DETAIL_LEFT = "(%d more)"
-L.RECIPECOLORS_DETAIL_DONE = "No more skill-ups (gray at %d)"
-L.RECIPECOLORS_DUMP_LINE = "Skill line %s, parent %s; skill counted from: %s"
-L.RECIPECOLORS_DUMP = "Recipe Skill-Up Levels"
-L.RECIPECOLORS_DUMP_BUTTON = "Print"
-L.RECIPECOLORS_DUMP_DESC = "With a profession window open, print what the game says about its recipes: the skill each turns gray at (maxTrivialLevel), its difficulty, and its skill-ups, then every field of the selected recipe."
-L.RECIPECOLORS_DUMP_NONE = "Open a profession window first."
-L.RECIPECOLORS_DUMP_SKILL = "%s: %s (%s), skill %s of %s" -- function, profession, its skill line, skill, its most
-L.RECIPECOLORS_DUMP_ROW = "%s (%d): maxTrivialLevel %s, relativeDifficulty %s, numSkillUps %s" -- recipe, its ID, then its fields
-L.RECIPECOLORS_DUMP_FIELDS = "%s: %s" -- recipe, every field as key=value
-L.RECIPECOLORS_DUMP_COUNT = "maxTrivialLevel is given for %d of the %d recipes you know."
 
 -- CombatAlert
 L.COMBATALERT_TITLE = "Combat Alert"

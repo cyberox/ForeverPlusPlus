@@ -1,6 +1,7 @@
 -- Auction prices for any module: Item Tooltips' Auction Prices scans the auction house and gives
--- its prices here while it's on, and other modules (Waylaid Crates) read them without reaching
--- into it. With no source, there are no prices. With its Use Auctionator's Prices option on and
+-- its prices here while it's on, and other modules (Waylaid Crates, Professions' Crafting Costs)
+-- read them without reaching into it. With no source, there are no prices. With its Use
+-- Auctionator's Prices option on and
 -- Auctionator loaded, the prices come from Auctionator instead, so every module that reads them
 -- here switches together.
 local _, ns = ...
@@ -116,7 +117,7 @@ end
 
 -- Sources -----------------------------------------------------------------------------------------
 
-local source -- { price, itemByName, inline, auctionator }, or nil
+local source -- { price, itemByName, inline, auctionator, ageColor }, or nil
 local listeners = {} -- functions told when the prices change
 
 ---Calls `fn()` whenever the prices change (see Prices.Changed). Called often while the auction
@@ -137,7 +138,7 @@ end
 ---Sets where auction prices come from, or nil when there are none (Auction Prices is off).
 ---`price` gives copper and the time() it was seen; `auctionator` whether the player chose
 ---Auctionator's prices.
----@param new table|nil { price = fun(itemID): number?, number?, itemByName = fun(name): number?, inline = fun(): boolean, auctionator = fun(): boolean }
+---@param new table|nil { price = fun(itemID): number?, number?, itemByName = fun(name): number?, inline = fun(): boolean, auctionator = fun(): boolean, ageColor = fun(seconds: number): string|table }
 function Prices.SetSource(new)
     if source == new then
         return
@@ -192,4 +193,13 @@ end
 ---@return boolean
 function Prices.Inline()
     return source and source.inline() or false
+end
+
+---The color for a price `seconds` old, as the player set Auction Prices' Scan Age Color: { r, g,
+---b } from green through yellow to red with By Age, or a quantity color's name ("gray", "white",
+---"gold") for ns.ItemTooltip.ColorText. Gray with no source.
+---@param seconds number
+---@return string|table
+function Prices.AgeColor(seconds)
+    return source and source.ageColor and source.ageColor(seconds) or "gray"
 end

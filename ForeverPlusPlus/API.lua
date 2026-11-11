@@ -105,12 +105,46 @@ export("IsReady", function()
     return ns.db ~= nil
 end)
 
+-- Old names ------------------------------------------------------------------------------------
+-- A module that became a part of another keeps answering by its old name, with the new truth, so
+-- an addon written against the old one doesn't break: on while the new module and its part are,
+-- and its options read where they went. Options that moved out of a module that is still there
+-- answer by their old module too. GetModules and the callbacks know only the new names.
+
+local MOVED_MODULES = {
+    -- Recipe Colors, a module up to 1.4.0, is the Professions module's Recipe Colors part.
+    RecipeColors = { module = "Professions", part = "recipeColors", title = "PROFESSIONS_COLORS",
+        description = "PROFESSIONS_COLORS_DESC", options = { highlight = "highlight", gray = "gray" } },
+}
+local MOVED_OPTIONS = {
+    -- Crafting Costs, Item Tooltips' option up to 1.4.0, is the Professions module's part.
+    ItemTooltips = { crafting = { "Professions", "crafting" } },
+}
+
+-- The module a moved one went to, and its entry above, when this client gets that module.
+local function movedModule(name)
+    local moved = type(name) == "string" and MOVED_MODULES[name]
+    local module = moved and ns.modules[moved.module]
+    if module and not module.unavailable then
+        return module, moved
+    end
+end
+
+-- Whether a moved module counts as on: its new module and its part both are.
+local function movedEnabled(module, moved)
+    return module.enabled and ns.PartOn(module, moved.part) and true or false
+end
+
 ---Whether a module is on, by its internal name ("ItemTooltips", "ClassColors"; see GetModules).
 ---Nil for a name Forever++ doesn't have.
 export("IsModuleEnabled", function(name)
     local module = type(name) == "string" and ns.modules[name]
     -- One this client doesn't get is no module at all, as GetModules has it.
     if not module or module.unavailable then
+        local new, moved = movedModule(name)
+        if new then
+            return movedEnabled(new, moved)
+        end
         return nil
     end
     return module.enabled and true or false
@@ -143,43 +177,69 @@ local function findOption(module, key)
     end
 end
 
+-- One option as GetModuleInfo lists it, under `key` (its old key, for a moved module).
+local function optionInfo(module, option, key)
+    local choices
+    if option.choices then
+        choices = {}
+        for i, choice in ipairs(option.choices) do
+            choices[i] = choice[1]
+        end
+    end
+    return {
+        key = key or option.key,
+        name = option.name,
+        kind = ns.OptionKind(option),
+        value = module.db and module.db[option.key],
+        default = module.defaults[option.key],
+        choices = choices,
+        min = option.min,
+        max = option.max,
+    }
+end
+
 ---A module in full: { name, title, description, category, enabled, options }, where options is a
 ---list of { key, name, kind ("checkbox", "dropdown", or "slider"), value, default, choices (a
 ---dropdown's values), min, max }, as the Modules page shows them. Nil for a module that isn't
 ---there.
 export("GetModuleInfo", function(name)
     local module = findModule(name)
+    local moved
     if not module then
-        return nil
+        module, moved = movedModule(name)
+        if not module then
+            return nil
+        end
     end
     local options = {}
-    for _, option in ipairs(module.options or {}) do
-        if not option.debug then
-            local choices
-            if option.choices then
-                choices = {}
-                for i, choice in ipairs(option.choices) do
-                    choices[i] = choice[1]
+    if moved then
+        -- Only the options it had, by their old keys, read where they are now.
+        for _, option in ipairs(module.options or {}) do
+            for old, new in pairs(moved.options) do
+                if option.key == new and not option.debug then
+                    options[#options + 1] = optionInfo(module, option, old)
                 end
             end
-            options[#options + 1] = {
-                key = option.key,
-                name = option.name,
-                kind = ns.OptionKind(option),
-                value = module.db and module.db[option.key],
-                default = module.defaults[option.key],
-                choices = choices,
-                min = option.min,
-                max = option.max,
-            }
         end
+    else
+        for _, option in ipairs(module.options or {}) do
+            if not option.debug then
+                options[#options + 1] = optionInfo(module, option)
+            end
+        end
+    end
+    local enabled = module.enabled and true or false
+    local title, description = module.title or name, module.description
+    if moved then
+        enabled = movedEnabled(module, moved)
+        title, description = ns.L[moved.title] or title, ns.L[moved.description] or description
     end
     return {
         name = name,
-        title = module.title or name,
-        description = module.description,
+        title = title,
+        description = description,
         category = module.category,
-        enabled = module.enabled and true or false,
+        enabled = enabled,
         -- Locked off because the game broke it: it can't be turned on, so don't send the player
         -- to. And whether it has found it can't work (its name is red in Settings).
         locked = module.locked and true or false,
@@ -192,7 +252,15 @@ end)
 ---module doesn't have. Read only: the player's settings are theirs to change.
 export("GetModuleOption", function(name, key)
     local module = findModule(name)
-    if not (module and module.db and findOption(module, key)) then
+    local moved = MOVED_OPTIONS[name] and MOVED_OPTIONS[name][key]
+    if moved then
+        module, key = findModule(moved[1]), moved[2]
+    elseif not module then
+        local into
+        module, into = movedModule(name)
+        key = into and into.options[key]
+    end
+    if not (module and module.db and key and findOption(module, key)) then
         return nil
     end
     return module.db[key]
@@ -207,7 +275,10 @@ export("OpenSettings", function(name)
     if not ns.OpenSettings then
         return false
     end
-    return ns.OpenSettings(findModule(name) and name or nil) and true or false
+    if not findModule(name) then
+        name = movedModule(name) and MOVED_MODULES[name].module or nil -- an old name opens its new module
+    end
+    return ns.OpenSettings(name) and true or false
 end)
 
 ---Every module: a list of { name, title, category, enabled } in load order. Leaves out modules

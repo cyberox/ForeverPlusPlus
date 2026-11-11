@@ -226,7 +226,7 @@ local ROW_SIZE = 14
 local ARROW_LEFT = -9 + 26 - 13
 
 -- The mark's column at the row's right end (Professions.NewRowColumn), in use while Recipe Icon
--- is there: Recipe Colors' number and Item Tooltips' profit sit left of it then.
+-- is there: the Professions module's skill-ups number and profit sit left of it then.
 local endColumn = ns.Professions.NewRowColumn(10, ROW_SIZE, 2)
 
 local rowMarks = ItemButtons.Overlays(function(row)
@@ -253,9 +253,7 @@ local function markRow(row, node)
     local on = module.enabled and module.db.professions and hasAtlas
     local recipeID
     if on then
-        node = node or (row.GetElementData and row:GetElementData())
-        local data = node and (node.GetData and node:GetData() or node.data)
-        local info = data and data.recipeInfo
+        local info = ns.Professions.RowRecipe(row, node)
         recipeID = info and info.recipeID
     end
     local spot = module.db.recipeSpot

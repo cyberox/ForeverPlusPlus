@@ -37,6 +37,15 @@ Colors come back as `r, g, b` (0 to 1) plus a hex string `"ffrrggbb"`, the same 
 
 The API can read modules and options but can't change them: those are the player's choices. To have the player change one, open the page with `OpenSettings`.
 
+### Old names
+
+A module that became part of another keeps answering by its old name, with what is true now, so code written against the old name doesn't break. `GetModules` and the callbacks (`MODULE_TOGGLED`, `OPTION_CHANGED`) use only the new names; use those in new code.
+
+| Old name | Now |
+| --- | --- |
+| Module `RecipeColors` (up to 1.4.0) | The `Professions` module's Recipe Colors part. `IsModuleEnabled("RecipeColors")` is true while `Professions` is on and its `recipeColors` option is on. `GetModuleInfo("RecipeColors")` gives its part's title and description, those two as `enabled`, and only the options it had, `highlight` and `gray`, read from `Professions`; `GetModuleOption("RecipeColors", "highlight")` and `"gray"` read them too. `OpenSettings("RecipeColors")` opens `Professions`. |
+| Option `crafting` of `ItemTooltips` (up to 1.4.0) | The `Professions` module's Crafting Costs part: `GetModuleOption("ItemTooltips", "crafting")` reads `GetModuleOption("Professions", "crafting")`. |
+
 ## Auction prices
 
 Prices come from Item Tooltips' Auction Prices: Forever++'s own scans of the auction house, or Auctionator's prices when the player picks Use Auctionator's Prices. While that part is off, there are no prices.

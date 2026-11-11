@@ -103,3 +103,21 @@ profit:Place(narrow, narrowProfit, 50)
 ok(not narrowProfit.shown, "rows: no room for the profit, so it's hidden")
 ok(narrowNumber.shown, "rows: the number still fits")
 eq(narrow.Label.width, 120 - 26 - (18 + 20 + 6), "rows: the name ends before the number")
+
+-- The recipe a row is about, at its best known rank, and the recipe form.
+local rank1, rank2 = { recipeID = 1 }, { recipeID = 2 }
+eq(Professions.BestRank(rank1), rank1, "rows: without Blizzard's Professions, a recipe is itself")
+eq(Professions.BestRank(nil), nil, "rows: no recipe, no rank")
+_G.Professions = { GetHighestLearnedRecipe = function(info) return info == rank1 and rank2 or nil end }
+eq(Professions.BestRank(rank1), rank2, "rows: a recipe with ranks stands for its best known one")
+eq(Professions.BestRank(rank2), rank2, "rows: one Blizzard has no better rank for stays")
+local node = { GetData = function() return { recipeInfo = rank1 } end }
+eq(Professions.RowRecipe({}, node), rank2, "rows: a row's recipe, from Init's node")
+eq(Professions.RowRecipe({ GetElementData = function() return node end }), rank2,
+    "rows: or from the row's own element data")
+eq(Professions.RowRecipe({ GetElementData = function() return { data = {} } end }), nil,
+    "rows: a category header has no recipe")
+_G.Professions = nil
+eq(Professions.RecipeForm(), nil, "rows: no recipe form before Blizzard's has loaded")
+ProfessionsFrame.CraftingPage.SchematicForm = node
+eq(Professions.RecipeForm(), node, "rows: the crafting page's recipe form")

@@ -157,6 +157,65 @@ L.MACROS_SMARTBUFF_STALE ="Smart Buff can't change in combat"
 L.MACROS_SMARTBUFF_PICKUP = "Smart Buff Macro"
 L.MACROS_SMARTBUFF_PICKUP_DESC = "Put the Smart Buff macro on your cursor, to drop on an action bar."
 
+-- Professions
+L.PROFESSIONS_TITLE = "Professions"
+L.PROFESSIONS_DESC = "Add to the professions window: recipes colored by your chance of a skill-up, "
+    .. "how many skill-ups each has left, and what a recipe costs to craft against what it makes. "
+    .. "Each has its own checkbox."
+L.PROFESSIONS_NO_PRICES = "Crafting Costs has no auction prices: Item Tooltips' Auction Prices is off."
+L.PROFESSIONS_NO_PRICES_DESC = "Without auction prices, Crafting Costs counts only what merchants "
+    .. "charge and pay, so most totals say No price and most recipes show no profit."
+-- Recipe Colors
+L.PROFESSIONS_COLORS = "Recipe Colors"
+L.PROFESSIONS_COLORS_DESC = "Color recipes in the recipe list by your chance of a skill-up: orange "
+    .. "always, yellow usually, green sometimes, gray never."
+L.PROFESSIONS_HIGHLIGHT = "Tint Row Highlights"
+L.PROFESSIONS_HIGHLIGHT_DESC = "Color the selected and mouse-over highlight of a recipe to match its name."
+L.PROFESSIONS_GRAY = "Gray Out Finished Recipes"
+L.PROFESSIONS_GRAY_DESC = "Show recipes you know that can't raise your skill any more in gray."
+-- Skill-Ups Left
+L.PROFESSIONS_SKILLUPS = "Skill-Ups Left"
+L.PROFESSIONS_SKILLUPS_DESC = "Show how long each recipe you know keeps raising your skill: a "
+    .. "number on its row and a line under the selected recipe's name."
+L.PROFESSIONS_POINTS = "Row Number"
+L.PROFESSIONS_POINTS_DESC = "A number at the end of each recipe that can still raise your skill: how many skill-ups are left before it turns gray, or the skill it turns gray at."
+L.PROFESSIONS_POINTS_LEFT = "Skill-Ups Left"
+L.PROFESSIONS_POINTS_GRAY = "Gray At"
+L.PROFESSIONS_POINTS_OFF = "Off"
+L.PROFESSIONS_DETAIL = "Skill-Ups on the Recipe"
+L.PROFESSIONS_DETAIL_DESC = "Under the selected recipe's name, the skill it gives skill-ups until, and how many are left."
+L.PROFESSIONS_DETAIL_UNTIL = "Skill-ups until %d" -- the skill a recipe turns gray at
+L.PROFESSIONS_DETAIL_MORE = "Skill-ups until %d %s" -- the skill, then PROFESSIONS_DETAIL_LEFT in gray
+L.PROFESSIONS_DETAIL_LEFT = "(%d more)"
+L.PROFESSIONS_DETAIL_DONE = "No more skill-ups (gray at %d)"
+L.PROFESSIONS_DUMP_LINE = "Skill line %s, parent %s; skill counted from: %s"
+L.PROFESSIONS_DUMP = "Recipe Skill-Up Levels"
+L.PROFESSIONS_DUMP_BUTTON = "Print"
+L.PROFESSIONS_DUMP_DESC = "With a profession window open, print what the game says about its recipes: the skill each turns gray at (maxTrivialLevel), its difficulty, and its skill-ups, then every field of the selected recipe."
+L.PROFESSIONS_DUMP_NONE = "Open a profession window first."
+L.PROFESSIONS_DUMP_SKILL = "%s: %s (%s), skill %s of %s" -- function, profession, its skill line, skill, its most
+L.PROFESSIONS_DUMP_ROW = "%s (%d): maxTrivialLevel %s, relativeDifficulty %s, numSkillUps %s" -- recipe, its ID, then its fields
+L.PROFESSIONS_DUMP_FIELDS = "%s: %s" -- recipe, every field as key=value
+L.PROFESSIONS_DUMP_COUNT = "maxTrivialLevel is given for %d of the %d recipes you know."
+-- Crafting Costs
+L.PROFESSIONS_CRAFTING = "Crafting Costs"
+L.PROFESSIONS_CRAFTING_DESC = "Show Total Cost, Value, and Estimated Profit (after the auction "
+    .. "house's 5% cut) for the selected recipe, with the age of the oldest auction price used. "
+    .. "Reagents cost what merchants charge when that's less, and an item with no auction price "
+    .. "is worth what a merchant pays."
+L.PROFESSIONS_CRAFTING_ROWS = "Profit in Recipe List"
+L.PROFESSIONS_CRAFTING_ROWS_DESC = "Show each recipe's Estimated Profit at the right of its row in "
+    .. "the recipe list, green for a profit and red for a loss. Enchants, which make no item, show nothing."
+L.PROFESSIONS_CRAFT_NO_PRICE = "No price"
+L.PROFESSIONS_CRAFT_EACH = "%s  %s" -- coins, then a gray note
+L.PROFESSIONS_CRAFT_COST = "Total Cost"
+L.PROFESSIONS_CRAFT_VALUE = "Value"
+L.PROFESSIONS_CRAFT_VALUE_COUNT = "Value x%s" -- how many the recipe makes
+L.PROFESSIONS_CRAFT_RANGE = "%d-%d" -- fewest and most the recipe makes
+L.PROFESSIONS_CRAFT_VENDOR = "Vendor"
+L.PROFESSIONS_CRAFT_PROFIT = "Estimated Profit"
+L.PROFESSIONS_CRAFT_AGE = "Oldest Price"
+
 -- SpellRanks
 L.SPELLRANKS_TITLE = "Spell Ranks"
 L.SPELLRANKS_PART_SCAN = "scanning the spellbook" -- its row on the Profiler page

@@ -634,8 +634,9 @@ end
 -- Its rows are ProfessionsRecipeListRecipeMixin buttons (Blizzard_ProfessionsTemplates, load on
 -- demand) in a scroll box: name, skill-up arrow, craftable count, lock icon.
 
----Calls `fn(row)` for each recipe row the professions window shows now.
----@param fn fun(row: table)
+---Calls `fn(row)` for each recipe row the professions window shows now. A row hook (`fn(row,
+---node)`, with the node left out) can be given as it is.
+---@param fn fun(row: table, node?: table)
 function Professions.EachRecipeRow(fn)
     local frame = _G.ProfessionsFrame
     local page = frame and frame.CraftingPage
@@ -672,12 +673,44 @@ function Professions.HookRecipeRows(module, hooks)
     return true
 end
 
+---The recipe to show for `info`: a recipe with ranks stands for the best rank the player knows, as
+---Blizzard's form and list show it. Probe: Professions.GetHighestLearnedRecipe is Blizzard's own
+---global `Professions` (Blizzard_ProfessionsTemplates, Mainline), not this table.
+---@param info table|nil a recipe's info (C_TradeSkillUI.GetRecipeInfo)
+---@return table|nil
+function Professions.BestRank(info)
+    local blizzard = _G.Professions
+    if info and type(blizzard) == "table" and blizzard.GetHighestLearnedRecipe then
+        return blizzard.GetHighestLearnedRecipe(info) or info
+    end
+    return info
+end
+
+---The recipe a row of the recipe list is about, at its best known rank, or nil (a category header).
+---@param row table a recipe row
+---@param node? table the row's element data, when the caller has it (Init's argument)
+---@return table|nil
+function Professions.RowRecipe(row, node)
+    node = node or (row.GetElementData and row:GetElementData())
+    local data = node and (node.GetData and node:GetData() or node.data)
+    return Professions.BestRank(data and data.recipeInfo)
+end
+
+---Blizzard's recipe form on the professions window's crafting page (the selected recipe, its
+---reagents), or nil before Blizzard_Professions has loaded.
+---@return table|nil
+function Professions.RecipeForm()
+    local frame = _G.ProfessionsFrame
+    local page = frame and frame.CraftingPage
+    return page and page.SchematicForm
+end
+
 -- Columns at the right end of a row ----------------------------------------------------------------
 -- What modules draw at the right end of a recipe row, each in a column of its own, so they line up
 -- down the list. A column takes its space only while its module uses it (its option is on and the
 -- list can have it), on every row then, whether a row has something in it or not; the columns left
 -- of it sit further right while it doesn't. Orders in use, nearest the row's end first: 10 Appearance
--- Icons' mark, 20 Recipe Colors' number, 30 Item Tooltips' profit.
+-- Icons' mark, 20 the Professions module's Skill-Ups Left number, 30 its Crafting Costs profit.
 --
 -- Blizzard's Init gives the name the row's width less the lock, the craftable count, the skill-up
 -- arrow, and 10 pixels, cuts a longer name short with "...", and shows the whole name in a tooltip

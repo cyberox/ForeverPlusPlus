@@ -383,6 +383,10 @@ local function checkItems()
         end
     end
     info("items.professions", #skills > 0 and tconcat(skills, "; ") or "none")
+    -- What the Professions module reads in the professions window and at merchants.
+    present("items.recipes", { "C_TradeSkillUI.GetRecipeInfo", "C_TradeSkillUI.GetRecipeSchematic",
+        "C_TradeSkillUI.GetTradeSkillLineForRecipe", "C_TradeSkillUI.GetAllRecipeIDs",
+        "GetMerchantNumItems", "GetMerchantItemID" })
     -- Tracking: which spells are on, for the one-at-a-time question.
     present("items.tracking", { "C_Minimap.GetNumTrackingTypes", "C_Minimap.GetTrackingInfo",
         "C_Minimap.SetTracking" })
@@ -539,6 +543,9 @@ local MANUAL = {
     "MANUAL cinematic: trigger a cinematic with Skip Cinematics on and its Debug option on.",
     "MANUAL auction: open the Auction House, let Item Tooltips scan auction prices, then post an "
         .. "item; watch that the Sell tab list fills.",
+    "MANUAL professions: open a profession with the Professions module on; check the recipe colors, "
+        .. "the skill-ups number on each row and the line under the selected recipe's name, and "
+        .. "Crafting Costs' totals under its description; screenshot the window.",
     "MANUAL combat: run this test in combat (a dummy is enough): secret.curve, ui.mouse-enabled, cvar changes.",
     "MANUAL stand and shapeshift: sit, then /cast a spell that needs standing; note whether autoStand "
         .. "stands you, and the cvar.autoStand default logged above.",

@@ -36,11 +36,18 @@ ns.changelog = {
                     .. "default, a little bigger in the quest log and the objective tracker, and sits level with "
                     .. "the tracker's text. Each icon is "
                     .. "cut to its art, so the Forever logo no longer makes a quest giver's rows taller." },
-                { L.RECIPECOLORS_TITLE, "Each recipe that can still raise your skill shows how many "
-                    .. "skill-ups it has left before it turns gray, and the selected recipe says the same "
-                    .. "under its name. Pick Gray At to see the skill it turns gray at instead, or turn "
-                    .. "either off." },
-                { L.ITEMTOOLTIPS_TITLE, "Profit in Recipe List (off by default) shows each recipe's "
+                { L.PROFESSIONS_TITLE, "A new module, on by default, for everything Forever++ adds to "
+                    .. "the professions window, each part with its own checkbox: Recipe Colors (until now "
+                    .. "a module of its own), Skill-Ups Left, and Crafting Costs (until now an option of "
+                    .. "Item Tooltips' Auction Prices) with Profit in Recipe List. Your settings for "
+                    .. "Recipe Colors and Crafting Costs, and the merchant prices Crafting Costs learned, "
+                    .. "carry over. Crafting Costs still takes its auction prices from Item Tooltips' "
+                    .. "Auction Prices, and says so in its settings while there are none." },
+                { L.PROFESSIONS_TITLE, "Skill-Ups Left shows, on each recipe that can still raise your "
+                    .. "skill, how many skill-ups it has left before it turns gray, and the selected "
+                    .. "recipe says the same under its name. Pick Gray At to see the skill it turns gray "
+                    .. "at instead, or turn either off." },
+                { L.PROFESSIONS_TITLE, "Profit in Recipe List (off by default) shows each recipe's "
                     .. "Estimated Profit on its row of the professions window's recipe list, green for a "
                     .. "profit and red for a loss, from the same prices as Crafting Costs." },
                 { L.CHANGELOG_SETTINGS, "Click a category in the Modules list to fold it away, and "
