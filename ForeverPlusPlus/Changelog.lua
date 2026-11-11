@@ -25,6 +25,11 @@ ns.changelog = {
                 { L.QUESTITEMSPARKLES_TITLE, "A new module, off by default. Quest items you can pick up "
                     .. "in the world sparkle, so they're easy to spot, and stay that way after you change "
                     .. "your graphics settings." },
+                { L.AUTOOPEN_TITLE, "A new module, off by default. Opens the containers in your "
+                    .. "bags, such as clams, sacks, and lockboxes once they're unlocked, by themselves. "
+                    .. "It waits out combat, stealth, casting, and any loot, merchant, mail, bank, "
+                    .. "trade, or auction window, keeps a few bag slots free, and leaves raid sacks of "
+                    .. "gems and holiday gifts for you." },
                 { L.MACROICONSEARCH_TITLE, "A new module, on by default. A search box in the macro "
                     .. "window's icon picker: type part of a spell's or item's name to see the icons of "
                     .. "your spells and of the items you carry or wear that match." },

@@ -111,6 +111,8 @@
     "AddonList_Update",
     "GetTime",
     "GetNumLootItems",
+    "GetCursorInfo",
+    "IsStealthed",
     "GetLootSlotInfo",
     "GetLootSlotLink",
     "LootSlot",

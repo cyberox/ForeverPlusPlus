@@ -85,6 +85,7 @@ Modules\Tools\Screenshots.lua
 Modules\Automation\FastLoot.lua
 Modules\Automation\AutoRepair.lua
 Modules\Automation\AutoSellJunk.lua
+Modules\Automation\AutoOpen.lua
 Modules\Items\ItemTooltips\ItemTooltips.lua
 Modules\Items\ItemTooltips\SellPrice.lua
 Modules\Items\ItemTooltips\RepairCost.lua
