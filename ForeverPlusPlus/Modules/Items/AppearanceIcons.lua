@@ -225,6 +225,10 @@ local ROW_SIZE = 14
 -- and is 26 wide, and the arrow (13 wide, professions-icon-skill-*) sits at the slot's right.
 local ARROW_LEFT = -9 + 26 - 13
 
+-- The mark's column at the row's right end (Professions.NewRowColumn), in use while Recipe Icon
+-- is there: Recipe Colors' number and Item Tooltips' profit sit left of it then.
+local endColumn = ns.Professions.NewRowColumn(10, ROW_SIZE, 2)
+
 local rowMarks = ItemButtons.Overlays(function(row)
     return row:CreateTexture(nil, "OVERLAY", nil, 7)
 end)
@@ -254,15 +258,24 @@ local function markRow(row, node)
         local info = data and data.recipeInfo
         recipeID = info and info.recipeID
     end
+    local spot = module.db.recipeSpot
+    local atEnd = spot ~= "after" and spot ~= "before"
+    endColumn:Use(on and atEnd)
     local item = recipeID and outputOf(recipeID)
     local mark = rowMarks:Set(row, item and uncollected("item:" .. item))
     if not mark then
+        endColumn:Place(row, nil)
         return
     end
     mark:SetAtlas(ATLAS)
     mark:SetSize(ROW_SIZE, ROW_SIZE)
+    if atEnd then
+        -- At the row's right end, left of a disabled recipe's lock icon.
+        endColumn:Place(row, mark)
+        return
+    end
+    endColumn:Place(row, nil)
     mark:ClearAllPoints()
-    local spot = module.db.recipeSpot
     if spot == "after" then
         -- After the name, or after its count when that shows.
         local after = row.Count and row.Count:IsShown() and row.Count or row.Label
@@ -277,14 +290,6 @@ local function markRow(row, node)
             mark:SetPoint("RIGHT", text, "LEFT", -1, 0)
         else
             mark:SetPoint("RIGHT", row, "LEFT", ARROW_LEFT - 1, 0)
-        end
-    else
-        -- At the row's right end, left of a disabled recipe's lock icon.
-        local lock = row.LockedIcon
-        if lock and lock:IsShown() then
-            mark:SetPoint("RIGHT", lock, "LEFT", -1, 0)
-        else
-            mark:SetPoint("RIGHT", row, "RIGHT", -2, 0)
         end
     end
 end
@@ -374,6 +379,7 @@ function module:OnDisable()
     ItemButtons.CancelAuction(updateAuction)
     marks:HideAll()
     rowMarks:HideAll()
+    endColumn:Use(false)
     forget()
     wipe(waiting)
 end

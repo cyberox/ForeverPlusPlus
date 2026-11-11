@@ -962,15 +962,12 @@ end
 -- Profit in the recipe list -------------------------------------------------------------------
 -- Each recipe's Estimated Profit, from the same sum as the totals, at the right end of its row,
 -- in the totals' colors. Nothing on a category header, an enchant, or a recipe missing a price.
--- The last 40 pixels of a row are other modules' columns: Appearance Icons' 14-pixel mark at the
--- end, and Recipe Colors' number (up to three digits) left of it. So the profit has a column of its
--- own left of both, on every row whether they show or not, and moves left of a disabled recipe's
--- lock as theirs do. Rows are built again as the list scrolls, so profits are kept by recipe.
--- A long name would run under the profit, so the name is cut short before it, as Blizzard cuts
--- one that doesn't fit its row (Professions.FitRowLabel); a row too narrow for both shows no profit.
+-- It has a column of its own (Professions.NewRowColumn), left of Appearance Icons' mark and Recipe
+-- Colors' number while those are in use and further right while they aren't; a long name is cut
+-- short before it, and a row too narrow for both shows no profit. Rows are built again as the list
+-- scrolls, so profits are kept by recipe.
 
-local PROFIT_RIGHT = -42 -- 2 from the edge, 14 for an icon, 2, about 20 for a number, 4 between
-local PROFIT_GAP = 6     -- between the name (and its craftable count) and the profit
+local profitColumn = ns.Professions.NewRowColumn(30, 0, 4) -- as wide as each row's text
 
 local rowTexts = ns.ItemButtons.Overlays(function(row)
     local text = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
@@ -1021,34 +1018,18 @@ local function profitRow(row, node)
         local info = bestRank(data and data.recipeInfo)
         profit = info and info.recipeID and profitOf(info.recipeID)
     end
+    profitColumn:Use(rowsOn())
     local text = rowTexts:Set(row, profit)
-    if not text then
-        ns.Professions.FitRowLabel(row, "profit", 0) -- the name gets its own width back
-        return
+    if text then
+        text:SetText(profitColor(profit):WrapTextInColorCode(ns.MoneyShort(profit)))
     end
-    text:SetText(profitColor(profit):WrapTextInColorCode(ns.MoneyShort(profit)))
-    text:ClearAllPoints()
-    local lock = row.LockedIcon
-    if lock and lock:IsShown() then
-        text:SetPoint("RIGHT", lock, "LEFT", PROFIT_RIGHT + 2, 0)
-    else
-        text:SetPoint("RIGHT", row, "RIGHT", PROFIT_RIGHT, 0)
-    end
-    local reserved = -PROFIT_RIGHT + text:GetStringWidth() + PROFIT_GAP
-    if not ns.Professions.FitRowLabel(row, "profit", reserved) then
-        rowTexts:Set(row, false)
-    end
-end
-
--- A row without its profit, the name back at Blizzard's width.
-local function clearRow(row)
-    rowTexts:Set(row, false)
-    ns.Professions.FitRowLabel(row, "profit", 0)
+    profitColumn:Place(row, text, text and text:GetStringWidth())
 end
 
 local ROW_HOOKS = { Init = profitRow }
 
 local function redrawRows()
+    profitColumn:Use(rowsOn())
     ns.Professions.EachRecipeRow(profitRow)
 end
 
@@ -1151,7 +1132,7 @@ function module:OnDisable()
         restoreReagents(form)
     end
     rowTexts:HideAll()
-    ns.Professions.EachRecipeRow(clearRow)
+    profitColumn:Use(false)
     wipe(profits)
     wipe(waiting)
 end

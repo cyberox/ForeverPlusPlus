@@ -142,12 +142,10 @@ local function counts(info)
 end
 
 -- The number on a row: the skill-ups left until gray, or the skill it turns gray at, as the Row
--- Number option says. Nothing on a recipe that's gray already. Its own column, an icon's width in
--- from the right end (or from a disabled recipe's lock), so Appearance Icons' mark at the right end
--- fits beside it.
-local NUMBER_RIGHT = -18 -- 2 from the edge, 14 for an icon, 2 between
-local NUMBER_GAP = 6     -- between the name (and its craftable count) and the number
-local fitLabel = ns.Professions.FitRowLabel
+-- Number option says. Nothing on a recipe that's gray already. Its own column at the row's right
+-- end (Professions.NewRowColumn), left of Appearance Icons' mark while that's in use, and taking
+-- no space itself while the option is off or the list has no skill-ups.
+local numberColumn = ns.Professions.NewRowColumn(20, 20, 2) -- up to three digits
 local numbers = ns.ItemButtons.Overlays(function(row)
     local text = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     text:SetJustifyH("RIGHT")
@@ -166,23 +164,12 @@ local function rowNumber(row, info)
             value = nil -- the colors say it can still skill up; trust them over the sum
         end
     end
+    numberColumn:Use(module.enabled and mode ~= "off" and listHasSkillUps())
     local text = numbers:Set(row, value)
-    if not text then
-        fitLabel(row, "number", 0) -- the name gets its own width back
-        return
+    if text then
+        text:SetText(value)
     end
-    text:SetText(value)
-    text:ClearAllPoints()
-    local lock = row.LockedIcon
-    if lock and lock:IsShown() then
-        text:SetPoint("RIGHT", lock, "LEFT", NUMBER_RIGHT + 2, 0)
-    else
-        text:SetPoint("RIGHT", row, "RIGHT", NUMBER_RIGHT, 0)
-    end
-    -- A long name is cut short before the number, as Blizzard cuts one that doesn't fit its row.
-    if not fitLabel(row, "number", -NUMBER_RIGHT + text:GetStringWidth() + NUMBER_GAP) then
-        numbers:Set(row, false)
-    end
+    numberColumn:Place(row, text)
 end
 
 -- Rows -------------------------------------------------------------------------------------------
@@ -194,7 +181,7 @@ local function paint(row, node)
     if not module.enabled then
         tint(row)
         numbers:Set(row, false)
-        fitLabel(row, "number", 0)
+        numberColumn:Use(false)
         return
     end
     node = node or (row.GetElementData and row:GetElementData())
@@ -329,13 +316,13 @@ function module:OnDisable()
         tint(row)
     end
     numbers:HideAll()
+    numberColumn:Use(false)
     if detail then
         detail:Hide()
     end
     local page = ProfessionsFrame and ProfessionsFrame.CraftingPage
     local hideCount = page and page.RecipeList and page.RecipeList.hideCraftableCount
     recipeRows(function(row)
-        fitLabel(row, "number", 0) -- before Init, so another module's hook sizes the name without it
         if row.Init and row.GetElementData then
             local node = row:GetElementData()
             if node then

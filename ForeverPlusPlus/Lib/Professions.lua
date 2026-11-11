@@ -4,6 +4,7 @@
 local _, ns = ...
 
 local _G, type, ipairs, pairs, select, setmetatable = _G, type, ipairs, pairs, select, setmetatable
+local tinsert = table.insert
 local GetProfessions, GetProfessionInfo = GetProfessions, GetProfessionInfo
 
 local Professions = {
@@ -671,62 +672,142 @@ function Professions.HookRecipeRows(module, hooks)
     return true
 end
 
--- Room at the right end of a row ------------------------------------------------------------------
+-- Columns at the right end of a row ----------------------------------------------------------------
+-- What modules draw at the right end of a recipe row, each in a column of its own, so they line up
+-- down the list. A column takes its space only while its module uses it (its option is on and the
+-- list can have it), on every row then, whether a row has something in it or not; the columns left
+-- of it sit further right while it doesn't. Orders in use, nearest the row's end first: 10 Appearance
+-- Icons' mark, 20 Recipe Colors' number, 30 Item Tooltips' profit.
+--
 -- Blizzard's Init gives the name the row's width less the lock, the craftable count, the skill-up
 -- arrow, and 10 pixels, cuts a longer name short with "...", and shows the whole name in a tooltip
--- then. What a module draws at the row's right end needs more than those 10 pixels, or a long name
--- runs under it.
+-- then. Our columns need more than those 10 pixels, so the name is sized the same way but ending
+-- before the furthest-left thing a row shows; on a row too narrow for the name and all of them,
+-- the furthest-left ones are left out.
 
 local ROW_PADDING = 10 -- Blizzard's own, in ProfessionsRecipeListRecipeMixin:Init
 local LABEL_MIN = 40   -- less of a name than this isn't worth showing beside a column of ours
-local reserves = setmetatable({}, { __mode = "k" }) -- row -> { [key] = pixels }
+local LABEL_GAP = 6    -- between the name (and its craftable count) and the nearest column
+local LOCK_NUDGE = 2   -- a disabled recipe's lock has that much empty at its left
 
----Keeps a recipe's name clear of what a module draws at the right end of its row: the name is
----sized as Blizzard sizes it, but ending before the row's last `reserved` pixels (counted from a
----disabled recipe's lock when it shows), the widest reserve of every `key` on the row. Worked out
----from the row each time, so call it whenever what's drawn changes, and with 0 once nothing is:
----the name then gets Blizzard's width back. Returns false, reserving nothing, when too little of
----the name would be left: the caller leaves its column empty on that row.
----@param row table a recipe row
----@param key string the caller's own name for its column
----@param reserved number pixels from the row's right end, or 0
----@return boolean fits
-function Professions.FitRowLabel(row, key, reserved)
-    local label = row and row.Label
-    if not (label and label.GetStringWidth) then
-        return false
-    end
-    local kept = reserves[row]
-    if not kept then
-        kept = {}
-        reserves[row] = kept
-    end
-    kept[key] = reserved > 0 and reserved or nil
+local columns = {}                                -- every column, nearest the row's end first
+local placed = setmetatable({}, { __mode = "k" }) -- row -> { [column] = { region, width, x } }
 
+local Column = {}
+Column.__index = Column
+
+-- How far a column's right edge is from the row's end: past every column in use before it.
+local function offsetOf(column)
+    local x = 0
+    for _, other in ipairs(columns) do
+        if other == column then
+            return x + other.gap
+        elseif other.used then
+            x = x + other.gap + other.width
+        end
+    end
+    return x
+end
+
+-- Puts what a row shows in its columns where they go now, and sizes the name to end before them.
+local function layout(row)
+    local label, here = row.Label, placed[row]
+    if not (label and here) then
+        return
+    end
     local lock, count, skill = row.LockedIcon, row.Count, row.SkillUps
-    local used = skill and skill:GetWidth() or 0
-    if lock and lock:IsShown() then
-        used = used + lock:GetWidth()
+    lock = lock and lock:IsShown() and lock or nil
+    local taken = skill and skill:GetWidth() or 0
+    if lock then
+        taken = taken + lock:GetWidth()
     end
     if count and count:IsShown() then
-        used = used + count:GetStringWidth()
+        taken = taken + count:GetStringWidth()
     end
-    local full, room = label:GetStringWidth(), row:GetWidth() - used
-    local function fit()
-        local most = ROW_PADDING
-        for _, pixels in pairs(kept) do
-            if pixels > most then
-                most = pixels
+    local full, room = label:GetStringWidth(), row:GetWidth() - taken
+    local reserved
+    repeat
+        reserved = ROW_PADDING
+        local last -- the furthest-left column this row shows something in
+        for column, entry in pairs(here) do
+            entry.x = offsetOf(column)
+            local need = entry.x + entry.width + LABEL_GAP
+            if need > reserved then
+                reserved, last = need, column
             end
         end
-        return room - most
+        local fits = room - reserved >= LABEL_MIN or full <= room - reserved
+        if not fits and last then
+            here[last].region:Hide()
+            here[last] = nil
+        end
+    until fits or not last
+    for _, entry in pairs(here) do
+        local region = entry.region
+        region:ClearAllPoints()
+        if lock then
+            region:SetPoint("RIGHT", lock, "LEFT", LOCK_NUDGE - entry.x, 0)
+        else
+            region:SetPoint("RIGHT", row, "RIGHT", -entry.x, 0)
+        end
     end
-    local width = fit()
-    local fits = width >= LABEL_MIN or full <= width
-    if not fits then
-        kept[key] = nil
-        width = fit()
-    end
+    local width = room - reserved
     label:SetWidth(width < full and width or full)
-    return fits
+end
+
+---Whether the column takes its space on the rows: true while the module draws in it at all (its
+---option is on, and the open list can have it). Off, what it had on the rows is forgotten (the
+---module hides its own regions) and the columns left of it move right. Cheap to call again with
+---the same answer.
+---@param on any
+function Column:Use(on)
+    on = on and true or false
+    if self.used == on then
+        return
+    end
+    self.used = on
+    if not on then
+        for _, here in pairs(placed) do
+            here[self] = nil
+        end
+    end
+    Professions.EachRecipeRow(layout)
+end
+
+---Puts `region` (the module's own texture or font string on the row, shown) in the column on this
+---row, its right edge at the column's, or says the row has nothing there with nil. Call it each
+---time the row is drawn, after the region has its text or size. On a row too narrow, the region
+---may be hidden.
+---@param row table a recipe row
+---@param region? table
+---@param width? number what the region takes, when it isn't the column's own width
+function Column:Place(row, region, width)
+    if not (row and row.Label) then
+        return
+    end
+    local here = placed[row]
+    if not here then
+        here = {}
+        placed[row] = here
+    end
+    here[self] = region and { region = region, width = width or self.width } or nil
+    layout(row)
+end
+
+---A column at the right end of the recipe rows, for one module. Not in use until `column:Use(true)`.
+---@param order number where it goes among the others, lowest nearest the row's end
+---@param width number its width, which the columns left of it are moved by
+---@param gap number the space at its right
+---@return table column with `Use` and `Place`
+function Professions.NewRowColumn(order, width, gap)
+    local column = setmetatable({ order = order, width = width, gap = gap, used = false }, Column)
+    local at = #columns + 1
+    for i, other in ipairs(columns) do
+        if order < other.order then
+            at = i
+            break
+        end
+    end
+    tinsert(columns, at, column)
+    return column
 end
