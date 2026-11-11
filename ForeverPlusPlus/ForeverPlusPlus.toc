@@ -33,6 +33,7 @@ Lib\Frames.lua
 Lib\Money.lua
 Lib\Fonts.lua
 Lib\Keys.lua
+Lib\Sounds.lua
 Lib\Confirm.lua
 Lib\CVars.lua
 Lib\Nameplates.lua
@@ -62,6 +63,7 @@ Lib\Slash.lua
 Lib\SettingsKit.lua
 Lib\ItemStats.lua
 Lib\Equipment.lua
+Lib\Durability.lua
 Lib\Talents.lua
 Lib\ActionButtons.lua
 Lib\Spellbook.lua
@@ -139,6 +141,7 @@ Modules\Interface\LootRolls.lua
 Modules\Character\CharacterWindow\CharacterWindow.lua
 Modules\Character\CharacterWindow\Durability.lua
 Modules\Character\CharacterWindow\Skills.lua
+Modules\Character\DurabilityWarning.lua
 Modules\Quests\ForeverQuestIcons.lua
 Modules\Quests\QuestTracker.lua
 Modules\Quests\QuestLevels.lua

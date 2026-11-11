@@ -45,7 +45,6 @@
 3	ForeverPlusPlus/Modules/Character/CharacterWindow/CharacterWindow.lua: warning[undefined-field] undefined field 'ModeTabs' on class 'CharacterFrame'
 1	ForeverPlusPlus/Modules/Character/CharacterWindow/CharacterWindow.lua: warning[undefined-field] undefined field 'RightPaneHost' on class 'CharacterFrame'
 1	ForeverPlusPlus/Modules/Character/CharacterWindow/CharacterWindow.lua: warning[undefined-field] undefined field 'TopBackgroundStripHost' on class 'PaperDollFrame'
-1	ForeverPlusPlus/Modules/Character/CharacterWindow/Durability.lua: warning[type-mismatch] expected `number` for parameter 'invSlotId', got `number | string`
 1	ForeverPlusPlus/Modules/Character/CharacterWindow/Skills.lua: warning[type-mismatch] expected `number` for parameter 'invSlotId', got `number | string`
 1	ForeverPlusPlus/Modules/Character/CharacterWindow/Skills.lua: warning[undefined-field] undefined field 'ColorType' on class 'ColoredProgressBarMixin'
 1	ForeverPlusPlus/Modules/Character/Professions/CraftingCosts.lua: warning[deprecated] 'GetMerchantItemInfo' is deprecated

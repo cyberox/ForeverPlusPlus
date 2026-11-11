@@ -39,6 +39,17 @@ L.KEY_ALT = "Alt"
 L.KEY_NONE = "None"
 L.SKIP_KEY = "Skip Key" -- the option of every module that a held key skips
 
+-- Lib/Sounds.lua: the alert sounds, in every Sound dropdown
+L.SOUND_OFF = "Off"
+L.SOUND_BUZZ = "Error Buzz"
+L.SOUND_DENIED = "Denied"
+L.SOUND_HORN = "War Horn"
+L.SOUND_BOSS = "Boss Warning"
+L.SOUND_RAIDWARNING = "Raid Warning"
+L.SOUND_GM = "GM Alert"
+L.SOUND_ALARM = "Alarm Clock"
+L.SOUND_WHISPER = "Whisper"
+
 -- Core: /fpp and chat
 L.ON = "on"
 L.OFF = "off"

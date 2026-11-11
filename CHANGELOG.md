@@ -7,6 +7,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 ### Added
 
 - **Compass Bar**: a new module, off by default. A compass across the top of the screen with your selected quest, map pin, corpse, and group on it in the direction they are, and how far away. Every quest on the map, flight masters, gathering nodes, and rares can go on it too. Set its size in Edit Mode.
+- **Durability Warning**: a new module, off by default. Warns you once when an item you wear drops below the durability you pick (25% by default), and again when one breaks, so you repair in time: a chat line naming the item, red text in the middle of the screen, and a sound you pick, each with its own option. It warns again only after a repair.
 - **Quest Item Sparkles**: a new module, off by default. Quest items you can pick up in the world sparkle, so they're easy to spot, and stay that way after you change your graphics settings.
 - **Macro Icon Search**: a new module, on by default. A search box in the macro window's icon picker: type part of a spell's or item's name to see the icons of your spells and of the items you carry or wear that match.
 - **Quest Links**: a new module, on by default. Quests linked in chat by players with Questie, which show as plain text like [[34] A Grim Task (304)], become quest links you can click to see the quest.
