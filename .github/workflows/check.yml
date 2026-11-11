@@ -49,6 +49,23 @@ jobs:
           done < <(find ForeverPlusPlus -name '*.lua')
           exit $status
 
+      # TradeSkillMaster's WoW-aware checker, on the Forever flavor (.wowluarc.json): types, and
+      # secret values compared, tested, or used in math. It fails on any finding, so
+      # tests/wowlua.lua compares its findings to tests/wowlua-baseline.txt and fails only on new
+      # ones (or fixed ones still in the baseline). Pinned, and checked against the release's sum.
+      - name: wowlua-ls (new findings only)
+        env:
+          WOWLUA_LS_VERSION: v0.36.0
+          WOWLUA_LS_SHA256: 8679bb925565d45283995e25893552f0a0148002887ea4dccd56cd46adc161c5
+        run: |
+          bin="$RUNNER_TEMP/wowlua_ls"
+          curl -fsSL -o "$bin" "https://github.com/TradeSkillMaster/wowlua-ls/releases/download/$WOWLUA_LS_VERSION/wowlua_ls-x86_64-unknown-linux-gnu"
+          echo "$WOWLUA_LS_SHA256  $bin" | sha256sum -c -
+          chmod +x "$bin"
+          # Its summary ("Checked N files") goes to stderr; the script needs it to know the run ended.
+          "$bin" check . > "$RUNNER_TEMP/wowlua.txt" 2>&1 || true
+          lua5.1 tests/wowlua.lua "$RUNNER_TEMP/wowlua.txt" || { cat "$RUNNER_TEMP/wowlua.txt"; exit 1; }
+
   # The addon folder, ready to drop into Interface\AddOns. Every run uploads it as an artifact
   # (the download is a zip holding ForeverPlusPlus/); a pushed v* tag also makes the release zip
   # that the release and curseforge jobs ship.

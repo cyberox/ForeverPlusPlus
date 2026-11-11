@@ -46,6 +46,16 @@ What `T` holds:
   - `ok(value, what)`: anything but `nil` or `false`.
   - `raises(fn, pattern, what)`: `fn` errors, with `pattern` in the message.
 
+## wowlua-ls
+
+CI also runs [wowlua-ls](https://github.com/TradeSkillMaster/wowlua-ls) (the version is pinned in `.github/workflows/check.yml`; the repo root's `.wowluarc.json` sets the Forever flavor) and hands its output to `wowlua.lua`, which fails on any finding `wowlua-baseline.txt` doesn't list, and on one the baseline lists but that's gone. A finding there is its file, code, and message, with how many times it's there, without lines, so moving code doesn't count as new. Locally, with a release binary:
+
+```sh
+wowlua_ls check . > out.txt 2>&1
+lua5.1 tests/wowlua.lua out.txt            # compare
+lua5.1 tests/wowlua.lua out.txt --update   # rewrite the baseline after a fix, or for the checker's own mistake
+```
+
 ## What to test
 
 Test pure logic: anything in `Lib/` with no frames, and Core's module lifecycle on the stub frames in `spec/core.lua`. Add a check when you change or add that logic, and a spec when you add a Lib file. Don't test frame or UI code; it needs the client.

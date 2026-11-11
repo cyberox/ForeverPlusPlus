@@ -1,0 +1,106 @@
+# wowlua-ls findings known when this was written (tests/wowlua.lua --update).
+# count<TAB>file: severity[code] message
+1	ForeverPlusPlus/API.lua: warning[create-global] implicit global creation 'ForeverPlusPlusAPI'
+2	ForeverPlusPlus/Core.lua: warning[doc-func-no-function] @param is not attached to a function definition
+1	ForeverPlusPlus/Core.lua: warning[type-mismatch] expected `string` for parameter 'name', got `_G | string | function`
+1	ForeverPlusPlus/Core.lua: warning[type-mismatch] expected `table` for parameter 'tbl', got `function`
+1	ForeverPlusPlus/Init.lua: warning[create-global] implicit global creation 'ForeverPlusPlusCompanion'
+1	ForeverPlusPlus/Lib/ActionButtons.lua: warning[return-mismatch] expected return type `number?`, got `number | string`
+2	ForeverPlusPlus/Lib/Chat.lua: warning[return-mismatch] expected return type `string`, got `string | osdate`
+1	ForeverPlusPlus/Lib/Chat.lua: warning[undefined-field] undefined field 'CHAT_TIMESTAMP_FORMAT' on class '_G'
+1	ForeverPlusPlus/Lib/EditMode.lua: warning[type-mismatch] expected `table` for parameter 'tbl', got `function`
+1	ForeverPlusPlus/Lib/EditMode.lua: warning[undefined-doc-name] undefined type 'set: fun(value: number)'
+1	ForeverPlusPlus/Lib/EditMode.lua: warning[undefined-field] undefined field 'set' on type '{... 5 fields}'
+1	ForeverPlusPlus/Lib/Equipment.lua: warning[missing-fields] missing required field 'overrideItemLevel' in class 'TooltipComparisonItem'
+1	ForeverPlusPlus/Lib/Errors.lua: warning[undefined-doc-name] undefined type 'saved: fun(): number'
+1	ForeverPlusPlus/Lib/Errors.lua: warning[undefined-field] undefined field 'clearAll' on type '{session: fun(): number, any, any, any, any}'
+1	ForeverPlusPlus/Lib/Errors.lua: warning[undefined-field] undefined field 'clearSession' on type '{session: fun(): number, any, any, any, any}'
+1	ForeverPlusPlus/Lib/Errors.lua: warning[undefined-field] undefined field 'saved' on type '{session: fun(): number, any, any, any, any}'
+1	ForeverPlusPlus/Lib/Errors.lua: warning[undefined-field] undefined field 'toggle' on type '{session: fun(): number, any, any, any, any}'
+1	ForeverPlusPlus/Lib/Frames.lua: warning[return-mismatch] expected return type `table`, got `Frame & BasicFrameTemplateWithInset | T | string`
+1	ForeverPlusPlus/Lib/Frames.lua: warning[return-mismatch] expected return type `table`, got `T | string`
+2	ForeverPlusPlus/Lib/Frames.lua: warning[undefined-global] undefined global 'BACKDROP_TOOLTIP_16_16_5555'
+1	ForeverPlusPlus/Lib/FriendlyPlates.lua: warning[secret-condition] boolean from `UnitIsUnit` may be secret; testing it errors in addon code; guard with `canaccessvalue` or use a `...FromBoolean` API
+1	ForeverPlusPlus/Lib/Gathering.lua: warning[missing-parameter] missing argument for parameter 'b'
+3	ForeverPlusPlus/Lib/Gathering.lua: warning[missing-parameter] missing argument for parameter 'c'
+1	ForeverPlusPlus/Lib/Gathering.lua: warning[type-mismatch] expected `table` for parameter 'gather', got `false | {... 16 fields} | nil | {... 8 fields}`
+1	ForeverPlusPlus/Lib/Instances.lua: warning[return-mismatch] expected return type `string`, got `string?`
+1	ForeverPlusPlus/Lib/ItemStats.lua: warning[redefined-local] local 'level' is already defined in this scope
+1	ForeverPlusPlus/Lib/ItemStats.lua: warning[undefined-field] undefined field 'BLOCK_VALUE_PER_STRENGTH' on class '_G'
+2	ForeverPlusPlus/Lib/PlateLabel.lua: warning[secret-table-key] value from `UnitClass` may be secret; using it as a table key errors in addon code; guard with `canaccessvalue`
+1	ForeverPlusPlus/Lib/Players.lua: warning[undefined-field] undefined field 'guid' on class 'WhoInfo'
+1	ForeverPlusPlus/Lib/Prices.lua: warning[return-mismatch] expected return type `number?`, got `string?`
+1	ForeverPlusPlus/Lib/RealmTime.lua: warning[secret-arithmetic] value from `CalendarTime.hour` may be secret; arithmetic on it errors in addon code; guard with `canaccessvalue` or pass it to a widget
+1	ForeverPlusPlus/Lib/RealmTime.lua: warning[secret-arithmetic] value from `CalendarTime.minute` may be secret; arithmetic on it errors in addon code; guard with `canaccessvalue` or pass it to a widget
+1	ForeverPlusPlus/Lib/Secret.lua: warning[type-mismatch] expected `table` for parameter 'aura', got `AuraData | nil | string`
+1	ForeverPlusPlus/Lib/SettingsKit.lua: warning[undefined-field] undefined field 'SetScrollChild' on class 'Frame'
+1	ForeverPlusPlus/Lib/Spellbook.lua: warning[deprecated] 'IsSpellKnown' is deprecated
+1	ForeverPlusPlus/Lib/Spellbook.lua: warning[missing-parameter] missing argument for parameter 'isPet'
+1	ForeverPlusPlus/Lib/Spellbook.lua: warning[return-mismatch] expected return type `number?`, got `false | nil | number`
+1	ForeverPlusPlus/Lib/Store.lua: warning[undefined-doc-name] undefined type 'set: fun(value: any)'
+1	ForeverPlusPlus/Lib/Store.lua: warning[undefined-field] undefined field 'set' on type '{get: fun(): any, any}'
+1	ForeverPlusPlus/Lib/Units.lua: warning[secret-argument] `C_RecentAllies.IsRecentAllyByGUID` does not accept secret values from addon code, but this value from `UnitGUID` may be secret; guard with `canaccessvalue`
+1	ForeverPlusPlus/Lib/Units.lua: warning[secret-argument] `UnitLevel` does not accept secret values from addon code, but this value from `UnitTokenFromGUID` may be secret; guard with `canaccessvalue`
+1	ForeverPlusPlus/Lib/WorldMap.lua: warning[type-mismatch] expected `UiMapPoint` for parameter 'point', got `UiMapPoint | {position: Vector2DMixin, uiMapID: number}`
+1	ForeverPlusPlus/Modules/Character/CharacterWindow/CharacterWindow.lua: warning[undefined-field] undefined field 'CharacterFrameLeftPaneHost' on class '_G'
+1	ForeverPlusPlus/Modules/Character/CharacterWindow/CharacterWindow.lua: warning[undefined-field] undefined field 'CharacterModelScene' on class 'PaperDollFrame'
+3	ForeverPlusPlus/Modules/Character/CharacterWindow/CharacterWindow.lua: warning[undefined-field] undefined field 'ModeTabs' on class 'CharacterFrame'
+1	ForeverPlusPlus/Modules/Character/CharacterWindow/CharacterWindow.lua: warning[undefined-field] undefined field 'RightPaneHost' on class 'CharacterFrame'
+1	ForeverPlusPlus/Modules/Character/CharacterWindow/CharacterWindow.lua: warning[undefined-field] undefined field 'TopBackgroundStripHost' on class 'PaperDollFrame'
+1	ForeverPlusPlus/Modules/Character/CharacterWindow/Durability.lua: warning[type-mismatch] expected `number` for parameter 'invSlotId', got `number | string`
+1	ForeverPlusPlus/Modules/Character/CharacterWindow/Skills.lua: warning[type-mismatch] expected `number` for parameter 'invSlotId', got `number | string`
+1	ForeverPlusPlus/Modules/Character/CharacterWindow/Skills.lua: warning[undefined-field] undefined field 'ColorType' on class 'ColoredProgressBarMixin'
+1	ForeverPlusPlus/Modules/Character/TalentPlanner/Tree.lua: warning[undefined-field] undefined field 'LegacyConsts' on class 'Constants'
+2	ForeverPlusPlus/Modules/Chat/ShortChannelNames.lua: warning[return-mismatch] expected return type `string`, got `string | number`
+1	ForeverPlusPlus/Modules/Chat/WhisperWindow/WhisperWindow.lua: warning[undefined-global] undefined global 'CHAT_TELL_ALERT_TIME'
+1	ForeverPlusPlus/Modules/Interface/CurrencyBar.lua: warning[type-mismatch] expected `string?` for parameter 'textR', got `string | number`
+2	ForeverPlusPlus/Modules/Interface/LocalTime.lua: warning[missing-parameter] missing argument for parameter 'year'
+1	ForeverPlusPlus/Modules/Interface/LocalTime.lua: warning[secret-comparison] value from `CalendarDayEvent.sequenceType` may be secret; comparing it errors in addon code; guard with `canaccessvalue`
+2	ForeverPlusPlus/Modules/Interface/LocalTime.lua: warning[secret-comparison] value from `CalendarTime.weekday` may be secret; comparing it errors in addon code; guard with `canaccessvalue`
+1	ForeverPlusPlus/Modules/Interface/LocalTime.lua: warning[secret-table-key] value from `CalendarTime.weekday` may be secret; using it as a table key errors in addon code; guard with `canaccessvalue`
+1	ForeverPlusPlus/Modules/Interface/LocalTime.lua: warning[type-mismatch] expected `string | number` for parameter 's', got `string | false`
+2	ForeverPlusPlus/Modules/Interface/LootRolls.lua: warning[undefined-field] undefined field 'rollFrames' on class 'GroupLootContainer'
+1	ForeverPlusPlus/Modules/Interface/RecipeColors.lua: warning[type-mismatch] expected `fun(row: table)` for parameter 'fn', got `fun(row: table?, node: table?)`
+1	ForeverPlusPlus/Modules/Interface/Tooltips.lua: warning[unbalanced-assignments] 2 variable(s) but only 1 value(s)
+1	ForeverPlusPlus/Modules/Items/AppearanceIcons.lua: warning[type-mismatch] expected `fun(row: table)` for parameter 'fn', got `fun(row: table?, node: table?)`
+1	ForeverPlusPlus/Modules/Items/BagSlotCounter.lua: warning[type-mismatch] expected `"LEFT" | "RIGHT" | "CENTER"` for parameter 'justifyH', got `string | number`
+1	ForeverPlusPlus/Modules/Items/BagSlotCounter.lua: warning[type-mismatch] expected `"TOPLEFT" | "TOPRIGHT" | "BOTTOMLEFT" | (6 more)` for parameter 'point', got `string | number`
+1	ForeverPlusPlus/Modules/Items/BagSlotCounter.lua: warning[type-mismatch] expected `"TOPLEFT" | "TOPRIGHT" | "BOTTOMLEFT" | nil | (6 more)` for parameter 'relativePoint', got `string | number`
+1	ForeverPlusPlus/Modules/Items/ItemTooltips/AuctionPrices.lua: warning[deprecated] 'GetMerchantItemInfo' is deprecated
+1	ForeverPlusPlus/Modules/Items/ItemTooltips/AuctionPrices.lua: warning[redefined-local] local 'waiting' is already defined in this scope
+1	ForeverPlusPlus/Modules/Items/ItemTooltips/AuctionPrices.lua: warning[type-mismatch] expected `fun(row: table)` for parameter 'fn', got `fun(row: table?, node: table?)`
+1	ForeverPlusPlus/Modules/Items/ItemTooltips/AuctionPrices.lua: warning[wrong-flavor-api] API 'GetMerchantItemInfo' not available in flavor 'Forever' (available in: Classic, Classic Era)
+1	ForeverPlusPlus/Modules/Items/ItemTooltips/CraftedCompare.lua: warning[missing-fields] missing required field 'overrideItemLevel' in class 'TooltipComparisonItem'
+1	ForeverPlusPlus/Modules/Items/UpgradeArrows/Page.lua: warning[undefined-field] undefined field 'maxValue' on class 'SettingsSliderOptionsMixin'
+1	ForeverPlusPlus/Modules/Items/UpgradeArrows/Page.lua: warning[undefined-field] undefined field 'minValue' on class 'SettingsSliderOptionsMixin'
+1	ForeverPlusPlus/Modules/Items/UpgradeArrows/Page.lua: warning[undefined-field] undefined field 'steps' on class 'SettingsSliderOptionsMixin'
+1	ForeverPlusPlus/Modules/Map/CompassBar.lua: warning[secret-condition] boolean from `UnitIsUnit` may be secret; testing it errors in addon code; guard with `canaccessvalue` or use a `...FromBoolean` API
+1	ForeverPlusPlus/Modules/Map/CompassBar.lua: warning[type-mismatch] expected `string?` for parameter 'text', got `number`
+1	ForeverPlusPlus/Modules/Map/CompassBar.lua: warning[unbalanced-assignments] 2 variable(s) but only 1 value(s)
+1	ForeverPlusPlus/Modules/Map/CompassBar.lua: warning[unbalanced-assignments] 3 variable(s) but only 1 value(s)
+1	ForeverPlusPlus/Modules/Map/GatheringMap/Page.lua: warning[undefined-field] undefined field 'entry' on class 'Frame'
+1	ForeverPlusPlus/Modules/Map/GatheringMap/Page.lua: warning[undefined-field] undefined field 'kind' on class 'Frame'
+1	ForeverPlusPlus/Modules/Map/SquareMinimap.lua: warning[undefined-field] undefined field 'DielFrame' on class 'MinimapCluster'
+1	ForeverPlusPlus/Modules/Map/SquareMinimap.lua: warning[undefined-field] undefined field 'SetBackdrop' on class 'Frame'
+1	ForeverPlusPlus/Modules/Map/Waypoints.lua: warning[type-mismatch] expected `fun(message: string, editBox: table?)` for parameter 'fn', got `fun(message: table?)`
+1	ForeverPlusPlus/Modules/Map/WorldMap/WorldMap.lua: warning[type-mismatch] expected `table` for parameter 'keys', got `string | string[]`
+1	ForeverPlusPlus/Modules/Quests/ForeverQuestIcons.lua: warning[undefined-field] undefined field 'titleButtonPool' on class 'QuestFrameGreetingPanel'
+1	ForeverPlusPlus/Modules/Quests/QuestLevels.lua: warning[undefined-field] undefined field 'titleButtonPool' on class 'QuestFrameGreetingPanel'
+1	ForeverPlusPlus/Modules/System/ErrorCatcher.lua: warning[undefined-field] undefined field 'GetOpenMenuTags' on class 'MenuManagerProxy'
+1	ForeverPlusPlus/Modules/System/HideBetaFeedback.lua: warning[undefined-field] undefined field 'IsShown' on class 'PTR_IssueReporter'
+1	ForeverPlusPlus/Modules/System/HideBetaFeedback.lua: warning[undefined-field] undefined field 'PTRIssueReporterAlertFrame' on class '_G'
+1	ForeverPlusPlus/Modules/System/HideBetaFeedback.lua: warning[undefined-field] undefined field 'Show' on class 'PTR_IssueReporter'
+1	ForeverPlusPlus/Modules/System/MinimapButton.lua: warning[type-mismatch] expected `Region?` for parameter 'ownerRegion', got `ScriptRegion`
+1	ForeverPlusPlus/Modules/System/MinimapButton.lua: warning[type-mismatch] expected `RootMenuDescriptionProxy` for parameter 'description', got `RootMenuDescriptionProxy | MenuStyle1Mixin`
+1	ForeverPlusPlus/Modules/System/MinimapButton.lua: warning[type-mismatch] expected `RootMenuDescriptionProxy` for parameter 'menuDescriptionProxy', got `RootMenuDescriptionProxy | MenuStyle1Mixin`
+2	ForeverPlusPlus/Modules/Tools/ConsoleVariables/ConsoleVariables.lua: warning[undefined-global] undefined global 'C_Console'
+1	ForeverPlusPlus/Modules/Tools/GearProbe.lua: warning[unbalanced-assignments] 2 variable(s) but only 1 value(s)
+1	ForeverPlusPlus/Modules/Tools/SelfTest.lua: warning[secret-condition] boolean from `UnitIsUnit` may be secret; testing it errors in addon code; guard with `canaccessvalue` or use a `...FromBoolean` API
+1	ForeverPlusPlus/Modules/Tools/SelfTest.lua: warning[type-mismatch] expected `CurveObjectBase?` for parameter '...', got `string`
+1	ForeverPlusPlus/Modules/Tools/SelfTest.lua: warning[type-mismatch] expected `number` for parameter '...', got `secret<number> | colorRGBA | string`
+1	ForeverPlusPlus/Modules/Tools/SelfTest.lua: warning[undefined-field] undefined field 'renownLevel' on type 'string'
+3	ForeverPlusPlus/Settings/Profiles.lua: warning[undefined-field] undefined field 'character' on class 'Button'
+1	ForeverPlusPlus/Settings/Settings.lua: warning[undefined-field] undefined field 'maxValue' on class 'SettingsSliderOptionsMixin'
+1	ForeverPlusPlus/Settings/Settings.lua: warning[undefined-field] undefined field 'minValue' on class 'SettingsSliderOptionsMixin'
+1	ForeverPlusPlus/Settings/Settings.lua: warning[undefined-field] undefined field 'steps' on class 'SettingsSliderOptionsMixin'
+2	ForeverPlusPlus_AgentChat/Window.lua: warning[undefined-field] undefined field 'q' on class 'Frame'
