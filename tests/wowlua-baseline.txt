@@ -53,9 +53,6 @@
 1	ForeverPlusPlus/Modules/Chat/WhisperWindow/WhisperWindow.lua: warning[undefined-global] undefined global 'CHAT_TELL_ALERT_TIME'
 1	ForeverPlusPlus/Modules/Interface/CurrencyBar.lua: warning[type-mismatch] expected `string?` for parameter 'textR', got `string | number`
 2	ForeverPlusPlus/Modules/Interface/LocalTime.lua: warning[missing-parameter] missing argument for parameter 'year'
-1	ForeverPlusPlus/Modules/Interface/LocalTime.lua: warning[secret-comparison] value from `CalendarDayEvent.sequenceType` may be secret; comparing it errors in addon code; guard with `canaccessvalue`
-2	ForeverPlusPlus/Modules/Interface/LocalTime.lua: warning[secret-comparison] value from `CalendarTime.weekday` may be secret; comparing it errors in addon code; guard with `canaccessvalue`
-1	ForeverPlusPlus/Modules/Interface/LocalTime.lua: warning[secret-table-key] value from `CalendarTime.weekday` may be secret; using it as a table key errors in addon code; guard with `canaccessvalue`
 1	ForeverPlusPlus/Modules/Interface/LocalTime.lua: warning[type-mismatch] expected `string | number` for parameter 's', got `string | false`
 2	ForeverPlusPlus/Modules/Interface/LootRolls.lua: warning[undefined-field] undefined field 'rollFrames' on class 'GroupLootContainer'
 1	ForeverPlusPlus/Modules/Interface/RecipeColors.lua: warning[type-mismatch] expected `fun(row: table)` for parameter 'fn', got `fun(row: table?, node: table?)`

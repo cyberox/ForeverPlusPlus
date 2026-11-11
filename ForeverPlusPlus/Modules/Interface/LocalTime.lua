@@ -65,8 +65,28 @@ local function clock(hour, minute, ampm, off)
     return text
 end
 
+-- GetDayEvent, EventGetInviteResponseTime, and GetClubCalendarEvents answer in secret in an
+-- encounter, challenge mode, PvP match, or dungeon or raid (SecretInChatMessagingLockdown in the
+-- client's API docs). An event or time Lua can't read is left as Blizzard wrote it, in realm time.
+local readable, isNumber = ns.IsReadable, ns.IsNumber
+
+local function readableTime(t)
+    if readable(t) and type(t) == "table" and isNumber(t.year) and isNumber(t.month)
+        and isNumber(t.monthDay) and isNumber(t.weekday) and isNumber(t.hour) and isNumber(t.minute) then
+        return t
+    end
+end
+
+local function readableEvent(event)
+    if readable(event) and type(event) == "table" and readable(event.sequenceType)
+        and readable(event.calendarType) then
+        return event
+    end
+end
+
+-- The time to show for a readable event: its end on its last day, else its start.
 local function eventTime(event)
-    return event.sequenceType == "END" and event.endTime or event.startTime
+    return readableTime(event.sequenceType == "END" and event.endTime or event.startTime)
 end
 
 local function fullDate(t)
@@ -106,7 +126,7 @@ local function drawDay(index, day, monthOffset, off)
     for i = 1, MAX_EVENTS do
         local button = _G[name .. "EventButton" .. i]
         local eventIndex = button and button:IsShown() and button.eventIndex
-        local event = eventIndex and C_Calendar.GetDayEvent(monthOffset, day, eventIndex)
+        local event = eventIndex and readableEvent(C_Calendar.GetDayEvent(monthOffset, day, eventIndex))
         local text = event and _G[button:GetName() .. "Text2"]
         local t = text and not NO_TIME[event.calendarType] and eventTime(event)
         if t then
@@ -129,7 +149,7 @@ end
 local function drawPickerButton(button, off)
     local dayButton = CalendarEventPickerFrame and CalendarEventPickerFrame.dayButton
     local event = dayButton and dayButton.day and button.eventIndex
-        and C_Calendar.GetDayEvent(dayButton.monthOffset, dayButton.day, button.eventIndex)
+        and readableEvent(C_Calendar.GetDayEvent(dayButton.monthOffset, dayButton.day, button.eventIndex))
     local t = event and button.Time and not NO_TIME[event.calendarType] and eventTime(event)
     if t then
         button.Time:SetText(clock(t.hour, t.minute, true, off))
@@ -264,7 +284,7 @@ local function afterDayEnter(dayButton)
     end
     local map = {}
     for i = 1, C_Calendar.GetNumDayEvents(dayButton.monthOffset, dayButton.day) do
-        local event = C_Calendar.GetDayEvent(dayButton.monthOffset, dayButton.day, i)
+        local event = readableEvent(C_Calendar.GetDayEvent(dayButton.monthOffset, dayButton.day, i))
         local t = event and event.sequenceType ~= "ONGOING" and eventTime(event)
         if t then
             map[GameTime_GetFormattedTime(t.hour, t.minute, true)] = clock(t.hour, t.minute, true, off)
@@ -279,7 +299,7 @@ local function afterInviteEnter(button)
     if off == 0 or GameTooltip:GetOwner() ~= button or not button.inviteIndex then
         return
     end
-    local t = C_Calendar.EventGetInviteResponseTime(button.inviteIndex)
+    local t = readableTime(C_Calendar.EventGetInviteResponseTime(button.inviteIndex))
     if not (t and t.weekday ~= 0 and t.year) then
         return
     end
@@ -323,9 +343,12 @@ local function afterCommunitiesCalendar(button)
     end
     local map = {}
     local events = C_Calendar.GetClubCalendarEvents(club.clubId, now, C_DateAndTime.AdjustTimeByDays(now, 4))
-    for _, event in ipairs(events or {}) do
-        local t = event.startTime
-        if t and t.year then
+    if not (readable(events) and type(events) == "table") then
+        return
+    end
+    for _, event in ipairs(events) do
+        local t = readableTime(readable(event) and type(event) == "table" and event.startTime)
+        if t then
             local here = RealmTime.Date(t, off)
             local realmDay = now.weekday == t.weekday and COMMUNITIES_CALENDAR_TODAY or CALENDAR_WEEKDAY_NAMES[t.weekday]
             local day = RealmTime.IsToday(here) and COMMUNITIES_CALENDAR_TODAY or CALENDAR_WEEKDAY_NAMES[here.weekday]
