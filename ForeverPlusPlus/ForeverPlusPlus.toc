@@ -91,6 +91,7 @@ Modules\Items\ItemTooltips\Disenchant.lua
 Modules\Items\ItemTooltips\StatColors.lua
 Modules\Items\ItemTooltips\CraftedCompare.lua
 Modules\Items\ItemTooltips\AuctionPrices.lua
+Modules\Items\ItemTooltips\Scan.lua
 Modules\Items\WaylaidCrates\WaylaidCrates.lua
 Modules\Items\WaylaidCrates\Costs.lua
 Modules\Items\WaylaidCrates\Category.lua
