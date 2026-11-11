@@ -24,7 +24,7 @@ local module = professions:NewPart({
     key = "crafting", name = L.PROFESSIONS_CRAFTING, description = L.PROFESSIONS_CRAFTING_DESC,
     section = L.PROFESSIONS_CRAFTING,
 }, {
-    craftingRows = false, -- each recipe's profit on its row of the recipe list
+    craftingRows = true, -- each recipe's profit on its row of the recipe list
     -- Data, not settings: what merchants charge for one of an item, { [itemID] = copper },
     -- learned at each visit.
     vendor = {},

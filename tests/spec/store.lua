@@ -230,7 +230,7 @@ do
 
     -- What the module reads afterwards, through its defaults.
     local defaults = { enabled = true, recipeColors = true, highlight = true, gray = true,
-        skillUps = true, points = "left", detail = true, crafting = true, craftingRows = false, vendor = {} }
+        skillUps = true, points = "left", detail = true, crafting = true, craftingRows = true, vendor = {} }
     local view = Store.Load(db, {}, "Professions", defaults)
     eq(view.enabled, false, "professions: Default reads the module off")
     eq(view.vendor[2320], 9, "professions: and the merchant prices")
