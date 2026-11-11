@@ -14,6 +14,19 @@ local M = {
 
 local Int, Number = CSV.Int, CSV.Number
 
+-- For summary.lua: an entry line's key (its section and ID) and the line itself.
+function M.Entry(line, state)
+    local section = line:match("^(%u%l+[%w ]*) %(")
+    if section then
+        state.section = section
+        return
+    end
+    local id = state.section and (line:match("^[* ] +(%d+) ") or line:match("^ *(%d+)[ :]"))
+    if id then
+        return state.section .. " " .. id, line
+    end
+end
+
 local UNUSED = 1024 -- TaxiNodes.Flags when it's the only flag: a node no flight master offers
 
 local function readFile(path)

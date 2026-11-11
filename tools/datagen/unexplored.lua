@@ -12,6 +12,19 @@ local M = {
 
 local Int = CSV.Int
 
+-- For summary.lua: an area line's key (its map art and place) and the line itself.
+function M.Entry(line, state)
+    local art = line:match("^    %[(%d+)%] = {")
+    if art then
+        state.art = art
+        return
+    end
+    local area = line:match("^        { (%d+, %d+, %d+, %d+)")
+    if area and state.art then
+        return "art " .. state.art .. " area " .. area, line
+    end
+end
+
 function M.Build(t, build, script)
     local maps = {} -- UiMap ID -> name
     for _, row in ipairs(CSV.Records(t.UiMap, "UiMap", { "ID", "Name_lang" })) do

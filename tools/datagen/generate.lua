@@ -3,7 +3,10 @@
 --
 --   lua5.1 tools/datagen/generate.lua [build]   every generated file, for build (default: latest)
 --   lua5.1 tools/datagen/generate.lua --latest  print the latest wowf build
+--   lua5.1 tools/datagen/generate.lua --paths   print the files it writes
 --   lua5.1 tools/datagen/generate.lua --self-test
+--
+-- .github/workflows/table-data.yml runs it daily and opens a pull request for a new build.
 --
 -- Tables are saved under tools/datagen/cache/<build>/ (not committed), so a rerun downloads
 -- nothing. The build the files came from is written to tools/datagen/BUILD. Output is sorted and
@@ -22,10 +25,7 @@ local AGENT = "Mozilla/5.0 (compatible; db2-table-fetch/1.0)"
 local WINDOWS = package.config:sub(1, 1) == "\\"
 
 -- What it writes. Each takes the tables it lists (as CSV text by name) and returns the file.
-local GENERATORS = {
-    require("unexplored"),
-    require("reference"),
-}
+local GENERATORS = require("generators")
 
 local function fail(message)
     io.stderr:write("datagen: ", message, "\n")
@@ -122,6 +122,12 @@ if command == "--latest" then
     end
     print(build)
     os.exit(0)
+elseif command == "--paths" then
+    for _, generator in ipairs(GENERATORS) do
+        print(generator.path)
+    end
+    print("tools/datagen/BUILD")
+    os.exit(0)
 elseif command == "--self-test" then
     print(("datagen: %d CSV checks passed"):format(CSV.SelfTest()))
     os.exit(0)
@@ -143,7 +149,9 @@ for _, generator in ipairs(GENERATORS) do
         tables[name] = tables[name] or getTable(name, build)
     end
 end
-for _, generator in ipairs(GENERATORS) do
+-- Every file is made before any is written, so a failure leaves the tree as it was.
+local texts = {}
+for i, generator in ipairs(GENERATORS) do
     local ok, text = pcall(generator.Build, tables, build, SCRIPT, ROOT)
     if not ok then
         fail(generator.path .. ": " .. tostring(text))
@@ -151,7 +159,10 @@ for _, generator in ipairs(GENERATORS) do
     if text:find("[\128-\255]") then
         fail(generator.path .. ": output isn't ASCII")
     end
-    writeFile(ROOT .. "/" .. generator.path, text)
+    texts[i] = text
+end
+for i, generator in ipairs(GENERATORS) do
+    writeFile(ROOT .. "/" .. generator.path, texts[i])
     print("datagen: wrote " .. generator.path)
 end
 writeFile(BUILD_FILE, build .. "\n")

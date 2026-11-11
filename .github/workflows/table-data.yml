@@ -1,0 +1,174 @@
+name: Table data
+
+# Once a day (and by hand), asks wago.tools for the latest Forever build (product wowf). When it's
+# newer than tools/datagen/BUILD, runs tools/datagen/generate.lua for it, checks the result as
+# check.yml does, and opens a pull request against main from data/build-<build>, closing an older
+# open data PR it supersedes. The same build never gets a second PR: an open one is left alone,
+# and a closed one isn't reopened (delete its branch to try again).
+#
+# Two things a person must know:
+# 1. Settings > Actions > General > "Allow GitHub Actions to create and approve pull requests"
+#    must be on, or `gh pr create` fails (the branch is still pushed; the next run opens the PR).
+# 2. A PR opened with GITHUB_TOKEN doesn't start other workflows, and check.yml runs on push only,
+#    so Check never runs on the bot's branch by itself. This job runs the same syntax check, ASCII
+#    check, and offline tests on the regenerated tree before it pushes; to run Check itself, push
+#    any commit to the branch as a person.
+#
+# wago.tools being unreachable is a warning, not a failure, and never counts as a new build. The
+# generator failing (a table missing, a column renamed) fails the run and opens nothing.
+
+on:
+  schedule:
+    - cron: "23 9 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: table-data
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+
+      - name: Install Lua 5.1
+        run: sudo apt-get update && sudo apt-get install -y lua5.1
+
+      - name: Compare builds
+        id: build
+        run: |
+          recorded=$(tr -d '\r\n' < tools/datagen/BUILD)
+          if ! latest=$(lua5.1 tools/datagen/generate.lua --latest); then
+            echo "::warning::Couldn't read the latest wowf build from wago.tools; nothing checked."
+            echo "wago.tools didn't answer; the recorded build is still $recorded." >> "$GITHUB_STEP_SUMMARY"
+            echo "update=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          newest=$(printf '%s\n%s\n' "$recorded" "$latest" | sort -V | tail -n 1)
+          if [ "$latest" = "$recorded" ] || [ "$newest" != "$latest" ]; then
+            echo "Latest wowf build $latest; recorded $recorded. Nothing to do." >> "$GITHUB_STEP_SUMMARY"
+            echo "update=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          branch="data/build-$latest"
+          open=$(gh pr list --head "$branch" --state open --json number --jq '.[0].number // empty')
+          if [ -n "$open" ]; then
+            echo "Build $latest already has an open pull request, #$open." >> "$GITHUB_STEP_SUMMARY"
+            echo "update=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          closed=$(gh pr list --head "$branch" --state closed --json number --jq '.[0].number // empty')
+          if [ -n "$closed" ]; then
+            echo "Build $latest's pull request #$closed was closed; not opening another. Delete the $branch branch to try again." >> "$GITHUB_STEP_SUMMARY"
+            echo "update=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          {
+            echo "update=true"
+            echo "recorded=$recorded"
+            echo "latest=$latest"
+            echo "branch=$branch"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Regenerate
+        if: steps.build.outputs.update == 'true'
+        env:
+          LATEST: ${{ steps.build.outputs.latest }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/old"
+          for path in $(lua5.1 tools/datagen/generate.lua --paths); do
+            mkdir -p "$RUNNER_TEMP/old/$(dirname "$path")"
+            cp "$path" "$RUNNER_TEMP/old/$path" 2>/dev/null || true
+          done
+          lua5.1 tools/datagen/generate.lua --self-test
+          lua5.1 tools/datagen/generate.lua "$LATEST"
+          lua5.1 tools/datagen/summary.lua "$RUNNER_TEMP/old" . > "$RUNNER_TEMP/summary.txt"
+          cat "$RUNNER_TEMP/summary.txt"
+
+      # The same checks as check.yml's lua job, since it won't run on this branch by itself.
+      - name: Syntax (Lua 5.1)
+        if: steps.build.outputs.update == 'true'
+        run: |
+          status=0
+          while IFS= read -r -d '' file; do
+            luac5.1 -p "$file" || status=1
+          done < <(find ForeverPlusPlus ForeverPlusPlus_AgentChat tests tools -name '*.lua' -print0)
+          exit $status
+
+      - name: Offline tests
+        if: steps.build.outputs.update == 'true'
+        run: lua5.1 tests/run.lua
+
+      - name: ASCII only in .lua and .toc
+        if: steps.build.outputs.update == 'true'
+        run: |
+          if grep -rnP '[^\x00-\x7F]' --include='*.lua' --include='*.toc' ForeverPlusPlus ForeverPlusPlus_AgentChat; then
+            echo "Non-ASCII characters found (see above)."
+            exit 1
+          fi
+
+      - name: Open the pull request
+        if: steps.build.outputs.update == 'true'
+        env:
+          RECORDED: ${{ steps.build.outputs.recorded }}
+          LATEST: ${{ steps.build.outputs.latest }}
+          BRANCH: ${{ steps.build.outputs.branch }}
+        run: |
+          recorded=$RECORDED
+          latest=$LATEST
+          branch=$BRANCH
+          summary="$RUNNER_TEMP/summary.txt"
+          title="chore(worldmap): regenerate the table data for build $latest"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git add $(lua5.1 tools/datagen/generate.lua --paths)
+          if git diff --cached --quiet; then
+            echo "::error::Build $latest is newer than $recorded, but the generator changed nothing, not even tools/datagen/BUILD."
+            exit 1
+          fi
+          git commit -q -m "$title" -m "Written by tools/datagen/generate.lua from wago.tools' tables for build $latest (was $recorded)."
+          # Only this job writes data/build-* branches, so replacing one left by a run whose PR
+          # couldn't be opened is safe.
+          git push --force origin "$branch"
+
+          {
+            echo "The daily table data job found a newer Forever build and ran \`tools/datagen/generate.lua\` for it."
+            echo
+            echo "- Build: $recorded -> **$latest**"
+            grep -v '^data: ' "$summary"
+            echo
+            if grep -qx 'data: same' "$summary"; then
+              echo "The data didn't change: only the build named in the files' headers and \`tools/datagen/BUILD\`, so the record stays current."
+            else
+              echo "Check the diff before merging. \`tools/datagen/Reference.txt\` isn't shipped: a change there is a hint to update data kept by hand (\`Lib/Instances.lua\`, Points of Interest's \`Data.lua\`)."
+            fi
+            echo
+            echo "Before pushing, this job ran the Lua 5.1 syntax check, the ASCII check, and \`lua5.1 tests/run.lua\` on this tree, and they passed. Check (check.yml) doesn't run on a branch the bot pushed; push a commit as a person to run it. Nothing here was tested in game."
+          } > "$RUNNER_TEMP/body.md"
+
+          url=$(gh pr create --base main --head "$branch" --title "$title" --body-file "$RUNNER_TEMP/body.md")
+          echo "Opened $url for build $latest." >> "$GITHUB_STEP_SUMMARY"
+          cat "$summary" >> "$GITHUB_STEP_SUMMARY"
+
+          # An older build's data PR still open is superseded: this branch has its changes too.
+          number=${url##*/}
+          gh pr list --state open --limit 100 --json number,headRefName \
+            --jq '.[] | select(.headRefName | startswith("data/build-")) | "\(.number) \(.headRefName)"' |
+          while read -r old oldBranch; do
+            if [ "$old" != "$number" ]; then
+              gh pr close "$old" --delete-branch --comment "Superseded by #$number (build $latest)."
+              echo "Closed #$old ($oldBranch), superseded." >> "$GITHUB_STEP_SUMMARY"
+            fi
+          done
