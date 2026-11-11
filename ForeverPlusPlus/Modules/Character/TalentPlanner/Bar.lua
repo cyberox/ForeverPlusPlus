@@ -4,9 +4,9 @@
 -- Reset and Clear buttons. createUI makes it once; TalentPlanner.lua's refresh calls drawBar.
 local _, ns = ...
 
-local ipairs, format, tonumber, tostring = ipairs, string.format, tonumber, tostring
+local ipairs, format, tonumber, tostring, select = ipairs, string.format, tonumber, tostring, select
 local max, min, floor, tremove = math.max, math.min, math.floor, table.remove
-local CreateFrame, UnitLevel, GameTooltip = CreateFrame, UnitLevel, GameTooltip
+local CreateFrame, UnitLevel, UnitClass, GameTooltip = CreateFrame, UnitLevel, UnitClass, GameTooltip
 
 local L = ns.L
 local Plan = ns.TalentPlan
@@ -149,21 +149,60 @@ local function share()
     end
 end
 
--- Reads a pasted share string into a new plan, if it's this class's and fits this tree.
+-- Why a website's link can't be imported (TalentPlan.FromLink's reasons).
+local function linkError(link, reason, total)
+    if reason == "class" then
+        return L.TALENTPLANNER_IMPORT_CLASS
+    elseif reason == "old" then
+        return format(L.TALENTPLANNER_IMPORT_OLD, Plan.SiteName(link))
+    elseif reason == "new" then
+        return format(L.TALENTPLANNER_IMPORT_NEW, Plan.SiteName(link))
+    elseif reason == "tree" then
+        return format(L.TALENTPLANNER_IMPORT_TREE, Plan.SiteName(link))
+    elseif reason == "rank" then
+        return L.TALENTPLANNER_IMPORT_RANK
+    elseif reason == "points" then
+        return format(L.TALENTPLANNER_IMPORT_POINTS, total, Plan.MAX_POINTS)
+    end
+    return L.TALENTPLANNER_IMPORT_INVALID
+end
+
+-- A pasted share string or website link as { name, level, picks }, or nil and why not.
+local function readImport(text, tree)
+    local data = Plan.Decode(text)
+    if data then
+        if data.treeID ~= tree.treeID then
+            return nil, L.TALENTPLANNER_IMPORT_CLASS
+        end
+        local _, _, bad = Plan.Simulate(tree, data.picks)
+        if bad then
+            return nil, L.TALENTPLANNER_IMPORT_INVALID
+        end
+        return data
+    end
+    local link, why = Plan.ParseLink(text)
+    if not link then
+        return nil, why == "old" and format(L.TALENTPLANNER_IMPORT_OLD, "talentsforever.com")
+            or L.TALENTPLANNER_IMPORT_BAD
+    end
+    local picks, reason, total = Plan.FromLink(tree, link, select(2, UnitClass("player")))
+    if not picks then
+        return nil, linkError(link, reason, total)
+    end
+    return { name = "", level = link.level or internal.maxLevel(), picks = picks }
+end
+
+-- Reads a pasted share string or website link into a new plan, if it's this class's and fits
+-- this tree.
 local function import(text)
     local tree = internal.tree
-    local data = Plan.Decode(text)
-    if not (data and tree) then
+    if not tree then
         showError(L.TALENTPLANNER_IMPORT_BAD)
         return
     end
-    if data.treeID ~= tree.treeID then
-        showError(L.TALENTPLANNER_IMPORT_CLASS)
-        return
-    end
-    local _, _, bad = Plan.Simulate(tree, data.picks)
-    if bad then
-        showError(L.TALENTPLANNER_IMPORT_INVALID)
+    local data, problem = readImport(text, tree)
+    if not data then
+        showError(problem)
         return
     end
     local builds = internal.getBuilds(true)
@@ -209,7 +248,13 @@ local function setupMenu(_, root)
     root:CreateButton(L.TALENTPLANNER_NEW, promptNew)
     root:CreateButton(L.TALENTPLANNER_RENAME, promptRename)
     root:CreateButton(L.TALENTPLANNER_SHARE, share)
-    root:CreateButton(L.TALENTPLANNER_IMPORT, promptImport)
+    local importButton = root:CreateButton(L.TALENTPLANNER_IMPORT, promptImport)
+    if importButton.SetTooltip then
+        importButton:SetTooltip(function(tooltip)
+            tooltip:SetText(L.TALENTPLANNER_IMPORT, 1, 1, 1)
+            tooltip:AddLine(L.TALENTPLANNER_IMPORT_DESC, nil, nil, nil, true)
+        end)
+    end
     root:CreateButton(L.TALENTPLANNER_DELETE, deletePlan)
 end
 
