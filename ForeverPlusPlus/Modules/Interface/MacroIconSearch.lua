@@ -18,7 +18,7 @@ local GetInventoryItemID, GetInventoryItemTexture = GetInventoryItemID, GetInven
 local L = ns.L
 
 local module = ns.NewModule("MacroIconSearch", L.MACROICONSEARCH_DESC, {
-    enabled = false,
+    enabled = true,
 })
 module.title = L.MACROICONSEARCH_TITLE
 module.category = "interface"

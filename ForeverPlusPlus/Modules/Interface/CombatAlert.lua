@@ -21,6 +21,7 @@ local module = ns.NewModule("CombatAlert", L.COMBATALERT_DESC, {
 })
 module.title = L.COMBATALERT_TITLE
 module.category = "interface"
+module.developer = { enabled = true }
 
 module.options = {
     { key = "entering", name = L.COMBATALERT_ENTERING, description = L.COMBATALERT_ENTERING_DESC },

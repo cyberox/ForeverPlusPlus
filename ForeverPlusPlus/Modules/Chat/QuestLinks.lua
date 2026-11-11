@@ -16,7 +16,7 @@ local L = ns.L
 local Chat = ns.Chat
 
 local module = ns.NewModule("QuestLinks", L.QUESTLINKS_DESC, {
-    enabled = false,
+    enabled = true,
 })
 module.title = L.QUESTLINKS_TITLE
 module.category = "chat"

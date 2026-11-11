@@ -24,6 +24,7 @@ local module = ns.NewModule("SquareMinimap", L.SQUAREMINIMAP_DESC, {
 })
 module.title = L.SQUAREMINIMAP_TITLE
 module.category = "map"
+module.developer = { enabled = true }
 module.added = "1.4.0"
 
 -- A plain white square: the minimap shows wherever its mask is opaque, so all of it.

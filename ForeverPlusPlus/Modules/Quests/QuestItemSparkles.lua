@@ -20,6 +20,7 @@ local module = ns.NewModule("QuestItemSparkles", L.QUESTITEMSPARKLES_DESC, {
 })
 module.title = L.QUESTITEMSPARKLES_TITLE
 module.category = "quests"
+module.developer = { enabled = true }
 module.added = "1.5.0"
 module.quickToggle = "world"
 

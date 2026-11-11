@@ -32,6 +32,7 @@ local module = ns.NewModule("LootRolls", L.LOOTROLLS_DESC, {
 })
 module.title = L.LOOTROLLS_TITLE
 module.category = "interface"
+module.developer = { enabled = true }
 module.added = "1.4.0"
 
 module.options = {
