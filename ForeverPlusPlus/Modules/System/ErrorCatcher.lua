@@ -280,6 +280,16 @@ end
 
 -- What was going on when an action was blocked, since it comes with no stack: combat, the kind
 -- of instance, the frame under the mouse, the menus open, and whether the taint log was writing.
+-- Whether the game shows its controller interface. Probe: C_InputInterfaceStyle is Forever's
+-- (Blizzard_SharedXML's InputUtil.IsGamepadUIEnabled, Gethe forever branch).
+local function gamepadUI()
+    local C, types = _G.C_InputInterfaceStyle, Enum and Enum.InputDeviceInterfaceType
+    if not (C and C.GetCurrentStyle and types and types.Gamepad) then
+        return false
+    end
+    return ns.IsTrue(C.GetCurrentStyle() == types.Gamepad)
+end
+
 local function blockedContext()
     local none = L.ERRORCATCHER_CONTEXT_NONE
     local _, instance = IsInInstance()
@@ -289,6 +299,8 @@ local function blockedContext()
         format(L.ERRORCATCHER_CONTEXT_INSTANCE, readable(instance, none)),
         format(L.ERRORCATCHER_CONTEXT_MOUSE, mouseFrame() or none),
         format(L.ERRORCATCHER_CONTEXT_MENUS, openMenus() or none),
+        format(L.ERRORCATCHER_CONTEXT_GAMEPAD, gamepadUI() and L.ERRORCATCHER_CONTEXT_YES
+            or L.ERRORCATCHER_CONTEXT_NO),
         format(L.ERRORCATCHER_CONTEXT_TAINT_LOG, taintLogOn() and L.ERRORCATCHER_CONTEXT_YES
             or L.ERRORCATCHER_CONTEXT_NO),
     }
@@ -310,6 +322,42 @@ local function onBlocked(event, addon, fn)
         context = ok and context or nil,
         time = time(),
     })
+end
+
+-- Blizzard's own code also shows "Interface action failed because of an AddOn" by itself, with no
+-- event and no popup: Forever's controller navigation does whenever addon code reaches it
+-- (EnsureIsSecure in Blizzard_GamepadSmartNavigation and its SecureHelper, Gethe forever branch,
+-- build 70790), which menus, lists, and popups all do while the controller interface is on. With
+-- no event there's no addon or function to name, so the stack says which of Blizzard's functions
+-- refused and what called it; the first few frames are in the message, so each way in is an
+-- entry of its own.
+local SILENT_FRAMES = 3
+
+local function onBlockedMessage()
+    if busy or not allowed() then
+        return
+    end
+    busy = true
+    local stack = readable(debugstack and debugstack(2), nil)
+    local frames = {}
+    if stack then
+        for file, line in stack:gmatch("([%w_]+%.lua)%]?:(%d+)") do
+            -- Not this handler, nor Core's hook that called it.
+            if #frames < SILENT_FRAMES and file ~= "ErrorCatcher.lua" and file ~= "Core.lua" then
+                frames[#frames + 1] = file .. ":" .. line
+            end
+        end
+    end
+    local ok, context = pcall(blockedContext)
+    pcall(catch, {
+        kind = "blocked",
+        message = format(L.ERRORCATCHER_BLOCKED_SILENT,
+            #frames > 0 and concat(frames, " < ") or L.ERRORCATCHER_UNKNOWN),
+        stack = stack,
+        context = ok and context or nil,
+        time = time(),
+    })
+    busy = false
 end
 
 -- LUA_WARNING: older clients send a warning type before the text, newer ones only the text.
@@ -953,6 +1001,7 @@ function module:OnEnable()
     end
     listen("ADDON_ACTION_BLOCKED", onBlocked)
     listen("ADDON_ACTION_FORBIDDEN", onBlocked)
+    self:Hook("DisplayInterfaceActionBlockedMessage", onBlockedMessage)
     listen("LUA_WARNING", onWarning)
     if StaticPopup_Hide then
         self:Hook("StaticPopup_Show", onPopup)

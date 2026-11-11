@@ -38,7 +38,10 @@ L.ERRORCATCHER_OTHER_HANDLER = "Another addon, such as BugGrabber, is catching L
 L.ERRORCATCHER_OTHER_HANDLER_DESC = "Lua errors go to that addon instead, such as BugSack's window. "
     .. "Blizzard's error window and its blocked action popup are left to it too."
 L.ERRORCATCHER_BLOCKED = "%s: %s tried to call the protected function %s." -- event, addon, function
-L.ERRORCATCHER_SECRET = "(The game hid this error's text.)"
+-- Where: the first few of Blizzard's functions on the stack, such as "SmartNavigation.lua:84 < Menu.lua:2143"
+L.ERRORCATCHER_BLOCKED_SILENT = "The game said \"Interface action failed because of an AddOn\" "
+    .. "without naming one, at %s."
+L.ERRORCATCHER_SECRET ="(The game hid this error's text.)"
 L.ERRORCATCHER_UNKNOWN = "unknown"
 L.ERRORCATCHER_THIS_SESSION = "This Session"
 L.ERRORCATCHER_LAST_SESSION = "Previous Session"
@@ -62,6 +65,7 @@ L.ERRORCATCHER_CONTEXT_COMBAT = "In combat: %s"
 L.ERRORCATCHER_CONTEXT_INSTANCE = "Instance: %s" -- none, party, raid, pvp, arena, scenario
 L.ERRORCATCHER_CONTEXT_MOUSE = "Mouse over: %s" -- a frame's name, such as TargetFrame
 L.ERRORCATCHER_CONTEXT_MENUS = "Menus open: %s" -- menu tags, such as MENU_UNIT_TARGET
+L.ERRORCATCHER_CONTEXT_GAMEPAD = "Controller interface: %s"
 L.ERRORCATCHER_CONTEXT_TAINT_LOG = "Taint log on: %s"
 L.ERRORCATCHER_CONTEXT_YES = "yes"
 L.ERRORCATCHER_CONTEXT_NO = "no"

@@ -58,7 +58,10 @@ ns.changelog = {
                     .. "still picks them." },
                 { L.ERRORCATCHER_TITLE, "A blocked action says what was going on when it happened: "
                     .. "combat, the instance, what the mouse was over, and the menus open. A Taint Log "
-                    .. "checkbox turns on the game's log of which addon caused it." },
+                    .. "checkbox turns on the game's log of which addon caused it. It also catches the "
+                    .. "\"Interface action failed because of an AddOn\" message when the game shows it "
+                    .. "without naming an addon, as its controller interface does, with where it came "
+                    .. "from." },
                 { L.CHANGELOG_SETTINGS, "Profiles. A new Profiles page gives characters sets of "
                     .. "settings of their own: which modules are on, their settings, where you put frames "
                     .. "in Edit Mode and windows with Movable Windows, and the Minimap Button's quick "
