@@ -5,7 +5,7 @@
 local _, ns = ...
 
 local pairs, tonumber, sort, strmatch = pairs, tonumber, table.sort, string.match
-local C_Spell, C_SpellBook, Enum, IsSpellKnown = C_Spell, C_SpellBook, Enum, IsSpellKnown
+local C_Spell, C_SpellBook, Enum = C_Spell, C_SpellBook, Enum
 
 local Spellbook = {}
 ns.Spellbook = Spellbook
@@ -19,15 +19,15 @@ function Spellbook.Available()
         and true or false
 end
 
----Whether the player knows a spell, as the game answers. Probe: the spell book call is Mainline's,
----the plain global is Classic's.
+---Whether the player knows a spell, as the game answers. False on a client without the spell book
+---call (the plain IsSpellKnown is only a deprecated wrapper of it).
 ---@param spellID number
----@return boolean?
+---@return boolean
 function Spellbook.IsKnown(spellID)
     if C_SpellBook and C_SpellBook.IsSpellKnown then
         return C_SpellBook.IsSpellKnown(spellID)
     end
-    return IsSpellKnown and IsSpellKnown(spellID)
+    return false
 end
 
 ---The spell's rank number from its subtext, or nil for a spell without ranks.

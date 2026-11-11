@@ -852,7 +852,7 @@ end
 ---@param field string
 ---@return string
 function ns.Metadata(field)
-    local get = (C_AddOns and C_AddOns.GetAddOnMetadata) or GetAddOnMetadata
+    local get = C_AddOns and C_AddOns.GetAddOnMetadata
     return get and get(addonName, field) or ""
 end
 

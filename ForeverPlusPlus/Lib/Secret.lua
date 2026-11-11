@@ -8,6 +8,7 @@ local C_Secrets, C_UnitAuras = C_Secrets, C_UnitAuras
 
 ---Whether a value can be tested, compared, or used in Lua. Secret values can't; treat them as
 ---unknown and pass them only to widget setters.
+---@secret-guard value accessible
 ---@param value any
 ---@return boolean
 function ns.IsReadable(value)
@@ -16,6 +17,7 @@ end
 
 ---Whether a value is a string Lua can read: not secret, and with `nonEmpty`, not "" either. The
 ---check text from the game (names, tooltip lines, chat) needs before it's matched or compared.
+---@secret-guard value accessible
 ---@param value any
 ---@param nonEmpty? boolean
 ---@return boolean
@@ -27,6 +29,7 @@ function ns.IsText(value, nonEmpty)
 end
 
 ---Whether a value is a readable number: false for a secret or anything else.
+---@secret-guard value accessible
 ---@param value any
 ---@return boolean
 function ns.IsNumber(value)

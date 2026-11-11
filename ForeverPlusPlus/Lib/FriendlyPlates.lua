@@ -208,7 +208,7 @@ local function anchorBuffs(record, where, unit, state)
     end
     -- Untouched plates stay untouched, and an unchanged spot isn't set again (a secret height
     -- can't be compared, so that one is always set).
-    local secretY = y ~= nil and not readable(y)
+    local secretY = not readable(y)
     if not secretY and (record.buffsWhere or "blizzard") == where and record.buffsX == x
         and record.buffsY == y then
         return
