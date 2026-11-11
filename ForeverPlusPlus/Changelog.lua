@@ -74,6 +74,8 @@ ns.changelog = {
             { L.CHANGELOG_CHANGED, {
                 { L.WAYPOINTS_TITLE, "The arrow sits a little lower by default, under the Compass Bar. "
                     .. "If you moved it in Edit Mode, it stays where you put it." },
+                { L.WAYLAIDCRATES_TITLE, "Its settings say when Bundle Costs has no auction prices to "
+                    .. "show, because Item Tooltips' Auction Prices is off." },
             } },
             { L.CHANGELOG_FIXED, {
                 { L.SHORTCHANNELNAMES_TITLE, "The chat box shows the short name of the channel or "

@@ -26,6 +26,16 @@ local module = ns.modules.WaylaidCrates:NewPart({
     costs = "beside", -- each bundle's cost: "off", "below" each bundle, or "beside" it
 })
 
+-- Without auction prices there is nothing to price, and the crate's tooltip is Blizzard's own:
+-- a gray row in Settings says why.
+module.module.notice = {
+    text = L.WAYLAIDCRATES_NO_PRICES,
+    description = L.WAYLAIDCRATES_NO_PRICES_DESC,
+    shown = function()
+        return ns.PartOn(module.module, "costs") and not Prices.Available()
+    end,
+}
+
 local LINES = internal.LINES
 
 -- Color codes come as |cAARRGGBB or as |cnNAME: with one of Blizzard's named colors

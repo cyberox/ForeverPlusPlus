@@ -24,6 +24,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 ### Changed
 
 - **Waypoints**: the arrow sits a little lower by default, under the Compass Bar. If you moved it in Edit Mode, it stays where you put it.
+- **Waylaid Crates**: its settings say when Bundle Costs has no auction prices to show, because Item Tooltips' Auction Prices is off.
 
 ### Fixed
 
