@@ -163,3 +163,34 @@ said = {}
 commands.profiles("nothing")
 eq(#said, 1, "profiles: /fpp profiles with a name that isn't one says so")
 eq(Profiles.UsersText(1) .. "|" .. Profiles.UsersText(3), "1 character|3 characters", "profiles: users text")
+
+-- A profile made from a preset, such as Developer's Defaults.
+ns.modules.Dev = {
+    name = "Dev", defaults = { enabled = false, size = 1, mode = "a", sound = true, list = {} },
+    options = { { key = "size" }, { key = "mode" }, { key = "sound", cvar = "Sound_Enable" }, { key = "list" } },
+}
+ns.modules.OnAlready = { name = "OnAlready", defaults = { enabled = true, size = 1 }, options = { { key = "size" } } }
+ns.modules.Gone = { name = "Gone", unavailable = true, defaults = { enabled = false, size = 1 }, options = { { key = "size" } } }
+local inUse = Profiles.Current()
+local before = Profiles.Copy(Store.Root(ns.db, inUse ~= "default" and inUse or nil).settings)
+local dev = Profiles.CreateFromPreset("Dev", { "Dev", "OnAlready", "Tool", "Gone" }, {
+    Dev = { size = 4, mode = "a", sound = false, list = { 1 } },
+    OnAlready = { size = 1 },
+    Tool = { mode = "b" },
+    Gone = { size = 9 },
+})
+ok(dev, "profiles: one is made from a preset")
+local devSettings = ns.db.profiles[dev].settings
+eq(devSettings.Dev.enabled, true, "profiles: a preset's module is on")
+eq(devSettings.Dev.size, 4, "profiles: a preset's option value is saved")
+eq(devSettings.Dev.mode, nil, "profiles: a preset's value at its default isn't saved")
+eq(devSettings.Dev.sound, nil, "profiles: one of Blizzard's settings isn't saved")
+eq(devSettings.Dev.list, nil, "profiles: a table isn't an option value")
+eq(devSettings.OnAlready, nil, "profiles: a module on by default with nothing changed saves nothing")
+eq(devSettings.Tool, nil, "profiles: a module that's always on is left out")
+eq(devSettings.Gone, nil, "profiles: an unavailable module is left out")
+eq(Profiles.Current(), inUse, "profiles: making one from a preset doesn't switch")
+T.same(Store.Root(ns.db, inUse ~= "default" and inUse or nil).settings, before,
+    "profiles: the profile in use is untouched")
+eq((Profiles.Summary(dev)), 2, "profiles: the preset's profile counts its modules on")
+eq(Profiles.CreateFromPreset("dev"), nil, "profiles: a preset's profile needs a free name")

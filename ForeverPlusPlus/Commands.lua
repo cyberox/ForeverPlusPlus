@@ -27,6 +27,14 @@ local function developerPreset()
     return enables, options
 end
 
+---The Developer's Defaults preset as ns.ApplyPreset takes it, for a profile made from it
+---(Profiles.CreateFromPreset) without applying it to the one in use.
+---@return string[] enables module names it turns on
+---@return table<string, table<string, any>> options per module, option values it sets
+function ns.DeveloperPreset()
+    return developerPreset()
+end
+
 ---Puts every module's options (`module.options`) back to their defaults, then turns on the
 ---modules in `enable`, in the profile in use only (Lib/Profiles.lua); the others stay as they are.
 ---Everything else a module saves stays: data (prices, seen cinematics, chat

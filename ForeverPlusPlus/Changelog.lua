@@ -55,8 +55,9 @@ ns.changelog = {
                 { L.CHANGELOG_SETTINGS, "Profiles. A new Profiles page gives characters sets of "
                     .. "settings of their own: which modules are on, their settings, where you put frames "
                     .. "in Edit Mode and windows with Movable Windows, and the Minimap Button's quick "
-                    .. "toggles. Everyone starts on Default, as before. Make a profile as a copy or from "
-                    .. "the defaults, pick which one each character uses and which one new characters "
+                    .. "toggles. Everyone starts on Default, as before. Make a profile as a copy, from "
+                    .. "the defaults, or from Developer's Defaults, pick which one each character uses "
+                    .. "and which one new characters "
                     .. "start on, and switch live, with no reload. Export a profile as a line of text and "
                     .. "Import one someone shared. The Minimap Button's menu has a Profile submenu once "
                     .. "there's more than one." },

@@ -97,7 +97,7 @@ end
 
 local draw
 
--- New Profile: a name, then a copy of the selected profile or the defaults.
+-- New Profile: a name, then a copy of the selected profile, the defaults, or Developer's Defaults.
 local function newProfile()
     local from = selectedID
     ns.PromptName("PROFILES_NEW", L.PROFILES_NEW_ASK, "", function(name)
@@ -107,8 +107,7 @@ local function newProfile()
             return
         end
         local fromName = Profiles.Name(from) or L.PROFILES_DEFAULT
-        local function make(source)
-            local id, reason = Profiles.Create(clean, source)
+        local function made(id, reason)
             if not id then
                 ns.Print(reason)
                 return
@@ -117,8 +116,9 @@ local function newProfile()
             draw()
         end
         ns.ConfirmChoice("PROFILES_NEW_FROM", format(L.PROFILES_NEW_FROM, clean, fromName),
-            format(L.PROFILES_COPY_OF, fromName), function() make(from) end,
-            L.PROFILES_FROM_DEFAULTS, function() make(nil) end)
+            format(L.PROFILES_COPY_OF, fromName), function() made(Profiles.Create(clean, from)) end,
+            L.PROFILES_FROM_DEFAULTS, function() made(Profiles.Create(clean)) end,
+            L.DEFAULTS_DEVELOPER, function() made(Profiles.CreateFromPreset(clean, ns.DeveloperPreset())) end)
     end)
 end
 

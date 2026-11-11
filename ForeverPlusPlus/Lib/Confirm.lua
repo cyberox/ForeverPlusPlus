@@ -47,34 +47,38 @@ function ns.Confirm(key, text, onAccept, textArg)
     end, { onAccept = onAccept }, textArg)
 end
 
-local choices = {} -- key -> { onFirst, onSecond } of the latest ns.ConfirmChoice for it
+local choices = {} -- key -> { onFirst, onSecond, onThird } of the latest ns.ConfirmChoice for it
 
----Asks the player to pick one of two things or cancel, laid out like Blizzard's own Defaults popup
----(`first` | Cancel | `second`), then calls that choice's function. Like ns.Confirm, the popup for
----a `key` is made the first time it's used.
+---Asks the player to pick one of two (or three) things or cancel, laid out like Blizzard's own
+---Defaults popup (`first` | Cancel | `second`, then `third` when given), then calls that choice's
+---function. Like ns.Confirm, the popup for a `key` is made the first time it's used, so a key
+---always has a third choice or never does.
 ---@param key string a name for this question
 ---@param text string the question
 ---@param first string the left button
 ---@param onFirst function
----@param second string the right button
+---@param second string the button right of Cancel
 ---@param onSecond function
-function ns.ConfirmChoice(key, text, first, onFirst, second, onSecond)
+---@param third? string the right button
+---@param onThird? function
+function ns.ConfirmChoice(key, text, first, onFirst, second, onSecond, third, onThird)
     -- Probe: as ns.Confirm. Without the popup, do nothing: there's no way to know which.
     if not (StaticPopupDialogs and StaticPopup_Show) then
         return
     end
-    choices[key] = { onFirst, onSecond }
+    choices[key] = { onFirst, onSecond, onThird }
     -- The buttons are this call's too, for a choice whose buttons name something ("Copy of Raid").
     local made = StaticPopupDialogs["FOREVERPLUSPLUS_" .. key]
     if made then
-        made.button1, made.button3 = first, second
+        made.button1, made.button3, made.button4 = first, second, third
     end
     show(key, text, function()
-        return {
+        local dialog = {
             text = text,
             button1 = first,
             button2 = CANCEL,
             button3 = second,
+            button4 = third,
             -- The latest call's functions, not the first one's, since the popup is made once.
             OnAccept = function()
                 choices[key][1]()
@@ -83,6 +87,17 @@ function ns.ConfirmChoice(key, text, first, onFirst, second, onSecond)
                 choices[key][2]()
             end,
         }
+        if third then
+            -- A fourth button calls OnCancel unless callbacks go by the button's index, which
+            -- then calls OnButton3 and OnButton4 in place of OnAlt (Blizzard_StaticPopup's
+            -- StaticPopup_OnClick, Gethe `forever` branch). Cancel and Escape still call nothing.
+            dialog.selectCallbackByIndex = true
+            dialog.OnButton3 = dialog.OnAlt
+            dialog.OnButton4 = function()
+                choices[key][3]()
+            end
+        end
+        return dialog
     end)
 end
 

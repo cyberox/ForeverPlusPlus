@@ -545,6 +545,48 @@ function Profiles.CreateFrom(name, settings, data)
     return id
 end
 
+-- A preset (as ns.ApplyPreset takes it) as the settings it leaves: the modules in `enable` on and
+-- the option values in `options`, with only what differs from a module's defaults saved, as
+-- ns.ApplyPreset forgets a value at its default. Modules that are always on or unavailable, and
+-- options that are Blizzard's settings (`cvar`), are left out, as there.
+local function presetSettings(enable, options)
+    local settings = {}
+    local wanted = {}
+    for _, name in ipairs(enable or {}) do
+        wanted[name] = true
+    end
+    for name, module in pairs(ns.modules or {}) do
+        if not (module.alwaysOn or module.unavailable) then
+            local defaults = module.defaults or {}
+            if wanted[name] and not defaults.enabled then
+                child(settings, name).enabled = true
+            end
+            local overrides = options and options[name]
+            for _, option in ipairs(overrides and module.options or {}) do
+                local value = overrides[option.key]
+                if value ~= nil and type(value) ~= "table" and not option.cvar
+                    and value ~= defaults[option.key] then
+                    child(settings, name)[option.key] = value
+                end
+            end
+        end
+    end
+    return settings
+end
+Profiles.PresetSettings = presetSettings
+
+---Makes a profile from a preset, such as Developer's Defaults (ns.DeveloperPreset), written into
+---its own settings: the profile in use isn't touched and nothing is applied live. Returns its id,
+---or nil and why not.
+---@param name string
+---@param enable? string[] module names to turn on whatever their default is
+---@param options? table<string, table<string, any>> per module, option values used instead of its defaults
+---@return string? id
+---@return string? reason
+function Profiles.CreateFromPreset(name, enable, options)
+    return Profiles.CreateFrom(name, presetSettings(enable, options), {})
+end
+
 -- What a profile holds, counted: the modules it has on and the settings it changed from their
 -- defaults, by the modules' own defaults.
 local function count(settings)
