@@ -285,7 +285,6 @@
     "C_Spell",
     "C_TradeSkillUI",
     "ITEM_MIN_SKILL",
-    "IsSpellKnown",
     "UnitPlayerControlled",
     "UnitIsTapDenied",
     "CreateColor",

@@ -58,3 +58,5 @@ C_SpellBook = nil
 T.load("Lib/Spellbook")
 local empty, done = ns.Spellbook.Ranks()
 eq(next(empty) == nil and done == false, true, "spellbook: nothing, and not complete, without the API")
+IsSpellKnown = function() return true end -- the deprecated global isn't asked
+eq(ns.Spellbook.IsKnown(10), false, "spellbook: nothing known without the API")

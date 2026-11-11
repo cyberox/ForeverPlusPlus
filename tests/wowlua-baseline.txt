@@ -34,8 +34,6 @@
 1	ForeverPlusPlus/Lib/RealmTime.lua: warning[secret-arithmetic] value from `CalendarTime.minute` may be secret; arithmetic on it errors in addon code; guard with `canaccessvalue` or pass it to a widget
 1	ForeverPlusPlus/Lib/Secret.lua: warning[type-mismatch] expected `table` for parameter 'aura', got `AuraData | nil | string`
 1	ForeverPlusPlus/Lib/SettingsKit.lua: warning[undefined-field] undefined field 'SetScrollChild' on class 'Frame'
-1	ForeverPlusPlus/Lib/Spellbook.lua: warning[deprecated] 'IsSpellKnown' is deprecated
-1	ForeverPlusPlus/Lib/Spellbook.lua: warning[missing-parameter] missing argument for parameter 'isPet'
 1	ForeverPlusPlus/Lib/Spellbook.lua: warning[return-mismatch] expected return type `number?`, got `false | nil | number`
 1	ForeverPlusPlus/Lib/Store.lua: warning[undefined-doc-name] undefined type 'set: fun(value: any)'
 1	ForeverPlusPlus/Lib/Store.lua: warning[undefined-field] undefined field 'set' on type '{get: fun(): any, any}'
