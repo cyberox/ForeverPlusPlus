@@ -17,6 +17,7 @@ local module = ns.NewModule("ItemTooltips", L.ITEMTOOLTIPS_DESC, {
 })
 module.title = L.ITEMTOOLTIPS_TITLE
 module.category = "items"
+module.developer = { options = { hideJunk = true } } -- Auction Prices' Hide on Junk
 
 -- Before 0.8.0, Sell Price, Item Count, and Auction Prices were modules of their own. Item
 -- Tooltips is on if any of them was, and each keeps its own checkbox, options, and data.

@@ -23,7 +23,7 @@ local L = ns.L
 local module = ns.NewModule("TargetMarkers", L.TARGETMARKERS_DESC, {
     enabled = false,
     mouseover = true, -- the unit under the mouse becomes the target first, so it's the one marked
-    scale = 100, -- the ring's size, in percent
+    scale = 90, -- the ring's size, in percent
 })
 module.title = L.TARGETMARKERS_TITLE
 module.category = "units"
