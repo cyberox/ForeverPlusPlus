@@ -1,7 +1,7 @@
 -- Globals: no file writes a global AGENTS.md doesn't allow ("Lua rules"), and every global a file
 -- reads is Lua's own or one .luarc.json knows, so a typo (fromat for format) or a leaked local
--- (a missing `local`) fails here instead of reading or writing nil in game. Read from each file's
--- bytecode (tests/lib/bytecode.lua). Writes through _G[...] are checked by the `rules` spec.
+-- (a missing `local`) fails here instead of reading or writing nil in game. Plain reads and writes
+-- come from each file's bytecode (tests/lib/bytecode.lua), writes through _G from its text.
 local T = ...
 local eq = T.eq
 
@@ -14,8 +14,17 @@ local WRITES = {
     { name = "ForeverPlusPlusPlayersDB" },
     { name = "ForeverPlusPlusAPI", file = "ForeverPlusPlus/API.lua" },
     { name = "ForeverPlusPlusCompanion", file = "ForeverPlusPlus/Init.lua" },
+    { name = "GetMinimapShape", file = "ForeverPlusPlus/Modules/Map/SquareMinimap.lua" },
     { name = "BINDING_HEADER_FOREVERPLUSPLUS" },
     { pattern = "^SLASH_FOREVERPLUSPLUS[%w_]*$" },
+}
+
+-- Writes to _G[name] whose name is worked out at run time, so it can't be checked: file -> the
+-- code between the brackets.
+local DYNAMIC = {
+    ["ForeverPlusPlus/Lib/Slash.lua"] = '"SLASH_" .. key .. "1"', -- slash commands a module adds
+    ["ForeverPlusPlus/Modules/Units/TargetMarkers.lua"] = '"BINDING_NAME_" .. BINDING',
+    ["ForeverPlusPlus_AgentChat/AgentChat.lua"] = "INBOX", -- ForeverPlusPlusAgentInbox, cleared
 }
 
 -- Lua 5.1 as the game has it: no io, os, require, dofile, or loadfile. A file that needs one of
@@ -44,22 +53,28 @@ local function allowedWrite(name, path)
     return false
 end
 
--- Every .lua file each addon's TOC loads.
-local paths = {}
-local function addToc(root, toc)
-    for line in io.lines(root .. toc) do
-        line = line:gsub("\r$", "")
-        if line:match("%S") and not line:match("^#") then
-            local file = line:gsub("%s*%[.*$", ""):gsub("\\", "/"):match("^%s*(.-)%s*$")
-            if file:match("%.lua$") then
-                paths[#paths + 1] = root .. file
+-- Writes through _G in a file's text, outside comments: _G.Name = and _G[...] =.
+local function writesThroughG(path, text, out)
+    local number = 0
+    for line in text:gmatch("([^\n]*)\n?") do
+        number = number + 1
+        local code = line:gsub("%-%-.*$", "")
+        for name in code:gmatch("%f[%w_]_G%s*%.%s*([%a_][%w_]*)%s*=%f[^=]") do
+            if not allowedWrite(name, path) then
+                out[#out + 1] = ("_G.%s (line %d)"):format(name, number)
+            end
+        end
+        for inside in code:gmatch("%f[%w_]_G%s*(%b[])%s*=%f[^=]") do
+            inside = inside:sub(2, -2):match("^%s*(.-)%s*$")
+            local name = inside:match('^"([%w_]+)"$') or inside:match("^'([%w_]+)'$")
+            if name and not allowedWrite(name, path) or not name and DYNAMIC[path] ~= inside then
+                out[#out + 1] = ("_G[%s] (line %d)"):format(inside, number)
             end
         end
     end
 end
-addToc(T.ROOT, T.ADDON .. ".toc")
-addToc("ForeverPlusPlus_AgentChat/", "ForeverPlusPlus_AgentChat.toc")
 
+local paths = T.LuaFiles()
 local reads = 0
 for _, path in ipairs(paths) do
     local chunk, err = loadfile(path)
@@ -77,6 +92,7 @@ for _, path in ipairs(paths) do
             end
         end
     end
+    writesThroughG(path, T.Read(path) or "", writes)
     table.sort(writes)
     table.sort(unknown)
     eq(table.concat(writes, ", "), "", "globals: " .. path .. " writes only allowed globals")

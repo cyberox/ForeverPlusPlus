@@ -10,7 +10,7 @@ local GetTime, InCombatLockdown, CreateFrame = GetTime, InCombatLockdown, Create
 local SetOverrideBindingSpell, ClearOverrideBindings = SetOverrideBindingSpell, ClearOverrideBindings
 local UnitExists, GetUnitSpeed = UnitExists, GetUnitSpeed
 local C_Spell, WorldFrame = C_Spell, WorldFrame
-local GetMouseFoci, GetMouseFocus, UnitChannelInfo = GetMouseFoci, GetMouseFocus, UnitChannelInfo
+local GetMouseFoci, UnitChannelInfo = GetMouseFoci, UnitChannelInfo
 local C_CVar, tonumber, tostring, next, select = C_CVar, tonumber, tostring, next, select
 
 local L = ns.L
@@ -56,12 +56,12 @@ end
 
 -- Whether the mouse is over the world and not a window or button.
 local function overWorld()
-    if GetMouseFoci then
-        -- Forever returns an empty list over the bare world, not WorldFrame.
-        local foci = GetMouseFoci()
-        return not foci or foci[1] == nil or foci[1] == WorldFrame
+    if not GetMouseFoci then
+        return false
     end
-    return GetMouseFocus and GetMouseFocus() == WorldFrame
+    -- Forever returns an empty list over the bare world, not WorldFrame.
+    local foci = GetMouseFoci()
+    return not foci or foci[1] == nil or foci[1] == WorldFrame
 end
 
 local function disarm()

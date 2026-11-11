@@ -7,6 +7,7 @@ local Env = {}
 
 Env.ADDON = "ForeverPlusPlus"
 Env.ROOT = "ForeverPlusPlus/"
+Env.COMPANION = "ForeverPlusPlus_AgentChat/"
 
 -- What every spec gets loaded. Lib files that need frames (Frames, Players, ...) are loaded by the
 -- specs that test them, after their stubs.
@@ -86,6 +87,28 @@ function Env.Toc()
     return fields, files
 end
 
+---Every .lua file Forever++'s TOC and Agent Chat's load, from the repo root.
+---@return string[] paths
+function Env.LuaFiles()
+    local paths = {}
+    local _, files = Env.Toc()
+    for _, file in ipairs(files) do
+        paths[#paths + 1] = Env.ROOT .. file
+    end
+    for line in io.lines(Env.COMPANION .. Env.COMPANION:sub(1, -2) .. ".toc") do
+        line = line:gsub("\r$", "")
+        if line:match("%S") and not line:match("^#") then
+            paths[#paths + 1] = Env.COMPANION .. line:gsub("%s*%[.*$", ""):gsub("\\", "/"):match("^%s*(.-)%s*$")
+        end
+    end
+    for i = #paths, 1, -1 do
+        if not paths[i]:match("%.lua$") then
+            table.remove(paths, i)
+        end
+    end
+    return paths
+end
+
 ---A whole file's text, or nil when it can't be read.
 ---@param path string from the repo root
 ---@return string|nil
@@ -141,7 +164,7 @@ function Env.New()
     end
     return {
         env = env, ns = ns, player = player, game = game, load = load, ADDON = Env.ADDON,
-        ROOT = Env.ROOT, Toc = Env.Toc, Read = Env.Read,
+        ROOT = Env.ROOT, Toc = Env.Toc, Read = Env.Read, LuaFiles = Env.LuaFiles,
     }
 end
 

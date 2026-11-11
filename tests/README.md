@@ -17,8 +17,8 @@ On Windows: `"C:\Program Files (x86)\Lua\5.1\lua.exe" tests/run.lua`. CI runs `l
 | `run.lua` | The runner. It finds every file in `spec/`, runs them in name order, and prints a line per spec and the totals. |
 | `lib/env.lua` | A fresh copy of the addon for each spec: stubbed WoW globals, an `ns`, the enUS Core and Map strings, and the pure-logic `Lib/` files. |
 | `lib/harness.lua` | The checks: `eq`, `same`, `near`, `ok`, `raises`. |
-| `lib/bytecode.lua` | The globals a file reads and writes, with their lines, from its Lua 5.1 bytecode (what `luac -l` lists as GETGLOBAL and SETGLOBAL), for the `globals` spec. |
-| `spec/*.lua` | One spec per area: a Lib file (`text`, `store`, `prices`, `cvars`, `units`, ...), Core's module lifecycle (`core`), the public API (`api`), and checks across the addon (`globals`, `locales`, `modules`, `release`). |
+| `lib/bytecode.lua` | The globals a file reads and writes, with their lines, and the strings in its code, from its Lua 5.1 bytecode (what `luac -l` lists as GETGLOBAL and SETGLOBAL), for the `globals` and `rules` specs. |
+| `spec/*.lua` | One spec per area: a Lib file (`text`, `store`, `prices`, `cvars`, `units`, ...), Core's module lifecycle (`core`), the public API (`api`), and checks across the addon (`globals`, `locales`, `modules`, `release`, `rules`). |
 
 ## A spec
 
@@ -52,7 +52,8 @@ Test pure logic: anything in `Lib/` with no frames, and Core's module lifecycle 
 
 These specs check the whole addon:
 
-- `globals`: no file in either addon's TOC writes a global AGENTS.md doesn't allow (a missing `local` leaks one), and every global a file reads is Lua 5.1's own (as the game has it: no `io`, `os`, or `require`) or listed in `.luarc.json`, so a typo like `fromat` fails here. When it flags a real client global, add that to `.luarc.json`; when a new allowed global appears in AGENTS.md, add it to `WRITES` in `spec/globals.lua`.
+- `globals`: no file in either addon's TOC writes a global AGENTS.md doesn't allow (a missing `local` leaks one), plainly or through `_G.Name =` and `_G[...] =` (a name worked out at run time is listed in `DYNAMIC`), and every global a file reads is Lua 5.1's own (as the game has it: no `io`, `os`, or `require`) or listed in `.luarc.json`, so a typo like `fromat` fails here. When it flags a real client global, add that to `.luarc.json`; when a new allowed global appears in AGENTS.md, add it to `WRITES` in `spec/globals.lua`.
 - `locales`: every `L.KEY` the code uses is defined, and none twice.
 - `modules`: every file in the TOC loads offline, against a stand-in for any WoW global it reads. Every module's settings are well formed: a title, a category, and options with a name, a description, and a default that fits them. A dropdown's default must be one of its choices, and a slider's must be in its range. Every `requires`, `slider`, and `conflicts` must name an option the module has. When a file fails to load here, it's usually a new global the stand-in can't fake (a color, a string, a function whose answer the file uses at load). Stub that one in `spec/modules.lua`.
 - `release`: the TOC's version and both changelogs agree, and every file the TOC loads is there.
+- `rules`: the AGENTS.md rules a machine can check exactly. Every file starts with its addon's `ns` line (after comments); none calls a Classic global the client doesn't have (docs/forever-api.md's list, kept out of `.luarc.json` too; `C_Item.GetItemInfo` is fine); none uses `COMBAT_LOG_EVENT_UNFILTERED`; only the files in `ONLY` read `WOW_PROJECT_ID` or `print`; and no line is indented with tabs or ends in spaces. A real exception goes in the spec's list, with why.

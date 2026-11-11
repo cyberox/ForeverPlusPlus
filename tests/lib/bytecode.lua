@@ -53,7 +53,7 @@ local function Reader(data)
     return r
 end
 
-local function Function(r, out)
+local function Function(r, out, strings)
     r.String() -- source
     r.Int() -- linedefined
     r.Int() -- lastlinedefined
@@ -71,10 +71,11 @@ local function Function(r, out)
             r.Bytes(r.number)
         elseif kind == 4 then
             constants[i - 1] = r.String()
+            strings[constants[i - 1]] = true
         end
     end
     for _ = 1, r.Int() do
-        Function(r, out)
+        Function(r, out, strings)
     end
     local lines = {}
     for i = 1, r.Int() do
@@ -105,9 +106,11 @@ local function Function(r, out)
     end
 end
 
----Every global access in a chunk, in no particular order.
+---Every global access in a chunk, in no particular order, and the strings in its code (global
+---names, table keys, and literals, but not comments).
 ---@param chunk function from loadfile
 ---@return table[] uses { name, line, write }
+---@return table<string, true> strings
 function Bytecode.Globals(chunk)
     local r = Reader(string.dump(chunk))
     assert(r.Bytes(4) == "\27Lua" and r.Byte() == 0x51, "not Lua 5.1 bytecode")
@@ -115,9 +118,9 @@ function Bytecode.Globals(chunk)
     r.little = r.Byte() == 1
     r.int, r.size_t, r.instruction, r.number = r.Byte(), r.Byte(), r.Byte(), r.Byte()
     r.Byte() -- integral numbers
-    local out = {}
-    Function(r, out)
-    return out
+    local out, strings = {}, {}
+    Function(r, out, strings)
+    return out, strings
 end
 
 return Bytecode
