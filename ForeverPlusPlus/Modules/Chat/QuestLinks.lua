@@ -2,12 +2,15 @@
 -- of Blizzard's own quest links, [[34] A Grim Task], which shows the quest when clicked. Questie
 -- links a quest as its own hyperlink, which the server turns into plain text for everyone else, so
 -- only players with Questie could click it; the ID in it is all a quest link needs, so no quest
--- database is needed. A line is rewritten once it's in the chat window (Chat.Transform), as Short
--- Channel Names does. Text already inside a link (Questie's own, when it's loaded) is left alone,
--- and so are lines the game marks secret.
+-- database is needed. A line is rewritten through the chat frame's own TransformMessages, a frame
+-- after it arrives, as Chat Levels does, and found by what it holds rather than its exact text, so
+-- other modules rewriting the same line (Short Channel Names) see it first and don't stop it.
+-- Text already inside a link (Questie's own, when it's loaded) is left alone, and so are lines the
+-- game marks secret.
 local _, ns = ...
 
-local ipairs, tonumber, gsub, find, sub, format = ipairs, tonumber, string.gsub, string.find, string.sub, string.format
+local ipairs, pairs, setmetatable = ipairs, pairs, setmetatable
+local tonumber, gsub, find, sub, format = tonumber, string.gsub, string.find, string.sub, string.format
 
 local L = ns.L
 local Chat = ns.Chat
@@ -47,19 +50,29 @@ local function restore(text)
     return (gsub(text, LINK, "[[%2] %3 (%1)]"))
 end
 
+-- Whether a line has one of Questie's plain quests left to link. Our links' text has no ID, so a
+-- line already linked doesn't match again.
+local function linkable(message)
+    return find(message, "[[", 1, true) ~= nil and rewrite(message) ~= message
+end
+
+local pending = setmetatable({}, { __mode = "k" }) -- chat window -> true while it has a line to link
+
+local function linkPending()
+    for frame in pairs(pending) do
+        pending[frame] = nil
+        Chat.Transform(frame, linkable, rewrite)
+    end
+end
+
+local linkSoon = ns.Frames.Coalesce(linkPending, nil, module)
+
 local function onMessage(frame, text)
-    if not ns.IsText(text) then
+    if not ns.IsText(text) or rewrite(text) == text then
         return
     end
-    local linked = rewrite(text)
-    if linked == text then
-        return
-    end
-    Chat.Transform(frame, function(message)
-        return message == text
-    end, function()
-        return linked
-    end)
+    pending[frame] = true
+    linkSoon()
 end
 
 function module:IsAvailable()
@@ -74,6 +87,10 @@ end
 
 -- Lines already linked go back to plain text, so turning the module off undoes it.
 function module:OnDisable()
+    -- A queued linkSoon is dropped by Core, which owns it for the module.
+    for frame in pairs(pending) do
+        pending[frame] = nil
+    end
     for _, frame in ipairs(Chat.Frames()) do
         Chat.Transform(frame, function(message)
             return restore(message) ~= message
