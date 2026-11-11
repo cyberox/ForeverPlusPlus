@@ -489,6 +489,19 @@
     "OpenMailInvoiceMoneyDelay",
     "InboxFrame",
     "GetInboxInvoiceInfo",
-    "AUCTION_INVOICE_FUNDS_DELAY"
+    "AUCTION_INVOICE_FUNDS_DELAY",
+    "format",
+    "strfind",
+    "C_PlayerInfo",
+    "CanDualWield",
+    "GetInventoryItemLink",
+    "UnitStat",
+    "GetLFDChoiceOrder",
+    "GetLFGDungeonInfo",
+    "GetLootSourceInfo",
+    "GameFontDisable",
+    "GameFontHighlight",
+    "GameTooltip_SetTitle",
+    "GameTooltip_AddNormalLine"
   ]
 }
