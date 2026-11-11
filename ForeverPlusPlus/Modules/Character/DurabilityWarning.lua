@@ -18,17 +18,16 @@ local L = ns.L
 local Durability = ns.Durability
 
 local module = ns.NewModule("DurabilityWarning", L.DURABILITYWARNING_DESC, {
-    enabled = false,
+    enabled = true,
     threshold = 25, -- percent
     broken = true,
     alert = true,
-    sound = "raidwarning", -- a key of ns.Sounds.CHOICES
-    chat = true,
+    sound = "off", -- a key of ns.Sounds.CHOICES
+    chat = false,
 })
 module.title = L.DURABILITYWARNING_TITLE
 module.category = "character"
 module.added = "1.5.0"
-module.developer = { enabled = true }
 
 module.options = {
     {
