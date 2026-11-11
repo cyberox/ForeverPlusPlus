@@ -2,6 +2,16 @@
 
 What changed in each release of Forever++. The same notes show in game under Settings > AddOns > Forever++ > Changelog, from [`ForeverPlusPlus/Changelog.lua`](ForeverPlusPlus/Changelog.lua); change both together.
 
+## Unreleased
+
+### Added
+
+- **Settings**: a profile can stay based on a preset. One made from Developer's Defaults follows it as it changes, keeping the settings you changed yourself, and Based On on the Profiles page shows or changes what a profile follows.
+
+### Changed
+
+- **World Map**: Unexplored Areas' map data is up to date with the game's build 70888.
+
 ## 1.5.0 (2026-11-11)
 
 ### Added

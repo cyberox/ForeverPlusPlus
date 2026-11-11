@@ -10,6 +10,21 @@ local L = ns.L
 
 ns.changelog = {
     {
+        version = L.CHANGELOG_UNRELEASED,
+        sections = {
+            { L.CHANGELOG_ADDED, {
+                { L.CHANGELOG_SETTINGS, "A profile can stay based on a preset. One made from "
+                    .. "Developer's Defaults follows it as it changes, keeping the settings you "
+                    .. "changed yourself, and Based On on the Profiles page shows or changes what a "
+                    .. "profile follows." },
+            } },
+            { L.CHANGELOG_CHANGED, {
+                { L.WORLDMAP_TITLE, "Unexplored Areas' map data is up to date with the game's build "
+                    .. "70888." },
+            } },
+        },
+    },
+    {
         version = "1.5.0",
         date = "2026-11-11",
         sections = {
