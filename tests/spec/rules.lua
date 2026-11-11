@@ -19,7 +19,7 @@ end
 
 -- Globals only some files may read: name -> file -> why.
 local ONLY = {
-    -- Never to detect Forever (it's WOW_PROJECT_MAINLINE there); probe for the API instead.
+    -- Never to detect Forever (an earlier build had Mainline's); probe for the API instead.
     WOW_PROJECT_ID = {
         ["ForeverPlusPlus/Modules/Interface/Tooltips.lua"] = "a friend's game against ours",
         ["ForeverPlusPlus/Modules/Tools/SelfTest.lua"] = "reports it",
