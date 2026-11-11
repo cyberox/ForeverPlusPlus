@@ -247,6 +247,46 @@ do
     api.Profiles.names.p1 = "Raids"
     profilesChanged(false)
     eq(table.concat(told, ","), "Raid,Raids", "api: PROFILE_CHANGED")
+
+    -- A profile based on a preset (Lib/Presets.lua, read through the real Lib/Store.lua view):
+    -- GetProfilePreset names it, and options and on/off read the preset for what isn't set.
+    api.db = nil
+    eq(v1.GetProfilePreset(), nil, "api: no preset before READY")
+    api.db = {}
+    local Store = ns.Store
+    local linkedDB = { settings = { Linked = { mode = "b" } }, preset = "developer" }
+    local linked = {
+        title = "Linked", description = "Linked.", category = "items",
+        defaults = { enabled = false, size = 1, mode = "a", seen = {} },
+        options = {
+            { key = "size", name = "Size", min = 1, max = 9 },
+            { key = "mode", name = "Mode", choices = { { "a", "A" }, { "b", "B" } } },
+        },
+        presets = { developer = { enabled = true, options = { size = 5, mode = "a" } } },
+    }
+    api.modules.Linked = linked
+    api.order[#api.order + 1] = "Linked"
+    ns.modules, ns.order = api.modules, api.order -- what Lib/Presets.lua reads
+    linked.db = Store.Load(linkedDB, {}, "Linked", linked.defaults)
+    linked.enabled = linked.db.enabled -- as Core turns it on
+    api.Profiles.Preset = function() return Store.Preset(linkedDB, nil) end
+    local preset = v1.GetProfilePreset()
+    eq(preset and preset.name .. "|" .. preset.title, "developer|Developer's Defaults",
+        "api: the profile in use's preset")
+    eq(v1.GetModuleOption("Linked", "size"), 5, "api: an option the player hasn't set reads the preset")
+    eq(v1.GetModuleOption("Linked", "mode"), "b", "api: one they set reads theirs")
+    eq(v1.IsModuleEnabled("Linked"), true, "api: a module the preset turns on is on")
+    local info = v1.GetModuleInfo("Linked")
+    eq(info.options[1].value .. "," .. tostring(info.options[1].default), "5,1",
+        "api: GetModuleInfo's value is the preset's, its default the module's")
+    local presets = v1.GetPresets()
+    eq(#presets .. "," .. presets[1].name .. "," .. presets[1].title, "1,developer,Developer's Defaults",
+        "api: every preset")
+    presets[1].name = "changed"
+    eq(v1.GetPresets()[1].name, "developer", "api: GetPresets gives copies")
+    linkedDB.preset = "fromnewer"
+    eq(v1.GetProfilePreset(), nil, "api: a preset this version doesn't have is none")
+    eq(v1.GetModuleOption("Linked", "size"), 1, "api: and options read their defaults")
     api.db = savedDB
 
     -- Upgrade scores, while Upgrade Arrows offers them.

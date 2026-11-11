@@ -30,7 +30,7 @@ local module = ns.NewModule("XPBarText", L.XPBARTEXT_DESC, {
 })
 module.title = L.XPBARTEXT_TITLE
 module.category = "character"
-module.developer = { options = { rate = true } } -- Show XP per Hour
+module.presets = { developer = { options = { rate = true } } } -- Show XP per Hour
 module.added = "0.8.0"
 
 module.options = {

@@ -3,7 +3,7 @@
 local _, ns = ...
 
 local StaticPopupDialogs, StaticPopup_Show, YES, NO = StaticPopupDialogs, StaticPopup_Show, YES, NO
-local CANCEL, ACCEPT, CLOSE, strtrim = CANCEL, ACCEPT, CLOSE, strtrim
+local CANCEL, ACCEPT, CLOSE, strtrim, error = CANCEL, ACCEPT, CLOSE, strtrim, error
 
 -- Shows our popup for `key`, made from `build()` the first time the key is used, so a key always
 -- has the same buttons. Its text is this call's, since callers format names into it. `textArg`
@@ -99,6 +99,20 @@ function ns.ConfirmChoice(key, text, first, onFirst, second, onSecond, third, on
         end
         return dialog
     end)
+end
+
+---ns.ConfirmChoice from a list of buttons, { text, fn } each, in order: the first left of Cancel,
+---the rest right of it. It holds two or three; the same `key` always gets as many.
+---@param key string
+---@param text string
+---@param buttons { text: string, fn: function }[]
+function ns.ConfirmButtons(key, text, buttons)
+    local first, second, third = buttons[1], buttons[2], buttons[3]
+    if not (first and second) then
+        error("Forever++: ConfirmButtons needs two or three buttons", 2)
+    end
+    ns.ConfirmChoice(key, text, first.text, first.fn, second.text, second.fn,
+        third and third.text, third and third.fn)
 end
 
 -- The popup's text box. Probe: GetEditBox is Mainline's; older popups had a field.

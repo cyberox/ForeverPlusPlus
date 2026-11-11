@@ -9,7 +9,7 @@ local module = ns.NewModule("EasyDelete", L.EASYDELETE_DESC, {
 })
 module.title = L.EASYDELETE_TITLE
 module.category = "items"
-module.developer = { enabled = true }
+module.presets = { developer = { enabled = true } }
 
 -- The popups that want the word typed (Blizzard_StaticPopup_Game/Mainline/GameDialogDefs.lua).
 -- Their gamepad versions and the plain DELETE_ITEM popup ask for no word.

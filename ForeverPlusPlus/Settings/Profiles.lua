@@ -1,7 +1,8 @@
 -- The Profiles page, after the Modules entry in the sidebar: which profile this character uses and
 -- which one new characters start on, at the top; under them the profiles in a list on the left,
 -- with how many characters use each and a mark on this character's, and the selected one on the
--- right: its name, what it holds, who uses it, its buttons (Use on This Character, Rename, Delete),
+-- right: its name, what it holds, who uses it, the preset it's based on (Based On), its buttons
+-- (Use on This Character, Rename, Delete),
 -- every character seen with a checkbox each (checked uses this profile), its Share buttons, and a
 -- note on what a profile holds. Defaults on the Modules page resets the profile in use, so there
 -- is no Reset here. Drawn from Lib/Profiles.lua each time something about the profiles changes.
@@ -59,8 +60,8 @@ local function switched(now, id)
     end
 end
 
--- Blizzard's menu dropdown of every profile. Probe: Mainline's.
-local function newProfileDropdown(parent, get, set)
+-- Blizzard's menu dropdown of what `list()` gives, { value, text } each. Probe: Mainline's.
+local function newDropdown(parent, width, list, get, set)
     if not WowStyle1DropdownMixin then
         return
     end
@@ -68,17 +69,40 @@ local function newProfileDropdown(parent, get, set)
     if not (ok and dropdown and dropdown.SetupMenu) then
         return
     end
-    dropdown:SetWidth(220)
+    dropdown:SetWidth(width)
     dropdown:SetupMenu(function(_, root)
-        for _, id in ipairs(Profiles.List()) do
-            root:CreateRadio(Profiles.Name(id), function(value)
+        for _, entry in ipairs(list()) do
+            root:CreateRadio(entry[2], function(value)
                 return get() == value
             end, function(value)
                 set(value)
-            end, id)
+            end, entry[1])
         end
     end)
     return dropdown
+end
+
+-- Every profile, for a dropdown.
+local function profileChoices()
+    local list = {}
+    for i, id in ipairs(Profiles.List()) do
+        list[i] = { id, Profiles.Name(id) }
+    end
+    return list
+end
+
+local function newProfileDropdown(parent, get, set)
+    return newDropdown(parent, 220, profileChoices, get, set)
+end
+
+-- The selected profile's preset (Lib/Presets.lua), "none" for none, for the Based On dropdown.
+local NO_PRESET = "none"
+local function presetChoices()
+    local list = { { NO_PRESET, L.PROFILES_PRESET_NONE } }
+    for _, name in ipairs(ns.Presets.List()) do
+        list[#list + 1] = { name, ns.Presets.Title(name) }
+    end
+    return list
 end
 
 -- A gold label and a dropdown beside it, `y` down from the page's top.
@@ -97,7 +121,8 @@ end
 
 local draw
 
--- New Profile: a name, then a copy of the selected profile, the defaults, or Developer's Defaults.
+-- New Profile: a name, then a copy of the selected profile, the defaults, or a preset (a button
+-- each while they fit, else one that opens a menu of them).
 local function newProfile()
     local from = selectedID
     ns.PromptName("PROFILES_NEW", L.PROFILES_NEW_ASK, "", function(name)
@@ -115,10 +140,17 @@ local function newProfile()
             selectedID = id
             draw()
         end
-        ns.ConfirmChoice("PROFILES_NEW_FROM", format(L.PROFILES_NEW_FROM, clean, fromName),
-            format(L.PROFILES_COPY_OF, fromName), function() made(Profiles.Create(clean, from)) end,
-            L.PROFILES_FROM_DEFAULTS, function() made(Profiles.Create(clean)) end,
-            L.DEFAULTS_DEVELOPER, function() made(Profiles.CreateFromPreset(clean, ns.DeveloperPreset())) end)
+        local buttons = {
+            { text = format(L.PROFILES_COPY_OF, fromName), fn = function() made(Profiles.Create(clean, from)) end },
+            { text = L.PROFILES_FROM_DEFAULTS, fn = function() made(Profiles.Create(clean)) end },
+        }
+        for _, button in ipairs(ns.Presets.Buttons(1, function(preset)
+            made(Profiles.CreateFromPreset(clean, preset))
+        end)) do
+            buttons[#buttons + 1] = button
+        end
+        ns.ConfirmButtons("PROFILES_NEW_FROM", format(L.PROFILES_NEW_FROM, clean, fromName,
+            ns.Presets.Mention()), buttons)
     end)
 end
 
@@ -135,7 +167,7 @@ local function importProfile()
         ns.ConfirmChoice("PROFILES_IMPORT_AS", format(L.PROFILES_IMPORT_FOUND, profile.name,
             profile.addon, profile.modulesOn, profile.changed), L.PROFILES_IMPORT_NEW, function()
             local id, reason = Profiles.CreateFrom(Profiles.FreeName(profile.name), profile.settings,
-                profile.data)
+                profile.data, profile.preset)
             if not id then
                 ns.Print(reason)
                 return
@@ -144,7 +176,7 @@ local function importProfile()
             ns.Print(format(L.PROFILES_IMPORT_DONE, Profiles.Name(id)))
             draw()
         end, format(L.PROFILES_IMPORT_REPLACE, intoName), function()
-            switched(Profiles.Replace(into, profile.settings, profile.data), into)
+            switched(Profiles.Replace(into, profile.settings, profile.data, profile.preset), into)
         end)
     end, true)
 end
@@ -379,7 +411,7 @@ function S.BuildProfiles(frame)
     split.listScroll:SetPoint("BOTTOMLEFT", 7, 38) -- room for New Profile under it
     local newButton = Kit.NewButton(frame, L.PROFILES_NEW, LIST_WIDTH, newProfile)
     newButton:SetPoint("BOTTOMLEFT", 7, 8)
-    addTooltip(newButton, function() return L.PROFILES_NEW, L.PROFILES_NEW_DESC end)
+    addTooltip(newButton, function() return L.PROFILES_NEW, format(L.PROFILES_NEW_DESC, ns.Presets.Mention()) end)
 
     local width = split.paneWidth
     page.width = width
@@ -399,6 +431,32 @@ function S.BuildProfiles(frame)
 
     page.stats = newText(stack, width, "GameFontDisable")
     Kit.AddEntry(stack, page.stats)
+
+    -- Based On: the preset the selected profile follows for what it doesn't set itself, or None.
+    local based = CreateFrame("Frame", nil, stack)
+    based:SetSize(width, 26)
+    local basedLabel = based:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    basedLabel:SetPoint("LEFT")
+    basedLabel:SetText(L.PROFILES_PRESET)
+    local preset = #ns.Presets.List() > 0 and newDropdown(based, 200, presetChoices, function()
+        return Profiles.Preset(selectedID) or NO_PRESET
+    end, function(value)
+        local id = selectedID
+        if Profiles.SetPreset(id, value ~= NO_PRESET and value or nil) == false then
+            ns.Print(format(L.PROFILES_PRESET_AFTER_COMBAT, Profiles.Name(id)))
+        end
+        draw()
+    end)
+    if preset then
+        preset:SetPoint("LEFT", basedLabel, "RIGHT", 14, 0)
+        addTooltip(preset, function()
+            return L.PROFILES_PRESET, format(L.PROFILES_PRESET_DESC, Profiles.Name(selectedID) or "")
+        end)
+        page.dropdowns[#page.dropdowns + 1] = preset
+        Kit.AddEntry(stack, based, nil, 6)
+    else
+        based:Hide()
+    end
 
     local function selectedName()
         return Profiles.Name(selectedID) or ""

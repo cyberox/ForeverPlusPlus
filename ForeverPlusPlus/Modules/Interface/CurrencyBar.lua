@@ -26,7 +26,7 @@ local module = ns.NewModule("CurrencyBar", L.CURRENCYBAR_DESC, {
 })
 module.title = L.CURRENCYBAR_TITLE
 module.category = "interface"
-module.developer = { enabled = true }
+module.presets = { developer = { enabled = true } }
 
 -- What the box shows and how it's laid out, then its tooltip.
 module.options = {

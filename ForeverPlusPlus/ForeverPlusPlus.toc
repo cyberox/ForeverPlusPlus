@@ -21,6 +21,7 @@ Locales\enUS\Character.lua
 Locales\enUS\Chat.lua
 Locales\enUS\Map.lua
 Locales\enUS\Tools.lua
+Lib\Presets.lua
 Lib\Store.lua
 Lib\Profiles.lua
 Lib\ProfileShare.lua

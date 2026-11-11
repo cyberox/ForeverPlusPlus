@@ -6,8 +6,10 @@
 --       settings = { [module] = { [key] = value } },  -- the Default profile's: only what the player changed
 --       data = { [module] = { [key] = table } },      -- what modules collect: prices, flight times;
 --                                                     -- and the Default profile's data
+--       preset = "developer",                         -- the preset Default is based on, if any
 --       profiles = { [id] = { name = "Raid",          -- every profile but Default, by an id of
---           settings = { [module] = { [key] = value } },  -- its own, laid out as Default is
+--           preset = "developer",                     -- its own, laid out as Default is
+--           settings = { [module] = { [key] = value } },
 --           data = { [module] = { [key] = table } } } },  -- (only `module.perProfile` keys)
 --       newCharacters = id,                           -- the profile a new character starts on
 --       characters = { [guid] = { name, realm, class, level, profile, moved } },
@@ -33,6 +35,12 @@
 -- of its own in `profiles` with the same two tables. `Store.profile` is the id of the one in use
 -- (nil for Default), and every `module.db` reads through it, so switching needs no new views.
 -- Lib/Profiles.lua keeps the rest: names, characters, and switching.
+--
+-- Presets: a profile may be based on one (its root's `preset`, Lib/Presets.lua). A setting the
+-- player hasn't set then reads what the preset says before its default, at read time, so a later
+-- release adding to the preset reaches the profile, and a reset falls back to the preset. A profile
+-- with no `preset` reads as it always did, and a name this version doesn't know reads as none, so
+-- the field needed no step of its own (it came with 1.6.0, in layout 7).
 local _, ns = ...
 
 local pairs, ipairs, type, next, setmetatable, sort = pairs, ipairs, type, next, setmetatable, table.sort
@@ -70,6 +78,47 @@ function Store.Root(db, id)
         return profile
     end
     return db
+end
+
+---The preset a profile is based on (Lib/Presets.lua), when this version has it. A name saved by a
+---newer version, or of a preset since removed, reads as none, and stays saved for that version.
+---@param db? table ForeverPlusPlusDB
+---@param id? string
+---@return string?
+function Store.Preset(db, id)
+    local name = db and Store.Root(db, id).preset
+    local presets = ns.Presets
+    if name ~= nil and presets and presets.Exists(name) then
+        return name
+    end
+    return nil
+end
+
+---Bases a profile on a preset, or on none (nil). Nothing else in it changes.
+---@param db table
+---@param id? string
+---@param name? string
+function Store.SetPreset(db, id, name)
+    Store.Root(db, id).preset = name
+end
+
+---What a setting reads when the player hasn't set it, so what a reset gives: what the profile's
+---preset says, else the module's default. `defaults` is the module's.
+---@param db? table
+---@param id? string the profile, nil for Default
+---@param name string the module
+---@param key string
+---@param defaults table
+---@return any
+function Store.Base(db, id, name, key, defaults)
+    local preset = Store.Preset(db, id)
+    if preset and type(defaults[key]) ~= "table" then
+        local value = ns.Presets.Value(preset, name, key)
+        if value ~= nil then
+            return value
+        end
+    end
+    return defaults[key]
 end
 
 ---Every profile's root, Default's (the account's) first, for whatever must treat them all alike:
@@ -362,8 +411,14 @@ function Store.Load(db, char, name, defaults, perCharacter, linked, perProfile)
             elseif linked[key] then
                 return linked[key].get()
             end
-            local value = settingsTable()[key]
+            local root = Store.Root(db, Store.profile)
+            local value = child(child(root, "settings"), name)[key]
             if value == nil then
+                -- Not set: the profile's preset, then the default. A profile on no preset has
+                -- no `preset`, so this costs it one field.
+                if root.preset ~= nil then
+                    return Store.Base(db, Store.profile, name, key, defaults)
+                end
                 return defaults[key]
             end
             return value

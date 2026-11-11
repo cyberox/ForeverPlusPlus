@@ -17,7 +17,7 @@ local module = ns.NewModule("HideBetaFeedback", L.HIDEBETAFEEDBACK_DESC, {
 })
 module.title = L.HIDEBETAFEEDBACK_TITLE
 module.category = "system"
-module.developer = { enabled = true }
+module.presets = { developer = { enabled = true } }
 
 module.options = {
     { key = "tooltip", name = L.HIDEBETAFEEDBACK_TOOLTIP, description = L.HIDEBETAFEEDBACK_TOOLTIP_DESC },

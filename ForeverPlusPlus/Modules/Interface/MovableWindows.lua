@@ -33,7 +33,7 @@ local module = ns.NewModule("MovableWindows", L.MOVABLEWINDOWS_DESC, {
 })
 module.title = L.MOVABLEWINDOWS_TITLE
 module.category = "interface"
-module.developer = { enabled = true }
+module.presets = { developer = { enabled = true } }
 module.added = "1.0.0"
 -- Where windows go is a layout, so each profile keeps its own.
 module.perProfile = { positions = true }

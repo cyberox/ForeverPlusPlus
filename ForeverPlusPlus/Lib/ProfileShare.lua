@@ -176,10 +176,11 @@ end
 ---@param name string
 ---@param settings table { [module] = { [key] = value } }
 ---@param data table { [module] = { [key] = table } }
+---@param preset? string the preset it's based on; `settings` holds what it gives too
 ---@return string
-function Share.Encode(name, settings, data)
+function Share.Encode(name, settings, data, preset)
     local body = Share.Serialize({ v = Share.VERSION, name = name, addon = ns.version,
-        s = settings or {}, d = data or {} })
+        s = settings or {}, d = data or {}, p = preset })
     local util = codec()
     if util then
         local ok, packed = pcall(util.CompressString, body, deflate())
@@ -197,7 +198,7 @@ end
 ---The raw contents of exported text, or nil and why not. Not checked against the modules yet:
 ---see Share.Validate.
 ---@param text string
----@return table? raw { v, name, addon, s, d }
+---@return table? raw { v, name, addon, s, d, p }
 ---@return string? reason
 function Share.Decode(text)
     if type(text) ~= "string" then
@@ -280,11 +281,24 @@ local function plain(value, depth, budget)
     end
 end
 
+-- The preset an import is based on, when it's one this version has: a short lowercase key, like
+-- every preset's name, and nothing else.
+local function knownPreset(name)
+    if type(name) ~= "string" or #name > 40 or not find(name, "^[%l%d_]+$") then
+        return nil
+    end
+    return ns.Presets.Exists(name) and name or nil
+end
+
 ---What of an import this addon can take: its name cleaned, the settings of known modules that fit
----their options or defaults, and their profile data, with the counts the Import popup shows.
+---their options or defaults, their profile data, and the preset it's based on, with the counts the
+---Import popup shows. An export holds the values its preset gave beside the link, so it looks the
+---same here without that preset: when this version has it, the import stays based on it and drops
+---the values the preset gives now (they go on following it); when not, it keeps the values and is
+---based on none.
 ---@param raw table from Share.Decode
 ---@param modules? table name -> module, ns.modules by default
----@return table profile { name, addon, settings, data, modulesOn, changed }
+---@return table profile { name, addon, settings, data, preset, modulesOn, changed }
 function Share.Validate(raw, modules)
     modules = modules or ns.modules
     local settings, data = {}, {}
@@ -338,17 +352,44 @@ function Share.Validate(raw, modules)
         name = L.PROFILES_IMPORTED
     end
     local addon = type(raw.addon) == "string" and gsub(sub(raw.addon, 1, 20), "[^%w%.%-]", "") or "?"
-    local modulesOn, changed = ns.Profiles.CountSettings(settings)
-    return { name = name, addon = addon, settings = settings, data = data, modulesOn = modulesOn,
-        changed = changed }
+    local preset = knownPreset(raw.p)
+    if preset then
+        for moduleName, own in pairs(settings) do
+            for key, value in pairs(own) do
+                if ns.Presets.Value(preset, moduleName, key) == value then
+                    own[key] = nil
+                end
+            end
+            if next(own) == nil then
+                settings[moduleName] = nil
+            end
+        end
+    end
+    local modulesOn, changed = ns.Profiles.CountSettings(settings, preset)
+    return { name = name, addon = addon, settings = settings, data = data, preset = preset,
+        modulesOn = modulesOn, changed = changed }
 end
 
----Exported text for one of the profiles.
+---Exported text for one of the profiles: its own settings, and for a profile based on a preset,
+---the link and what the preset gives for the settings it doesn't set itself, so it looks the same
+---imported where that preset isn't there.
 ---@param id string
 ---@return string
 function Share.Export(id)
     local settings, data = ns.Profiles.Contents(id)
-    return Share.Encode(ns.Profiles.Name(id), settings, data)
+    local preset = ns.Profiles.Preset(id)
+    if preset then
+        for moduleName, values in pairs(ns.Presets.Resolve(preset)) do
+            local own = settings[moduleName] or {}
+            settings[moduleName] = own
+            for key, value in pairs(values) do
+                if own[key] == nil then
+                    own[key] = value
+                end
+            end
+        end
+    end
+    return Share.Encode(ns.Profiles.Name(id), settings, data, preset)
 end
 
 ---Pasted text as a profile ready to import (see Share.Validate), or nil and why not.

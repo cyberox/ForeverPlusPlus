@@ -164,33 +164,93 @@ commands.profiles("nothing")
 eq(#said, 1, "profiles: /fpp profiles with a name that isn't one says so")
 eq(Profiles.UsersText(1) .. "|" .. Profiles.UsersText(3), "1 character|3 characters", "profiles: users text")
 
--- A profile made from a preset, such as Developer's Defaults.
+-- A profile made from a preset (Lib/Presets.lua), such as Developer's Defaults: based on it, with
+-- nothing written into its settings, so it follows the preset as releases change it.
+ns.Presets.Register("spec", { title = "Spec Preset" })
 ns.modules.Dev = {
     name = "Dev", defaults = { enabled = false, size = 1, mode = "a", sound = true, list = {} },
     options = { { key = "size" }, { key = "mode" }, { key = "sound", cvar = "Sound_Enable" }, { key = "list" } },
+    presets = { spec = { enabled = true, options = { size = 4, mode = "a", sound = false, list = { 1 } } } },
 }
-ns.modules.OnAlready = { name = "OnAlready", defaults = { enabled = true, size = 1 }, options = { { key = "size" } } }
-ns.modules.Gone = { name = "Gone", unavailable = true, defaults = { enabled = false, size = 1 }, options = { { key = "size" } } }
+ns.modules.OnAlready = { name = "OnAlready", defaults = { enabled = true, size = 1 }, options = { { key = "size" } },
+    presets = { spec = { options = { size = 1 } } } }
+ns.modules.Gone = { name = "Gone", unavailable = true, defaults = { enabled = false, size = 1 },
+    options = { { key = "size" } }, presets = { spec = { enabled = true, options = { size = 9 } } } }
+ns.modules.Tool.presets = { spec = { options = { mode = "b" } } }
+ns.order = { "Win", "Tool", "Dev", "OnAlready", "Gone" }
 local inUse = Profiles.Current()
 local before = Profiles.Copy(Store.Root(ns.db, inUse ~= "default" and inUse or nil).settings)
-local dev = Profiles.CreateFromPreset("Dev", { "Dev", "OnAlready", "Tool", "Gone" }, {
-    Dev = { size = 4, mode = "a", sound = false, list = { 1 } },
-    OnAlready = { size = 1 },
-    Tool = { mode = "b" },
-    Gone = { size = 9 },
-})
+local dev = Profiles.CreateFromPreset("Dev", "spec")
 ok(dev, "profiles: one is made from a preset")
-local devSettings = ns.db.profiles[dev].settings
-eq(devSettings.Dev.enabled, true, "profiles: a preset's module is on")
-eq(devSettings.Dev.size, 4, "profiles: a preset's option value is saved")
-eq(devSettings.Dev.mode, nil, "profiles: a preset's value at its default isn't saved")
-eq(devSettings.Dev.sound, nil, "profiles: one of Blizzard's settings isn't saved")
-eq(devSettings.Dev.list, nil, "profiles: a table isn't an option value")
-eq(devSettings.OnAlready, nil, "profiles: a module on by default with nothing changed saves nothing")
-eq(devSettings.Tool, nil, "profiles: a module that's always on is left out")
-eq(devSettings.Gone, nil, "profiles: an unavailable module is left out")
+eq(next(ns.db.profiles[dev].settings), nil, "profiles: nothing is written into its settings")
+eq(ns.db.profiles[dev].preset, "spec", "profiles: it's based on the preset")
+eq(Profiles.Preset(dev), "spec", "profiles: and says so")
+eq(Profiles.Preset("default"), nil, "profiles: Default is based on none")
 eq(Profiles.Current(), inUse, "profiles: making one from a preset doesn't switch")
 T.same(Store.Root(ns.db, inUse ~= "default" and inUse or nil).settings, before,
     "profiles: the profile in use is untouched")
-eq((Profiles.Summary(dev)), 2, "profiles: the preset's profile counts its modules on")
-eq(Profiles.CreateFromPreset("dev"), nil, "profiles: a preset's profile needs a free name")
+local devOn, devChanged = Profiles.Summary(dev)
+eq(devOn .. "," .. devChanged, "2,1", "profiles: its summary reads the preset (Dev on and its size; "
+    .. "not Blizzard's setting, data, a value at its default, an always-on tool, or a module this client lacks)")
+eq(Profiles.CreateFromPreset("dev", "spec"), nil, "profiles: a preset's profile needs a free name")
+local nope, nopeWhy = Profiles.CreateFromPreset("Nope", "nothing")
+eq(nope == nil and nopeWhy ~= nil, true, "profiles: and a preset that's there")
+local devCopy = Profiles.Create("Dev Copy", dev)
+eq(Profiles.Preset(devCopy), "spec", "profiles: a copy is based on the same preset")
+
+-- Unlinking keeps what the player sees: the preset's values become their own choices, but not
+-- over one they made.
+ns.db.profiles[dev].settings.OnAlready = { size = 3 }
+swaps = 0
+eq(Profiles.SetPreset(dev, nil), true, "profiles: unlinking a profile not in use")
+eq(swaps, 0, "profiles: isn't a switch")
+eq(Profiles.Preset(dev), nil, "profiles: unlinked")
+eq(ns.db.profiles[dev].preset, nil, "profiles: and the link is gone")
+local devOwn = ns.db.profiles[dev].settings
+eq(tostring(devOwn.Dev.enabled) .. "," .. tostring(devOwn.Dev.size) .. "," .. tostring(devOwn.Dev.mode)
+    .. "," .. tostring(devOwn.Dev.sound) .. "," .. tostring(devOwn.Dev.list),
+    "true,4,nil,nil,nil", "profiles: what the preset gave is written in, but not values at the default, "
+    .. "Blizzard's settings, or data")
+eq(devOwn.OnAlready.size, 3, "profiles: a choice the player made is kept over the preset's")
+eq(devOwn.Tool == nil and devOwn.Gone == nil, true, "profiles: nothing for modules presets leave alone")
+local afterOn, afterChanged = Profiles.Summary(dev)
+eq(afterOn .. "," .. afterChanged, "2,2", "profiles: and it counts the same as its own settings")
+
+-- Linking keeps the player's own choices; only what they haven't set reads the preset.
+eq(Profiles.SetPreset(dev, "nothing"), nil, "profiles: a preset that isn't there")
+eq(Profiles.SetPreset("p404", "spec"), nil, "profiles: a profile that isn't there")
+eq(Profiles.SetPreset(dev, "spec"), true, "profiles: linking")
+eq(Profiles.Preset(dev) .. "," .. devOwn.OnAlready.size, "spec,3", "profiles: linked, keeping choices")
+
+-- A preset this version doesn't have (saved by a newer one) reads as none, and stays saved.
+ns.db.profiles[devCopy].preset = "fromnewer"
+eq(Profiles.Preset(devCopy), nil, "profiles: an unknown preset reads as none")
+local copyOn, copyChanged = Profiles.Summary(devCopy)
+eq(copyOn .. "," .. copyChanged, "1,0", "profiles: and counts as none")
+Profiles.SetPreset(devCopy, nil)
+eq(ns.db.profiles[devCopy].preset, "fromnewer", "profiles: unlinking leaves it for the newer version")
+local _, _, savedPreset = Profiles.Contents(devCopy)
+eq(savedPreset, "fromnewer", "profiles: and a copy carries it")
+Profiles.SetPreset(devCopy, "spec")
+eq(Profiles.Preset(devCopy), "spec", "profiles: linking to a known one replaces it")
+
+-- The profile in use changes live, as a switch does, or once combat ends.
+Profiles.Switch(dev)
+swaps = 0
+inCombat = true
+eq(Profiles.SetPreset(dev, nil), false, "profiles: in combat a link change waits")
+eq(Profiles.Preset(dev), "spec", "profiles: and nothing changes yet")
+endCombat()
+eq(Profiles.Preset(dev) == nil and swaps == 1, true, "profiles: once combat ends it's live")
+swaps = 0
+Profiles.SetPreset(dev, nil)
+eq(swaps, 0, "profiles: setting what it already is changes nothing")
+
+-- Contents made elsewhere (an import) can be based on a preset.
+local imported = Profiles.CreateFrom("Linked Import", { Dev = { size = 6 } }, {}, "spec")
+eq(Profiles.Preset(imported) .. "," .. ns.db.profiles[imported].settings.Dev.size, "spec,6",
+    "profiles: CreateFrom with a preset")
+Profiles.Replace(imported, { Dev = { size = 2 } }, {})
+eq(Profiles.Preset(imported), nil, "profiles: Replace without one is based on none")
+Profiles.Replace(imported, {}, {}, "spec")
+eq(Profiles.Preset(imported), "spec", "profiles: Replace with one")

@@ -131,7 +131,7 @@ local function text(value)
     return type(value) == "string" and value ~= ""
 end
 
-local checked, linked = 0, 0
+local checked, linked, presetsDeclared = 0, 0, 0
 for _, name in ipairs(ns.order or {}) do
     local module = ns.modules[name]
     checked = checked + #(module.options or {})
@@ -251,10 +251,57 @@ for _, name in ipairs(ns.order or {}) do
             problem("action %d needs a name, a button, and fn", i)
         end
     end
-    -- Developer's Defaults sets options the module has (a part's included, as byKey has them).
-    for key in pairs(module.developer and module.developer.options or {}) do
-        if not byKey[key] then
-            problem("developer option %s isn't an option", tostring(key))
+    -- A preset (`module.presets`) is one Lib/Presets.lua registered, turns the module on or off with
+    -- a boolean, and sets options the module has (a part's included, as byKey has them) to values
+    -- that fit them, and not data or one of Blizzard's settings, which presets never touch.
+    if module.developer ~= nil then
+        problem("module.developer is module.presets.developer now")
+    end
+    if module.presets ~= nil and type(module.presets) ~= "table" then
+        problem("presets isn't a table")
+    end
+    for preset, part in pairs(type(module.presets) == "table" and module.presets or {}) do
+        presetsDeclared = presetsDeclared + 1
+        if not ns.Presets.Exists(preset) then
+            problem("preset %s isn't registered", tostring(preset))
+        end
+        if type(part) ~= "table" then
+            problem("preset %s isn't a table", tostring(preset))
+            part = {}
+        end
+        for field in pairs(part) do
+            if field ~= "enabled" and field ~= "options" then
+                problem("preset %s has %s, which isn't enabled or options", tostring(preset), tostring(field))
+            end
+        end
+        if part.enabled ~= nil and type(part.enabled) ~= "boolean" then
+            problem("preset %s's enabled isn't true or false", tostring(preset))
+        end
+        if part.enabled ~= nil and module.alwaysOn then
+            problem("preset %s turns on a module that is always on", tostring(preset))
+        end
+        for key, value in pairs(type(part.options) == "table" and part.options or {}) do
+            local option = byKey[key]
+            local where = ("preset %s's %s"):format(tostring(preset), tostring(key))
+            if not option then
+                problem("%s isn't an option", where)
+            elseif option.cvar or type(module.defaults[key]) == "table" then
+                problem("%s is one presets don't set", where)
+            elseif option.choices then
+                local found = false
+                for _, choice in ipairs(option.choices) do
+                    found = found or choice[1] == value
+                end
+                if not found then
+                    problem("%s = %s isn't one of its choices", where, tostring(value))
+                end
+            elseif option.min then
+                if type(value) ~= "number" or value < option.min or value > option.max then
+                    problem("%s = %s is outside %s to %s", where, tostring(value), option.min, option.max)
+                end
+            elseif type(value) ~= "boolean" then
+                problem("%s = %s isn't true or false", where, tostring(value))
+            end
         end
     end
     eq(table.concat(problems, "; "), "", "modules: " .. name .. "'s settings")
@@ -262,6 +309,13 @@ end
 
 -- So a load that made no options can't pass by itself.
 eq(checked > 300 and linked > 20, true, ("modules: options checked (%d, %d linked)"):format(checked, linked))
+-- And no preset declarations went missing in a rename.
+eq(presetsDeclared >= 25, true, ("modules: presets declared (%d)"):format(presetsDeclared))
+eq(table.concat(ns.Presets.List(), ","), "developer", "modules: the presets this version ships")
+-- What Developer's Defaults does, flat: the same as it was before presets had names.
+local enables, options = ns.Presets.Flat("developer")
+eq(#enables >= 20 and options.ItemTooltips and options.ItemTooltips.hideJunk, true,
+    "modules: Developer's Defaults turns modules on and sets options")
 
 -- Console Variables' Popular list: each section has a header and items, each item a CVar name, a
 -- plain name, and help, and no CVar is listed twice (the page would count it once).

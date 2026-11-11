@@ -1117,9 +1117,20 @@ function ns.SetOption(name, key, value)
     optionChanged(module, key)
 end
 
----Puts one of a module's options back to its default and forgets the choice, so a later release
----changing the default reaches it too (the undo arrow, Debug turning off). Tells the module when
----the value it reads changed.
+---What one of a module's settings reads when the player hasn't set it, in the profile in use: what
+---the profile's preset says (Lib/Presets.lua), else the module's default. It's what a reset gives,
+---so anything asking "is this at its default" (the undo arrow, a profile's counts) compares with
+---this, not with `module.defaults`.
+---@param module table
+---@param key string
+---@return any
+function ns.BaseValue(module, key)
+    return ns.Store.Base(ns.db, ns.Store.profile, module.name, key, module.defaults)
+end
+
+---Puts one of a module's options back to its base (ns.BaseValue: the preset's value or its
+---default) and forgets the choice, so a later release changing either reaches it too (the undo
+---arrow, Debug turning off). Tells the module when the value it reads changed.
 ---@param name string
 ---@param key string
 function ns.ResetOption(name, key)

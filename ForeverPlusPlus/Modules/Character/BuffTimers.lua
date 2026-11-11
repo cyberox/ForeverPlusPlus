@@ -23,7 +23,7 @@ local module = ns.NewModule("BuffTimers", L.BUFFTIMERS_DESC, {
 })
 module.title = L.BUFFTIMERS_TITLE
 module.category = "character"
-module.developer = { options = { hideTracking = true } }
+module.presets = { developer = { options = { hideTracking = true } } }
 module.added = "0.8.0"
 -- Blizzard shows its own Duration text only with this CVar on, and so do we (see below); and
 -- secret aura times in combat, which we can't show.
