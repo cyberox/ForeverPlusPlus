@@ -3,7 +3,7 @@
 -- the professions window's recipe rows. Nothing is listened to until a module first asks.
 local _, ns = ...
 
-local _G, type, ipairs, pairs, select = _G, type, ipairs, pairs, select
+local _G, type, ipairs, pairs, select, setmetatable = _G, type, ipairs, pairs, select, setmetatable
 local GetProfessions, GetProfessionInfo = GetProfessions, GetProfessionInfo
 
 local Professions = {
@@ -669,4 +669,64 @@ function Professions.HookRecipeRows(module, hooks)
         end
     end)
     return true
+end
+
+-- Room at the right end of a row ------------------------------------------------------------------
+-- Blizzard's Init gives the name the row's width less the lock, the craftable count, the skill-up
+-- arrow, and 10 pixels, cuts a longer name short with "...", and shows the whole name in a tooltip
+-- then. What a module draws at the row's right end needs more than those 10 pixels, or a long name
+-- runs under it.
+
+local ROW_PADDING = 10 -- Blizzard's own, in ProfessionsRecipeListRecipeMixin:Init
+local LABEL_MIN = 40   -- less of a name than this isn't worth showing beside a column of ours
+local reserves = setmetatable({}, { __mode = "k" }) -- row -> { [key] = pixels }
+
+---Keeps a recipe's name clear of what a module draws at the right end of its row: the name is
+---sized as Blizzard sizes it, but ending before the row's last `reserved` pixels (counted from a
+---disabled recipe's lock when it shows), the widest reserve of every `key` on the row. Worked out
+---from the row each time, so call it whenever what's drawn changes, and with 0 once nothing is:
+---the name then gets Blizzard's width back. Returns false, reserving nothing, when too little of
+---the name would be left: the caller leaves its column empty on that row.
+---@param row table a recipe row
+---@param key string the caller's own name for its column
+---@param reserved number pixels from the row's right end, or 0
+---@return boolean fits
+function Professions.FitRowLabel(row, key, reserved)
+    local label = row and row.Label
+    if not (label and label.GetStringWidth) then
+        return false
+    end
+    local kept = reserves[row]
+    if not kept then
+        kept = {}
+        reserves[row] = kept
+    end
+    kept[key] = reserved > 0 and reserved or nil
+
+    local lock, count, skill = row.LockedIcon, row.Count, row.SkillUps
+    local used = skill and skill:GetWidth() or 0
+    if lock and lock:IsShown() then
+        used = used + lock:GetWidth()
+    end
+    if count and count:IsShown() then
+        used = used + count:GetStringWidth()
+    end
+    local full, room = label:GetStringWidth(), row:GetWidth() - used
+    local function fit()
+        local most = ROW_PADDING
+        for _, pixels in pairs(kept) do
+            if pixels > most then
+                most = pixels
+            end
+        end
+        return room - most
+    end
+    local width = fit()
+    local fits = width >= LABEL_MIN or full <= width
+    if not fits then
+        kept[key] = nil
+        width = fit()
+    end
+    label:SetWidth(width < full and width or full)
+    return fits
 end

@@ -966,8 +966,11 @@ end
 -- end, and Recipe Colors' number (up to three digits) left of it. So the profit has a column of its
 -- own left of both, on every row whether they show or not, and moves left of a disabled recipe's
 -- lock as theirs do. Rows are built again as the list scrolls, so profits are kept by recipe.
+-- A long name would run under the profit, so the name is cut short before it, as Blizzard cuts
+-- one that doesn't fit its row (Professions.FitRowLabel); a row too narrow for both shows no profit.
 
 local PROFIT_RIGHT = -42 -- 2 from the edge, 14 for an icon, 2, about 20 for a number, 4 between
+local PROFIT_GAP = 6     -- between the name (and its craftable count) and the profit
 
 local rowTexts = ns.ItemButtons.Overlays(function(row)
     local text = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
@@ -1020,6 +1023,7 @@ local function profitRow(row, node)
     end
     local text = rowTexts:Set(row, profit)
     if not text then
+        ns.Professions.FitRowLabel(row, "profit", 0) -- the name gets its own width back
         return
     end
     text:SetText(profitColor(profit):WrapTextInColorCode(ns.MoneyShort(profit)))
@@ -1030,6 +1034,16 @@ local function profitRow(row, node)
     else
         text:SetPoint("RIGHT", row, "RIGHT", PROFIT_RIGHT, 0)
     end
+    local reserved = -PROFIT_RIGHT + text:GetStringWidth() + PROFIT_GAP
+    if not ns.Professions.FitRowLabel(row, "profit", reserved) then
+        rowTexts:Set(row, false)
+    end
+end
+
+-- A row without its profit, the name back at Blizzard's width.
+local function clearRow(row)
+    rowTexts:Set(row, false)
+    ns.Professions.FitRowLabel(row, "profit", 0)
 end
 
 local ROW_HOOKS = { Init = profitRow }
@@ -1137,6 +1151,7 @@ function module:OnDisable()
         restoreReagents(form)
     end
     rowTexts:HideAll()
+    ns.Professions.EachRecipeRow(clearRow)
     wipe(profits)
     wipe(waiting)
 end
@@ -1150,7 +1165,6 @@ function module:OnOptionChanged(key)
         wipe(waiting)
         hookRows()
         redrawRows() -- hides every row's profit when they're off
-    elseif key == "auctionator" then
     elseif key == "auctionator" then
         ns.Prices.Changed() -- every price now comes from the other source
         -- A scan running when Auctionator's prices take over stops, keeping what it saw.

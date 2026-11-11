@@ -146,6 +146,8 @@ end
 -- from the right end (or from a disabled recipe's lock), so Appearance Icons' mark at the right end
 -- fits beside it.
 local NUMBER_RIGHT = -18 -- 2 from the edge, 14 for an icon, 2 between
+local NUMBER_GAP = 6     -- between the name (and its craftable count) and the number
+local fitLabel = ns.Professions.FitRowLabel
 local numbers = ns.ItemButtons.Overlays(function(row)
     local text = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     text:SetJustifyH("RIGHT")
@@ -166,6 +168,7 @@ local function rowNumber(row, info)
     end
     local text = numbers:Set(row, value)
     if not text then
+        fitLabel(row, "number", 0) -- the name gets its own width back
         return
     end
     text:SetText(value)
@@ -175,6 +178,10 @@ local function rowNumber(row, info)
         text:SetPoint("RIGHT", lock, "LEFT", NUMBER_RIGHT + 2, 0)
     else
         text:SetPoint("RIGHT", row, "RIGHT", NUMBER_RIGHT, 0)
+    end
+    -- A long name is cut short before the number, as Blizzard cuts one that doesn't fit its row.
+    if not fitLabel(row, "number", -NUMBER_RIGHT + text:GetStringWidth() + NUMBER_GAP) then
+        numbers:Set(row, false)
     end
 end
 
@@ -187,6 +194,7 @@ local function paint(row, node)
     if not module.enabled then
         tint(row)
         numbers:Set(row, false)
+        fitLabel(row, "number", 0)
         return
     end
     node = node or (row.GetElementData and row:GetElementData())
@@ -327,6 +335,7 @@ function module:OnDisable()
     local page = ProfessionsFrame and ProfessionsFrame.CraftingPage
     local hideCount = page and page.RecipeList and page.RecipeList.hideCraftableCount
     recipeRows(function(row)
+        fitLabel(row, "number", 0) -- before Init, so another module's hook sizes the name without it
         if row.Init and row.GetElementData then
             local node = row:GetElementData()
             if node then
