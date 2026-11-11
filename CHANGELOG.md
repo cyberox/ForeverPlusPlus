@@ -2,51 +2,50 @@
 
 What changed in each release of Forever++. The same notes show in game under Settings > AddOns > Forever++ > Changelog, from [`ForeverPlusPlus/Changelog.lua`](ForeverPlusPlus/Changelog.lua); change both together.
 
-## Unreleased
+## 1.5.0 (2026-11-11)
 
 ### Added
 
-- **Compass Bar**: a new module, off by default. A compass across the top of the screen with your selected quest, map pin, corpse, and group on it in the direction they are, and how far away. Every quest on the map, flight masters, gathering nodes, and rares can go on it too. Set its size in Edit Mode.
-- **Durability Warning**: a new module, on by default. Warns you once when an item you wear drops below the durability you pick (25% by default), and again when one breaks, so you repair in time: red text in the middle of the screen, and if you turn them on, a chat line naming the item and a sound you pick, each with its own option. It warns again only after a repair.
-- **Quest Item Sparkles**: a new module, off by default. Quest items you can pick up in the world sparkle, so they're easy to spot, and stay that way after you change your graphics settings.
-- **Auto Open Containers**: a new module, off by default. Opens the containers in your bags, such as clams, sacks, and lockboxes once they're unlocked, by themselves. It waits out combat, stealth, casting, and any loot, merchant, mail, bank, trade, or auction window, keeps a few bag slots free, and leaves raid sacks of gems and holiday gifts for you.
-- **Macro Icon Search**: a new module, on by default. A search box in the macro window's icon picker: type part of a spell's or item's name to see the icons of your spells and of the items you carry or wear that match.
-- **Quest Links**: a new module, on by default. Quests linked in chat by players with Questie, which show as plain text like [[34] A Grim Task (304)], become quest links you can click to see the quest.
-- **Talent Planner**: Import Plan also takes a build link from talentsforever.com or wowforevertalents.com. The build becomes a new plan, in the link's order when it has one, or else one tree at a time from the top, the tree with the most points first. A link made on a talent tree that isn't the same as yours is refused rather than guessed.
-- **World Map**: Zone Info's panel can have a minus button (Fold Button, off by default) that folds it down to the zone's name when it covers part of the map, or to only the button if you pick that, and a plus button to open it again. It can also sit in the middle of any edge of the map, not only a corner, and has an Opacity slider.
-- **Forever Quest Icons**: more icons: the blue Forever medallion from the login screen, a WoW coin, and a star, beside the infinity sign and the Forever logo, which a new Color option turns gold or blue. The Forever logo in blue is now the default, a little bigger in the quest log and the objective tracker, and sits level with the tracker's text. Each icon is cut to its art, so the Forever logo no longer makes a quest giver's rows taller.
-- **Professions**: a new module, on by default, for everything Forever++ adds to the professions window, each part with its own checkbox: Recipe Colors (until now a module of its own), Skill-Ups Left, and Crafting Costs (until now an option of Item Tooltips' Auction Prices) with Profit in Recipe List. Your settings for Recipe Colors and Crafting Costs, and the merchant prices Crafting Costs learned, carry over. Crafting Costs still takes its auction prices from Item Tooltips' Auction Prices, and says so in its settings while there are none.
-- **Professions**: Skill-Ups Left shows, on each recipe that can still raise your skill, how many skill-ups it has left before it turns gray, and the selected recipe says the same under its name. Pick Gray At to see the skill it turns gray at instead, or turn either off.
-- **Professions**: Profit in Recipe List (on by default) shows each recipe's Estimated Profit on its row of the professions window's recipe list, green for a profit and red for a loss, from the same prices as Crafting Costs.
-- **Settings**: click a category in the Modules list to fold it away, and again to open it. It stays folded next time, says NEW while something in it is, and a search still finds what's in it.
-- **Minimap Button**: Customize in Menu (on by default) can take the Customize... line off the bottom of the quick toggles. The Customize button in its settings still picks them.
-- **Error Catcher**: a blocked action says what was going on when it happened: combat, the instance, what the mouse was over, and the menus open. A Taint Log checkbox turns on the game's log of which addon caused it. It also catches the "Interface action failed because of an AddOn" message when the game shows it without naming an addon, as its controller interface does, with where it came from.
-- **Chat Arrow Keys**: a new module, on by default. While you type in chat, Up and Down bring back what you sent before, without holding Alt.
-- **Appearance Icons**: Hide Tooltip Line (off by default) leaves "You haven't collected this appearance" out of item tooltips, since the icon says so.
-- **Settings**: profiles. A new Profiles page gives characters sets of settings of their own: which modules are on, their settings, where you put frames in Edit Mode and windows with Movable Windows, and the Minimap Button's quick toggles. Everyone starts on Default, as before. Make a profile as a copy, from the defaults, or from Developer's Defaults, pick which one each character uses and which one new characters start on, and switch live, with no reload. Export a profile as a line of text and Import one someone shared. The Minimap Button's menu has a Profile submenu once there's more than one.
-- **Commands**: `/fpp profiles` lists the profiles, and `/fpp profiles <name>` switches to one.
+- **Settings**: profiles. A new Profiles page gives characters their own sets of settings: modules, options, Edit Mode and Movable Windows positions, and quick toggles. Everyone starts on Default. Copy, export, and import profiles, pick one for each character and for new characters, and switch with no reload.
+- **Professions**: a new module, on by default, for everything in the professions window: Recipe Colors (was its own module), Crafting Costs (was under Item Tooltips), and two new parts. Your settings carry over.
+- **Professions**: Skill-Ups Left shows how many skill-ups each recipe has left before it turns gray, or the skill it turns gray at.
+- **Professions**: Profit in Recipe List shows each recipe's estimated profit on its row, green for a profit and red for a loss.
+- **Compass Bar**: a new module, off by default. A compass across the top of the screen with your quest, map pin, corpse, and group on it, and how far away they are. Quests on the map, flight masters, gathering nodes, and rares can go on it too. Size it in Edit Mode.
+- **Durability Warning**: a new module, on by default. Red text on screen when gear you wear drops below 25% durability (you pick), and again when something breaks. A chat line and a sound are options.
+- **Macro Icon Search**: a new module, on by default. A search box in the macro icon picker that finds icons by the names of your spells and items.
+- **Quest Links**: a new module, on by default. Quests that players with Questie link in chat, which show as plain text, become quest links you can click.
+- **Chat Arrow Keys**: a new module, on by default. Up and Down in the chat box bring back what you sent before, without holding Alt.
+- **Auto Open Containers**: a new module, off by default. Opens clams, sacks, and unlocked lockboxes in your bags by themselves, when you're out of combat and no window is in the way, and keeps a few bag slots free.
+- **Quest Item Sparkles**: a new module, off by default. Keeps the sparkle on quest items in the world on, even after you change your graphics settings.
+- **Talent Planner**: Import Plan takes build links from talentsforever.com and wowforevertalents.com.
+- **Forever Quest Icons**: new icons (the blue Forever medallion, a WoW coin, and a star) and a Color option. The Forever logo in blue is now the default, and it no longer makes a quest giver's rows taller.
+- **World Map**: Zone Info has an Opacity slider, can sit in the middle of any edge of the map, and can have a Fold Button (off by default) to shrink it.
+- **Error Catcher**: a blocked action says what was going on: combat, the instance, what the mouse was over, and the menus open. A Taint Log checkbox turns on the game's log of the cause. It also catches "Interface action failed because of an AddOn" when the game doesn't name the addon.
+- **Appearance Icons**: Hide Tooltip Line (off by default) leaves "You haven't collected this appearance" out of item tooltips.
+- **Settings**: click a category in the Modules list to fold it. It stays folded next time.
+- **Minimap Button**: a Profile submenu once you have more than one profile, and Customize in Menu to take the Customize... line off the quick toggles.
+- **Commands**: `/fpp profiles` lists your profiles, and `/fpp profiles <name>` switches to one.
 
 ### Changed
 
-- **Waypoints**: the arrow sits a little lower by default, under the Compass Bar. If you moved it in Edit Mode, it stays where you put it.
-- **Waylaid Crates**: its settings say when Bundle Costs has no auction prices to show, because Item Tooltips' Auction Prices is off.
-- **Settings**: some modules have clearer names: Persistent Chat is now Keep Chat Visible, Profession Tooltips is Gathering Skill Tooltips, Commands is Slash Commands, and the Profiler is the CPU Profiler. Your settings for them are unchanged.
-- **Settings**: the Tools category is part of System. Auto Quest is under Automation, Movable Framerate under Interface.
-- **Commands**: `/fpp profiler` opens the CPU Profiler. `/fpp profile` now lists your profiles, as `/fpp profiles` does.
-- **Gathering Map**: Only While Tracking hides herbs and ore on the minimap only. The world map shows your nodes whether or not Find Herbs or Find Minerals is on.
-- **World Map**: Zone Info shows a zone's Fishing skill only on a character who fishes, as it does for herbs, ore, and skinning, unless you pick otherwise.
-- **Minimap Button**: its settings are in three sections, and Swap Clicks is now called Click Opens Quick Toggles. Auto Stow's quick toggle is under Out in the World, and Quest Nameplates has one under Nameplates.
-- **Talent Planner**: Level-Up Reminder is one checkbox. It had a second, Chat Messages, and the reminder needed both.
-- **Currency Bar**: Vertical is in the bar's Edit Mode settings, with its place and scale.
+- **Settings**: clearer names: Persistent Chat is Keep Chat Visible, Profession Tooltips is Gathering Skill Tooltips, Commands is Slash Commands, and the Profiler is the CPU Profiler. Your settings are unchanged.
+- **Settings**: the Tools category is part of System. Auto Quest is under Automation, and Movable Framerate under Interface.
+- **Commands**: `/fpp profiler` opens the CPU Profiler. `/fpp profile` now lists your profiles.
+- **Gathering Map**: Only While Tracking hides herbs and ore on the minimap only. The world map always shows your nodes.
+- **World Map**: Zone Info shows a zone's Fishing skill only on a character who fishes, unless you pick otherwise.
+- **Minimap Button**: its settings are in sections, and Swap Clicks is now called Click Opens Quick Toggles.
+- **Talent Planner**: Level-Up Reminder is one checkbox instead of two.
+- **Currency Bar**: Vertical is in the bar's Edit Mode settings.
+- **Waypoints**: the arrow sits a little lower by default, under the Compass Bar. If you moved it, it stays where you put it.
 
 ### Fixed
 
-- **Short Channel Names**: the chat box shows the short name of the channel or group you're typing to, as chat does, instead of its full name. Trade (Services) shortens to TS instead of T(S.
-- **Whisper Window**: in combat, right-clicking a player's name in a conversation opens a short menu with Invite, instead of the game's menu, which the game could block there. Out of combat it's the game's menu as before.
+- **Short Channel Names**: the chat box shows the short name of the channel you're typing to, and Trade (Services) shortens to TS instead of T(S.
+- **Whisper Window**: in combat, right-clicking a player's name opens a short menu with Invite, instead of the game's menu, which the game could block there.
 
 ### Removed
 
-- **Minimap Node Icons**: removed. It's been turned off since the game's update of November 7, when the minimap stopped saying what's on it unless you point at it yourself. Gathering Map still remembers every node you gather and shows it on the minimap, and its settings now have the Clear button for the herbs and veins learned in game.
+- **Minimap Node Icons**: removed. The game's update of November 7 stopped it working. Gathering Map still shows the nodes you gather on the minimap.
 
 ## 1.4.0 (2026-11-09)
 
