@@ -301,13 +301,26 @@ local function reagentCount(tooltip)
     end
 end
 
----How many items the hovered stack holds, or how many a recipe takes of a reagent in the
----professions window; 1 when it can't tell (links, merchants, buyback).
+-- An item in a quest window (one it asks for, or a reward): how many, or nil. Blizzard's quest
+-- item buttons say what they are in `type` and `objectType`, and SetItemButtonCount leaves the
+-- number it drew in `count`.
+local function questItemCount(tooltip)
+    local owner = tooltip and tooltip.GetOwner and tooltip:GetOwner()
+    if type(owner) ~= "table" or owner.objectType ~= "item" or type(owner.type) ~= "string" then
+        return nil
+    end
+    local count = owner.count
+    return ns.IsNumber(count) and count > 0 and count or nil
+end
+
+---How many items the hovered stack holds, how many a recipe takes of a reagent in the
+---professions window, or how many a quest asks for or gives; 1 when it can't tell (links,
+---merchants, buyback).
 ---@param data table tooltip data
----@param tooltip? table the tooltip, to find a reagent slot it belongs to
+---@param tooltip? table the tooltip, to find a reagent slot or quest item it belongs to
 ---@return number
 function ItemTooltip.StackCount(data, tooltip)
-    local reagent = reagentCount(tooltip)
+    local reagent = reagentCount(tooltip) or questItemCount(tooltip)
     if reagent then
         return reagent
     end

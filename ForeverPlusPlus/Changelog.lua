@@ -87,6 +87,8 @@ ns.changelog = {
                     .. "typing to, and Trade (Services) shortens to TS instead of T(S." },
                 { L.WHISPERWINDOW_TITLE, "In combat, right-clicking a player's name opens a short menu "
                     .. "with Invite, instead of the game's menu, which the game could block there." },
+                { L.ITEMTOOLTIPS_TITLE, "In a quest window, prices count as many items as the quest "
+                    .. "asks for or gives, not one." },
             } },
             { L.CHANGELOG_REMOVED, {
                 { L.MINIMAPNODEICONS_TITLE, "Removed. The game's update of November 7 stopped it "
