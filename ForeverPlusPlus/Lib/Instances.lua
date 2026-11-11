@@ -20,10 +20,11 @@ local Instances = {
     deadmines = { 36, "The Deadmines", 17, 26 },
     diremaul = { 429, "Dire Maul", 56, 60 },
     gnomeregan = { 90, "Gnomeregan", 29, 38 },
-    -- Forever's. The instance IDs are the client's Map table (build 70009); the lowest levels are
-    -- its dungeon finder's, the highest are guides'. The five after these are the Group Finder's
-    -- (C_LFGList activities, IDs and levels, seen in game 2026-11-07), which also gave Hall of
-    -- Thanes' 13-20.
+    -- Forever's. The instance IDs are the client's Map table (build 70009; the five after Hall of
+    -- Thanes from 70888, see tools/datagen/Reference.txt); the lowest levels are its dungeon
+    -- finder's, the highest are guides'. The five after Hall of Thanes have the Group Finder's
+    -- levels (C_LFGList activities, seen in game 2026-11-07), which also gave Hall of Thanes'
+    -- 13-20.
     hallOfThanes = { 3065, "Hall of Thanes", 13, 20 },
     drownedCity = { 2970, "The Drowned City", 35, 42 },
     kroldok = { 3039, "Krol'dok Stronghold", 40, 47 },
