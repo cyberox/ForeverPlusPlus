@@ -132,18 +132,67 @@ local function tooltip(self)
     GameTooltip:Show()
 end
 
--- The box sits left of the picker's Okay button, in its bottom row.
-local function makeBox(popup)
+-- The row above the icons: Blizzard's "Choose an Icon:" label at the left and its All Icons
+-- dropdown at the right, with room between them (IconSelectorPopupFrameTemplate's BorderBox
+-- children; Gethe forever branch 1.60.1.70862, Blizzard_SharedXML/Mainline/
+-- SharedUIPanelTemplates.xml, read 2026-11-11).
+local function topRow(popup)
     local border = popup.BorderBox
-    local okay = border and border.OkayButton
-    if not okay then
+    local label = border and border.IconSelectionText
+    local dropdown = border and border.IconTypeDropdown
+    if label and dropdown and label.GetRight and dropdown.GetLeft then
+        return label, dropdown
+    end
+end
+
+local GAP = 12 -- from the box to the label and the dropdown; its border art reaches 5 px past it
+local MIN_WIDTH, BOTTOM_WIDTH = 40, 150
+
+-- In the top row the box fills the gap between the label and the dropdown, so a longer
+-- translated label leaves it narrower instead of under it. One anchor can't take its left edge
+-- from the label and its height from the dropdown, so it hangs from the dropdown and its width is
+-- the gap, measured each time the picker shows.
+local function fit(popup)
+    local label, dropdown = topRow(popup)
+    if not (box and label) then
         return
     end
-    local made = ns.SettingsKit.AddSearchBox(border, okay, L.MACROICONSEARCH_BOX, search)
+    local left, right = label:GetRight(), dropdown:GetLeft()
+    if left and right then
+        local width = right - left - 2 * GAP
+        box:SetWidth(width > MIN_WIDTH and width or MIN_WIDTH)
+    end
+    -- Blizzard hides the label and dropdown while a spell or item is held over the picker, to
+    -- show its drop area there.
+    box:SetShown(dropdown:IsShown())
+end
+
+-- The box sits in the top row, right of "Choose an Icon:" and left of the dropdown, centered on
+-- the dropdown. On a client without those it goes left of the Okay button, in the bottom row.
+local function makeBox(popup)
+    local border = popup.BorderBox
+    local label, dropdown = topRow(popup)
+    local anchor = dropdown or (border and border.OkayButton)
+    if not anchor then
+        return
+    end
+    local made = ns.SettingsKit.AddSearchBox(border, anchor, L.MACROICONSEARCH_BOX, search)
     if not made then
         return
     end
-    made:SetSize(150, 20)
+    if label then
+        made:ClearAllPoints()
+        made:SetPoint("RIGHT", dropdown, "LEFT", -GAP, 0)
+        made:SetHeight(20)
+        module:HookScript(dropdown, "OnShow", function()
+            fit(popup)
+        end)
+        module:HookScript(dropdown, "OnHide", function()
+            made:Hide()
+        end)
+    else
+        made:SetSize(BOTTOM_WIDTH, 20)
+    end
     made:HookScript("OnEnter", tooltip)
     made:HookScript("OnLeave", GameTooltip_Hide)
     return made
@@ -157,6 +206,7 @@ local function onShow(popup)
     if box then
         box:SetText("")
         box:Show()
+        fit(popup)
     end
 end
 
