@@ -62,6 +62,10 @@ ns.changelog = {
                     .. "\"Interface action failed because of an AddOn\" message when the game shows it "
                     .. "without naming an addon, as its controller interface does, with where it came "
                     .. "from." },
+                { L.CHATHISTORY_TITLE, "Arrow Keys Recall Messages (off by default): while you type "
+                    .. "in chat, Up and Down bring back what you sent before, without holding Alt." },
+                { L.APPEARANCEICONS_TITLE, "Hide Tooltip Line (off by default) leaves \"You haven't "
+                    .. "collected this appearance\" out of item tooltips, since the icon says so." },
                 { L.CHANGELOG_SETTINGS, "Profiles. A new Profiles page gives characters sets of "
                     .. "settings of their own: which modules are on, their settings, where you put frames "
                     .. "in Edit Mode and windows with Movable Windows, and the Minimap Button's quick "

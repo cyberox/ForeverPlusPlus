@@ -112,6 +112,10 @@ L.APPEARANCEICONS_RECIPE_SPOT_DESC = "Where on a recipe's row the icon sits: at 
 L.APPEARANCEICONS_RECIPE_SPOT_RIGHT = "Right Edge"
 L.APPEARANCEICONS_RECIPE_SPOT_BEFORE = "Before Name"
 L.APPEARANCEICONS_RECIPE_SPOT_AFTER = "After Name"
+L.APPEARANCEICONS_SECTION_TOOLTIP = "Tooltip"
+L.APPEARANCEICONS_HIDE_LINE = "Hide Tooltip Line"
+L.APPEARANCEICONS_HIDE_LINE_DESC = "Leave \"You haven't collected this appearance\" out of item "
+    .. "tooltips, since the icon already says so."
 
 L.UNUSABLEITEMSTINT_TITLE = "Unusable Items Tint"
 L.UNUSABLEITEMSTINT_PART_LOOKUP = "reading item tooltips" -- its row on the Profiler page

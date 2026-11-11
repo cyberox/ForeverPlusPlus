@@ -81,6 +81,10 @@ L.CHATHISTORY_LINES_DESC = "How many of each chat window's latest lines are kept
 L.CHATHISTORY_DIVIDER = "-- Earlier chat --"
 L.CHATHISTORY_DIVIDER_OPTION = "Earlier Chat Line"
 L.CHATHISTORY_DIVIDER_DESC = "Show a gray line between the restored chat and new chat."
+L.CHATHISTORY_ARROWS = "Arrow Keys Recall Messages"
+L.CHATHISTORY_ARROWS_DESC = "While you type in chat, Up and Down bring back what you sent before, "
+    .. "and Left and Right move through the text, without holding Alt. The arrow keys don't move "
+    .. "your character while the chat box is open."
 
 -- SocialButton
 L.SOCIALBUTTON_TITLE = "Social Button"

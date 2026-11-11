@@ -30,6 +30,7 @@ local module = ns.NewModule("AppearanceIcons", L.APPEARANCEICONS_DESC, {
     loot = true,
     professions = true, -- on a recipe's row in the professions window
     recipeSpot = "right", -- where on the row: "right" end, "before" the name (and its arrow), or "after" it
+    hideLine = false, -- leave the tooltip's "You haven't collected this appearance" out
 })
 module.title = L.APPEARANCEICONS_TITLE
 module.category = "items"
@@ -80,6 +81,10 @@ module.options = {
             { "after", L.APPEARANCEICONS_RECIPE_SPOT_AFTER },
         },
     },
+    {
+        key = "hideLine", name = L.APPEARANCEICONS_HIDE_LINE, description = L.APPEARANCEICONS_HIDE_LINE_DESC,
+        section = L.APPEARANCEICONS_SECTION_TOOLTIP, added = "1.5.0",
+    },
 }
 
 local RECHECK = 10 -- seconds an answer is believed before a new look
@@ -105,6 +110,17 @@ local function tooltipUncollected(link)
         end
     end
     return false
+end
+
+-- Hide Tooltip Line: the icon says the same, so the tooltip's own line can go. The line is left out
+-- as the tooltip is drawn; the lookup above reads the item's tooltip data, which still has it.
+-- Runs before every line of every tooltip, so the option is checked first.
+local function skipLine(_, line)
+    if not module.db.hideLine then
+        return false
+    end
+    local unknown, text = _G.TRANSMOGRIFY_TOOLTIP_APPEARANCE_UNKNOWN, line and line.leftText
+    return unknown ~= nil and ns.IsText(text) and text == unknown
 end
 
 local results = {} -- link -> true (not collected) or false, with the time it was looked at
@@ -353,6 +369,8 @@ end
 
 function module:OnEnable()
     hasAtlas = ns.Frames.HasAtlas(ATLAS)
+    -- Probe: line pre calls are Mainline's; the line has no kind of its own, so every kind is asked.
+    self:TooltipLinePreCall(TooltipDataProcessor and TooltipDataProcessor.AllTypes, skipLine)
     hookRecipes()
     self:On("ADDON_LOADED", onProfessions)
     self:On("TRADE_SKILL_SHOW", onProfessions)

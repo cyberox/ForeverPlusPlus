@@ -7,7 +7,7 @@
 -- plain text that players often share when reporting a bug.
 local _, ns = ...
 
-local pairs, ipairs, type, max = pairs, ipairs, type, math.max
+local pairs, ipairs, type, max, setmetatable = pairs, ipairs, type, math.max, setmetatable
 local GetChatTypeIndex = GetChatTypeIndex
 
 local L = ns.L
@@ -16,11 +16,12 @@ local Chat = ns.Chat
 local module = ns.NewModule("ChatHistory", L.CHATHISTORY_DESC, {
     lines = 100,
     divider = false,
+    arrows = false, -- Up and Down in the chat box recall what you sent, without holding Alt
     saved = {}, -- chat window number -> { { text, r, g, b }, ... }
 })
 module.title = L.CHATHISTORY_TITLE
 module.category = "chat"
-module.developer = { options = { divider = true } }
+module.developer = { options = { divider = true, arrows = true } }
 -- Each character's own chat, so an alt doesn't log in to another character's.
 module.perCharacter = { saved = true }
 
@@ -47,7 +48,42 @@ module.options = {
         min = 25, max = 125, step = 25, format = "%d",
     },
     { key = "divider", name = L.CHATHISTORY_DIVIDER_OPTION, description = L.CHATHISTORY_DIVIDER_DESC },
+    { key = "arrows", name = L.CHATHISTORY_ARROWS, description = L.CHATHISTORY_ARROWS_DESC, added = "1.5.0" },
 }
+
+-- Arrow Keys Recall Messages ------------------------------------------------------------------
+-- The chat box already remembers what you sent, but reads the arrow keys only with Alt held, so
+-- they keep moving your character while it's open (its "alt arrow key mode"). With that off, Up
+-- and Down step through what you sent and Left and Right move in the text. It's the game's own
+-- history and the game's own typing, so a recalled slash command is sent as if typed; nothing of
+-- ours writes into the box. Each box's own mode is kept to put back.
+
+local arrowModes = setmetatable({}, { __mode = "k" }) -- edit box -> its mode before ours
+
+local function editBoxOf(frame)
+    return frame.editBox or _G[(frame:GetName() or "") .. "EditBox"]
+end
+
+local function applyArrows(frame)
+    local box = editBoxOf(frame)
+    if not (box and box.SetAltArrowKeyMode and box.GetAltArrowKeyMode) then
+        return
+    end
+    local on = module.enabled and module.db.arrows
+    if on and arrowModes[box] == nil then
+        arrowModes[box] = box:GetAltArrowKeyMode() and true or false
+        box:SetAltArrowKeyMode(false)
+    elseif not on and arrowModes[box] ~= nil then
+        box:SetAltArrowKeyMode(arrowModes[box])
+        arrowModes[box] = nil
+    end
+end
+
+local function applyArrowsAll()
+    for _, frame in ipairs(Chat.Frames()) do
+        applyArrows(frame)
+    end
+end
 
 local WHISPERS = { "WHISPER", "WHISPER_INFORM", "BN_WHISPER", "BN_WHISPER_INFORM" }
 
@@ -118,8 +154,17 @@ end
 function module:OnEnable()
     self:On("PLAYER_LOGOUT", save)
     self:On("PLAYER_ENTERING_WORLD", restore)
+    -- Every window's chat box, and one added later.
+    Chat.EachWindow(self, applyArrows)
 end
 
 function module:OnDisable()
     self.db.saved = {}
+    applyArrowsAll()
+end
+
+function module:OnOptionChanged(key)
+    if key == "arrows" then
+        applyArrowsAll()
+    end
 end
