@@ -416,11 +416,12 @@ local function checkPlayers()
         "C_MajorFactions.GetMajorFactionProgressionInfo", "C_RecentAllies.IsRecentAllyByGUID" })
     info("players.ally-color", RECENT_ALLY_FONT_COLOR and join(RECENT_ALLY_FONT_COLOR:GetRGB())
         or "RECENT_ALLY_FONT_COLOR missing")
-    -- Recent allies: answers for the player and each group member, without opening the tab.
+    -- Recent allies: answers for the player and each group member, without opening the tab. A
+    -- member UnitIsUnit can't tell from the player (secret) is left out.
     local guids = { UnitGUID("player") }
     for i = 1, GetNumGroupMembers() do
         local unit = (IsInRaid() and "raid" or "party") .. i
-        if UnitExists(unit) and not UnitIsUnit(unit, "player") then
+        if UnitExists(unit) and not ns.IsTrueOrSecret(UnitIsUnit(unit, "player")) then
             guids[#guids + 1] = UnitGUID(unit)
         end
     end

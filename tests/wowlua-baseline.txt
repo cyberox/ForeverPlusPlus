@@ -94,7 +94,6 @@
 1	ForeverPlusPlus/Modules/System/MinimapButton.lua: warning[type-mismatch] expected `RootMenuDescriptionProxy` for parameter 'menuDescriptionProxy', got `RootMenuDescriptionProxy | MenuStyle1Mixin`
 2	ForeverPlusPlus/Modules/Tools/ConsoleVariables/ConsoleVariables.lua: warning[undefined-global] undefined global 'C_Console'
 1	ForeverPlusPlus/Modules/Tools/GearProbe.lua: warning[unbalanced-assignments] 2 variable(s) but only 1 value(s)
-1	ForeverPlusPlus/Modules/Tools/SelfTest.lua: warning[secret-condition] boolean from `UnitIsUnit` may be secret; testing it errors in addon code; guard with `canaccessvalue` or use a `...FromBoolean` API
 1	ForeverPlusPlus/Modules/Tools/SelfTest.lua: warning[type-mismatch] expected `CurveObjectBase?` for parameter '...', got `string`
 1	ForeverPlusPlus/Modules/Tools/SelfTest.lua: warning[type-mismatch] expected `number` for parameter '...', got `secret<number> | colorRGBA | string`
 1	ForeverPlusPlus/Modules/Tools/SelfTest.lua: warning[undefined-field] undefined field 'renownLevel' on type 'string'
