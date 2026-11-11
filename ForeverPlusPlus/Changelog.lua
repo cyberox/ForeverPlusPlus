@@ -31,6 +31,11 @@ ns.changelog = {
                 { L.QUESTLINKS_TITLE, "A new module, on by default. Quests linked in chat by players "
                     .. "with Questie, which show as plain text like [[34] A Grim Task (304)], become quest "
                     .. "links you can click to see the quest." },
+                { L.TALENTPLANNER_TITLE, "Import Plan also takes a build link from talentsforever.com "
+                    .. "or wowforevertalents.com. The build becomes a new plan, in the link's order when "
+                    .. "it has one, or else one tree at a time from the top, the tree with the most points "
+                    .. "first. A link made on a talent tree that isn't the same as yours is refused rather "
+                    .. "than guessed." },
                 { L.WORLDMAP_TITLE, "Zone Info's panel can have a minus button (Fold Button, off by "
                     .. "default) that folds it down to the zone's name when it covers part of the map, or to "
                     .. "only the button if you pick that, and a plus button to open it again. It can also sit "
