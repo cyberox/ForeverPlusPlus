@@ -38,9 +38,11 @@ module.category = "quests"
 -- A place's checkbox, with its size slider in the same row.
 local function place(key, name, description, added)
     local sizeKey = key .. "Size"
-    return { key = key, name = name, description = description, slider = sizeKey, added = added },
+    -- Under Show On, as item marks' places are; the icon and its color stay above, under Options.
+    return { key = key, name = name, description = description, slider = sizeKey, added = added,
+            section = L.ICONMARK_SECTION_SHOW },
         { key = sizeKey, name = L.FOREVERQUESTICONS_SIZE, description = L.FOREVERQUESTICONS_SIZE_DESC,
-            requires = key, min = 50, max = 300, step = 10, format = "%d%%" }
+            requires = key, min = 50, max = 300, step = 10, format = "%d%%", section = L.ICONMARK_SECTION_SHOW }
 end
 
 -- Each icon: an atlas, or a texture file the client has but no atlas names; `crop` is the art's

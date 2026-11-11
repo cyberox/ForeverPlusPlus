@@ -67,7 +67,7 @@ L.ALREADYKNOWN_CONFLICT_ARROW = "Upgrade Arrows puts its arrow in this corner to
     .. "overlap. Pick another corner for one of them."
 L.ALREADYKNOWN_CONFLICT_DOWN = "Upgrade Arrows puts its downgrade arrow in this corner too, so the "
     .. "two overlap. Pick another corner for one of them."
-L.ALREADYKNOWN_STYLE = "Mark"
+L.ALREADYKNOWN_STYLE = "Mark Style"
 L.ALREADYKNOWN_STYLE_DESC = "How an item you already know is marked: a green check on its icon, "
     .. "a green tint over the icon, or both."
 L.ALREADYKNOWN_STYLE_CHECK = "Green Check"
@@ -254,7 +254,7 @@ L.BAGSLOTCOUNTER_POSITION_TOP = "Top"
 L.BAGSLOTCOUNTER_POSITION_CENTER = "Center"
 
 -- ProfessionTooltips
-L.PROFTOOLTIPS_TITLE = "Profession Tooltips"
+L.PROFTOOLTIPS_TITLE = "Gathering Skill Tooltips" -- Profession Tooltips up to 1.4.0
 -- Headers over its options in Settings
 L.PROFTOOLTIPS_SECTION_GATHERING = "Gathering"
 L.PROFTOOLTIPS_SECTION_LOCKS = "Locks"
@@ -359,6 +359,7 @@ L.UPGRADEARROWS_PAIRED_LINE = "Paired With"
 L.UPGRADEARROWS_TOOLS = "Ignore Profession Tools"
 L.UPGRADEARROWS_TOOLS_DESC = "Leave fishing poles and tools like the Mining Pick, Blacksmith "
     .. "Hammer, and Skinning Knife unmarked, since you carry them for a profession, not to fight with."
+L.UPGRADEARROWS_SECTION_TOOLTIP = "Tooltip"
 L.UPGRADEARROWS_SECTION_ARROW = "Arrow"
 L.UPGRADEARROWS_CORNER_DESC = "Which corner of the icon the arrow sits in."
 L.UPGRADEARROWS_DOWNCORNER = "Downgrade Corner"

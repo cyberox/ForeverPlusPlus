@@ -17,7 +17,7 @@ L.FASTLOOT_BLIZZARD_OFF_DESC = "Blizzard's auto loot is off, so only loot you ta
 -- AutoRepair
 L.AUTOREPAIR_TITLE = "Auto Repair"
 L.AUTOREPAIR_DESC = "Repair all your gear when you talk to a merchant who repairs, and say in chat "
-    .. "what it cost. Hold the Skip Key (Shift) to skip it."
+    .. "what it cost. Hold the Skip Key to skip it."
 L.AUTOREPAIR_FUNDS = "Pay With"
 L.AUTOREPAIR_FUNDS_DESC = "Whose money pays for repairs."
 L.AUTOREPAIR_FUNDS_GUILD_FIRST = "Guild Bank, Then Your Own"
@@ -35,7 +35,7 @@ L.AUTOREPAIR_NO_MONEY = "Not enough money to repair (%s)." -- cost
 L.AUTOREPAIR_NO_GUILD_MONEY = "The guild bank can't pay for repairs (%s)." -- cost
 
 -- AutoSellJunk
-L.AUTOOPEN_TITLE = "Auto Open"
+L.AUTOOPEN_TITLE = "Auto Open Containers"
 L.AUTOOPEN_DESC = "Open the containers in your bags, such as clams, sacks, and lockboxes once "
     .. "they're unlocked, by themselves. It waits out combat, stealth, casting, and any loot, "
     .. "merchant, mail, bank, trade, or auction window."
@@ -51,7 +51,7 @@ L.AUTOOPEN_OPENED = "Opened %s." -- one or more item links, each maybe with a co
 L.AUTOOPEN_COUNT = "%s x%d" -- item link, how many
 L.AUTOSELLJUNK_TITLE = "Auto Sell Junk"
 L.AUTOSELLJUNK_DESC = "Sell the gray items in your bags when you talk to a merchant, and say in "
-    .. "chat what they sold for. Hold the Skip Key (Shift) to skip it."
+    .. "chat what they sold for. Hold the Skip Key to skip it."
 L.AUTOSELLJUNK_BUYBACK = "Keep Everything Buyable Back"
 L.AUTOSELLJUNK_BUYBACK_DESC = "Sell only as much junk as the merchant's buyback list has room for "
     .. "beside what you sold yourself, so you can still buy back anything sold by mistake."

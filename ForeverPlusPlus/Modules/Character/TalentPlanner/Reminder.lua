@@ -55,7 +55,7 @@ function internal.checkPoints()
         end
     end
     local node = internal.describe(t.nodes[id], t)
-    module:Print(format(L.TALENTPLANNER_REMINDER_LINE, internal.withIcon(node), rank, node.max))
+    ns.Print(format(L.TALENTPLANNER_REMINDER_LINE, internal.withIcon(node), rank, node.max))
 end
 
 -- Talent points come a moment after the level does.

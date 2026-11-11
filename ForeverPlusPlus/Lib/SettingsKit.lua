@@ -29,7 +29,6 @@ local CATEGORIES = {
     { "map", L.CATEGORY_MAP },
     { "quests", L.CATEGORY_QUESTS },
     { "system", L.CATEGORY_SYSTEM },
-    { "tools", L.CATEGORY_TOOLS },
     { "units", L.CATEGORY_UNITS },
 }
 table.sort(CATEGORIES, function(a, b) return string.lower(a[2]) < string.lower(b[2]) end)

@@ -21,7 +21,7 @@ local module = ns.NewModule("MacroIconSearch", L.MACROICONSEARCH_DESC, {
     enabled = true,
 })
 module.title = L.MACROICONSEARCH_TITLE
-module.category = "interface"
+module.category = "character"
 module.added = "1.5.0"
 
 local MACRO_UI = "Blizzard_MacroUI"

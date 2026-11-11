@@ -226,7 +226,7 @@ L.SCREENSHOTS_SCENE_MINIMAP = "Minimap Button"
 L.SCREENSHOTS_SCENE_SCREEN = "Screen"
 
 -- Profiler
-L.PROFILER_TITLE = "Profiler"
+L.PROFILER_TITLE = "CPU Profiler"
 L.PROFILER_DESC = "See how much CPU each module takes, on a page in Settings, to find what's slow."
 L.PROFILER_COMMAND = "open the Profiler page"
 L.PROFILER_NO_PAGE = "This client's Settings can't open the Profiler page."

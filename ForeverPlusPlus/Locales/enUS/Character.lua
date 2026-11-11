@@ -70,7 +70,6 @@ L.TALENTPLANNER_REMINDER = "Level-Up Reminder"
 L.TALENTPLANNER_REMINDER_DESC = "When you gain a talent point, say in chat which talent the plan "
     .. "takes next."
 L.TALENTPLANNER_REMINDER_LINE = "Talent point ready. Next in your plan: %s (%d/%d)."
-L.TALENTPLANNER_CHAT_DESC = "Show the Level-Up Reminder line in chat."
 L.TALENTPLANNER_PLAN = "Plan Talents"
 L.TALENTPLANNER_DONE = "Done Planning"
 L.TALENTPLANNER_PLAN_DESC = "Place talents without learning them. Each click adds a point to the "
@@ -216,12 +215,12 @@ L.PROFESSIONS_GRAY_DESC = "Show recipes you know that can't raise your skill any
 L.PROFESSIONS_SKILLUPS = "Skill-Ups Left"
 L.PROFESSIONS_SKILLUPS_DESC = "Show how long each recipe you know keeps raising your skill: a "
     .. "number on its row and a line under the selected recipe's name."
-L.PROFESSIONS_POINTS = "Row Number"
+L.PROFESSIONS_POINTS = "Skill-Ups in Recipe List"
 L.PROFESSIONS_POINTS_DESC = "A number at the end of each recipe that can still raise your skill: how many skill-ups are left before it turns gray, or the skill it turns gray at."
-L.PROFESSIONS_POINTS_LEFT = "Skill-Ups Left"
+L.PROFESSIONS_POINTS_LEFT = "Number Left"
 L.PROFESSIONS_POINTS_GRAY = "Gray At"
 L.PROFESSIONS_POINTS_OFF = "Off"
-L.PROFESSIONS_DETAIL = "Skill-Ups on the Recipe"
+L.PROFESSIONS_DETAIL = "Skill-Ups on Selected Recipe"
 L.PROFESSIONS_DETAIL_DESC = "Under the selected recipe's name, the skill it gives skill-ups until, and how many are left."
 L.PROFESSIONS_DETAIL_UNTIL = "Skill-ups until %d" -- the skill a recipe turns gray at
 L.PROFESSIONS_DETAIL_MORE = "Skill-ups until %d %s" -- the skill, then PROFESSIONS_DETAIL_LEFT in gray
@@ -284,7 +283,8 @@ L.SPELLRANKS_LINE = "Bar %d, slot %d: %s is Rank %d, and Rank %d is known." -- b
 -- BuffTimers
 L.BUFFTIMERS_TITLE = "Buff Timers"
 L.BUFFTIMERS_DESC = "Show the time left on your buffs and debuffs as a clock, like 1:23, instead "
-    .. "of rounded minutes like 2 m."
+    .. "of rounded minutes like 2 m. It can also sort your buffs by time left and keep tracking "
+    .. "buffs off the bar."
 L.BUFFTIMERS_NOTICE = "In combat, Blizzard's own timer may show instead." -- a gray row atop the module
 L.BUFFTIMERS_NOTICE_DESC = "In combat the game may hide aura times from addons. Then Blizzard's "
     .. "rounded timer shows until it can read them again."

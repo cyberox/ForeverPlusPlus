@@ -17,20 +17,20 @@ local module = professions:NewPart({
     key = "skillUps", name = L.PROFESSIONS_SKILLUPS, description = L.PROFESSIONS_SKILLUPS_DESC,
     section = L.PROFESSIONS_SKILLUPS,
 }, {
-    points = "left", -- the number on a row: "left" (skill-ups left), "gray" (the skill it's gray at), "off"
-    detail = true, -- "Skill-ups until 125 (7 more)" by the selected recipe's name
+    skillUpsRows = "left", -- the number on a row: "left" (skill-ups left), "gray" (the skill it's gray at), "off"
+    skillUpsDetail = true, -- "Skill-ups until 125 (7 more)" by the selected recipe's name
 })
 
 module:AddOptions({
     {
-        key = "points", name = L.PROFESSIONS_POINTS, description = L.PROFESSIONS_POINTS_DESC,
+        key = "skillUpsRows", name = L.PROFESSIONS_POINTS, description = L.PROFESSIONS_POINTS_DESC,
         choices = {
             { "left", L.PROFESSIONS_POINTS_LEFT },
             { "gray", L.PROFESSIONS_POINTS_GRAY },
             { "off", L.PROFESSIONS_POINTS_OFF },
         },
     },
-    { key = "detail", name = L.PROFESSIONS_DETAIL, description = L.PROFESSIONS_DETAIL_DESC },
+    { key = "skillUpsDetail", name = L.PROFESSIONS_DETAIL, description = L.PROFESSIONS_DETAIL_DESC },
 })
 
 -- Gray levels --------------------------------------------------------------------------------------
@@ -81,7 +81,7 @@ local numbers = ns.ItemButtons.Overlays(function(row)
 end)
 
 local function numbersOn()
-    return module.enabled and module.db.points ~= "off"
+    return module.enabled and module.db.skillUpsRows ~= "off"
 end
 
 local function rowNumber(row, node)
@@ -93,7 +93,7 @@ local function rowNumber(row, node)
         local info = Professions.RowRecipe(row, node)
         local gray = counts(info) and info.canSkillUp and grayAt(info)
         value = gray
-        if gray and module.db.points == "left" then
+        if gray and module.db.skillUpsRows == "left" then
             local skill = skillOf(info.recipeID)
             value = skill and gray - skill
             if value and value <= 0 then
@@ -139,7 +139,7 @@ end
 -- After the form shows a recipe (its Init), or with the recipe it shows now.
 local function drawDetail(form, info)
     local icon, name = form and form.OutputIcon, form and form.OutputText
-    local text = module.enabled and module.db.detail and icon and name and icon:IsShown()
+    local text = module.enabled and module.db.skillUpsDetail and icon and name and icon:IsShown()
         and name:IsShown() and detailText(info)
     if not text then
         if detail then

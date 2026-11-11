@@ -78,6 +78,7 @@ module:AddOptions({
     {
         key = "scanAgeRedHours", name = L.AUCTIONPRICES_SCAN_AGE_RED,
         description = L.AUCTIONPRICES_SCAN_AGE_RED_DESC, requires = "scanAge",
+        shown = function(db) return db.scanAgeColor == "age" end,
         min = 1, max = 48, step = 1, format = ns.Text.Hours,
     },
     { key = "scanOnOpen", name = L.AUCTIONPRICES_SCAN_ON_OPEN, description = L.AUCTIONPRICES_SCAN_ON_OPEN_DESC },

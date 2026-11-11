@@ -208,7 +208,7 @@ module.options = {
     },
     {
         key = "nearYards", name = L.GATHERINGMAP_NEAR_YARDS, description = L.GATHERINGMAP_NEAR_YARDS_DESC,
-        section = MINIMAP, requires = "minimap", min = 10, max = 200, step = 10, format = L.GATHERINGMAP_YARDS,
+        section = MINIMAP, requires = "minimap", min = 10, max = 200, step = 10, format = L.SLIDER_YARDS,
         shown = function(db)
             return db.nearby == "ring" or db.nearby == "hide"
         end,
@@ -663,7 +663,9 @@ function internal.Shown(node, where)
             return false
         end
     end
-    if db.onlyTracking and TRACKED[kind] and not tracking[kind] then
+    -- On the minimap only: the world map is where a player looks for veins before turning Find
+    -- Minerals on, and showed none.
+    if where ~= "world" and db.onlyTracking and TRACKED[kind] and not tracking[kind] then
         return false
     end
     if internal.JustLook(where) == "hide" and internal.JustGathered(node) then
@@ -689,9 +691,12 @@ function internal.ShownOnMinimap(node)
     return internal.Shown(node, "minimap")
 end
 
--- What the Compass Bar reads through the provider: whether a node shows, as on the minimap, and
--- its icon (nil for a node whose item isn't known yet).
-provider.Shown = internal.ShownOnMinimap
+-- What the Compass Bar reads through the provider: whether a node shows, as on the minimap but
+-- never one just gathered (the minimap can show that one as an empty ring; a bar that points at
+-- it sends the player back to nothing), and its icon (nil for a node whose item isn't known yet).
+function provider.Shown(node)
+    return internal.ShownOnMinimap(node) and not internal.JustGathered(node)
+end
 provider.Icon = itemIcon
 
 -- Whether a tooltip line set to `key` ("always", "shift", or "never") shows now.
@@ -766,7 +771,7 @@ function internal.TooltipLines(node, yards, onDot)
         end
     end
     if yards and wants("tipDistance") then
-        lines[#lines + 1] = Tip.Pair(L.GATHERINGMAP_TIP_DISTANCE, format(L.GATHERINGMAP_YARDS, yards + 0.5))
+        lines[#lines + 1] = Tip.Pair(L.GATHERINGMAP_TIP_DISTANCE, ns.Text.Yards(yards))
     end
     if wants("tipForget") then
         -- On the world map a Shift+click also places the map pin; on the minimap it's a ping.

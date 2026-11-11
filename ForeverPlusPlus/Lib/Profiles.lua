@@ -636,8 +636,9 @@ function Profiles.SwitchAndSay(id)
     end
 end
 
--- /fpp profiles lists them; /fpp profiles <name> switches this character to one.
-ns.AddCommand("profiles", "[name]", L.SLASH_PROFILE, function(rest)
+-- /fpp profiles lists them; /fpp profiles <name> switches this character to one. /fpp profile
+-- does the same, so a missing "s" doesn't matter.
+local function command(rest)
     rest = gsub(gsub(rest or "", "^%s+", ""), "%s+$", "")
     if rest ~= "" then
         local id = Profiles.Find(rest)
@@ -654,4 +655,6 @@ ns.AddCommand("profiles", "[name]", L.SLASH_PROFILE, function(rest)
         ns.PrintLine(format("  %s%s  |cff999999%s|r", id == current and "|cff44dd44>|r " or "  ",
             Profiles.Name(id), Profiles.UsersText(#Profiles.Users(id))))
     end
-end)
+end
+ns.AddCommand("profiles", "[name]", L.SLASH_PROFILE, command)
+ns.AddCommand("profile", "[name]", L.SLASH_PROFILE, command)

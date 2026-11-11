@@ -9,7 +9,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Compass Bar**: a new module, off by default. A compass across the top of the screen with your selected quest, map pin, corpse, and group on it in the direction they are, and how far away. Every quest on the map, flight masters, gathering nodes, and rares can go on it too. Set its size in Edit Mode.
 - **Durability Warning**: a new module, on by default. Warns you once when an item you wear drops below the durability you pick (25% by default), and again when one breaks, so you repair in time: red text in the middle of the screen, and if you turn them on, a chat line naming the item and a sound you pick, each with its own option. It warns again only after a repair.
 - **Quest Item Sparkles**: a new module, off by default. Quest items you can pick up in the world sparkle, so they're easy to spot, and stay that way after you change your graphics settings.
-- **Auto Open**: a new module, off by default. Opens the containers in your bags, such as clams, sacks, and lockboxes once they're unlocked, by themselves. It waits out combat, stealth, casting, and any loot, merchant, mail, bank, trade, or auction window, keeps a few bag slots free, and leaves raid sacks of gems and holiday gifts for you.
+- **Auto Open Containers**: a new module, off by default. Opens the containers in your bags, such as clams, sacks, and lockboxes once they're unlocked, by themselves. It waits out combat, stealth, casting, and any loot, merchant, mail, bank, trade, or auction window, keeps a few bag slots free, and leaves raid sacks of gems and holiday gifts for you.
 - **Macro Icon Search**: a new module, on by default. A search box in the macro window's icon picker: type part of a spell's or item's name to see the icons of your spells and of the items you carry or wear that match.
 - **Quest Links**: a new module, on by default. Quests linked in chat by players with Questie, which show as plain text like [[34] A Grim Task (304)], become quest links you can click to see the quest.
 - **Talent Planner**: Import Plan also takes a build link from talentsforever.com or wowforevertalents.com. The build becomes a new plan, in the link's order when it has one, or else one tree at a time from the top, the tree with the most points first. A link made on a talent tree that isn't the same as yours is refused rather than guessed.
@@ -21,7 +21,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Settings**: click a category in the Modules list to fold it away, and again to open it. It stays folded next time, says NEW while something in it is, and a search still finds what's in it.
 - **Minimap Button**: Customize in Menu (on by default) can take the Customize... line off the bottom of the quick toggles. The Customize button in its settings still picks them.
 - **Error Catcher**: a blocked action says what was going on when it happened: combat, the instance, what the mouse was over, and the menus open. A Taint Log checkbox turns on the game's log of which addon caused it. It also catches the "Interface action failed because of an AddOn" message when the game shows it without naming an addon, as its controller interface does, with where it came from.
-- **Chat History**: Arrow Keys Recall Messages (off by default): while you type in chat, Up and Down bring back what you sent before, without holding Alt.
+- **Chat Arrow Keys**: a new module, off by default. While you type in chat, Up and Down bring back what you sent before, without holding Alt.
 - **Appearance Icons**: Hide Tooltip Line (off by default) leaves "You haven't collected this appearance" out of item tooltips, since the icon says so.
 - **Settings**: profiles. A new Profiles page gives characters sets of settings of their own: which modules are on, their settings, where you put frames in Edit Mode and windows with Movable Windows, and the Minimap Button's quick toggles. Everyone starts on Default, as before. Make a profile as a copy, from the defaults, or from Developer's Defaults, pick which one each character uses and which one new characters start on, and switch live, with no reload. Export a profile as a line of text and Import one someone shared. The Minimap Button's menu has a Profile submenu once there's more than one.
 - **Commands**: `/fpp profiles` lists the profiles, and `/fpp profiles <name>` switches to one.
@@ -30,6 +30,14 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 - **Waypoints**: the arrow sits a little lower by default, under the Compass Bar. If you moved it in Edit Mode, it stays where you put it.
 - **Waylaid Crates**: its settings say when Bundle Costs has no auction prices to show, because Item Tooltips' Auction Prices is off.
+- **Settings**: some modules have clearer names: Persistent Chat is now Keep Chat Visible, Profession Tooltips is Gathering Skill Tooltips, Commands is Slash Commands, and the Profiler is the CPU Profiler. Your settings for them are unchanged.
+- **Settings**: the Tools category is part of System. Auto Quest is under Automation, Movable Framerate under Interface.
+- **Commands**: `/fpp profiler` opens the CPU Profiler. `/fpp profile` now lists your profiles, as `/fpp profiles` does.
+- **Gathering Map**: Only While Tracking hides herbs and ore on the minimap only. The world map shows your nodes whether or not Find Herbs or Find Minerals is on.
+- **World Map**: Zone Info shows a zone's Fishing skill only on a character who fishes, as it does for herbs, ore, and skinning, unless you pick otherwise.
+- **Minimap Button**: its settings are in three sections, and Swap Clicks is now called Click Opens Quick Toggles. Auto Stow's quick toggle is under Out in the World, and Quest Nameplates has one under Nameplates.
+- **Talent Planner**: Level-Up Reminder is one checkbox. It had a second, Chat Messages, and the reminder needed both.
+- **Currency Bar**: Vertical is in the bar's Edit Mode settings, with its place and scale.
 
 ### Fixed
 

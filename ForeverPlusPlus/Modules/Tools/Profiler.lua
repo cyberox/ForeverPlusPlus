@@ -8,7 +8,7 @@
 -- worst frames Forever++ took too long in (spikes) say when, how long, and whose call it was.
 -- Copy gives it all as one line for a bug report. Memory can only be read for the whole addon,
 -- with how fast it grew while recording. Nothing is timed until Record, and nothing is built
--- until the page is first shown; `/fpp profile` opens it. While the module is off its page and
+-- until the page is first shown; `/fpp profiler` opens it. While the module is off its page and
 -- command are gone and nothing is timed.
 local _, ns = ...
 
@@ -19,7 +19,7 @@ local Profiler = ns.Profiler
 
 local module = ns.NewModule("Profiler", L.PROFILER_DESC, { enabled = false })
 module.title = L.PROFILER_TITLE
-module.category = "tools"
+module.category = "system"
 module.developer = { enabled = true }
 
 local ROW_HEIGHT = 22 -- a module's row
@@ -444,7 +444,9 @@ function module:OnDisable()
     stopTicker()
 end
 
-ns.AddCommand("profile", "", L.PROFILER_COMMAND, function()
+-- /fpp profiler, not /fpp profile as it was up to 1.4.0: that one is the Profiles page's now, one
+-- letter from /fpp profiles.
+ns.AddCommand("profiler", "", L.PROFILER_COMMAND, function()
     if not ns.OpenSettings(module.name) then
         ns.Print(L.PROFILER_NO_PAGE)
     end

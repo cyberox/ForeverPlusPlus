@@ -81,10 +81,12 @@ L.CHATHISTORY_LINES_DESC = "How many of each chat window's latest lines are kept
 L.CHATHISTORY_DIVIDER = "-- Earlier chat --"
 L.CHATHISTORY_DIVIDER_OPTION = "Earlier Chat Line"
 L.CHATHISTORY_DIVIDER_DESC = "Show a gray line between the restored chat and new chat."
-L.CHATHISTORY_ARROWS = "Arrow Keys Recall Messages"
-L.CHATHISTORY_ARROWS_DESC = "While you type in chat, Up and Down bring back what you sent before, "
-    .. "and Left and Right move through the text, without holding Alt. The arrow keys don't move "
-    .. "your character while the chat box is open."
+
+-- ChatArrowKeys
+L.CHATARROWKEYS_TITLE = "Chat Arrow Keys"
+L.CHATARROWKEYS_DESC = "While you type in chat, Up and Down bring back what you sent before, and "
+    .. "Left and Right move through the text, without holding Alt. The arrow keys don't move your "
+    .. "character while the chat box is open."
 
 -- SocialButton
 L.SOCIALBUTTON_TITLE = "Social Button"
@@ -108,7 +110,7 @@ L.CHATFONT_INPUT = "Chat Input"
 L.CHATFONT_INPUT_DESC = "Use the font for the text you type into the chat box too. Its size stays as it is."
 
 -- PersistentChat
-L.PERSISTENTCHAT_TITLE = "Persistent Chat"
+L.PERSISTENTCHAT_TITLE = "Keep Chat Visible" -- Persistent Chat up to 1.4.0
 L.PERSISTENTCHAT_DESC = "Keep chat text on screen instead of fading it out after a while. Turning "
     .. "this off gives Blizzard's fading back."
 

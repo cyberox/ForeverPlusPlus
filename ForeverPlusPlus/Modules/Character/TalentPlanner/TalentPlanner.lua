@@ -22,8 +22,9 @@ local module = ns.NewModule("TalentPlanner", L.TALENTPLANNER_DESC, {
     enabled = true,
     glow = true, -- the plan's next talent glows
     tooltip = true, -- talent tooltips say when the plan takes them
-    reminder = false, -- a chat line naming the plan's next talent when a point comes
-    chat = true,
+    -- A chat line naming the plan's next talent when a point comes. Its own checkbox is the Chat
+    -- Messages one: up to 1.4.0 it had both, and the line needed the two on.
+    reminder = false,
     -- Saved per character: spec tab -> { active = index, list = { { name, level, picks }, ... } },
     -- where picks are nodeIDs in order and level is the plan's level cap.
     builds = {},
@@ -66,9 +67,7 @@ module.options = {
     { key = "tooltip", name = L.TALENTPLANNER_TOOLTIP, description = L.TALENTPLANNER_TOOLTIP_DESC },
     { key = "reminder", name = L.TALENTPLANNER_REMINDER, description = L.TALENTPLANNER_REMINDER_DESC,
         added = "0.9.0" },
-    ns.ChatOption(L.TALENTPLANNER_CHAT_DESC),
 }
-module.options[#module.options].requires = "reminder"
 
 local ADDON = "Blizzard_PlayerSpells" -- the talent window's load-on-demand addon
 

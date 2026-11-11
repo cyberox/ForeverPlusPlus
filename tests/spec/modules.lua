@@ -122,7 +122,7 @@ eq(table.concat(broken, "\n  "), "", "modules: every file loads offline")
 eq(type(ns.modules) == "table" and #ns.order > 50, true, "modules: the modules are made")
 
 local CATEGORIES = { automation = true, character = true, chat = true, interface = true, items = true,
-    map = true, quests = true, system = true, tools = true, units = true }
+    map = true, quests = true, system = true, units = true }
 local function version(text)
     return type(text) == "string" and text:match("^%d+%.%d+%.%d+$") ~= nil
         or type(text) == "string" and text:match("^%d+%.%d+%.%d+%-[%w%.]+$") ~= nil
@@ -302,7 +302,7 @@ eq(none.healthBar, nil, "modules: no saved checkbox leaves Health Bar at its def
 -- The Modules page's categories, which the Minimap Button's Customize submenu shares.
 local Kit = ns.SettingsKit
 eq(Kit.CATEGORIES[#Kit.CATEGORIES][1], "other", "modules: Other is the last category")
-eq(#Kit.CATEGORIES, 11, "modules: every category has a place")
+eq(#Kit.CATEGORIES, 10, "modules: every category has a place")
 eq(Kit.CategoryOf({ category = "units" }), "units", "modules: a module's own category")
 eq(Kit.CategoryOf({ category = "nonsense" }), "other", "modules: an unknown category is Other")
 eq(Kit.CategoryOf({}), "other", "modules: no category is Other")

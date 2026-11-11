@@ -77,8 +77,8 @@ ns.changelog = {
                     .. "\"Interface action failed because of an AddOn\" message when the game shows it "
                     .. "without naming an addon, as its controller interface does, with where it came "
                     .. "from." },
-                { L.CHATHISTORY_TITLE, "Arrow Keys Recall Messages (off by default): while you type "
-                    .. "in chat, Up and Down bring back what you sent before, without holding Alt." },
+                { L.CHATARROWKEYS_TITLE, "A new module, off by default. While you type in chat, Up "
+                    .. "and Down bring back what you sent before, without holding Alt." },
                 { L.APPEARANCEICONS_TITLE, "Hide Tooltip Line (off by default) leaves \"You haven't "
                     .. "collected this appearance\" out of item tooltips, since the icon says so." },
                 { L.CHANGELOG_SETTINGS, "Profiles. A new Profiles page gives characters sets of "
@@ -98,6 +98,26 @@ ns.changelog = {
                     .. "If you moved it in Edit Mode, it stays where you put it." },
                 { L.WAYLAIDCRATES_TITLE, "Its settings say when Bundle Costs has no auction prices to "
                     .. "show, because Item Tooltips' Auction Prices is off." },
+                { L.CHANGELOG_SETTINGS, "Some modules have clearer names: Persistent Chat is now Keep "
+                    .. "Chat Visible, Profession Tooltips is Gathering Skill Tooltips, Commands is Slash "
+                    .. "Commands, and the Profiler is the CPU Profiler. Your settings for them are "
+                    .. "unchanged." },
+                { L.CHANGELOG_SETTINGS, "The Tools category is part of System. Auto Quest is under "
+                    .. "Automation, Movable Framerate under Interface." },
+                { L.CHANGELOG_COMMANDS, "/fpp profiler opens the CPU Profiler. /fpp profile now lists "
+                    .. "your profiles, as /fpp profiles does." },
+                { L.GATHERINGMAP_TITLE, "Only While Tracking hides herbs and ore on the minimap only. "
+                    .. "The world map shows your nodes whether or not Find Herbs or Find Minerals is "
+                    .. "on." },
+                { L.WORLDMAP_TITLE, "Zone Info shows a zone's Fishing skill only on a character who "
+                    .. "fishes, as it does for herbs, ore, and skinning, unless you pick otherwise." },
+                { L.MINIMAPBUTTON_TITLE, "Its settings are in three sections, and Swap Clicks is now "
+                    .. "called Click Opens Quick Toggles. Auto Stow's quick toggle is under Out in the "
+                    .. "World, and Quest Nameplates has one under Nameplates." },
+                { L.TALENTPLANNER_TITLE, "Level-Up Reminder is one checkbox. It had a second, Chat "
+                    .. "Messages, and the reminder needed both." },
+                { L.CURRENCYBAR_TITLE, "Vertical is in the bar's Edit Mode settings, with its place "
+                    .. "and scale." },
             } },
             { L.CHANGELOG_FIXED, {
                 { L.SHORTCHANNELNAMES_TITLE, "The chat box shows the short name of the channel or "

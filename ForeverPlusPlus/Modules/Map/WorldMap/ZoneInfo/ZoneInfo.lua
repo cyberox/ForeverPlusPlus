@@ -38,8 +38,9 @@ local module = ns.modules.WorldMap:NewPart({
     faction = "name", -- who holds the zone: "off", "name" (the name's color), or "line"
     zoneDungeons = "always", -- "off", "always", or "key" (while holding the detail key)
     detailKey = "shift", -- "shift", "alt", or "ctrl"
-    fishing = "always",
-    -- Herbs, ore, and skinning: "off", "known" (only with the profession), or "always".
+    -- Fishing, herbs, ore, and skinning: "off", "known" (only with the profession), "always", or
+    -- "key".
+    fishing = "known",
     herbs = "known",
     ore = "known",
     skinning = "known",
@@ -86,7 +87,7 @@ module:AddOptions({
     },
     {
         key = "opacity", name = L.ZONEINFO_OPACITY, description = L.ZONEINFO_OPACITY_DESC,
-        min = 20, max = 100, step = 5, format = "%d%%", section = GENERAL, added = "1.5.0",
+        min = 10, max = 100, step = 5, format = "%d%%", section = GENERAL, added = "1.5.0",
     },
     {
         key = "foldButton", name = L.ZONEINFO_FOLD_BUTTON_SHOW,
@@ -109,6 +110,11 @@ module:AddOptions({
         key = "detailKey", name = L.ZONEINFO_DETAIL_KEY, description = L.ZONEINFO_DETAIL_KEY_DESC,
         choices = DETAIL_KEYS,
         section = GENERAL,
+        -- Only while a row waits for it.
+        shown = function(db)
+            return db.zoneDungeons == "key" or db.fishing == "key" or db.herbs == "key" or db.ore == "key"
+                or db.skinning == "key"
+        end,
     },
     { key = "levels", name = L.ZONEINFO_LEVELS, description = L.ZONEINFO_LEVELS_DESC, section = ZONE },
     {
@@ -138,7 +144,7 @@ module:AddOptions({
     },
     {
         key = "fishing", name = L.ZONEINFO_FISHING, description = L.ZONEINFO_FISHING_DESC,
-        choices = SHOW_ALWAYS, section = PROFESSIONS,
+        choices = SHOW_KNOWN, section = PROFESSIONS, changed = "1.5.0", -- With the Profession, its default
     },
 })
 
@@ -259,12 +265,13 @@ end
 -- row.
 local function skillsRow(zone, low, high)
     local db, parts = module.db, {}
-    if visible(db.fishing) and zone.fish then
-        local rank, name, own = Professions.Rank(Professions.FISHING)
+    local rank, name, own = Professions.Rank(Professions.FISHING)
+    -- "known" needs the skill; "key" doesn't, as it didn't before Fishing had "known".
+    if zone.fish and (visible(db.fishing) or (db.fishing == "known" and rank ~= nil)) then
         parts[#parts + 1] = icon(Professions.FISHING, own, NoBreak(format(L.ZONEINFO_SKILL,
             name or L.ZONEINFO_FISHING_NAME, range(rank, zone.fish, zone.fishHigh, true))))
     end
-    local rank, name, own = Professions.Rank(Professions.SKINNING)
+    rank, name, own = Professions.Rank(Professions.SKINNING)
     if shows("skinning", rank) and low then
         parts[#parts + 1] = icon(Professions.SKINNING, own, NoBreak(format(L.ZONEINFO_SKILL,
             name or L.ZONEINFO_SKINNING_NAME, range(rank, Professions.SkinningNeed(low),

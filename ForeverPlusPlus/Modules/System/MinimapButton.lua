@@ -760,11 +760,29 @@ module.actions = {
     },
 }
 
+-- Three sections: the button, its menu of quick toggles, and what it does with Error Catcher's
+-- errors. The error rows grey out while Error Catcher is off, since there's nothing to click to.
+local SECTIONS = {
+    where = L.MINIMAPBUTTON_SECTION_BUTTON, swapClicks = L.MINIMAPBUTTON_SECTION_BUTTON,
+    -- Nested under Click Opens Quick Toggles, so it stays beside it.
+    keysLeftClick = L.MINIMAPBUTTON_SECTION_BUTTON,
+    menuSide = L.MINIMAPBUTTON_SECTION_TOGGLES, menuOrder = L.MINIMAPBUTTON_SECTION_TOGGLES,
+    menuCustomize = L.MINIMAPBUTTON_SECTION_TOGGLES,
+    errorsKey = L.MINIMAPBUTTON_SECTION_ERRORS, clearModifier = L.MINIMAPBUTTON_SECTION_ERRORS,
+    clearAllKey = L.MINIMAPBUTTON_SECTION_ERRORS,
+}
+local ERROR_OPTIONS = { keysLeftClick = true, errorsKey = true, clearModifier = true, clearAllKey = true }
 for _, option in ipairs(module.options) do
     if option.key == "errorsKey" or option.key == "clearAllKey" then
         option.added = "0.9.0"
     end
+    option.section = SECTIONS[option.key]
+    if ERROR_OPTIONS[option.key] then
+        option.available = Errors.IsOn
+    end
 end
+module.actions[1].section = L.MINIMAPBUTTON_SECTION_TOGGLES
+module.actions[2].section = L.MINIMAPBUTTON_SECTION_BUTTON
 
 local function onChanged()
     if module.enabled then

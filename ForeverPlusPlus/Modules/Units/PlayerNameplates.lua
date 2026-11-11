@@ -61,6 +61,7 @@ module.options = ns.FriendlyPlates.Options(L.PLAYERNAMEPLATES_HEALTH_BAR_DESC, {
     {
         key = "lightRogue", name = L.PLAYERNAMEPLATES_LIGHT_ROGUE, description = L.PLAYERNAMEPLATES_LIGHT_ROGUE_DESC,
         section = L.PLATES_SECTION_NAME, added = "1.0.1",
+        shown = function(db) return db.nameColor == "class" end,
     },
     {
         key = "dimOthers", name = L.PLAYERNAMEPLATES_DIM, description = L.PLAYERNAMEPLATES_DIM_DESC,
@@ -101,9 +102,9 @@ module.options = ns.FriendlyPlates.Options(L.PLAYERNAMEPLATES_HEALTH_BAR_DESC, {
     {
         key = "classIcon", name = L.PLAYERNAMEPLATES_CLASS_ICON, description = L.PLAYERNAMEPLATES_CLASS_ICON_DESC,
         choices = {
-            { "off", L.PLAYERNAMEPLATES_CLASS_ICON_OFF },
             { "before", L.PLAYERNAMEPLATES_ICON_SIDE_BEFORE },
             { "after", L.PLAYERNAMEPLATES_ICON_SIDE_AFTER },
+            { "off", L.PLAYERNAMEPLATES_CLASS_ICON_OFF },
         },
         -- Sharing a side with the level or the other icons is fine: the class icon sits next to
         -- the name and they move out past it (PlateLabel.Layout).
@@ -146,8 +147,8 @@ module.options = ns.FriendlyPlates.Options(L.PLAYERNAMEPLATES_HEALTH_BAR_DESC, {
         -- Also the recent ally icon, so not under Group and Friend Icons.
         key = "iconSide", name = L.PLAYERNAMEPLATES_ICON_SIDE, description = L.PLAYERNAMEPLATES_ICON_SIDE_DESC,
         choices = {
-            { "after", L.PLAYERNAMEPLATES_ICON_SIDE_AFTER },
             { "before", L.PLAYERNAMEPLATES_ICON_SIDE_BEFORE },
+            { "after", L.PLAYERNAMEPLATES_ICON_SIDE_AFTER },
         },
         section = L.PLAYERNAMEPLATES_SECTION_ICONS,
     },

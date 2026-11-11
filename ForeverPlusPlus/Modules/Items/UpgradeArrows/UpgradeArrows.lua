@@ -100,19 +100,6 @@ module.options = {
         section = L.UPGRADEARROWS_SECTION_GENERAL, min = 0, max = 25, step = 1, format = "%d%%",
     },
     {
-        key = "tooltip", name = L.UPGRADEARROWS_TOOLTIP, description = L.UPGRADEARROWS_TOOLTIP_DESC,
-        section = L.UPGRADEARROWS_SECTION_GENERAL,
-        choices = {
-            { "name", L.UPGRADEARROWS_TOOLTIP_NAME },
-            { "line", L.UPGRADEARROWS_TOOLTIP_LINE },
-            { "off", L.UPGRADEARROWS_TOOLTIP_OFF },
-        },
-    },
-    {
-        key = "scores", name = L.UPGRADEARROWS_SCORES, description = L.UPGRADEARROWS_SCORES_DESC,
-        section = L.UPGRADEARROWS_SECTION_GENERAL,
-    },
-    {
         key = "downgrades", name = L.UPGRADEARROWS_DOWNGRADES, description = L.UPGRADEARROWS_DOWNGRADES_DESC,
         section = L.UPGRADEARROWS_SECTION_GENERAL,
     },
@@ -137,14 +124,25 @@ module.options = {
         key = "tools", name = L.UPGRADEARROWS_TOOLS, description = L.UPGRADEARROWS_TOOLS_DESC,
         section = L.UPGRADEARROWS_SECTION_GENERAL,
     },
+    -- What the tooltip says about an upgrade.
     {
-        key = "reagentBag", name = L.UPGRADEARROWS_REAGENT_BAG, description = L.UPGRADEARROWS_REAGENT_BAG_DESC,
-        section = L.UPGRADEARROWS_SECTION_GENERAL,
+        key = "tooltip", name = L.UPGRADEARROWS_TOOLTIP, description = L.UPGRADEARROWS_TOOLTIP_DESC,
+        section = L.UPGRADEARROWS_SECTION_TOOLTIP,
+        choices = {
+            { "name", L.UPGRADEARROWS_TOOLTIP_NAME },
+            { "line", L.UPGRADEARROWS_TOOLTIP_LINE },
+            { "off", L.UPGRADEARROWS_TOOLTIP_OFF },
+        },
+    },
+    {
+        key = "scores", name = L.UPGRADEARROWS_SCORES, description = L.UPGRADEARROWS_SCORES_DESC,
+        section = L.UPGRADEARROWS_SECTION_TOOLTIP,
     },
     ItemButtons.CornerOption(L.UPGRADEARROWS_CORNER_DESC, L.UPGRADEARROWS_SECTION_ARROW),
     {
         key = "downCorner", name = L.UPGRADEARROWS_DOWNCORNER, description = L.UPGRADEARROWS_DOWNCORNER_DESC,
         section = L.UPGRADEARROWS_SECTION_ARROW, choices = CORNERS,
+        shown = function(db) return db.downgrades end,
     },
     -- The arrow art needs 12 pixels; 18 by default, not 20, since 1.2.0.
     ItemButtons.SizeOption(L.UPGRADEARROWS_SIZE, L.UPGRADEARROWS_SIZE_DESC, L.UPGRADEARROWS_SECTION_ARROW,
@@ -155,6 +153,10 @@ module.options = {
         section = L.UPGRADEARROWS_SECTION_ARROW,
     },
     ItemButtons.PlaceOption("bags", L.UPGRADEARROWS_BAGS_DESC),
+    {
+        key = "reagentBag", name = L.UPGRADEARROWS_REAGENT_BAG, description = L.UPGRADEARROWS_REAGENT_BAG_DESC,
+        section = L.ICONMARK_SECTION_SHOW, requires = "bags",
+    },
     ItemButtons.PlaceOption("bank", L.UPGRADEARROWS_BANK_DESC),
     ItemButtons.PlaceOption("merchant", L.UPGRADEARROWS_MERCHANT_DESC),
     ItemButtons.PlaceOption("auction", L.UPGRADEARROWS_AUCTION_DESC),

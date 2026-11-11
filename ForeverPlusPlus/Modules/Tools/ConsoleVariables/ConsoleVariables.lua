@@ -30,7 +30,7 @@ local module = ns.NewModule("ConsoleVariables", L.CONSOLEVARIABLES_DESC, {
     locks = {},
 })
 module.title = L.CONSOLEVARIABLES_TITLE
-module.category = "tools" -- off, its page and command are gone; it costs nothing until opened
+module.category = "system" -- off, its page and command are gone; it costs nothing until opened
 module.developer = { enabled = true }
 module.internal = {}
 local internal = module.internal

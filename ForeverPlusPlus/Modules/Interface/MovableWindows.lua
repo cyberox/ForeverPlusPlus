@@ -60,6 +60,9 @@ module.options = {
     Keys.Option("resetKey", L.MOVABLEWINDOWS_RESET_KEY, L.MOVABLEWINDOWS_RESET_KEY_DESC),
 }
 
+-- The key only matters while a click resets.
+module.options[#module.options].shown = function(db) return db.resetClick ~= "off" end
+
 -- A left-click reset with the move key is a drag (see startDrag), so that reset never happens.
 module.options[#module.options].conflicts = {
     {

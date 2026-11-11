@@ -22,7 +22,6 @@ module.title = L.QUESTITEMSPARKLES_TITLE
 module.category = "quests"
 module.developer = { enabled = true }
 module.added = "1.5.0"
-module.quickToggle = "world"
 
 -- The game draws the sparkle until it restarts, whatever the CVar says after.
 module.notice = {
