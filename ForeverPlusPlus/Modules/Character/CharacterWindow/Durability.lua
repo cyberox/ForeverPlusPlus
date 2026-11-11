@@ -6,7 +6,7 @@
 local _, ns = ...
 
 local _G, pairs, CreateFrame = _G, pairs, CreateFrame
-local pcall, GetInventorySlotInfo, GetInventoryItemDurability = pcall, GetInventorySlotInfo, GetInventoryItemDurability
+local pcall, GetInventorySlotInfo = pcall, GetInventorySlotInfo
 
 local module = ns.modules.CharacterWindow
 local internal = module.internal
@@ -27,6 +27,7 @@ local SIDES = {
 }
 
 local container -- our frame on the paper doll; bars are children, so they hide with it
+---@type table<number, table>
 local bars = {} -- inventory slot id -> StatusBar
 
 local function makeBar(button, side)
@@ -62,8 +63,7 @@ local function update()
     end
     local below = SHOW_BELOW[module.db.durability] or SHOW_BELOW.always
     for slot, bar in pairs(bars) do
-        local current, maximum = GetInventoryItemDurability(slot)
-        local fraction = current and maximum and maximum > 0 and current / maximum
+        local fraction = ns.Durability.Fraction(slot)
         if fraction and fraction < below then
             bar:SetValue(fraction)
             -- Green at full, yellow at half, red at zero.

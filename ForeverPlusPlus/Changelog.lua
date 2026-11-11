@@ -17,6 +17,11 @@ ns.changelog = {
                     .. "screen with your selected quest, map pin, corpse, and group on it in the direction "
                     .. "they are, and how far away. Every quest on the map, flight masters, gathering "
                     .. "nodes, and rares can go on it too. Set its size in Edit Mode." },
+                { L.DURABILITYWARNING_TITLE, "A new module, off by default. Warns you once when an item "
+                    .. "you wear drops below the durability you pick (25% by default), and again when one "
+                    .. "breaks, so you repair in time: a chat line naming the item, red text in the middle "
+                    .. "of the screen, and a sound you pick, each with its own option. It warns again only "
+                    .. "after a repair." },
                 { L.QUESTITEMSPARKLES_TITLE, "A new module, off by default. Quest items you can pick up "
                     .. "in the world sparkle, so they're easy to spot, and stay that way after you change "
                     .. "your graphics settings." },

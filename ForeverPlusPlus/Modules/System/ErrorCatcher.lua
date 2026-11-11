@@ -27,7 +27,7 @@ local L = ns.L
 local module = ns.NewModule("ErrorCatcher", L.ERRORCATCHER_DESC, {
     enabled = true,
     chat = false,
-    sound = "off", -- a key of SOUNDS, played with the chat message (issue #4)
+    sound = "off", -- a key of ns.Sounds.CHOICES, played with the chat message (issue #4)
     taintLog = false, -- Blizzard's taintLog CVar (a `cvar` option), whose default is the client's
     -- Data, not settings: a table, so presets leave it alone.
     saved = {
@@ -44,25 +44,9 @@ local MAX_TEXT = 2000 -- letters kept of a stack or the locals, so the saved fil
 local PER_SECOND = 10 -- errors caught a second at most; an error in OnUpdate repeats every frame
 local ANNOUNCE_EVERY = 10 -- seconds between chat messages and sounds about new errors
 
--- The Sound choices: Blizzard's own error and alert sounds, by SOUNDKIT name (SoundKitConstants.lua,
--- `forever` branch), read when played since a patch can drop one (it then plays nothing).
-local SOUNDS = {
-    buzz = "UI_GARRISON_ARCHITECT_TABLE_BUILDING_PLACEMENT_ERROR",
-    denied = "LFG_DENIED",
-    horn = "UI_GARRISON_TOAST_INVASION_ALERT",
-    boss = "RAID_BOSS_EMOTE_WARNING",
-    raidwarning = "RAID_WARNING",
-    gm = "GM_CHAT_WARNING",
-    alarm = "ALARM_CLOCK_WARNING_3",
-    whisper = "TELL_MESSAGE",
-}
-
+-- The Sound choices are ns.Sounds', shared with Durability Warning.
 local function playSound()
-    local kit = SOUNDS[module.db.sound]
-    local id = kit and SOUNDKIT and SOUNDKIT[kit]
-    if id and PlaySound then
-        PlaySound(id, "Master")
-    end
+    ns.Sounds.Play(module.db.sound)
 end
 
 local previous -- the handler before ours, given back when the module turns off
@@ -891,17 +875,7 @@ module.options = {
     {
         key = "sound", name = L.ERRORCATCHER_SOUND, description = L.ERRORCATCHER_SOUND_DESC,
         added = "1.3.1",
-        choices = {
-            { "off", L.ERRORCATCHER_SOUND_OFF },
-            { "buzz", L.ERRORCATCHER_SOUND_BUZZ },
-            { "denied", L.ERRORCATCHER_SOUND_DENIED },
-            { "horn", L.ERRORCATCHER_SOUND_HORN },
-            { "boss", L.ERRORCATCHER_SOUND_BOSS },
-            { "raidwarning", L.ERRORCATCHER_SOUND_RAIDWARNING },
-            { "gm", L.ERRORCATCHER_SOUND_GM },
-            { "alarm", L.ERRORCATCHER_SOUND_ALARM },
-            { "whisper", L.ERRORCATCHER_SOUND_WHISPER },
-        },
+        choices = ns.Sounds.CHOICES,
     },
     {
         key = "taintLog", name = L.ERRORCATCHER_TAINT_LOG, description = L.ERRORCATCHER_TAINT_LOG_DESC,

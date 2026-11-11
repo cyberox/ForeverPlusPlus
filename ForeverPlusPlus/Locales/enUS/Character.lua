@@ -31,6 +31,33 @@ L.CHARACTERWINDOW_WEAPONSKILLS = "Equipped Weapon Skills"
 L.CHARACTERWINDOW_WEAPONSKILLS_DESC = "On the Skills tab, color the bars of the weapon skills for "
     .. "the weapons you have equipped green instead of blue."
 
+-- Durability Warning
+L.DURABILITYWARNING_TITLE = "Durability Warning"
+L.DURABILITYWARNING_DESC = "Warn you once when your most worn equipped item drops below the "
+    .. "durability you pick, and again when one breaks, so you repair in time. It warns again only "
+    .. "after a repair."
+L.DURABILITYWARNING_THRESHOLD = "Warn Below"
+L.DURABILITYWARNING_THRESHOLD_DESC = "Warn when an item you wear drops below this much durability."
+L.DURABILITYWARNING_BROKEN = "Warn When Broken"
+L.DURABILITYWARNING_BROKEN_DESC = "Warn once more when an item you wear breaks and stops giving "
+    .. "its stats."
+L.DURABILITYWARNING_ALERT = "On-Screen Alert"
+L.DURABILITYWARNING_ALERT_DESC = "Show the warning in red in the middle of the screen, where the "
+    .. "game says \"Inventory is full\"."
+L.DURABILITYWARNING_SOUND = "Sound"
+L.DURABILITYWARNING_SOUND_DESC = "Play a sound with the warning. Picking one plays it."
+L.DURABILITYWARNING_CHAT_DESC = "Say in chat which item is worn and how much is left. Gear that's "
+    .. "already worn when you log in gets only this line, once you've loaded in."
+L.DURABILITYWARNING_LOW_ITEM = "%s is at %d%% durability. Repair it soon." -- item link, percent
+L.DURABILITYWARNING_LOW_GEAR = "Your gear is at %d%% durability. Repair it soon." -- percent
+L.DURABILITYWARNING_BROKEN_ITEM = "%s is broken. Repair it to get its stats back." -- item link
+L.DURABILITYWARNING_BROKEN_GEAR = "An item you wear is broken. Repair it to get its stats back."
+L.DURABILITYWARNING_ALERT_LOW = "Your gear is at %d%% durability" -- percent
+L.DURABILITYWARNING_ALERT_BROKEN = "An item you wear is broken"
+L.DURABILITYWARNING_TEST = "Test Warning"
+L.DURABILITYWARNING_TEST_BUTTON = "Test"
+L.DURABILITYWARNING_TEST_DESC = "Give the low durability warning now, in every way turned on."
+
 -- Talent Planner
 L.TALENTPLANNER_TITLE = "Talent Planner"
 L.TALENTPLANNER_DESC = "Add a Plan Talents button to the talent window: place talents freely, in "
