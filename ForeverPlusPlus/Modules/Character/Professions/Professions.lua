@@ -1,8 +1,9 @@
 -- Professions: what Forever++ adds to the professions window, in one module with a part for each,
 -- in its own file: Recipe Colors (the recipe list colored by the chance of a skill-up), Skill-Ups
 -- Left (how long each recipe keeps giving skill-ups), Skill Bar (the levels the selected recipe
--- changes color at, from the game's tables in Data.lua), and Crafting Costs (what a recipe costs
--- and makes, from auction and merchant prices). Each part has its own checkbox heading its section
+-- changes color at, from the game's tables in Data.lua), Crafting Costs (what a recipe costs
+-- and makes, from auction and merchant prices), and Unknown Recipes (the recipes not known yet,
+-- from Data.lua too). Each part has its own checkbox heading its section
 -- in Settings, works without the others, and shares only `module.internal` with them.
 local _, ns = ...
 

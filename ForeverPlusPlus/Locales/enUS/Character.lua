@@ -198,8 +198,8 @@ L.MACROS_SMARTBUFF_PICKUP_DESC = "Put the Smart Buff macro on your cursor, to dr
 -- Professions
 L.PROFESSIONS_TITLE = "Professions"
 L.PROFESSIONS_DESC = "Add to the professions window: recipes colored by your chance of a skill-up, "
-    .. "how many skill-ups each has left, a bar of the levels a recipe changes color at, and what "
-    .. "a recipe costs to craft against what it makes. "
+    .. "how many skill-ups each has left, a bar of the levels a recipe changes color at, what "
+    .. "a recipe costs to craft against what it makes, and the recipes you don't know yet. "
     .. "Each has its own checkbox."
 L.PROFESSIONS_NO_PRICES = "Crafting Costs has no auction prices: Item Tooltips' Auction Prices is off."
 L.PROFESSIONS_NO_PRICES_DESC = "Without auction prices, Crafting Costs counts only what merchants "
@@ -256,6 +256,34 @@ L.PROFESSIONS_BAR_DUMP_DESC = "With a profession window open, check the game's t
 L.PROFESSIONS_BAR_DUMP_WRONG = "%s (%d): the tables give another color than the game's (%s)" -- recipe, its ID, relativeDifficulty
 L.PROFESSIONS_BAR_DUMP_SELECTED = "%s: ability %s, tables yellow %s gray %s; game gray %s, difficulty %s, skill %s"
 L.PROFESSIONS_BAR_DUMP_COUNT = "Levels fit %d recipes; %d have no matching table entry; %d show another color."
+-- Unknown Recipes
+L.PROFESSIONS_UNKNOWN = "Unknown Recipes"
+L.PROFESSIONS_UNKNOWN_DESC = "A button by the profession's skill bar opens a list of its recipes "
+    .. "you don't know yet: the skill each takes to learn, green if you can learn it now, yellow "
+    .. "soon, red later, and the recipe item that teaches it, with its auction price."
+L.PROFESSIONS_UNKNOWN_SOON = "Soon Means Within"
+L.PROFESSIONS_UNKNOWN_SOON_DESC = "How many skill points away a recipe still counts as one you can learn soon."
+L.PROFESSIONS_UNKNOWN_NOITEM = "Recipes Without an Item"
+L.PROFESSIONS_UNKNOWN_NOITEM_DESC = "Also list recipes no recipe item teaches, which come from trainers and the like."
+L.PROFESSIONS_UNKNOWN_LIMITS = "Unknown Recipes knows the skill only for recipes an item teaches."
+L.PROFESSIONS_UNKNOWN_LIMITS_DESC = "The list comes from the game's data tables. They give the skill a "
+    .. "recipe item needs, but not where a recipe comes from or the skill a trainer asks."
+L.PROFESSIONS_UNKNOWN_BUTTON_TIP = "The recipes of this profession you don't know yet, and when you can learn them."
+L.PROFESSIONS_UNKNOWN_PROFESSION = "%s (%d/%d)" -- profession, skill, its rank's most
+L.PROFESSIONS_UNKNOWN_SUMMARY = "%d you don't know, %d you can learn now"
+L.PROFESSIONS_UNKNOWN_NONE = "Open one of your professions to see its recipes."
+L.PROFESSIONS_UNKNOWN_EMPTY = "You know every recipe."
+L.PROFESSIONS_UNKNOWN_HEADER = "%s (%d)" -- a group's name, how many recipes are in it
+L.PROFESSIONS_UNKNOWN_NOW = "Can Learn Now"
+L.PROFESSIONS_UNKNOWN_SOON_HEADER = "Soon"
+L.PROFESSIONS_UNKNOWN_LATER = "Later"
+L.PROFESSIONS_UNKNOWN_RANK = "Needs a Higher Rank"
+L.PROFESSIONS_UNKNOWN_UNSURE = "Skill Not Known"
+L.PROFESSIONS_UNKNOWN_NOITEM_HEADER = "Trainer or Other Source"
+L.PROFESSIONS_UNKNOWN_LEARN = "Learn At"
+L.PROFESSIONS_UNKNOWN_OWNED = "%s  |cff20ff20(in your bags)|r" -- the item's name
+L.PROFESSIONS_UNKNOWN_RANK_NOTE = "Your rank goes up to %d: learn the next rank from a trainer first."
+L.PROFESSIONS_UNKNOWN_NOITEM_NOTE = "No recipe item teaches this. The game's data doesn't say where it's learned or at what skill."
 -- Crafting Costs
 L.PROFESSIONS_CRAFTING = "Crafting Costs"
 L.PROFESSIONS_CRAFTING_DESC = "Show Total Cost, Value, and Estimated Profit (after the auction "

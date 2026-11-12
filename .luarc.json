@@ -236,6 +236,7 @@
     "RED_FONT_COLOR",
     "ORANGE_FONT_COLOR",
     "GREEN_FONT_COLOR",
+    "RETRIEVING_ITEM_INFO",
     "GetQuestLogRewardXP",
     "StatusTrackingBarManager",
     "StatusTrackingBarInfo",

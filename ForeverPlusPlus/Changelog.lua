@@ -20,6 +20,10 @@ ns.changelog = {
                 { L.PROFESSIONS_TITLE, "Skill Bar, on by default, shows under the selected "
                     .. "recipe's name the skill levels it turns yellow, green, and gray at, with your "
                     .. "skill marked, so you know how long it's worth buying materials for." },
+                { L.PROFESSIONS_TITLE, "Unknown Recipes, on by default: a button by the skill bar "
+                    .. "lists the profession's recipes you don't know yet, the skill each takes to "
+                    .. "learn and whether you can now, and the recipe item that teaches it with its "
+                    .. "auction price." },
             } },
             { L.CHANGELOG_CHANGED, {
                 { L.WORLDMAP_TITLE, "Unexplored Areas' map data is up to date with the game's build "
