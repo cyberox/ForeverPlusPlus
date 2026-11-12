@@ -36,22 +36,10 @@ module:AddOptions({
 -- Gray levels --------------------------------------------------------------------------------------
 -- A recipe turns gray at its maxTrivialLevel: on Forever every known recipe has one, and it matched
 -- Classic's gray levels and the colors the game showed (2026-11-09, docs/forever-api.md). The
--- yellow and green levels aren't given, so this says how long a recipe gives skill-ups, never the
--- chance of one.
+-- recipe info doesn't give the yellow and green levels (Skill Bar reads them from the game's
+-- tables), so this says how long a recipe gives skill-ups, never the chance of one.
 
--- The skill the recipe's colors are measured against: the profession's level as its window shows
--- it (Professions.Progress), by the recipe's skill line or its parent's, whichever the player has.
--- Probe: GetTradeSkillLineForRecipe is Mainline's; which of the two lines Forever's recipes give is
--- Unverified, so both are tried.
-local function skillOf(recipeID)
-    local T = C_TradeSkillUI
-    if not (T and T.GetTradeSkillLineForRecipe and recipeID) then
-        return nil
-    end
-    local line, _, parent = T.GetTradeSkillLineForRecipe(recipeID)
-    local progress = Professions.Progress
-    return (parent and progress(parent)) or (line and progress(line)) or nil
-end
+local skillOf = internal.SkillOf
 
 -- The skill a learned recipe turns gray at, or nil when the game doesn't say.
 local function grayAt(info)
@@ -112,12 +100,10 @@ end
 local ROW_HOOKS = { Init = rowNumber }
 
 -- The selected recipe ------------------------------------------------------------------------------
--- A line by the recipe's name on Blizzard's recipe form: "Skill-ups until 125 (7 more)". The form
--- (Blizzard_ProfessionsRecipeSchematicForm, Gethe forever branch) puts the name beside the output
--- icon, 17 pixels above its middle, and the tools it needs ("Requires: Anvil") under the name; this
--- line goes 17 below the icon's middle, so it sits under both without moving anything of Blizzard's.
+-- A line under the recipe's name on Blizzard's recipe form: "Skill-ups until 125 (7 more)", on the
+-- row it shares with Skill Bar's bar (internal.PlaceOnForm), right of the bar while that shows.
 
-local DETAIL_X, DETAIL_Y = 14, -17
+local DETAIL_ORDER = 20 -- after Skill Bar's bar (10)
 local detail -- our font string on the form, made the first time a recipe shows
 
 local function detailText(info)
@@ -144,6 +130,7 @@ local function drawDetail(form, info)
     if not text then
         if detail then
             detail:Hide()
+            internal.PlaceOnForm(form, DETAIL_ORDER, nil)
         end
         return
     end
@@ -151,10 +138,10 @@ local function drawDetail(form, info)
         local font = _G.GameFontHighlightSmall2 and "GameFontHighlightSmall2" or "GameFontHighlightSmall"
         detail = form:CreateFontString(nil, "OVERLAY", font)
         detail:SetJustifyH("LEFT")
-        detail:SetPoint("LEFT", icon, "RIGHT", DETAIL_X, DETAIL_Y)
     end
     detail:SetText(text)
     detail:Show()
+    internal.PlaceOnForm(form, DETAIL_ORDER, detail)
 end
 
 local function catchUp()
@@ -196,6 +183,7 @@ function module:OnDisable()
     numberColumn:Use(false)
     if detail then
         detail:Hide()
+        internal.PlaceOnForm(Professions.RecipeForm(), DETAIL_ORDER, nil)
     end
 end
 

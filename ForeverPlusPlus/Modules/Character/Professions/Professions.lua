@@ -1,11 +1,12 @@
 -- Professions: what Forever++ adds to the professions window, in one module with a part for each,
 -- in its own file: Recipe Colors (the recipe list colored by the chance of a skill-up), Skill-Ups
--- Left (how long each recipe keeps giving skill-ups), and Crafting Costs (what a recipe costs and
--- makes, from auction and merchant prices). Each part has its own checkbox heading its section in
--- Settings, works without the others, and shares only `module.internal` with them.
+-- Left (how long each recipe keeps giving skill-ups), Skill Bar (the levels the selected recipe
+-- changes color at, from the game's tables in Data.lua), and Crafting Costs (what a recipe costs
+-- and makes, from auction and merchant prices). Each part has its own checkbox heading its section
+-- in Settings, works without the others, and shares only `module.internal` with them.
 local _, ns = ...
 
-local type, ipairs = type, ipairs
+local type, ipairs, pairs, sort = type, ipairs, pairs, table.sort
 local C_TradeSkillUI = C_TradeSkillUI
 
 local L = ns.L
@@ -115,12 +116,81 @@ function internal.ListHasSkillUps()
     return true
 end
 
+-- The skill a recipe's colors are measured against: the profession's level as its window shows
+-- it (ns.Professions.Progress), by the recipe's skill line or its parent's, whichever the player
+-- has. Probe: GetTradeSkillLineForRecipe is Mainline's; which of the two lines Forever's recipes
+-- give is Unverified, so both are tried.
+function internal.SkillOf(recipeID)
+    local T = C_TradeSkillUI
+    if not (T and T.GetTradeSkillLineForRecipe and recipeID) then
+        return nil
+    end
+    local line, _, parent = T.GetTradeSkillLineForRecipe(recipeID)
+    local progress = ns.Professions.Progress
+    return (parent and progress(parent)) or (line and progress(line)) or nil
+end
+
+-- Blizzard's own difficulty colors (FrameXML's), by Enum.TradeskillRelativeDifficulty, or false
+-- without them. Probe: the enum and the constants are Mainline's.
+local difficultyColors
+function internal.DifficultyColors()
+    if difficultyColors == nil then
+        difficultyColors = false
+        local E = Enum and Enum.TradeskillRelativeDifficulty
+        if E and DIFFICULT_DIFFICULTY_COLOR and FAIR_DIFFICULTY_COLOR and EASY_DIFFICULTY_COLOR then
+            difficultyColors = {
+                [E.Optimal] = DIFFICULT_DIFFICULTY_COLOR,
+                [E.Medium] = FAIR_DIFFICULTY_COLOR,
+                [E.Easy] = EASY_DIFFICULTY_COLOR,
+                [E.Trivial] = TRIVIAL_DIFFICULTY_COLOR or GRAY_FONT_COLOR,
+            }
+        end
+    end
+    return difficultyColors
+end
+
+-- The row under the selected recipe's name on Blizzard's recipe form, where Skill Bar's bar and
+-- Skill-Ups Left's line sit side by side, in `order` from the left, whichever of them shows. The
+-- form (Blizzard_ProfessionsRecipeSchematicForm, Gethe forever branch) puts the name beside the
+-- output icon, 17 pixels above its middle, and the tools it needs ("Requires: Anvil") under the
+-- name; this row is 17 below the icon's middle, so it sits under both without moving anything of
+-- Blizzard's.
+local ROW_X, ROW_Y, ROW_GAP = 14, -17, 10
+local onRow = {} -- order -> our region on the form, while it shows
+
+function internal.PlaceOnForm(form, order, region)
+    onRow[order] = region
+    local icon = form and form.OutputIcon
+    if not icon then
+        return
+    end
+    local orders = {}
+    for key in pairs(onRow) do
+        orders[#orders + 1] = key
+    end
+    sort(orders)
+    local previous
+    for _, key in ipairs(orders) do
+        local item = onRow[key]
+        item:ClearAllPoints()
+        if previous then
+            item:SetPoint("LEFT", previous, "RIGHT", ROW_GAP, 0)
+        else
+            item:SetPoint("LEFT", icon, "RIGHT", ROW_X, ROW_Y)
+        end
+        previous = item
+    end
+end
+
 -- Crafting Costs prices what it can from auction prices, which only Item Tooltips' Auction Prices
--- (or Auctionator through it) gives. Without them it counts merchant prices alone.
+-- (or Auctionator through it) gives. Without them it counts merchant prices alone. A list, since
+-- parts add their own.
 module.notice = {
-    text = L.PROFESSIONS_NO_PRICES,
-    description = L.PROFESSIONS_NO_PRICES_DESC,
-    shown = function()
-        return ns.PartOn(module, "crafting") and not ns.Prices.Available()
-    end,
+    {
+        text = L.PROFESSIONS_NO_PRICES,
+        description = L.PROFESSIONS_NO_PRICES_DESC,
+        shown = function()
+            return ns.PartOn(module, "crafting") and not ns.Prices.Available()
+        end,
+    },
 }

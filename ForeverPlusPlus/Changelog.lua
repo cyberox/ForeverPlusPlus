@@ -17,6 +17,9 @@ ns.changelog = {
                     .. "Developer's Defaults follows it as it changes, keeping the settings you "
                     .. "changed yourself, and Based On on the Profiles page shows or changes what a "
                     .. "profile follows." },
+                { L.PROFESSIONS_TITLE, "Skill Bar, on by default, shows under the selected "
+                    .. "recipe's name the skill levels it turns yellow, green, and gray at, with your "
+                    .. "skill marked, so you know how long it's worth buying materials for." },
             } },
             { L.CHANGELOG_CHANGED, {
                 { L.WORLDMAP_TITLE, "Unexplored Areas' map data is up to date with the game's build "

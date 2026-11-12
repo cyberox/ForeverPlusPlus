@@ -2,5 +2,6 @@
 -- and `Entry` for summary.lua to tell its entries apart.
 return {
     require("unexplored"),
+    require("skilllevels"),
     require("reference"),
 }
