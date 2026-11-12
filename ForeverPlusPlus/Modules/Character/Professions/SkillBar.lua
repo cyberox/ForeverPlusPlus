@@ -92,7 +92,13 @@ local TEXTURE = "Interface\\TargetingFrame\\UI-StatusBar"
 local SCALE = 0.75
 local ART_BACK, ART_FRAME = "Professions-skillbar-bg", "Professions-skillbar-frame"
 local ART_END = 24 -- how much of each end of the art is kept unstretched
-local ART_HEIGHT, FILL_HEIGHT, FILL_X, FILL_Y = 29 * SCALE, 18 * SCALE, 5 * SCALE, 3 * SCALE
+-- Empty room at the top of our frame: the row centers the frame, so the art sits half of this
+-- lower, clear of the recipe's name.
+local TOP = 10
+local ART_HEIGHT, FILL_HEIGHT, FILL_X, FILL_Y = 29 * SCALE, 18 * SCALE, 5 * SCALE, 3 * SCALE + TOP
+-- The fill of Blizzard's bar is a flipbook, two frames across and each 34 high, that ends on its
+-- full look: that last frame, without its color, lit over ours for the same sheen.
+local ART_FILL, FILL_FRAME, SHEEN = "Skillbar_Fill_Flipbook_DefaultBlue", 34, 0.4
 local WIDTH, MIN_WIDTH = 220, 110 -- the most the bar takes of the row, and the least
 
 local bar -- our frame, made the first time a recipe shows
@@ -154,9 +160,9 @@ local function art(atlas, sublevel)
     end
     local left, middle, right = piece(l, l + u), piece(l + u, r - u), piece(r - u, r)
     left:SetSize(ART_END * SCALE, height)
-    left:SetPoint("TOPLEFT")
+    left:SetPoint("TOPLEFT", 0, -TOP)
     right:SetSize(ART_END * SCALE, height)
-    right:SetPoint("TOPRIGHT")
+    right:SetPoint("TOPRIGHT", 0, -TOP)
     middle:SetPoint("TOPLEFT", left, "TOPRIGHT")
     middle:SetPoint("BOTTOMRIGHT", right, "BOTTOMLEFT")
     return true
@@ -164,12 +170,25 @@ end
 
 local function build(form)
     bar = CreateFrame("Frame", nil, form)
-    bar:SetSize(width, ART_HEIGHT)
+    bar:SetSize(width, ART_HEIGHT + TOP)
     bar:EnableMouse(true)
     bar:SetScript("OnEnter", onEnter)
     bar:SetScript("OnLeave", onLeave)
     local framed = art(ART_BACK, 1)
-    art(ART_FRAME, 3)
+    art(ART_FRAME, 4)
+    local info = C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(ART_FILL)
+    local file = info and (info.file or info.filename)
+    if file and info.height and info.height >= FILL_FRAME then
+        local sheen = bar:CreateTexture(nil, "ARTWORK", nil, 3)
+        sheen:SetTexture(file)
+        local l, r, t, b = info.leftTexCoord, info.rightTexCoord, info.topTexCoord, info.bottomTexCoord
+        sheen:SetTexCoord((l + r) / 2, r, b - (b - t) * FILL_FRAME / info.height, b)
+        sheen:SetDesaturated(true)
+        sheen:SetBlendMode("ADD")
+        sheen:SetAlpha(SHEEN)
+        sheen:SetPoint("TOPLEFT", FILL_X, -FILL_Y)
+        sheen:SetPoint("BOTTOMRIGHT", bar, "TOPRIGHT", -FILL_X, -FILL_Y - FILL_HEIGHT)
+    end
     if not framed then
         local back = bar:CreateTexture(nil, "BACKGROUND")
         back:SetPoint("TOPLEFT", FILL_X - 1, 1 - FILL_Y)
@@ -183,7 +202,12 @@ local function build(form)
         texture:SetTexture(TEXTURE)
         local label = bar:CreateFontString(nil, "OVERLAY", font)
         label:SetJustifyH("LEFT")
-        parts[difficulty] = { texture = texture, label = label }
+        -- A dark line where one color meets the one before it.
+        local divider = bar:CreateTexture(nil, "ARTWORK", nil, 3)
+        divider:SetColorTexture(0, 0, 0, 0.6)
+        divider:SetSize(1, FILL_HEIGHT)
+        divider:SetPoint("TOPLEFT", texture)
+        parts[difficulty] = { texture = texture, label = label, divider = divider }
     end
     local edge = bar:CreateTexture(nil, "OVERLAY", nil, 6)
     edge:SetColorTexture(0, 0, 0, 1)
@@ -206,8 +230,10 @@ local function render()
     for _, part in pairs(parts) do
         part.texture:Hide()
         part.label:Hide()
+        part.divider:Hide()
     end
     for i, segment in ipairs(shown.layout.segments) do
+        parts[segment[1]].divider:SetShown(i > 1)
         local part = parts[segment[1]]
         local left, right = FILL_X + segment[2] * fill, FILL_X + segment[3] * fill
         part.texture:ClearAllPoints()
