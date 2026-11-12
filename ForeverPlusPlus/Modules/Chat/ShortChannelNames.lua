@@ -241,6 +241,17 @@ local function onUpdateHeader(editBox)
     local left, right, top, bottom = editBox:GetTextInsets()
     if left then
         editBox:SetTextInsets(left - before + header:GetStringWidth(), right, top, bottom)
+        -- Blizzard runs UpdateHeader on every key, after the box has placed its cursor for the
+        -- wider insets, and new insets move the text but not the cursor: it stood off to the right
+        -- of what was typed, by the width saved (seen in game 2026-11-12). Moving the cursor
+        -- makes the box place it again. Unverified in game: that a step back and forth does it.
+        local at = editBox.GetCursorPosition and editBox:GetCursorPosition()
+        if ns.IsNumber(at) then
+            if at > 0 then
+                editBox:SetCursorPosition(at - 1)
+            end
+            editBox:SetCursorPosition(at)
+        end
     end
 end
 

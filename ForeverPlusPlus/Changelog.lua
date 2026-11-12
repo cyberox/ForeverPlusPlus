@@ -53,6 +53,8 @@ ns.changelog = {
                     .. "(Uldaman 35, not 41)." },
             } },
             { L.CHANGELOG_FIXED, {
+                { L.SHORTCHANNELNAMES_TITLE, "The chat box's cursor sits at the end of what you "
+                    .. "typed again. With a channel's name shortened it stood off to the right." },
                 { L.ITEMTOOLTIPS_TITLE, "Disenchant knows every item the game can disenchant, "
                     .. "such as blue gear at item level 5-10 and gear above 65. Where what it gives "
                     .. "isn't known yet, the line says so and learns it from your own disenchants." },
