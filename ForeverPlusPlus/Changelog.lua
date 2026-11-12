@@ -56,6 +56,9 @@ ns.changelog = {
                 { L.MACROS_TITLE, "Switching profiles, applying a preset, or Defaults no longer "
                     .. "deletes a macro, which emptied its action bar slots. A macro is deleted only "
                     .. "when you turn it off yourself." },
+                { L.CHANGELOG_SETTINGS, "The Changelog and About pages no longer drop out of the "
+                    .. "sidebar when a preset or a profile switch turns on several modules that "
+                    .. "have pages of their own." },
                 { L.ERRORCATCHER_TITLE, "It also catches \"Interface action failed because of an "
                     .. "AddOn\" when the game writes it to chat another way." },
             } },

@@ -24,6 +24,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Gathering Skill Tooltips**: every lockbox's Lockpicking comes from the game's own data, so boxes such as the Heavy Junkbox (250, not 175) and the Thorium Lockbox show the right skill before you've hovered one, and boxes like the Puzzle Box are known too.
 - **Upgrade Arrows**: in the auction house's list, an item with a random suffix ("of the Boar") is judged with the suffix's stats, as its tooltip is. It could show as a downgrade there and an upgrade in the tooltip.
 - **Macros**: switching profiles, applying a preset, or Defaults no longer deletes a macro, which emptied its action bar slots. A macro is deleted only when you turn it off yourself.
+- **Settings**: the Changelog and About pages no longer drop out of the sidebar when a preset or a profile switch turns on several modules that have pages of their own.
 - **Error Catcher**: it also catches "Interface action failed because of an AddOn" when the game writes it to chat another way.
 
 ## 1.5.0 (2026-11-11)

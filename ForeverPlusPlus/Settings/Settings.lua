@@ -61,7 +61,8 @@ local modulesCategory -- the Modules page, the top Forever++ entry, for /fpp
 local pages = {} -- module name -> the page it draws itself, for ns.OpenSettings(name)
 local pageOrder = {} -- the modules with a page of their own, in sidebar order
 local aboutCategory -- the About page, for ns.OpenAbout
-local leadingPages = 0 -- subpages always before the tool pages (Profiles)
+local pagesBefore = {} -- subpages always before the modules' pages (Profiles)
+local pagesAfter = {} -- and always after them (Changelog, About)
 
 -- Opens a Forever++ page (after combat, if the player is in combat).
 local function open(category)
@@ -120,34 +121,42 @@ end
 -- (ADDON_ACTION_FORBIDDEN on C_Discord.IsUserOAuthed, 2026-11-04). Blizzard draws it again itself
 -- when a page under an expanded entry is picked (any Forever++ page), the Game and AddOns tabs
 -- switch, or an entry is expanded (Blizzard_CategoryList.lua SetCurrentCategory, `forever` branch).
+--
+-- The whole list is written each time, from what should be in it: the pages before the modules'
+-- (Profiles), each module's page that shows, in order, then the pages after (Changelog, About).
+-- Putting one page in or out at a counted place went wrong when several modules turned on at once
+-- (a preset, a profile switch): a page counted as shown wasn't in the list yet, so the next went
+-- in past the list's end, and the gap that left cut Changelog and About off the sidebar until a
+-- /reload (2026-11-12).
 local function updatePage(name)
-    local page = pages[name]
-    local list = page and modulesCategory.GetSubcategories and modulesCategory:GetSubcategories()
+    local list = pages[name] and modulesCategory.GetSubcategories and modulesCategory:GetSubcategories()
     if not list then
         return
     end
-    local at, index = 1 + leadingPages, nil
+    local want = {}
+    for _, page in ipairs(pagesBefore) do
+        want[#want + 1] = page
+    end
     for _, other in ipairs(pageOrder) do
-        if other == name then
-            break
-        end
         if pageShown(other) then
-            at = at + 1
+            want[#want + 1] = pages[other]
         end
     end
-    for i, category in ipairs(list) do
-        if category == page then
-            index = i
-        end
+    for _, page in ipairs(pagesAfter) do
+        want[#want + 1] = page
     end
-    local want = pageShown(name)
-    if want == (index ~= nil) then
+    local same = #list == #want
+    for i = 1, #want do
+        same = same and list[i] == want[i]
+    end
+    if same then
         return
     end
-    if want then
-        table.insert(list, at, page)
-    else
-        table.remove(list, index)
+    for i = #list, 1, -1 do
+        list[i] = nil
+    end
+    for i, page in ipairs(want) do
+        list[i] = page
     end
 end
 
@@ -1547,8 +1556,7 @@ function ns.RegisterSettings()
     end
 
     -- Profiles first, right after the Modules entry.
-    addCanvasPage(category, L.PROFILES, S.BuildProfiles)
-    leadingPages = 1
+    pagesBefore[1] = addCanvasPage(category, L.PROFILES, S.BuildProfiles)
     -- Pages modules draw themselves (tools such as Console Variables).
     for _, name in ipairs(grouped) do
         local module = ns.modules[name]
@@ -1562,8 +1570,9 @@ function ns.RegisterSettings()
     for _, name in ipairs(pageOrder) do
         updatePage(name)
     end
-    addCanvasPage(category, L.CHANGELOG, S.BuildChangelog)
+    pagesAfter[1] = addCanvasPage(category, L.CHANGELOG, S.BuildChangelog)
     aboutCategory = addCanvasPage(category, L.ABOUT, S.BuildAbout)
+    pagesAfter[2] = aboutCategory
     Settings.RegisterAddOnCategory(category)
 end
 
