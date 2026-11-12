@@ -7,6 +7,28 @@ if not L then
     return
 end
 
+-- DungeonNameplates
+L.DUNGEONNAMEPLATES_TITLE = "Simplified Dungeon Nameplates"
+L.DUNGEONNAMEPLATES_DESC = "Turn on the game's Simplified nameplates only inside dungeons and raids, "
+    .. "for the kinds you pick, so a crowded fight is easier to read. Everywhere else your own "
+    .. "nameplate settings apply."
+L.DUNGEONNAMEPLATES_NOTICE = "This changes the game's Simplified setting while you're inside."
+L.DUNGEONNAMEPLATES_NOTICE_DESC = "The game's Simplified dropdown (Options > Nameplates) is one setting "
+    .. "for everywhere. Inside a dungeon or raid the kinds ticked here are added to yours, and your "
+    .. "own choice comes back when you leave. A change you make to that dropdown while inside is "
+    .. "lost when you leave."
+-- Shown where the client lacks Blizzard's own names for these.
+L.DUNGEONNAMEPLATES_FRIENDLY_PLAYERS = "Friendly Players"
+L.DUNGEONNAMEPLATES_FRIENDLY_NPCS = "Friendly NPCs"
+L.DUNGEONNAMEPLATES_MINIONS = "Minions"
+L.DUNGEONNAMEPLATES_MINOR_ENEMIES = "Minor Enemies"
+L.DUNGEONNAMEPLATES_FRIENDLY_PLAYERS_DESC = "Simplify friendly players' nameplates inside."
+L.DUNGEONNAMEPLATES_FRIENDLY_NPCS_DESC = "Simplify friendly NPCs' nameplates inside."
+L.DUNGEONNAMEPLATES_MINIONS_DESC = "Simplify the nameplates of pets, totems, and other minions inside."
+L.DUNGEONNAMEPLATES_MINOR_ENEMIES_DESC = "Simplify the nameplates of minor enemies inside."
+L.DUNGEONNAMEPLATES_BATTLEGROUNDS = "In Battlegrounds Too"
+L.DUNGEONNAMEPLATES_BATTLEGROUNDS_DESC = "Also simplify them in battlegrounds and arenas."
+
 -- DruidManaBar
 L.DRUIDMANABAR_TITLE = "Druid Mana Bar"
 L.DRUIDMANABAR_DESC = "Show your mana under the energy or rage bar on the player frame while in "
