@@ -1,5 +1,5 @@
 -- Friendly nameplates that always show the unit's name, and the health bar only while it's hurt or
--- in combat. Built on Blizzard's own nameplates: the bar fades, Blizzard's name hides, and our label
+-- in combat (or always, only in combat, or never: the module's Health Bar setting). Built on Blizzard's own nameplates: the bar fades, Blizzard's name hides, and our label
 -- (ns.PlateLabel) shows instead. Player Nameplates and NPC Nameplates each run one of these for
 -- their own kind of unit:
 --
@@ -388,7 +388,7 @@ end
 ---@return table defaults
 function FriendlyPlates.Defaults(extra)
     extra.enabled = true
-    extra.healthBar = "hurt" -- when the bar shows: "hurt" (or in combat), "combat", or "never"
+    extra.healthBar = "hurt" -- when the bar shows: "always", "hurt" (or in combat), "combat", or "never"
     extra.nameSize = 80 -- percent of Blizzard's name size
     extra.level = "before" -- "before", "after", or "off"
     extra.levelFrame = "none" -- what the level sits in: see PlateLabel.LEVEL_FRAME_CHOICES
@@ -408,6 +408,14 @@ function FriendlyPlates.MigrateHealthBar(saved)
     end
 end
 
+---Whether a module's plates ever show without the bar (Health Bar isn't Always), for the `shown`
+---of an option that only changes that name-only view.
+---@param db table the module's settings
+---@return boolean
+function FriendlyPlates.HasNameView(db)
+    return db.healthBar ~= "always"
+end
+
 ---A module's options with the General ones for the settings in Defaults put first.
 ---@param barDescription string the Health Bar description, which names the kind of unit
 ---@param options table the module's own options, after General
@@ -417,25 +425,29 @@ function FriendlyPlates.Options(barDescription, options)
     table.insert(options, 1, {
         key = "healthBar", name = L.PLATES_HEALTH_BAR, description = barDescription,
         choices = {
+            { "always", L.PLATES_HEALTH_BAR_ALWAYS },
             { "hurt", L.PLATES_HEALTH_BAR_HURT },
             { "combat", L.PLATES_HEALTH_BAR_COMBAT },
             { "never", L.PLATES_HEALTH_BAR_NEVER },
         },
-        section = L.PLATES_SECTION_GENERAL, changed = "1.1.0",
+        section = L.PLATES_SECTION_GENERAL, changed = "1.6.0",
     })
+    -- Our level is part of the name-only view (the bar has Blizzard's own), so its options are
+    -- only there while that view can show.
     table.insert(options, 2, {
         key = "level", name = L.PLATES_LEVEL, description = L.PLATES_LEVEL_DESC,
         choices = PlateLabel.LEVEL_CHOICES, section = L.PLATES_SECTION_GENERAL,
+        shown = FriendlyPlates.HasNameView,
     })
     table.insert(options, 3, {
         key = "levelFrame", name = L.PLATES_LEVEL_FRAME, description = L.PLATES_LEVEL_FRAME_DESC,
         choices = PlateLabel.LEVEL_FRAME_CHOICES, requires = "level", section = L.PLATES_SECTION_GENERAL,
-        added = "1.1.0",
+        added = "1.1.0", shown = FriendlyPlates.HasNameView,
     })
     table.insert(options, 4, {
         key = "levelSize", name = L.PLATES_LEVEL_SIZE, description = L.PLATES_LEVEL_SIZE_DESC,
         min = 50, max = 200, step = 10, format = "%d%%", requires = "level",
-        section = L.PLATES_SECTION_GENERAL, added = "1.1.0",
+        section = L.PLATES_SECTION_GENERAL, added = "1.1.0", shown = FriendlyPlates.HasNameView,
     })
     table.insert(options, 5, {
         key = "buffs", name = L.PLATES_BUFFS, description = L.PLATES_BUFFS_DESC,
@@ -504,7 +516,7 @@ function Plates:Fade(unit)
     local shown, hidden
     if mode == "never" then
         shown, hidden = 0, 1
-    elseif inCombat then
+    elseif inCombat or mode == "always" then
         shown, hidden = 1, 0
     elseif mode ~= "hurt" then
         shown, hidden = 0, 1
@@ -539,7 +551,7 @@ function Plates:PlaceBuffs(unit, inCombat)
     local state
     if mode == "never" then
         state = "name"
-    elseif inCombat or not curve and mode == "hurt" then
+    elseif inCombat or mode == "always" or not curve and mode == "hurt" then
         state = "bar"
     elseif mode ~= "hurt" then
         state = "name"

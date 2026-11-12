@@ -37,7 +37,13 @@ module.added = "1.6.0"
 local kinds = Enum and Enum.NamePlateSimplifiedType or {}
 local KINDS = {
     { key = "friendlyPlayers", bit = kinds.FriendlyPlayer, name = _G.UNIT_NAMEPLATES_SIMPLIFIED_FRIENDLY_PLAYERS
-        or L.DUNGEONNAMEPLATES_FRIENDLY_PLAYERS, description = L.DUNGEONNAMEPLATES_FRIENDLY_PLAYERS_DESC },
+        or L.DUNGEONNAMEPLATES_FRIENDLY_PLAYERS, description = L.DUNGEONNAMEPLATES_FRIENDLY_PLAYERS_DESC,
+        -- Blizzard's names-only plate has no bar, cast bar, or auras left to simplify
+        -- (NamePlateHealthBarMixin and the others check IsShowOnlyName first).
+        conflicts = { {
+            module = "PlayerNameplates", key = "instanceNames", text = L.DUNGEONNAMEPLATES_NAMES_ONLY,
+            when = function(db, other) return db.friendlyPlayers and other.instanceNames end,
+        } } },
     { key = "friendlyNpcs", bit = kinds.FriendlyNpc, name = _G.UNIT_NAMEPLATES_SIMPLIFIED_FRIENDLY_NPCS
         or L.DUNGEONNAMEPLATES_FRIENDLY_NPCS, description = L.DUNGEONNAMEPLATES_FRIENDLY_NPCS_DESC },
     { key = "minions", bit = kinds.Minion, name = _G.UNIT_NAMEPLATES_SIMPLIFIED_MINIONS
@@ -49,7 +55,8 @@ local KINDS = {
 module.options = {}
 for _, kind in ipairs(KINDS) do
     if kind.bit then
-        module.options[#module.options + 1] = { key = kind.key, name = kind.name, description = kind.description }
+        module.options[#module.options + 1] = { key = kind.key, name = kind.name, description = kind.description,
+            conflicts = kind.conflicts }
     end
 end
 module.options[#module.options + 1] = {

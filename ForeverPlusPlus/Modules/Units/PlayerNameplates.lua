@@ -56,12 +56,13 @@ module.options = ns.FriendlyPlates.Options(L.PLAYERNAMEPLATES_HEALTH_BAR_DESC, {
     {
         key = "nameColor", name = L.PLATES_NAME_COLOR, description = L.PLAYERNAMEPLATES_NAME_COLOR_DESC,
         choices = { { "class", L.PLAYERNAMEPLATES_NAME_COLOR_CLASS }, { "white", L.PLATES_COLOR_WHITE } },
-        section = L.PLATES_SECTION_NAME,
+        -- The name over the bar is always white (style.BarNameColor).
+        section = L.PLATES_SECTION_NAME, shown = ns.FriendlyPlates.HasNameView,
     },
     {
         key = "lightRogue", name = L.PLAYERNAMEPLATES_LIGHT_ROGUE, description = L.PLAYERNAMEPLATES_LIGHT_ROGUE_DESC,
         section = L.PLATES_SECTION_NAME, added = "1.0.1",
-        shown = function(db) return db.nameColor == "class" end,
+        shown = function(db) return db.nameColor == "class" and ns.FriendlyPlates.HasNameView(db) end,
     },
     {
         key = "dimOthers", name = L.PLAYERNAMEPLATES_DIM, description = L.PLAYERNAMEPLATES_DIM_DESC,
@@ -128,7 +129,9 @@ module.options = ns.FriendlyPlates.Options(L.PLAYERNAMEPLATES_HEALTH_BAR_DESC, {
             { "inside", L.PLAYERNAMEPLATES_CLASS_ICON_INSIDE },
             { "outside", L.PLAYERNAMEPLATES_CLASS_ICON_OUTSIDE },
         },
-        shown = function(db) return db.classIcon ~= "off" and db.level == db.classIcon end,
+        shown = function(db)
+            return db.classIcon ~= "off" and db.level == db.classIcon and ns.FriendlyPlates.HasNameView(db)
+        end,
         requires = "classIcon", section = L.PLAYERNAMEPLATES_SECTION_ICONS, added = "1.0.1",
     },
     {

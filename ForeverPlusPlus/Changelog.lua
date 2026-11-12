@@ -23,6 +23,8 @@ ns.changelog = {
                 { L.DUNGEONNAMEPLATES_TITLE, "A new module, off by default. Turns on the game's "
                     .. "Simplified nameplates only inside dungeons and raids, for the kinds you pick, "
                     .. "and puts your own setting back outside." },
+                { L.PLAYERNAMEPLATES_TITLE, "Health Bar has a new choice, Always." },
+                { L.NPCNAMEPLATES_TITLE, "Health Bar has a new choice, Always." },
                 { L.GATHERINGTRACKING_TITLE, "Say When Turned Back On (off by default) says in "
                     .. "chat when tracking has been turned back on for you. Its other chat option "
                     .. "is now called Warning Messages." },
