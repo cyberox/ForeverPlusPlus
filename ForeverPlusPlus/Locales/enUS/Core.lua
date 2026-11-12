@@ -311,3 +311,11 @@ L.SETTINGS_EDIT_MODE_NOTE = "Where it sits and how it's laid out are in Edit Mod
     .. "pick Edit Mode, then click it." -- a gray row on a module with Edit Mode settings
 L.SETTINGS_EDIT_MODE_NOTE_DESC = "Its place, scale, and layout settings are in its Edit Mode dialog and "
     .. "its right-click menu there, beside the frame they change."
+
+-- Gray rows on a module that reads the QuestieDB addon's data (Lib/QuestieDB.lua)
+L.QUESTIEDB_NEEDED = "Needs the QuestieDB addon."
+L.QUESTIEDB_NEEDED_DESC = "Its quest, creature, item, and object data come from QuestieDB, a "
+    .. "separate addon. Install it, turn it on in the AddOns list, and reload."
+L.QUESTIEDB_PROBLEM = "This version of QuestieDB doesn't fit Forever++."
+L.QUESTIEDB_PROBLEM_DESC = "QuestieDB is on, but it doesn't answer the way Forever++ reads it. "
+    .. "Update whichever of the two is older."
