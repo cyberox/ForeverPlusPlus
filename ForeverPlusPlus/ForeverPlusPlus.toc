@@ -69,6 +69,7 @@ Lib\Talents.lua
 Lib\ActionButtons.lua
 Lib\Spellbook.lua
 Lib\Quests.lua
+Lib\QuestieDB.lua
 Lib\Taxi.lua
 Lib\RealmTime.lua
 Modules\System\ErrorCatcher.lua

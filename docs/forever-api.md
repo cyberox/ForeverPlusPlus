@@ -553,6 +553,12 @@ What Agent Chat's link to the Forever Agent program (`agent/`) is built on.
 - `C_Log.LogMessage` text didn't reach any file in `Logs` within a minute. **[in-game]** (2026-11-07)
 - The `## Group` TOC field puts an addon under another one in the AddOns list: it must exactly match the parent addon's folder name. **[web]** (the `forever` UI source, `Blizzard_AddOnList/AddonList.lua` `AddonList_Update`, build 70862) Unverified in game.
 
+## QuestieDB
+
+The QuestieDB addon's quest, NPC, item, and object data, read at run time through `Lib/QuestieDB.lua`. [questiedb.md](questiedb.md) has its API, the shapes, what it lacks, and the in-game steps to check it.
+
+- It's a global, `LibQuestieDB`, set at the end of its own load (not LibStub, not load on demand, no ready event); addon name `QuestieDB`, with `QuestieDB_Forever.toc` and `QuestieDB_Camelot.toc` in its releases. Coordinates are 0-100 percents keyed by AreaTable ID; its own ZoneDB support table maps those to uiMapIDs. **[web]** (its source at `d57637f`, 2026-11-11) **Unverified** in game: not installed on the client yet; Self Test's `questiedb` lines check it.
+
 ## Open questions
 
 Check these in the live client and move them up with a tag and date:

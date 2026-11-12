@@ -180,6 +180,7 @@
     "GetBuildInfo",
     "GetChatTypeIndex",
     "C_AddOns",
+    "LibQuestieDB",
     "C_AddOnProfiler",
     "debugprofilestop",
     "UpdateAddOnMemoryUsage",

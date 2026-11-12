@@ -707,10 +707,73 @@ local function checkGameData()
     end
 end
 
+-- QuestieDB (Lib/QuestieDB.lua): whether the addon is there and answers, with one record of each
+-- kind read through our wrapper, and whether the maps it puts spawns on are this client's maps.
+local function checkQuestieDB()
+    section("questiedb")
+    local Q = ns.QuestieDB
+    local about = Q.Info()
+    info("questiedb.addon", format("status %s, version %s, contract %s (from %s), mode %s",
+        text(about.status), text(about.version), text(about.contract), text(about.minContract),
+        text(about.readMode)))
+    if about.status ~= "ready" then
+        if about.status == "missing" or about.status == "off" then
+            skip("questiedb.read", "QuestieDB isn't on")
+        else
+            fail("questiedb.read", "QuestieDB is there but " .. text(about.status))
+        end
+        return
+    end
+    local counts = {}
+    for _, kind in ipairs({ "Quest", "Npc", "Item", "Object" }) do
+        counts[#counts + 1] = kind .. " " .. #Q.Ids(kind)
+    end
+    info("questiedb.counts", tconcat(counts, ", "))
+    -- The first quest someone starts, its starter, and where the starter stands.
+    local quest
+    for _, questID in ipairs(Q.Ids("Quest")) do
+        quest = Q.Quest(questID)
+        if quest and quest.starters.npcs[1] then
+            break
+        end
+    end
+    if not quest then
+        fail("questiedb.quest", "no quest read back")
+        return
+    end
+    pass("questiedb.quest", format("%d %s, level %s, zone %s -> map %s, %d objectives", quest.id,
+        text(quest.name), text(quest.level), text(quest.areaID), text(quest.uiMapID), #quest.objectives))
+    local npc = quest.starters.npcs[1] and Q.Npc(quest.starters.npcs[1])
+    local spawn = npc and npc.spawns[1]
+    if not spawn then
+        fail("questiedb.npc", "the quest's starter has no spawn on a map")
+        return
+    end
+    local map = C_Map and C_Map.GetMapInfo and C_Map.GetMapInfo(spawn.uiMapID)
+    local area = C_Map and C_Map.GetAreaInfo and C_Map.GetAreaInfo(spawn.areaID)
+    local line = format("%d %s at %.3f, %.3f on map %d (%s), area %d (%s)", npc.id, text(npc.name),
+        spawn.x, spawn.y, spawn.uiMapID, text(map and map.name), spawn.areaID, text(area))
+    if map then
+        pass("questiedb.npc", line)
+    else
+        fail("questiedb.npc", line .. "; that map isn't in this client")
+    end
+    local item = Q.Item(Q.Ids("Item")[1])
+    info("questiedb.item", item and format("%d %s, %d NPC drops, %d vendors", item.id, text(item.name),
+        #item.npcDrops, #item.vendors) or "none read back")
+    local object = Q.Object(Q.Ids("Object")[1])
+    info("questiedb.object", object and format("%d %s, %d spawns", object.id, text(object.name),
+        #object.spawns) or "none read back")
+    local dropped = item and item.npcDrops[1]
+    local rates = item and Q.DropRates(item.id)
+    info("questiedb.drops", rates and format("item %d: NPC %s drops it %s%%", item.id, text(dropped),
+        text(dropped and rates[dropped])) or "no drop rates for it")
+end
+
 -- Running it ---------------------------------------------------------------------------------
 
 local CHECKS = { checkClient, checkSettings, checkFrames, checkCVars, checkTaxi, checkMap,
-    checkSecrets, checkItems, checkPlayers, checkUI, checkSaved, checkGameData }
+    checkSecrets, checkItems, checkPlayers, checkUI, checkSaved, checkGameData, checkQuestieDB }
 
 ---Runs every probe and writes the results to the saved log, starting the recorder.
 ---@return number count how many lines it wrote
