@@ -12,7 +12,7 @@ local _, ns = ...
 
 local pairs, ipairs, type, time, format, tremove = pairs, ipairs, type, time, string.format, table.remove
 local sort, wipe, GetTime, C_CVar = table.sort, wipe, GetTime, C_CVar
-local lower, match = string.lower, string.match
+local lower, match, setmetatable = string.lower, string.match, setmetatable
 
 local L = ns.L
 
@@ -335,20 +335,48 @@ local function chatLocked()
         or false
 end
 
+-- A message sent as several whispers, while the game echoes them back: conversation -> `pieces`,
+-- `at` (the piece expected next), and `message` (the saved message they're joined into).
+local splits = setmetatable({}, { __mode = "k" })
+
+-- A whisper you sent, as the game echoes it. The next piece of a message that went out as several
+-- joins the pieces before it; anything else (a whisper from chat, a piece the game changed) is a
+-- message of its own.
+local function addSent(conversation, text)
+    local split = splits[conversation]
+    if not (split and text == split.pieces[split.at]) then
+        splits[conversation] = nil
+        return add(conversation, "out", text)
+    end
+    local messages = conversation.messages
+    if split.at > 1 and split.message and messages[#messages] == split.message then
+        split.message.text = split.message.text .. " " .. text
+        conversation.last = time()
+        internal.Changed(conversation)
+    else
+        add(conversation, "out", text)
+        split.message = messages[#messages]
+    end
+    split.at = split.at + 1
+    if split.at > #split.pieces then
+        splits[conversation] = nil
+    end
+end
+
 ---Sends a whisper in a conversation. It shows in the conversation once the game says it went
 ---out (CHAT_MSG_WHISPER_INFORM), as one sent from chat does. Returns false when it couldn't go.
 ---@param conversation table
 ---@param text string
 ---@return boolean
 function internal.Send(conversation, text)
-    -- One whisper holds 255 bytes; a longer message goes as several, cut between words.
+    -- One whisper holds 255 bytes; a longer message goes as several, cut between words. The other
+    -- player gets each as a whisper of its own; here they show as the one message typed.
     local pieces = ns.Text.Split(text, MAX_WHISPER)
     if conversation.test then
-        for _, piece in ipairs(pieces) do
-            add(conversation, "out", piece) -- the Debug module's made-up player: nothing goes out
-        end
+        add(conversation, "out", text) -- the Debug module's made-up player: nothing goes out
         return true
     end
+    splits[conversation] = #pieces > 1 and { pieces = pieces, at = 1 } or nil
     if chatLocked() then
         ns.Frames.ErrorMessage(L.WHISPERWINDOW_LOCKED)
         return false
@@ -445,7 +473,11 @@ local function onWhisper(event, text, sender, _, _, _, _, _, _, _, _, _, guid, b
         conversation.guid = guid
         conversation.class = classOf(guid) or conversation.class
     end
-    add(conversation, incoming and "in" or "out", text)
+    if incoming then
+        add(conversation, "in", text)
+    else
+        addSent(conversation, text)
+    end
     if incoming and module.db.hideInChat then
         playSound()
         setReplyTarget(sender, conversation.bnet and "BN_WHISPER" or "WHISPER")

@@ -6,9 +6,9 @@
 local _, ns = ...
 
 local ipairs, format, date, time, pcall, type = ipairs, string.format, date, time, pcall, type
-local setmetatable = setmetatable
+local setmetatable, min, max = setmetatable, math.min, math.max
 local CreateFrame, UIParent, GameTooltip, GetTime = CreateFrame, UIParent, GameTooltip, GetTime
-local strtrim = strtrim
+local strtrim, GetCursorPosition = strtrim, GetCursorPosition
 
 local L = ns.L
 local Frames, Colors = ns.Frames, ns.Colors
@@ -19,7 +19,10 @@ local WINDOW_NAME = "ForeverPlusPlusWhisperWindow" -- named so Escape closes it
 local WIDTH, HEIGHT = 640, 400
 local MIN_WIDTH, MIN_HEIGHT, MAX_WIDTH, MAX_HEIGHT = 480, 260, 1200, 900
 local LIST_WIDTH = 200
+local LIST_MIN, DETAILS_MIN = 140, 270 -- how narrow dragging the divider makes either side
 local ROW_HEIGHT = 38
+local REPLY_MIN, REPLY_MAX = 24, 66 -- the reply box's height: one line, growing to four
+local STRIP = 28 -- the strip under the list and the conversation, for New Whisper and the reply box
 local ICON = "Interface\\ChatFrame\\UI-ChatWhisperIcon"
 
 local window, button, watcher
@@ -144,7 +147,7 @@ local function showMessages()
         f.name:SetText(L.WHISPERWINDOW_NONE)
         f.details:SetText("")
         f.invite:Hide()
-        f.edit:Hide()
+        f.reply:Hide()
         return
     end
     f.details:SetText(detailsText(conversation)) -- first: it may learn the class
@@ -152,7 +155,7 @@ local function showMessages()
     f.edit.hint:SetText(format(L.WHISPERWINDOW_REPLY_HINT, conversation.display))
     f.edit.hint:SetShown((f.edit:GetText() or "") == "")
     f.invite:SetShown(not conversation.bnet)
-    f.edit:Show()
+    f.reply:Show()
     for _, message in ipairs(conversation.messages) do
         f.messages:AddMessage(messageLine(conversation, message), lineColor(conversation, message.kind))
     end
@@ -421,9 +424,61 @@ local function place()
     else
         window:SetPoint("CENTER")
     end
-    local width = layout.width and math.max(MIN_WIDTH, math.min(MAX_WIDTH, layout.width)) or WIDTH
-    local height = layout.height and math.max(MIN_HEIGHT, math.min(MAX_HEIGHT, layout.height)) or HEIGHT
+    local width = layout.width and max(MIN_WIDTH, min(MAX_WIDTH, layout.width)) or WIDTH
+    local height = layout.height and max(MIN_HEIGHT, min(MAX_HEIGHT, layout.height)) or HEIGHT
     window:SetSize(width, height)
+end
+
+-- The list at the width the player dragged it to, as far as the window's own width leaves room
+-- for the conversation beside it. A narrower window shows it narrower without forgetting it.
+local function sizeList()
+    local width = module.db.layout.listWidth or LIST_WIDTH
+    window.listInset:SetWidth(max(LIST_MIN, min(width, window:GetWidth() - DETAILS_MIN)))
+end
+
+-- The divider between the list and the conversation: dragged sideways, it sets the list's width.
+-- It's the gap between the two boxes, gold under the mouse, with the game's resize cursor.
+local function newDivider(f, listInset)
+    local divider = CreateFrame("Button", nil, f)
+    divider:SetWidth(8)
+    divider:SetPoint("TOPLEFT", listInset, "TOPRIGHT", -3, 0)
+    divider:SetPoint("BOTTOMLEFT", listInset, "BOTTOMRIGHT", -3, 0)
+    divider:SetFrameLevel(listInset:GetFrameLevel() + 10)
+    local line = divider:CreateTexture(nil, "HIGHLIGHT")
+    line:SetColorTexture(1, 0.82, 0, 0.6)
+    line:SetWidth(2)
+    line:SetPoint("TOP", 0, -2)
+    line:SetPoint("BOTTOM", 0, 2)
+
+    local dragging
+    local function drag()
+        local x = GetCursorPosition() / f:GetEffectiveScale()
+        module.db.layout.listWidth = max(LIST_MIN, min(x - f:GetLeft() - 5, f:GetWidth() - DETAILS_MIN))
+        sizeList()
+    end
+    divider:SetScript("OnEnter", function()
+        SetCursor("UI_RESIZE_CURSOR")
+    end)
+    divider:SetScript("OnLeave", function()
+        if not dragging then
+            ResetCursor()
+        end
+    end)
+    divider:SetScript("OnMouseDown", function(self)
+        dragging = true
+        line:SetDrawLayer("OVERLAY") -- stays lit while the mouse runs ahead of it
+        self:SetScript("OnUpdate", drag)
+    end)
+    local function stop(self)
+        if dragging then
+            dragging = false
+            line:SetDrawLayer("HIGHLIGHT")
+            self:SetScript("OnUpdate", nil)
+            ResetCursor()
+        end
+    end
+    divider:SetScript("OnMouseUp", stop)
+    divider:SetScript("OnHide", stop)
 end
 
 -- Blizzard's resize grip in the bottom right corner. Probe: Mainline's template.
@@ -449,9 +504,21 @@ local sent = {}
 local MAX_SENT = 30
 local sentIndex -- the one shown, while stepping through them
 
+-- A multi-line box may put Enter's line break in before or after OnEnterPressed. A whisper has no
+-- line breaks, so they go as spaces (pasted ones too), and one put in after is cleared next frame.
+local function clearBreak(edit)
+    C_Timer.After(0, function()
+        if edit:GetText() == "\n" then
+            edit:SetText("")
+        end
+    end)
+end
+
 local function send(edit)
-    local text = strtrim(edit:GetText() or "")
+    local text = strtrim(((edit:GetText() or ""):gsub("%s*\n%s*", " ")))
     if text == "" or not selected then
+        edit:SetText(text)
+        clearBreak(edit)
         edit:ClearFocus()
         return
     end
@@ -464,12 +531,25 @@ local function send(edit)
         end
         sentIndex = nil
         edit:SetText("")
+        clearBreak(edit)
+    else
+        edit:SetText(text)
     end
 end
 
+-- Up and Down step through what was sent only from an empty box, or one still showing what they
+-- brought back: in anything else they move the cursor between its lines.
 local function stepSent(edit, key)
     if #sent == 0 or (key ~= "UP" and key ~= "DOWN") then
         return
+    end
+    local text = edit:GetText() or ""
+    if not (text == "" or (sentIndex and text == sent[sentIndex])) then
+        sentIndex = nil
+        return
+    end
+    if text == "" then
+        sentIndex = nil
     end
     if key == "UP" then
         sentIndex = math.max(1, (sentIndex or #sent + 1) - 1)
@@ -487,9 +567,69 @@ local function stepSent(edit, key)
     edit:SetCursorPosition(#sent[sentIndex])
 end
 
--- The gray "Whisper Bob" in the reply box (set by showMessages), only while it's empty.
-local function updateHint(edit)
-    edit.hint:SetShown((edit:GetText() or "") == "")
+-- The reply box under the conversation: a line high, growing to four as it fills, then scrolling,
+-- so a long whisper can be read while it's typed. `onResize` runs when its height changes.
+local function newReply(f, onResize)
+    local box = Frames.Inset(f)
+    box:SetHeight(REPLY_MIN)
+    local scroll = CreateFrame("ScrollFrame", nil, box)
+    scroll:SetPoint("TOPLEFT", 8, -5)
+    scroll:SetPoint("BOTTOMRIGHT", -8, 5)
+    local edit = CreateFrame("EditBox", nil, scroll)
+    edit:SetMultiLine(true)
+    edit:SetAutoFocus(false)
+    -- Longer than one whisper is fine: internal.Send splits it.
+    edit:SetMaxLetters(internal.MAX_TEXT)
+    edit:SetFontObject(ChatFontNormal)
+    edit:SetTextInsets(0, 0, 0, 0)
+    edit:SetHeight(REPLY_MIN - 10) -- a multi-line box grows from here as it fills
+    scroll:SetScrollChild(edit)
+    scroll:SetScript("OnSizeChanged", function(_, width)
+        edit:SetWidth(width)
+    end)
+    scroll:EnableMouseWheel(true)
+    scroll:SetScript("OnMouseWheel", function(self, delta)
+        local most = max(0, edit:GetHeight() - self:GetHeight())
+        self:SetVerticalScroll(min(most, max(0, self:GetVerticalScroll() - delta * 14)))
+    end)
+    box:EnableMouse(true)
+    box:SetScript("OnMouseDown", function()
+        edit:SetFocus()
+    end)
+
+    -- Keep the cursor in view.
+    edit:SetScript("OnCursorChanged", function(_, _, y, _, height)
+        local top, shown = scroll:GetVerticalScroll(), scroll:GetHeight()
+        y = -y
+        if y < top then
+            scroll:SetVerticalScroll(y)
+        elseif y + height > top + shown then
+            scroll:SetVerticalScroll(y + height - shown)
+        end
+    end)
+
+    -- The gray "Whisper Bob" (set by showMessages), only while the box is empty.
+    edit.hint = box:CreateFontString(nil, "ARTWORK", "GameFontDisable")
+    edit.hint:SetPoint("LEFT", 10, 0)
+    edit.hint:SetPoint("RIGHT", -10, 0)
+    edit.hint:SetJustifyH("LEFT")
+    edit.hint:SetWordWrap(false)
+
+    local shownHeight = REPLY_MIN
+    edit:SetScript("OnTextChanged", function(self)
+        local text = self:GetText() or ""
+        self.hint:SetShown(text == "")
+        local height = text == "" and REPLY_MIN or min(REPLY_MAX, max(REPLY_MIN, self:GetHeight() + 10))
+        if height ~= shownHeight then
+            shownHeight = height
+            box:SetHeight(height)
+            onResize(height)
+        end
+    end)
+    edit:SetScript("OnEnterPressed", send)
+    edit:SetScript("OnEscapePressed", edit.ClearFocus)
+    edit:SetScript("OnArrowPressed", stepSent)
+    return box, edit
 end
 
 local function newMessages(parent)
@@ -549,8 +689,10 @@ local function newWindow()
     -- The conversations, on the left.
     local listInset = Frames.Inset(f)
     listInset:SetPoint("TOPLEFT", 4, -60)
-    listInset:SetPoint("BOTTOMLEFT", 4, 28)
-    listInset:SetWidth(LIST_WIDTH)
+    listInset:SetPoint("BOTTOMLEFT", 4, STRIP)
+    f.listInset = listInset
+    newDivider(f, listInset)
+    f:HookScript("OnSizeChanged", sizeList)
 
     local scrollBox = CreateFrame("Frame", nil, listInset, "WowScrollBoxList")
     scrollBox:SetPoint("TOPLEFT", 3, -3)
@@ -568,7 +710,7 @@ local function newWindow()
     local details = f.Inset or Frames.Inset(f)
     details:ClearAllPoints()
     details:SetPoint("TOPLEFT", listInset, "TOPRIGHT", 2, 0)
-    details:SetPoint("BOTTOMRIGHT", -6, 28)
+    details:SetPoint("BOTTOMRIGHT", -6, STRIP)
 
     f.invite = ns.Frames.Button(details, L.WHISPERWINDOW_INVITE, 110, function()
         if selected then
@@ -605,21 +747,13 @@ local function newWindow()
     end)
     f.new:SetPoint("BOTTOMLEFT", 4, 4)
 
-    local edit = CreateFrame("EditBox", nil, f, "InputBoxTemplate")
-    edit:SetHeight(20)
-    edit:SetPoint("BOTTOMLEFT", details, "BOTTOMLEFT", 8, -24)
-    edit:SetPoint("BOTTOMRIGHT", details, "BOTTOMRIGHT", -20, -24)
-    edit:SetAutoFocus(false)
-    -- Longer than one whisper is fine: internal.Send splits it.
-    edit:SetMaxLetters(internal.MAX_TEXT)
-    edit:SetFontObject(ChatFontNormal)
-    edit:SetScript("OnEnterPressed", send)
-    edit:SetScript("OnEscapePressed", edit.ClearFocus)
-    edit:SetScript("OnArrowPressed", stepSent)
-    edit:SetScript("OnTextChanged", updateHint)
-    edit.hint = edit:CreateFontString(nil, "ARTWORK", "GameFontDisable")
-    edit.hint:SetPoint("LEFT", 2, 0)
-    f.edit = edit
+    -- The reply box hangs under the conversation, which gives up the room it grows by. Short of
+    -- the corner, for the resize grip.
+    f.reply, f.edit = newReply(f, function(height)
+        details:SetPoint("BOTTOMRIGHT", -6, STRIP + height - REPLY_MIN)
+    end)
+    f.reply:SetPoint("TOPLEFT", details, "BOTTOMLEFT", 0, -1)
+    f.reply:SetPoint("TOPRIGHT", details, "BOTTOMRIGHT", -16, -1)
 
     f:HookScript("OnShow", function()
         shownAlpha = nil
@@ -630,6 +764,7 @@ local function newWindow()
         f.edit:ClearFocus()
     end)
     place()
+    sizeList()
     f:Hide()
     return f
 end

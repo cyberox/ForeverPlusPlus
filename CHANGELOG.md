@@ -16,6 +16,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 ### Changed
 
+- **Whisper Window**: the reply box grows as you type, up to four lines, so a long whisper can be read before it's sent. Drag the divider between the list and the conversation to make the list wider or narrower. A whisper too long for the game to send as one still goes out as several, but shows in the window as the one message you typed.
 - **Flight Timer**: a reload in the middle of a flight keeps the bar counting down, and the flight is still timed when you land.
 - **World Map**: Unexplored Areas' map data is up to date with the game's build 70888.
 - **World Map**: dungeons' and raids' lowest levels come from the game's dungeon finder data, so they're right before you've opened the finder (Uldaman 35, not 41).

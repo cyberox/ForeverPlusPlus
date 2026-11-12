@@ -39,6 +39,11 @@ ns.changelog = {
                     .. "Season of Discovery's recipes, which the game still lists, are left out." },
             } },
             { L.CHANGELOG_CHANGED, {
+                { L.WHISPERWINDOW_TITLE, "The reply box grows as you type, up to four lines, so a "
+                    .. "long whisper can be read before it's sent. Drag the divider between the list "
+                    .. "and the conversation to make the list wider or narrower. A whisper too long "
+                    .. "for the game to send as one still goes out as several, but shows in the "
+                    .. "window as the one message you typed." },
                 { L.FLIGHTTIMER_TITLE, "A reload in the middle of a flight keeps the bar counting "
                     .. "down, and the flight is still timed when you land." },
                 { L.WORLDMAP_TITLE, "Unexplored Areas' map data is up to date with the game's build "
