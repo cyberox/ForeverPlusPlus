@@ -271,9 +271,10 @@ local function browseList()
     return results and results.ItemList and results.ItemList.ScrollBox
 end
 
----Calls `fn(icon, itemID)` for each row the auction house's browse list shows. `itemID` is nil
----for a row without an item.
----@param fn fun(icon: table, itemID: number?)
+---Calls `fn(icon, itemID, link)` for each row the auction house's browse list shows. `itemID` is
+---nil for a row without an item. `link` is the item with the row's random suffix ("of the Boar"),
+---which changes its stats; a row gives no full link, so it's made from the two.
+---@param fn fun(icon: table, itemID: number?, link: string?)
 function ItemButtons.EachAuctionRow(fn)
     -- Nothing to mark while the window is closed: its rows hold the last search, and the list's
     -- Update hook (HookAuction) marks them when it opens.
@@ -286,7 +287,13 @@ function ItemButtons.EachAuctionRow(fn)
         local itemKey = row.rowData and row.rowData.itemKey
         local cell = row.cells and row.cells[2]
         if itemKey and cell and cell.Icon then
-            fn(cell.Icon, itemKey.itemID)
+            local id, suffix = itemKey.itemID, itemKey.itemSuffix
+            local link = id and "item:" .. id
+            if link and type(suffix) == "number" and suffix ~= 0 then
+                -- item:ID:enchant:gem:gem:gem:gem:suffix
+                link = link .. "::::::" .. suffix
+            end
+            fn(cell.Icon, id, link)
         end
     end
 end

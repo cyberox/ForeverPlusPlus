@@ -523,12 +523,12 @@ end
 
 -- Auction house ---------------------------------------------------------------------------------
 
--- A browse row gives only an item ID, so an item with a random suffix ("of the Bear") is judged
--- by its base stats, without the suffix's.
+-- A browse row's link has its random suffix ("of the Bear"), whose stats are most of what such an
+-- item gives: judged without it, an upgrade showed as a downgrade.
 local function updateAuction()
     local on = module.db.auction
-    ItemButtons.EachAuctionRow(function(icon, itemID)
-        setArrow(arrows, icon, on and itemID and markOf("item:" .. itemID))
+    ItemButtons.EachAuctionRow(function(icon, _, link)
+        setArrow(arrows, icon, on and link and markOf(link))
     end)
 end
 
