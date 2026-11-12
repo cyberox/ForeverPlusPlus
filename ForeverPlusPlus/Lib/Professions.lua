@@ -782,6 +782,7 @@ function Professions.RecipeTree(recipes, categoryOf, keepEmpty)
             node.recipes[#node.recipes + 1] = recipe
         end
     end
+    ---@type table[]
     local top = {}
     for _, node in pairs(nodes) do
         if node and (keepEmpty or #node.recipes > 0) then

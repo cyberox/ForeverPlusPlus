@@ -129,7 +129,7 @@ local function onEnter(self)
     end
     GameTooltip:AddDoubleLine(L.PROFESSIONS_BAR_SKILL, skill, 1, 1, 1, 1, 1, 1)
     if skill < levels.gray then
-        GameTooltip:AddDoubleLine(L.PROFESSIONS_SKILLUPS, levels.gray - skill, 1, 1, 1, 1, 1, 1)
+        GameTooltip:AddDoubleLine(L.PROFESSIONS_SKILLUPS, tostring(levels.gray - skill), 1, 1, 1, 1, 1, 1)
     end
     GameTooltip:AddLine(L.PROFESSIONS_BAR_NOTE, 0.5, 0.5, 0.5, true)
     GameTooltip:Show()

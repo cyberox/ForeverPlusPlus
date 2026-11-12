@@ -30,6 +30,7 @@
 2	ForeverPlusPlus/Lib/PlateLabel.lua: warning[secret-table-key] value from `UnitClass` may be secret; using it as a table key errors in addon code; guard with `canaccessvalue`
 1	ForeverPlusPlus/Lib/Players.lua: warning[undefined-field] undefined field 'guid' on class 'WhoInfo'
 1	ForeverPlusPlus/Lib/Prices.lua: warning[return-mismatch] expected return type `number?`, got `string?`
+2	ForeverPlusPlus/Lib/QuestieDB.lua: warning[undefined-global] undefined global 'LibQuestieDB'
 1	ForeverPlusPlus/Lib/RealmTime.lua: warning[secret-arithmetic] value from `CalendarTime.hour` may be secret; arithmetic on it errors in addon code; guard with `canaccessvalue` or pass it to a widget
 1	ForeverPlusPlus/Lib/RealmTime.lua: warning[secret-arithmetic] value from `CalendarTime.minute` may be secret; arithmetic on it errors in addon code; guard with `canaccessvalue` or pass it to a widget
 1	ForeverPlusPlus/Lib/Secret.lua: warning[type-mismatch] expected `table` for parameter 'aura', got `AuraData | nil | string`
@@ -49,6 +50,7 @@
 1	ForeverPlusPlus/Modules/Character/CharacterWindow/Skills.lua: warning[undefined-field] undefined field 'ColorType' on class 'ColoredProgressBarMixin'
 1	ForeverPlusPlus/Modules/Character/Professions/CraftingCosts.lua: warning[deprecated] 'GetMerchantItemInfo' is deprecated
 1	ForeverPlusPlus/Modules/Character/Professions/CraftingCosts.lua: warning[wrong-flavor-api] API 'GetMerchantItemInfo' not available in flavor 'Forever' (available in: Classic, Classic Era)
+1	ForeverPlusPlus/Modules/Character/Professions/UnlearnedRecipes.lua: warning[missing-parameter] missing argument for parameter 'callback'
 1	ForeverPlusPlus/Modules/Character/TalentPlanner/Tree.lua: warning[undefined-field] undefined field 'LegacyConsts' on class 'Constants'
 2	ForeverPlusPlus/Modules/Chat/ShortChannelNames.lua: warning[return-mismatch] expected return type `string`, got `string | number`
 1	ForeverPlusPlus/Modules/Chat/WhisperWindow/WhisperWindow.lua: warning[undefined-global] undefined global 'CHAT_TELL_ALERT_TIME'

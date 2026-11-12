@@ -156,7 +156,7 @@ function QuestieDB.Status()
         return "ready"
     end
     if lib then
-        return status
+        return status or "shape" -- set with `lib`, so never nil here
     end
     local installed, loaded, loadable, onDemand = addon()
     if not installed then
