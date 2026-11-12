@@ -128,8 +128,10 @@ end
 -- After the form shows a recipe (its Init), or with the recipe it shows now.
 local function drawDetail(form, info)
     local icon, name = form and form.OutputIcon, form and form.OutputText
-    local text = module.enabled and module.db.skillUpsDetail and icon and name and icon:IsShown()
-        and name:IsShown() and detailText(info)
+    -- Not beside Skill Bar's bar: the two don't fit the row, and the bar says the same (the
+    -- skill-ups left are in its tooltip).
+    local text = module.enabled and module.db.skillUpsDetail and not internal.barOnForm and icon
+        and name and icon:IsShown() and name:IsShown() and detailText(info)
     if not text then
         if detail then
             detail:Hide()
@@ -146,6 +148,9 @@ local function drawDetail(form, info)
     detail:Show()
     internal.PlaceOnForm(form, DETAIL_ORDER, detail)
 end
+
+-- Skill Bar calls this when its bar comes or goes.
+internal.RedrawDetail = drawDetail
 
 local function catchUp()
     Professions.EachRecipeRow(rowNumber)

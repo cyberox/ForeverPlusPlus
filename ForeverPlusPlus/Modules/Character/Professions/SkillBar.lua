@@ -122,6 +122,9 @@ local function onEnter(self)
         end
     end
     GameTooltip:AddDoubleLine(L.PROFESSIONS_BAR_SKILL, skill, 1, 1, 1, 1, 1, 1)
+    if skill < levels.gray then
+        GameTooltip:AddDoubleLine(L.PROFESSIONS_SKILLUPS, levels.gray - skill, 1, 1, 1, 1, 1, 1)
+    end
     GameTooltip:AddLine(L.PROFESSIONS_BAR_NOTE, 0.5, 0.5, 0.5, true)
     GameTooltip:Show()
 end
@@ -222,7 +225,9 @@ local function render()
         end
     end
     marker:ClearAllPoints()
-    marker:SetPoint("CENTER", bar, "TOPLEFT", FILL_X + shown.layout.marker * fill, middle)
+    -- Inside the fill, also at either end of it.
+    local at = math.max(1, math.min(fill - 1, shown.layout.marker * fill))
+    marker:SetPoint("CENTER", bar, "TOPLEFT", FILL_X + at, middle)
 end
 
 -- The room the row leaves the bar, once Skill-Ups Left's line has its own.
@@ -234,13 +239,24 @@ local function fit(room)
     end
 end
 
-local function hide(form)
+-- Skill-Ups Left's line shows only while the bar doesn't: told when that changes.
+local function setOnForm(form, info, on)
+    if internal.barOnForm ~= on then
+        internal.barOnForm = on
+        if internal.RedrawDetail and form then
+            internal.RedrawDetail(form, info or form.currentRecipeInfo)
+        end
+    end
+end
+
+local function hide(form, info)
     shown = nil
     if bar then
         bar:Hide()
         onLeave(bar)
         internal.PlaceOnForm(form, BAR_ORDER, nil)
     end
+    setOnForm(form, info, false)
 end
 
 -- After the form shows a recipe (its Init), or with the recipe it shows now.
@@ -252,7 +268,7 @@ local function draw(form, info)
         levels, skill = levelsOf(info)
     end
     if not levels then
-        hide(form)
+        hide(form, info)
         return
     end
     if not bar then
@@ -262,6 +278,7 @@ local function draw(form, info)
     render()
     bar:Show()
     internal.PlaceOnForm(form, BAR_ORDER, bar, fit)
+    setOnForm(form, info, true)
 end
 
 -- The recipe the form shows, read again: a skill-up changes its color.
