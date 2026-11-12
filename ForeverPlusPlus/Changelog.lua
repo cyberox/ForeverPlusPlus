@@ -24,6 +24,9 @@ ns.changelog = {
             { L.CHANGELOG_CHANGED, {
                 { L.WORLDMAP_TITLE, "Unexplored Areas' map data is up to date with the game's build "
                     .. "70888." },
+                { L.WORLDMAP_TITLE, "Dungeons' and raids' lowest levels come from the game's "
+                    .. "dungeon finder data, so they're right before you've opened the finder "
+                    .. "(Uldaman 35, not 41)." },
             } },
             { L.CHANGELOG_FIXED, {
                 { L.UPGRADEARROWS_TITLE, "In the auction house's list, an item with a random suffix "

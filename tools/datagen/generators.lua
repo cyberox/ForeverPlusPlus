@@ -4,4 +4,5 @@ return {
     require("unexplored"),
     require("skilllevels"),
     require("reference"),
+    require("instancelevels"),
 }

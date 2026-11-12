@@ -12,6 +12,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 ### Changed
 
 - **World Map**: Unexplored Areas' map data is up to date with the game's build 70888.
+- **World Map**: dungeons' and raids' lowest levels come from the game's dungeon finder data, so they're right before you've opened the finder (Uldaman 35, not 41).
 
 ### Fixed
 

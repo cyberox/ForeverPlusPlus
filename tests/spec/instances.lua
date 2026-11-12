@@ -28,8 +28,18 @@ ns.Colors.LevelRange = function()
     return nil
 end
 eq(Instances.Levels(Instances.byKey.mc), "Level 60", "single level")
-eq(Instances.Levels(Instances.byKey.brd), "Level 52-60", "level range")
-eq(Instances.Levels(Instances.byKey.brd, true), "52-60", "compact range")
+eq(Instances.Levels(Instances.byKey.brd), "Level 48-60", "level range")
+eq(Instances.Levels(Instances.byKey.brd, true), "48-60", "compact range")
+
+-- Lowest levels: the finder's from the generated tables, unless kept by hand.
+local generated = ns.TableData.instanceLevels
+eq(Instances.byKey.uldaman[3], generated[70], "lowest level from the generated tables")
+eq(Instances.byKey.zulfarrak[3], generated[209], "Zul'Farrak matched despite the finder's spelling")
+eq(Instances.byKey.shapersTerrace[3], 58, "a level seen in game is kept over the tables'")
+eq(Instances.byKey.naxxramas[3], 60, "an instance the tables lack keeps its hand level")
+for key, inst in pairs(Instances.byKey) do
+    eq(type(inst[3]), "number", key .. " has a lowest level")
+end
 eq(Instances.Levels(Instances.byKey.mc, true), "60", "compact single")
 eq(Instances.Icon(Instances.byKey.mc, 14), "|A:Raid:14:14|a", "raid icon")
 eq(Instances.Icon(Instances.byKey.brd, 14), "|A:Dungeon:14:14|a", "dungeon icon")

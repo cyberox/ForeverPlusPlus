@@ -71,7 +71,7 @@ ns.Colors.LevelRange = function()
     return nil
 end
 eq(Instances.Levels(byKey.deadmines, true), "18-23", "finder: levels replace the seed's")
-eq(Instances.Levels(byKey.brd, true), "52-60", "finder: a whole bracket keeps the seed's")
+eq(Instances.Levels(byKey.brd, true), "48-60", "finder: a whole bracket keeps the seed's")
 eq(ns.db.gameData.instances.values[36].low, 18, "finder: learned for the account")
 eq(ns.db.gameData.instances.values[230], nil, "finder: the seed's levels aren't saved")
 eq(Instances.ByName("drowned city"), byKey.lfg3100, "finder: adds a dungeon the seed lacks")
