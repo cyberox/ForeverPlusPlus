@@ -28,27 +28,6 @@ module:AddOptions({
     { key = "gray", name = L.PROFESSIONS_GRAY, description = L.PROFESSIONS_GRAY_DESC },
 })
 
--- Blizzard's own difficulty colors (FrameXML's), by Enum.TradeskillRelativeDifficulty. Probe: the
--- enum and the constants are Mainline's.
-local COLORS
-local TRIVIAL
-local function colors()
-    if COLORS == nil then
-        COLORS = false
-        local E = Enum and Enum.TradeskillRelativeDifficulty
-        if E and DIFFICULT_DIFFICULTY_COLOR and FAIR_DIFFICULTY_COLOR and EASY_DIFFICULTY_COLOR then
-            TRIVIAL = TRIVIAL_DIFFICULTY_COLOR or GRAY_FONT_COLOR
-            COLORS = {
-                [E.Optimal] = DIFFICULT_DIFFICULTY_COLOR,
-                [E.Medium] = FAIR_DIFFICULTY_COLOR,
-                [E.Easy] = EASY_DIFFICULTY_COLOR,
-                [E.Trivial] = TRIVIAL,
-            }
-        end
-    end
-    return COLORS
-end
-
 -- Blizzard's gold highlight art turned gray, then colored, so the tint is clean instead of gold
 -- times the color. Rows are reused, so a row without a color gets Blizzard's gold back.
 local HIGHLIGHTS = { "SelectedOverlay", "HighlightOverlay" }
@@ -79,7 +58,7 @@ local function paint(row, node)
         return
     end
     local info = Professions.RowRecipe(row, node)
-    local all = colors()
+    local all = internal.DifficultyColors()
     if not (all and info and info.learned and not info.disabled and internal.ListHasSkillUps()) then
         tint(row)
         return
@@ -88,7 +67,7 @@ local function paint(row, node)
     if info.canSkillUp then
         color = all[info.relativeDifficulty]
     elseif module.db.gray then
-        color = TRIVIAL
+        color = all[Enum.TradeskillRelativeDifficulty.Trivial]
     end
     if not color then
         tint(row)

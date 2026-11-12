@@ -198,7 +198,8 @@ L.MACROS_SMARTBUFF_PICKUP_DESC = "Put the Smart Buff macro on your cursor, to dr
 -- Professions
 L.PROFESSIONS_TITLE = "Professions"
 L.PROFESSIONS_DESC = "Add to the professions window: recipes colored by your chance of a skill-up, "
-    .. "how many skill-ups each has left, and what a recipe costs to craft against what it makes. "
+    .. "how many skill-ups each has left, a bar of the levels a recipe changes color at, and what "
+    .. "a recipe costs to craft against what it makes. "
     .. "Each has its own checkbox."
 L.PROFESSIONS_NO_PRICES = "Crafting Costs has no auction prices: Item Tooltips' Auction Prices is off."
 L.PROFESSIONS_NO_PRICES_DESC = "Without auction prices, Crafting Costs counts only what merchants "
@@ -235,6 +236,26 @@ L.PROFESSIONS_DUMP_SKILL = "%s: %s (%s), skill %s of %s" -- function, profession
 L.PROFESSIONS_DUMP_ROW = "%s (%d): maxTrivialLevel %s, relativeDifficulty %s, numSkillUps %s" -- recipe, its ID, then its fields
 L.PROFESSIONS_DUMP_FIELDS = "%s: %s" -- recipe, every field as key=value
 L.PROFESSIONS_DUMP_COUNT = "maxTrivialLevel is given for %d of the %d recipes you know."
+-- Skill Bar
+L.PROFESSIONS_BAR = "Skill Bar"
+L.PROFESSIONS_BAR_DESC = "Under the selected recipe's name, a bar of the skill levels it turns "
+    .. "yellow, green, and gray at, with your skill marked on it."
+L.PROFESSIONS_BAR_LEVELS = "Levels on Bar"
+L.PROFESSIONS_BAR_LEVELS_DESC = "Write the skill each color starts at on the bar. Pointing at the bar lists them either way."
+L.PROFESSIONS_BAR_ESTIMATE = "Skill Bar's levels are an estimate."
+L.PROFESSIONS_BAR_ESTIMATE_DESC = "The game's recipe info gives only where a recipe turns gray. The "
+    .. "yellow level comes from the game's data tables, and green is taken as halfway between, as "
+    .. "in Classic. A recipe whose levels don't match the color the game shows gets no bar."
+L.PROFESSIONS_BAR_YELLOW = "Yellow"
+L.PROFESSIONS_BAR_GREEN = "Green"
+L.PROFESSIONS_BAR_GRAY = "Gray"
+L.PROFESSIONS_BAR_SKILL = "Your Skill"
+L.PROFESSIONS_BAR_NOTE = "Yellow and gray are from the game's data; green is halfway between."
+L.PROFESSIONS_BAR_DUMP = "Skill Bar Levels"
+L.PROFESSIONS_BAR_DUMP_DESC = "With a profession window open, check the game's tables against the color each recipe you know shows, and print the selected recipe's levels."
+L.PROFESSIONS_BAR_DUMP_WRONG = "%s (%d): the tables give another color than the game's (%s)" -- recipe, its ID, relativeDifficulty
+L.PROFESSIONS_BAR_DUMP_SELECTED = "%s: ability %s, tables yellow %s gray %s; game gray %s, difficulty %s, skill %s"
+L.PROFESSIONS_BAR_DUMP_COUNT = "Levels fit %d recipes; %d have no matching table entry; %d show another color."
 -- Crafting Costs
 L.PROFESSIONS_CRAFTING = "Crafting Costs"
 L.PROFESSIONS_CRAFTING_DESC = "Show Total Cost, Value, and Estimated Profit (after the auction "

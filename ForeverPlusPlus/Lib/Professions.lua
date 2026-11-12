@@ -5,6 +5,7 @@ local _, ns = ...
 
 local _G, type, ipairs, pairs, select, setmetatable = _G, type, ipairs, pairs, select, setmetatable
 local tinsert = table.insert
+local floor, max, min = math.floor, math.max, math.min
 local GetProfessions, GetProfessionInfo = GetProfessions, GetProfessionInfo
 
 local Professions = {
@@ -521,6 +522,81 @@ function Professions.SkinningNeed(level)
         return level * 10 - 100
     end
     return level * 5
+end
+
+-- A recipe's colors by skill ---------------------------------------------------------------------
+-- A recipe is orange (a skill-up every time) below its yellow level, yellow (usually) from there,
+-- green (sometimes) from halfway to gray, and gray (never) from its gray level on. The game's
+-- recipe info gives only the gray level (maxTrivialLevel) and the color now (relativeDifficulty);
+-- the yellow level is in its SkillLineAbility table (docs/forever-api.md), and green is worked out
+-- as Classic's servers did, halfway between rounded down. Difficulties are
+-- Enum.TradeskillRelativeDifficulty's numbers, written out so this needs no client.
+
+local DIFFICULTY = { OPTIMAL = 0, MEDIUM = 1, EASY = 2, TRIVIAL = 3 }
+Professions.DIFFICULTY = DIFFICULTY
+
+local BAR_PAD = 5 -- the fewest skill points the bar shows before yellow and after gray
+
+---The skill levels a recipe turns yellow, green, and gray at, or nil when the numbers don't make
+---sense (missing, or yellow past gray). A recipe whose yellow level is its gray level goes from
+---orange straight to gray.
+---@param yellow number?
+---@param gray number?
+---@return table|nil levels `{ yellow, green, gray }`
+function Professions.RecipeLevels(yellow, gray)
+    if type(yellow) ~= "number" or type(gray) ~= "number" or yellow < 1 or yellow > gray then
+        return nil
+    end
+    return { yellow = yellow, green = floor((yellow + gray) / 2), gray = gray }
+end
+
+---The difficulty `levels` (Professions.RecipeLevels) give at `skill`, one of Professions.DIFFICULTY:
+---OPTIMAL (orange), MEDIUM (yellow), EASY (green), or TRIVIAL (gray), as relativeDifficulty is.
+---@param levels table
+---@param skill number
+---@return number
+function Professions.LevelDifficulty(levels, skill)
+    if skill >= levels.gray then
+        return DIFFICULTY.TRIVIAL
+    elseif skill >= levels.green then
+        return DIFFICULTY.EASY
+    elseif skill >= levels.yellow then
+        return DIFFICULTY.MEDIUM
+    end
+    return DIFFICULTY.OPTIMAL
+end
+
+---A bar of a recipe's colors from a little before yellow to a little after gray, in proportion to
+---the skill: `from` and `to` are the skill it starts and ends at, `segments` each color's part as
+---`{ difficulty, left, right, level }` (fractions of the bar, and the skill it starts at; none for
+---a color the recipe skips), and `marker` where `skill` falls (0 to 1, held at the ends).
+---@param levels table Professions.RecipeLevels
+---@param skill number?
+---@return table bar `{ from, to, segments, marker }`
+function Professions.LevelBar(levels, skill)
+    local pad = max(floor((levels.gray - levels.yellow) / 2), BAR_PAD)
+    local from, to = levels.yellow - pad, levels.gray + pad
+    local span = to - from
+    local function at(level)
+        return (level - from) / span
+    end
+    local bounds = {
+        { DIFFICULTY.OPTIMAL, from, levels.yellow },
+        { DIFFICULTY.MEDIUM, levels.yellow, levels.green },
+        { DIFFICULTY.EASY, levels.green, levels.gray },
+        { DIFFICULTY.TRIVIAL, levels.gray, to },
+    }
+    local segments = {}
+    for _, bound in ipairs(bounds) do
+        if bound[3] > bound[2] then
+            segments[#segments + 1] = { bound[1], at(bound[2]), at(bound[3]), bound[2] }
+        end
+    end
+    local marker
+    if type(skill) == "number" then
+        marker = min(max(at(skill), 0), 1)
+    end
+    return { from = from, to = to, segments = segments, marker = marker }
 end
 
 local known -- skill line -> { rank, name, icon }, or nil until read
