@@ -557,11 +557,15 @@ local function lineText(item)
     if (C_Item.GetItemCount(item) or 0) > 0 then
         name = format(L.PROFESSIONS_UNLEARNED_OWNED, name)
     end
+    -- The line without its price too, for a row too narrow for both: the name matters more, and
+    -- the item's tooltip has the price.
+    local short = format(L.PROFESSIONS_UNLEARNED_TAUGHT, name)
     local copper = ns.Prices.Available() and ns.Prices.Auction(item)
     if copper then
-        name = format(L.PROFESSIONS_UNLEARNED_PRICED, name, ns.Money(copper))
+        return format(L.PROFESSIONS_UNLEARNED_TAUGHT, format(L.PROFESSIONS_UNLEARNED_PRICED, name,
+            ns.Money(copper))), short
     end
-    return format(L.PROFESSIONS_UNLEARNED_TAUGHT, name)
+    return short, nil
 end
 
 local function insertLink(link)
@@ -605,10 +609,15 @@ local function hideLine(form)
     end
 end
 
--- The room the row leaves the line, which it takes up to its text's whole width.
+-- The room the row leaves the line, which it takes up to its text's whole width. Too narrow for
+-- the whole line, it drops the price before the name is cut short.
 local function fitLine(room)
-    local full = line.full
+    local full, text = line.full, line.long
+    if room and room < full and line.short then
+        full, text = line.shortWidth, line.short
+    end
     local width = room and room < full and room or full
+    line.text:SetText(text)
     line.text:SetWidth(width)
     line:SetSize(width, line.text:GetStringHeight())
 end
@@ -620,14 +629,22 @@ local function drawLine(form, info)
     local entry = module.enabled and info and not info.learned and internal.recipes
         and internal.recipes[info.skillLineAbilityID]
     local item = entry and entry[5]
-    local text = item and icon and name and icon:IsShown() and name:IsShown() and lineText(item)
+    local text, short
+    if item and icon and name and icon:IsShown() and name:IsShown() then
+        text, short = lineText(item)
+    end
     if not text then
         hideLine(form)
         return
     end
     line = line or buildLine(form)
     line.item = item
+    line.long, line.short = text, short
     line.text:SetWidth(0)
+    if short then
+        line.text:SetText(short)
+        line.shortWidth = line.text:GetStringWidth()
+    end
     line.text:SetText(text)
     line.full = line.text:GetStringWidth()
     line:Show()
