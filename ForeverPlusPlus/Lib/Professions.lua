@@ -728,6 +728,11 @@ end
 -- Blizzard's order for a category's recipes (SortCategoryData, Blizzard_ProfessionsTemplates):
 -- the skill a recipe turns gray at, highest first, then item level, highest first, then name.
 local function byRecipe(a, b)
+    -- Blizzard's first key, where both recipes have it: orange before yellow, green, and gray.
+    local da, db = a.difficulty, b.difficulty
+    if type(da) == "number" and type(db) == "number" and da ~= db then
+        return da < db
+    end
     local ga, gb = a.maxTrivialLevel or 0, b.maxTrivialLevel or 0
     if ga ~= gb then
         return ga > gb
