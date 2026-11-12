@@ -48,6 +48,7 @@ Lib\Providers.lua
 Lib\DisenchantBrackets.lua
 Lib\Disenchant.lua
 Lib\Professions.lua
+Lib\LockboxSkills.lua
 Lib\PlateLabel.lua
 Lib\FriendlyPlates.lua
 Lib\AddOns.lua

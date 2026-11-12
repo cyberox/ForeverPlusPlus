@@ -6,4 +6,5 @@ return {
     require("reference"),
     require("instancelevels"),
     require("disenchant"),
+    require("lockboxes"),
 }

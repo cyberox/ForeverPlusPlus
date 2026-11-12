@@ -98,25 +98,12 @@ local NODES = setmetatable({ -- object name -> { skill line, skill }
     end,
 })
 
--- Locked boxes: item ID -> the Lockpicking skill to open them. The seed is from Classic; the
--- skill in Blizzard's "Requires Lockpicking (25)" line on a box's tooltip is learned over it,
--- and a box the seed lacks is learned from that line too.
-local LOCKBOXES = ns.GameData.New("lockboxes", {
-    [16882] = 1, -- Battered Junkbox
-    [16883] = 25, -- Worn Junkbox
-    [16884] = 70, -- Sturdy Junkbox
-    [16885] = 175, -- Heavy Junkbox
-    [6712] = 1, -- Practice Lockbox
-    [4632] = 1, -- Ornate Bronze Lockbox
-    [4633] = 25, -- Heavy Bronze Lockbox
-    [4634] = 70, -- Iron Lockbox
-    [4636] = 125, -- Strong Iron Lockbox
-    [4637] = 175, -- Steel Lockbox
-    [4638] = 225, -- Reinforced Steel Lockbox
-    [5758] = 225, -- Mithril Lockbox
-    [5759] = 275, -- Thorium Lockbox
-    [5760] = 350, -- Eternium Lockbox
-}, { kind = "item", label = "Lockboxes" })
+-- Locked boxes: item ID -> the Lockpicking skill to open them. The seed is every lockbox in the
+-- client's tables (Lib/LockboxSkills.lua, generated); the skill in Blizzard's "Requires
+-- Lockpicking (25)" line on a box's tooltip is learned over it, and a box the seed lacks is
+-- learned from that line too.
+local LOCKBOXES = ns.GameData.New("lockboxes", ns.TableData and ns.TableData.lockboxSkills or {},
+    { kind = "item", label = "Lockboxes" })
 
 -- Blacksmiths make skeleton keys that open locks like Lockpicking: item ID, the skill it opens
 -- up to, and the Blacksmithing skill that makes it. From Classic; fix them here.
