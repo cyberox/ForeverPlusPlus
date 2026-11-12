@@ -390,11 +390,13 @@ local function recipeList()
     return page and page.RecipeList
 end
 
--- Blizzard's "no results" text follows its own tree, which ours may differ from either way.
+-- Blizzard's "no results" text follows its own tree, which ours may differ from either way: it
+-- goes by whichever tree the list has now (theirs again after ours was empty, too).
 local function noResults()
     local list = recipeList()
-    if ours and list and list.NoResultsText then
-        list.NoResultsText:SetShown(ours:IsEmpty())
+    local provider = ours or theirs
+    if provider and list and list.NoResultsText then
+        list.NoResultsText:SetShown(provider:IsEmpty())
     end
 end
 
@@ -422,6 +424,7 @@ local function build(box, retain)
         learnColumn:Use(false)
         if was and theirs and box:GetDataProvider() == was then
             give(box, theirs, retain) -- back to Blizzard's
+            noResults()
         end
         return
     end
@@ -434,6 +437,7 @@ local function build(box, retain)
         learnColumn:Use(false)
         if was and box:GetDataProvider() == was then
             give(box, theirs, retain) -- nothing to add: Blizzard's as it is
+            noResults()
         end
         return
     end
