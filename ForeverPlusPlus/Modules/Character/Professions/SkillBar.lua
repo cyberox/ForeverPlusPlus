@@ -82,15 +82,24 @@ end
 -- white line at the player's skill. Its tooltip lists the levels.
 
 local BAR_ORDER = 10 -- left of Skill-Ups Left's line (20)
-local WIDTH, HEIGHT = 160, 12
-local MARKER_OVERHANG = 3 -- how far the marker sticks out above and below the bar
 local LABEL_INSET = 2
 local TEXTURE = "Interface\\TargetingFrame\\UI-StatusBar"
+
+-- The art of the profession's own skill bar at the top of the window (ProfessionsRankBarTemplate,
+-- Gethe forever branch): a background and a frame 29 high around a fill 18 high, which starts 5 in
+-- and 3 down. That art is one fixed width, so each is drawn in three pieces, its two ends as they
+-- are and its middle stretched, all at SCALE of its size.
+local SCALE = 0.75
+local ART_BACK, ART_FRAME = "Professions-skillbar-bg", "Professions-skillbar-frame"
+local ART_END = 24 -- how much of each end of the art is kept unstretched
+local ART_HEIGHT, FILL_HEIGHT, FILL_X, FILL_Y = 29 * SCALE, 18 * SCALE, 5 * SCALE, 3 * SCALE
+local WIDTH, MIN_WIDTH = 220, 110 -- the most the bar takes of the row, and the least
 
 local bar -- our frame, made the first time a recipe shows
 local parts = {} -- a texture and a label for each color, by Professions.DIFFICULTY
 local marker
 local shown -- what the bar shows now: { levels, skill }, for its tooltip
+local width = WIDTH -- the bar's width now
 
 local function onEnter(self)
     if not shown then
@@ -123,19 +132,51 @@ local function onLeave(self)
     end
 end
 
+-- One of the skill bar's atlases across the whole bar, in three pieces. False when this client
+-- doesn't have it.
+local function art(atlas, sublevel)
+    local info = C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(atlas)
+    local file = info and (info.file or info.filename)
+    if not (file and info.width and info.width > 2 * ART_END) then
+        return false
+    end
+    local l, r, t, b = info.leftTexCoord, info.rightTexCoord, info.topTexCoord, info.bottomTexCoord
+    local u = (r - l) * ART_END / info.width
+    local height = info.height * SCALE
+    local function piece(from, to)
+        local texture = bar:CreateTexture(nil, "ARTWORK", nil, sublevel)
+        texture:SetTexture(file)
+        texture:SetTexCoord(from, to, t, b)
+        return texture
+    end
+    local left, middle, right = piece(l, l + u), piece(l + u, r - u), piece(r - u, r)
+    left:SetSize(ART_END * SCALE, height)
+    left:SetPoint("TOPLEFT")
+    right:SetSize(ART_END * SCALE, height)
+    right:SetPoint("TOPRIGHT")
+    middle:SetPoint("TOPLEFT", left, "TOPRIGHT")
+    middle:SetPoint("BOTTOMRIGHT", right, "BOTTOMLEFT")
+    return true
+end
+
 local function build(form)
     bar = CreateFrame("Frame", nil, form)
-    bar:SetSize(WIDTH, HEIGHT)
+    bar:SetSize(width, ART_HEIGHT)
     bar:EnableMouse(true)
     bar:SetScript("OnEnter", onEnter)
     bar:SetScript("OnLeave", onLeave)
-    local back = bar:CreateTexture(nil, "BACKGROUND")
-    back:SetPoint("TOPLEFT", -1, 1)
-    back:SetPoint("BOTTOMRIGHT", 1, -1)
-    back:SetColorTexture(0, 0, 0, 0.75)
-    local font = _G.GameFontHighlightSmallOutline and "GameFontHighlightSmallOutline" or "GameFontHighlightSmall"
+    local framed = art(ART_BACK, 1)
+    art(ART_FRAME, 3)
+    if not framed then
+        local back = bar:CreateTexture(nil, "BACKGROUND")
+        back:SetPoint("TOPLEFT", FILL_X - 1, 1 - FILL_Y)
+        back:SetPoint("BOTTOMRIGHT", bar, "TOPRIGHT", 1 - FILL_X, -FILL_Y - FILL_HEIGHT - 1)
+        back:SetColorTexture(0, 0, 0, 0.75)
+    end
+    -- The font of the numbers on Blizzard's skill bar.
+    local font = _G.Number12FontOutline and "Number12FontOutline" or "GameFontHighlightSmall"
     for _, difficulty in pairs(DIFFICULTY) do
-        local texture = bar:CreateTexture(nil, "ARTWORK")
+        local texture = bar:CreateTexture(nil, "ARTWORK", nil, 2)
         texture:SetTexture(TEXTURE)
         local label = bar:CreateFontString(nil, "OVERLAY", font)
         label:SetJustifyH("LEFT")
@@ -143,11 +184,54 @@ local function build(form)
     end
     local edge = bar:CreateTexture(nil, "OVERLAY", nil, 6)
     edge:SetColorTexture(0, 0, 0, 1)
-    edge:SetSize(4, HEIGHT + 2 * MARKER_OVERHANG + 2)
+    edge:SetSize(4, FILL_HEIGHT)
     marker = bar:CreateTexture(nil, "OVERLAY", nil, 7)
     marker:SetColorTexture(1, 1, 1, 1)
-    marker:SetSize(2, HEIGHT + 2 * MARKER_OVERHANG)
+    marker:SetSize(2, FILL_HEIGHT)
     edge:SetPoint("CENTER", marker)
+end
+
+-- The colors, levels, and marker across the bar at its width now.
+local function render()
+    local colors = internal.DifficultyColors()
+    if not (bar and shown and colors) then
+        return
+    end
+    bar:SetWidth(width)
+    local fill = width - 2 * FILL_X
+    local middle = -FILL_Y - FILL_HEIGHT / 2
+    for _, part in pairs(parts) do
+        part.texture:Hide()
+        part.label:Hide()
+    end
+    for i, segment in ipairs(shown.layout.segments) do
+        local part = parts[segment[1]]
+        local left, right = FILL_X + segment[2] * fill, FILL_X + segment[3] * fill
+        part.texture:ClearAllPoints()
+        part.texture:SetPoint("TOPLEFT", bar, "TOPLEFT", left, -FILL_Y)
+        part.texture:SetPoint("BOTTOMRIGHT", bar, "TOPLEFT", right, -FILL_Y - FILL_HEIGHT)
+        part.texture:SetVertexColor(colors[segment[1]]:GetRGB())
+        part.texture:Show()
+        -- The level a color starts at, where it fits; the bar's start before yellow is no level.
+        if i > 1 and module.db.skillBarLevels then
+            local label = part.label
+            label:SetText(segment[4])
+            label:ClearAllPoints()
+            label:SetPoint("LEFT", bar, "TOPLEFT", left + LABEL_INSET, middle)
+            label:SetShown(label:GetStringWidth() + LABEL_INSET <= right - left)
+        end
+    end
+    marker:ClearAllPoints()
+    marker:SetPoint("CENTER", bar, "TOPLEFT", FILL_X + shown.layout.marker * fill, middle)
+end
+
+-- The room the row leaves the bar, once Skill-Ups Left's line has its own.
+local function fit(room)
+    local wanted = math.max(MIN_WIDTH, math.min(WIDTH, room))
+    if wanted ~= width then
+        width = wanted
+        render()
+    end
 end
 
 local function hide(form)
@@ -174,33 +258,10 @@ local function draw(form, info)
     if not bar then
         build(form)
     end
-    local layout = Professions.LevelBar(levels, skill)
-    for _, part in pairs(parts) do
-        part.texture:Hide()
-        part.label:Hide()
-    end
-    for i, segment in ipairs(layout.segments) do
-        local part = parts[segment[1]]
-        local left, right = segment[2] * WIDTH, segment[3] * WIDTH
-        part.texture:ClearAllPoints()
-        part.texture:SetPoint("TOPLEFT", bar, "TOPLEFT", left, 0)
-        part.texture:SetPoint("BOTTOMRIGHT", bar, "BOTTOMLEFT", right, 0)
-        part.texture:SetVertexColor(colors[segment[1]]:GetRGB())
-        part.texture:Show()
-        -- The level a color starts at, where it fits; the bar's start before yellow is no level.
-        if i > 1 and module.db.skillBarLevels then
-            local label = part.label
-            label:SetText(segment[4])
-            label:ClearAllPoints()
-            label:SetPoint("LEFT", bar, "LEFT", left + LABEL_INSET, 0)
-            label:SetShown(label:GetStringWidth() + LABEL_INSET <= right - left)
-        end
-    end
-    marker:ClearAllPoints()
-    marker:SetPoint("CENTER", bar, "LEFT", layout.marker * WIDTH, 0)
-    shown = { levels = levels, skill = skill }
+    shown = { levels = levels, skill = skill, layout = Professions.LevelBar(levels, skill) }
+    render()
     bar:Show()
-    internal.PlaceOnForm(form, BAR_ORDER, bar)
+    internal.PlaceOnForm(form, BAR_ORDER, bar, fit)
 end
 
 -- The recipe the form shows, read again: a skill-up changes its color.

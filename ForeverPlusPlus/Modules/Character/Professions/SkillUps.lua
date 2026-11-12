@@ -118,6 +118,9 @@ local function detailText(info)
     if left and left > 0 then
         return format(L.PROFESSIONS_DETAIL_MORE, gray,
             GRAY_FONT_COLOR:WrapTextInColorCode(format(L.PROFESSIONS_DETAIL_LEFT, left)))
+    elseif left then
+        -- Past its gray level, whatever the game says the profession can still do.
+        return format(L.PROFESSIONS_DETAIL_DONE, gray)
     end
     return format(L.PROFESSIONS_DETAIL_UNTIL, gray)
 end

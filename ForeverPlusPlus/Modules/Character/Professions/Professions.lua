@@ -156,10 +156,24 @@ end
 -- name; this row is 17 below the icon's middle, so it sits under both without moving anything of
 -- Blizzard's.
 local ROW_X, ROW_Y, ROW_GAP = 14, -17, 10
+local ROW_RIGHT = 16 -- kept clear at the form's right edge
 local onRow = {} -- order -> our region on the form, while it shows
+local fitRow = {} -- order -> fn(width): that region takes the room the others leave
 
-function internal.PlaceOnForm(form, order, region)
+-- The room the row has, from where it starts to the form's right edge, or nil before the form
+-- has been laid out.
+local function rowWidth(form, icon)
+    local right, left = form.GetRight and form:GetRight(), icon.GetRight and icon:GetRight()
+    if right and left then
+        return right - left - ROW_X - ROW_RIGHT
+    end
+end
+
+---Puts `region` on the row (nil takes it off). With `fit`, the region is the one that gives way:
+---`fit(width)` is called with the room the row's other regions leave it, to size itself.
+function internal.PlaceOnForm(form, order, region, fit)
     onRow[order] = region
+    fitRow[order] = region and fit or nil
     local icon = form and form.OutputIcon
     if not icon then
         return
@@ -169,6 +183,19 @@ function internal.PlaceOnForm(form, order, region)
         orders[#orders + 1] = key
     end
     sort(orders)
+    local room = rowWidth(form, icon)
+    if room then
+        for _, key in ipairs(orders) do
+            if not fitRow[key] then
+                room = room - onRow[key]:GetWidth() - ROW_GAP
+            end
+        end
+        for _, key in ipairs(orders) do
+            if fitRow[key] then
+                fitRow[key](room)
+            end
+        end
+    end
     local previous
     for _, key in ipairs(orders) do
         local item = onRow[key]
