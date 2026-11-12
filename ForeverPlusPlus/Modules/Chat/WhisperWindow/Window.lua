@@ -597,17 +597,6 @@ local function newReply(f, onResize)
         edit:SetFocus()
     end)
 
-    -- Keep the cursor in view.
-    edit:SetScript("OnCursorChanged", function(_, _, y, _, height)
-        local top, shown = scroll:GetVerticalScroll(), scroll:GetHeight()
-        y = -y
-        if y < top then
-            scroll:SetVerticalScroll(y)
-        elseif y + height > top + shown then
-            scroll:SetVerticalScroll(y + height - shown)
-        end
-    end)
-
     -- The gray "Whisper Bob" (set by showMessages), only while the box is empty.
     edit.hint = box:CreateFontString(nil, "ARTWORK", "GameFontDisable")
     edit.hint:SetPoint("LEFT", 10, 0)
@@ -615,17 +604,36 @@ local function newReply(f, onResize)
     edit.hint:SetJustifyH("LEFT")
     edit.hint:SetWordWrap(false)
 
+    -- The box at the height its text needs, scrolled no further than keeps the cursor in view.
+    -- The cursor moves to a new line before the box has grown for it, so both the text and the
+    -- cursor changing come here: scrolling for the cursor alone, in the box's old height, pushed
+    -- the first line out of a box that then had room for it.
     local shownHeight = REPLY_MIN
-    edit:SetScript("OnTextChanged", function(self)
-        local text = self:GetText() or ""
-        self.hint:SetShown(text == "")
-        local height = text == "" and REPLY_MIN or min(REPLY_MAX, max(REPLY_MIN, self:GetHeight() + 10))
+    local cursorTop, cursorHeight = 0, 0
+    local function fit()
+        local empty = (edit:GetText() or "") == ""
+        edit.hint:SetShown(empty)
+        local height = empty and REPLY_MIN or min(REPLY_MAX, max(REPLY_MIN, edit:GetHeight() + 10))
         if height ~= shownHeight then
             shownHeight = height
             box:SetHeight(height)
             onResize(height)
         end
+        local shown = height - 10 -- the scroll frame's height, once the box has this one
+        local most = empty and 0 or max(0, edit:GetHeight() - shown)
+        local top = min(most, scroll:GetVerticalScroll())
+        if cursorTop < top then
+            top = cursorTop
+        elseif cursorTop + cursorHeight > top + shown then
+            top = cursorTop + cursorHeight - shown
+        end
+        scroll:SetVerticalScroll(max(0, min(most, top)))
+    end
+    edit:SetScript("OnCursorChanged", function(_, _, y, _, height)
+        cursorTop, cursorHeight = -y, height
+        fit()
     end)
+    edit:SetScript("OnTextChanged", fit)
     edit:SetScript("OnEnterPressed", send)
     edit:SetScript("OnEscapePressed", edit.ClearFocus)
     edit:SetScript("OnArrowPressed", stepSent)
