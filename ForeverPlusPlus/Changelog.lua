@@ -25,6 +25,13 @@ ns.changelog = {
                 { L.WORLDMAP_TITLE, "Unexplored Areas' map data is up to date with the game's build "
                     .. "70888." },
             } },
+            { L.CHANGELOG_FIXED, {
+                { L.UPGRADEARROWS_TITLE, "In the auction house's list, an item with a random suffix "
+                    .. "(\"of the Boar\") is judged with the suffix's stats, as its tooltip is. It "
+                    .. "could show as a downgrade there and an upgrade in the tooltip." },
+                { L.ERRORCATCHER_TITLE, "It also catches \"Interface action failed because of an "
+                    .. "AddOn\" when the game writes it to chat another way." },
+            } },
         },
     },
     {

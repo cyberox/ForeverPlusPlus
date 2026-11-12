@@ -13,6 +13,11 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 - **World Map**: Unexplored Areas' map data is up to date with the game's build 70888.
 
+### Fixed
+
+- **Upgrade Arrows**: in the auction house's list, an item with a random suffix ("of the Boar") is judged with the suffix's stats, as its tooltip is. It could show as a downgrade there and an upgrade in the tooltip.
+- **Error Catcher**: it also catches "Interface action failed because of an AddOn" when the game writes it to chat another way.
+
 ## 1.5.0 (2026-11-11)
 
 ### Added
