@@ -15,7 +15,7 @@ Env.LOCALES = { "Core", "Map" }
 Env.LIBS = {
     "Secret", "Colors", "Text", "GameData", "WorldMap", "Instances", "Chat", "TalentPlan", "Errors",
     "Prices", "Providers", "Disenchant", "Presets", "Store", "Keys", "Professions", "ItemStats", "Equipment",
-    "Talents", "Quests", "Taxi", "ItemButtons", "Gathering",
+    "Talents", "Quests", "Taxi", "TaxiRoutes", "ItemButtons", "Gathering",
 }
 
 -- The stubbed WoW globals every spec starts with. `player` and `game` are tables the stubs read,

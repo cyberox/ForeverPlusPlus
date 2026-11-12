@@ -87,7 +87,8 @@ These come from Flight Timer while it's on. Flight points are the game's node ID
 | Function | Returns |
 | --- | --- |
 | `GetFlightTime(fromNodeID, toNodeID)` | The flight's length in seconds, or `nil` if it hasn't been flown. |
-| `GetCurrentFlight()` | The flight underway: `{ fromNodeID, toNodeID, duration, elapsed, remaining }` in seconds. `duration` and `remaining` are `nil` the first time a route is flown. `nil` when not flying. |
+| `GetFlightEstimate(fromNodeID, toNodeID)` | Estimated seconds of the direct flight between them, from the game's own flight paths, whether flown or not, or `nil` when no direct path joins them. Added in 1.6.0. |
+| `GetCurrentFlight()` | The flight underway: `{ fromNodeID, toNodeID, duration, estimate, elapsed, remaining }` in seconds. `duration` and `remaining` are `nil` the first time a route is flown; `estimate` is then Flight Timer's estimate (`nil` when it has none, and once the route has been flown). `estimate` added in 1.6.0. `nil` when not flying. |
 | `GetFlightTimes()` | Every flight timed, for the account: a list of `{ fromNodeID, toNodeID, seconds }`, sorted. |
 | `GetKnownFlightPoints()` | The flight points this character has learned, as Forever++ has seen them at a flight master: a set of node IDs → `true`. Forever's own map list can't say which are learned. From World Map's Points of Interest, and `nil` while it's off. |
 

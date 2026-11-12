@@ -480,8 +480,20 @@ export("GetFlightTime", function(fromNodeID, toNodeID)
     return flights.Time(fromNodeID, toNodeID)
 end)
 
+---Estimated seconds of the direct flight from one flight point to another, from the game's own
+---flight paths, flown or not, or nil when no direct path joins them (or Flight Timer is off).
+export("GetFlightEstimate", function(fromNodeID, toNodeID)
+    local flights = ns.Providers.Get("flights")
+    if not (flights and flights.Estimate and type(fromNodeID) == "number"
+        and type(toNodeID) == "number") then
+        return nil
+    end
+    return flights.Estimate(fromNodeID, toNodeID)
+end)
+
 ---The flight underway: { fromNodeID, toNodeID, duration (nil the first time a route is flown),
----elapsed, remaining }, in seconds. Nil while not flying or Flight Timer is off.
+---estimate (the first time, Flight Timer's estimate when it has one), elapsed, remaining }, in
+---seconds. Nil while not flying or Flight Timer is off.
 export("GetCurrentFlight", function()
     local flights = ns.Providers.Get("flights")
     local current = flights and flights.Current()
@@ -493,6 +505,7 @@ export("GetCurrentFlight", function()
         fromNodeID = current.from,
         toNodeID = current.to,
         duration = current.total,
+        estimate = current.estimate,
         elapsed = current.elapsed,
         remaining = remaining and (remaining > 0 and remaining or 0) or nil,
     }

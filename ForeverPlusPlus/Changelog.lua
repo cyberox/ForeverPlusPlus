@@ -20,6 +20,9 @@ ns.changelog = {
                 { L.PROFESSIONS_TITLE, "Skill Bar, on by default, shows under the selected "
                     .. "recipe's name the skill levels it turns yellow, green, and gray at, with your "
                     .. "skill marked, so you know how long it's worth buying materials for." },
+                { L.FLIGHTTIMER_TITLE, "Estimated Times, on by default, shows a flight you haven't "
+                    .. "taken yet with the time the game's own flight paths give it, marked with ~, on "
+                    .. "the bar and the flight map's tooltip, until your own time replaces it." },
             } },
             { L.CHANGELOG_CHANGED, {
                 { L.WORLDMAP_TITLE, "Unexplored Areas' map data is up to date with the game's build "
