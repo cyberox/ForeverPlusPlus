@@ -16,6 +16,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 ### Fixed
 
+- **Item Tooltips**: Disenchant knows every item the game can disenchant, such as blue gear at item level 5-10 and gear above 65. Where what it gives isn't known yet, the line says so and learns it from your own disenchants.
 - **Upgrade Arrows**: in the auction house's list, an item with a random suffix ("of the Boar") is judged with the suffix's stats, as its tooltip is. It could show as a downgrade there and an upgrade in the tooltip.
 - **Error Catcher**: it also catches "Interface action failed because of an AddOn" when the game writes it to chat another way.
 

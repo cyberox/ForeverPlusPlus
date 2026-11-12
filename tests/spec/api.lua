@@ -142,6 +142,26 @@ do
     eq(#reported, 3, "api: is reported")
     ns.Prices.SetSource(nil)
     eq(v1.GetDisenchantValue(4305), nil, "api: no disenchant value without prices")
+    -- Disenchanting: GetItemInfo's quality 3rd, item level 4th, equip location 9th, class 12th.
+    local savedInfo = C_Item.GetItemInfo
+    local gear = {
+        [501] = { 2, 28, "INVTYPE_CHEST", 4 }, -- a green the rows know
+        [502] = { 3, 70, "INVTYPE_HEAD", 4 }, -- a blue past them
+        [503] = { 1, 30, "INVTYPE_CHEST", 4 }, -- a white
+    }
+    C_Item.GetItemInfo = function(id)
+        local g = gear[id]
+        if g then
+            return "Gear", nil, g[1], g[2], nil, nil, nil, nil, g[3], nil, nil, g[4]
+        end
+    end
+    eq(v1.CanDisenchant(501), true, "api: a known bracket can be disenchanted")
+    eq(v1.CanDisenchant(502), true, "api: so can one whose results aren't known")
+    eq(v1.CanDisenchant(503), false, "api: a white item can't")
+    eq(v1.CanDisenchant(504), nil, "api: an item not loaded yet")
+    eq(#v1.GetDisenchantResults(501), 3, "api: a known bracket's results")
+    eq(v1.GetDisenchantResults(502), nil, "api: no results while they aren't known")
+    C_Item.GetItemInfo = savedInfo
 
     -- Players seen: a copy, so a caller can't change what's saved.
     local info = v1.GetPlayerInfo("Bob-Surname")

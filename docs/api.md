@@ -60,11 +60,12 @@ Prices come from Item Tooltips' Auction Prices: Forever++'s own scans of the auc
 
 ## Disenchanting
 
-These follow Classic's disenchanting rules, by quality, item level, and weapon or armor. Forever's results may differ.
+Which items can be disenchanted follows the game's own brackets, by quality, item level, and weapon or armor. What a bracket gives follows Classic's rules where the game's brackets match them, and otherwise what the player's own disenchants showed. Forever's results may differ.
 
 | Function | Returns |
 | --- | --- |
-| `GetDisenchantResults(item)` | What disenchanting gives, most likely first: a list of `{ itemID, chance (0 to 1), min, max }`. `nil` when the item can't be disenchanted, or the client hasn't loaded it yet (ask again after `GET_ITEM_INFO_RECEIVED`). |
+| `CanDisenchant(item)` | Whether the item can be disenchanted, even when what it gives isn't known yet. `nil` when the client hasn't loaded it yet. |
+| `GetDisenchantResults(item)` | What disenchanting gives, most likely first: a list of `{ itemID, chance (0 to 1), min, max }`, with `seen` on each when it was learned from the player's disenchants (how many). `nil` when the item can't be disenchanted, what it gives isn't known yet, or the client hasn't loaded it yet (ask again after `GET_ITEM_INFO_RECEIVED`). |
 | `GetDisenchantValue(item)` | The average value in copper at the auction prices, and how many results had no price (the total leaves those out). `nil` without prices or results. |
 
 ## Upgrade scores

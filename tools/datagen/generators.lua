@@ -5,4 +5,5 @@ return {
     require("skilllevels"),
     require("reference"),
     require("instancelevels"),
+    require("disenchant"),
 }

@@ -45,6 +45,7 @@ Lib\ItemButtons.lua
 Lib\BagClicks.lua
 Lib\Prices.lua
 Lib\Providers.lua
+Lib\DisenchantBrackets.lua
 Lib\Disenchant.lua
 Lib\Professions.lua
 Lib\PlateLabel.lua
