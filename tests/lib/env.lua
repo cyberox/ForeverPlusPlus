@@ -13,8 +13,8 @@ Env.COMPANION = "ForeverPlusPlus_AgentChat/"
 -- specs that test them, after their stubs.
 Env.LOCALES = { "Core", "Map" }
 Env.LIBS = {
-    "Secret", "Colors", "Text", "GameData", "WorldMap", "Instances", "Chat", "TalentPlan", "Errors",
-    "Prices", "Providers", "Disenchant", "Presets", "Store", "Keys", "Professions", "ItemStats", "Equipment",
+    "Secret", "Colors", "Text", "GameData", "WorldMap", "InstanceLevels", "Instances", "Chat", "TalentPlan", "Errors",
+    "Prices", "Providers", "DisenchantBrackets", "Disenchant", "Presets", "Store", "Keys", "Professions", "ItemStats", "Equipment",
     "Talents", "Quests", "Taxi", "TaxiRoutes", "ItemButtons", "Gathering",
 }
 

@@ -5,4 +5,7 @@ return {
     require("skilllevels"),
     require("taxiroutes"),
     require("reference"),
+    require("instancelevels"),
+    require("disenchant"),
+    require("lockboxes"),
 }

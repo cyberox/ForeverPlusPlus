@@ -45,14 +45,17 @@ Lib\ItemButtons.lua
 Lib\BagClicks.lua
 Lib\Prices.lua
 Lib\Providers.lua
+Lib\DisenchantBrackets.lua
 Lib\Disenchant.lua
 Lib\Professions.lua
+Lib\LockboxSkills.lua
 Lib\PlateLabel.lua
 Lib\FriendlyPlates.lua
 Lib\AddOns.lua
 Lib\Errors.lua
 Lib\WorldMap.lua
 Lib\MapTooltip.lua
+Lib\InstanceLevels.lua
 Lib\Instances.lua
 Lib\MapPins.lua
 Lib\MinimapPins.lua

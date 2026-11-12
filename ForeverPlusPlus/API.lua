@@ -358,7 +358,8 @@ end)
 
 -- Disenchanting ----------------------------------------------------------------------------------
 
--- An item's disenchant outcomes from its item info, or nil (not disenchantable, or not cached yet).
+-- An item's disenchant outcomes and bracket from its item info (see ns.Disenchant.ForItem): nil,
+-- nil when not disenchantable or not cached yet, nil and a bracket when its results aren't known.
 local function outcomes(item)
     local id = itemID(item)
     if not (id and C_Item and C_Item.GetItemInfo) then
@@ -371,9 +372,21 @@ local function outcomes(item)
     return ns.Disenchant.ForItem(classID, quality, equipLoc, itemLevel)
 end
 
+---Whether an item can be disenchanted, by the game's own brackets, even when what it gives isn't
+---known yet. Nil when the client hasn't loaded the item yet.
+export("CanDisenchant", function(item)
+    local id = itemID(item)
+    if not (id and C_Item and C_Item.GetItemInfo) or not C_Item.GetItemInfo(id) then
+        return nil
+    end
+    local _, bracket = outcomes(item)
+    return bracket ~= nil
+end)
+
 ---What disenchanting an item gives, most likely first: a list of { itemID, chance (0 to 1), min,
----max }. Nil when it can't be disenchanted, or the client hasn't loaded the item yet. Classic's
----rules; Forever's may differ.
+---max }, with `seen` on each when it's learned from the player's disenchants (how many). Nil when
+---it can't be disenchanted, what it gives isn't known yet, or the client hasn't loaded the item
+---yet. Classic's rules where the game's brackets match them; Forever's may differ.
 export("GetDisenchantResults", function(item)
     local list = outcomes(item)
     if not list then
@@ -381,7 +394,7 @@ export("GetDisenchantResults", function(item)
     end
     local copy = {}
     for i, each in ipairs(list) do
-        copy[i] = { itemID = each.item, chance = each.chance, min = each.min, max = each.max }
+        copy[i] = { itemID = each.item, chance = each.chance, min = each.min, max = each.max, seen = each.seen }
     end
     return copy
 end)

@@ -71,7 +71,7 @@ ns.Colors.LevelRange = function()
     return nil
 end
 eq(Instances.Levels(byKey.deadmines, true), "18-23", "finder: levels replace the seed's")
-eq(Instances.Levels(byKey.brd, true), "52-60", "finder: a whole bracket keeps the seed's")
+eq(Instances.Levels(byKey.brd, true), "48-60", "finder: a whole bracket keeps the seed's")
 eq(ns.db.gameData.instances.values[36].low, 18, "finder: learned for the account")
 eq(ns.db.gameData.instances.values[230], nil, "finder: the seed's levels aren't saved")
 eq(Instances.ByName("drowned city"), byKey.lfg3100, "finder: adds a dungeon the seed lacks")
@@ -162,4 +162,12 @@ eq(itemSkill(2447), Professions.HERBALISM .. ":1", "items: herb")
 eq(itemSkill(10620), Professions.MINING .. ":245", "items: the lowest vein that gives it")
 eq(itemSkill(2835), Professions.MINING .. ":1", "items: a stone")
 eq(itemSkill(2589), "nil", "items: not gathered")
+
+-- Lockboxes' Lockpicking, generated from the client's Lock table (Gathering Skill Tooltips' seed).
+T.load("Lib/LockboxSkills")
+local boxes = ns.TableData.lockboxSkills
+eq(boxes[4632], 1, "lockboxes: Ornate Bronze Lockbox")
+eq(boxes[16885], 250, "lockboxes: Heavy Junkbox, 250 in the tables")
+eq(boxes[227937], 175, "lockboxes: Forever's Puzzle Box")
+eq(boxes[241233], nil, "lockboxes: test items left out")
 ns.db = savedDB

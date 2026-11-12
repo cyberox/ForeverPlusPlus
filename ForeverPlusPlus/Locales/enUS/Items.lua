@@ -177,8 +177,11 @@ L.CRAFTEDCOMPARE_OFF = "Off"
 L.DISENCHANT_TITLE = "Disenchant"
 L.DISENCHANT_DESC = "On green, blue, and purple weapons and armor, show what disenchanting gives "
     .. "on average, priced from Auction Prices while that's on, or else the material it most "
-    .. "likely gives. Hold Shift for every outcome and its chance."
+    .. "likely gives. Hold Shift for every outcome and its chance. Gear whose results aren't known "
+    .. "yet says so, and learns them from your own disenchants."
 L.DISENCHANT_LINE = "Disenchant"
+L.DISENCHANT_NOT_KNOWN = "Not known yet"
+L.DISENCHANT_SEEN = "Seen in %d of your disenchants" -- how many disenchants the chances come from
 L.DISENCHANT_OUTCOME = "%s  %s" -- chance, amount and material
 L.DISENCHANT_CHANCE = "%s%%" -- a number such as 75 or 99.5
 L.DISENCHANT_AMOUNT = "%s %s" -- amount (such as 1-2), material
