@@ -129,8 +129,8 @@ end
 -- Read once per profession (and again after a recipe is learned or the window opens again): each
 -- `{ info, item, learn, line, inLine }`, info our own copy of the recipe's info at its first rank,
 -- as Blizzard lists ranked recipes. Left out: junk the game still knows (Professions.IsJunkRecipe:
--- disabled, dummy, unnamed, "[DNT]", "Deprecated"), and a recipe whose earlier rank is learned,
--- which Blizzard's list already shows.
+-- disabled, dummy, unnamed, "[DNT]", "Deprecated"), Season of Discovery's recipes, and a recipe
+-- whose earlier rank is learned, which Blizzard's list already shows.
 
 local cache -- { professionID, list }
 
@@ -174,12 +174,16 @@ local function candidates(professionID)
     local T = C_TradeSkillUI
     local data = internal.recipes or {}
     local inLine = T.IsRecipeInSkillLine
+    -- Season of Discovery's recipes, which the client still has and Forever doesn't: by their
+    -- category, from the generated Data.lua.
+    local retired = internal.retiredCategories or {}
     local list, seen = {}, {}
     for _, id in ipairs(T.GetAllRecipeIDs() or {}) do
         local info = T.GetRecipeInfo(id)
-        if info and not info.learned and not Professions.IsJunkRecipe(info) then
+        if info and not info.learned and not Professions.IsJunkRecipe(info) and not retired[info.categoryID] then
             local first = firstRank(info)
-            if not first.learned and not seen[first.recipeID] and not Professions.IsJunkRecipe(first) then
+            if not first.learned and not seen[first.recipeID] and not Professions.IsJunkRecipe(first)
+                and not retired[first.categoryID] then
                 seen[first.recipeID] = true
                 local entry = data[first.skillLineAbilityID]
                 list[#list + 1] = {

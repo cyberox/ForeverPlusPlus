@@ -15,8 +15,14 @@ local Lua = require("luaout")
 
 local M = {
     path = "ForeverPlusPlus/Modules/Character/Professions/Data.lua",
-    tables = { "SkillLineAbility", "SkillLine", "ItemEffect", "ItemXItemEffect", "ItemSparse" },
+    tables = { "SkillLineAbility", "SkillLine", "ItemEffect", "ItemXItemEffect", "ItemSparse",
+        "TradeSkillCategory" },
 }
+
+-- The name TradeSkillCategory gives the category, one per profession, that holds the recipes
+-- Season of Discovery added (build 1.60.1.70888: 2592 to 2598, 287 recipes with levels). Forever's
+-- client still has them, but they aren't in Forever, so the addon leaves that category out.
+local RETIRED_CATEGORY = "SEASON OF DISCOVERY"
 
 local Int = CSV.Int
 
@@ -130,6 +136,22 @@ function M.Build(t, build, script)
             end
             out[#out + 1] = ("    [%d] = { %s },"):format(entry.id, table.concat(fields, ", "))
         end
+    end
+    out[#out + 1] = "}"
+
+    local retired = {}
+    for _, row in ipairs(CSV.Records(t.TradeSkillCategory, "TradeSkillCategory", { "ID", "Name_lang" })) do
+        if row.Name_lang:upper() == RETIRED_CATEGORY then
+            retired[#retired + 1] = Int(row.ID, "TradeSkillCategory.ID")
+        end
+    end
+    table.sort(retired)
+    out[#out + 1] = ""
+    out[#out + 1] = "-- The recipe categories (a recipe info's categoryID) of recipes that aren't in Forever:"
+    out[#out + 1] = "-- TradeSkillCategory's \"" .. RETIRED_CATEGORY .. "\", one per profession."
+    out[#out + 1] = "ns.modules.Professions.internal.retiredCategories = {"
+    for _, id in ipairs(retired) do
+        out[#out + 1] = ("    [%d] = true,"):format(id)
     end
     out[#out + 1] = "}"
     return table.concat(out, "\n") .. "\n"

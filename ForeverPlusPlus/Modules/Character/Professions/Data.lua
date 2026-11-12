@@ -2572,3 +2572,15 @@ ns.modules.Professions.internal.recipes = {
     [59211] = { 100, 200, 3012, 1310029 },
     [59212] = { 250, 300, 3012, 1310030 },
 }
+
+-- The recipe categories (a recipe info's categoryID) of recipes that aren't in Forever:
+-- TradeSkillCategory's "SEASON OF DISCOVERY", one per profession.
+ns.modules.Professions.internal.retiredCategories = {
+    [2592] = true,
+    [2593] = true,
+    [2594] = true,
+    [2595] = true,
+    [2596] = true,
+    [2597] = true,
+    [2598] = true,
+}
