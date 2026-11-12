@@ -35,8 +35,10 @@ local module = ns.NewModule("GatheringTracking", L.GATHERINGTRACKING_DESC, {
     reapply = true,
     swap = false,
     swapEvery = 10, -- seconds between swaps
+    announce = false, -- say in chat when Turn Back On has turned tracking back on
     chat = true,
 })
+module.presets = { developer = { options = { announce = true } } }
 module.title = L.GATHERINGTRACKING_TITLE
 module.category = "automation"
 module.quickToggle = "gathering"
@@ -89,8 +91,17 @@ module.options = {
         name = L.GATHERINGTRACKING_REAPPLY,
         description = L.GATHERINGTRACKING_REAPPLY_DESC,
     },
+    {
+        key = "announce",
+        name = L.GATHERINGTRACKING_ANNOUNCE,
+        description = L.GATHERINGTRACKING_ANNOUNCE_DESC,
+        requires = "reapply",
+        added = "1.6.0",
+    },
     ns.ChatOption(L.GATHERINGTRACKING_CHAT_DESC),
 }
+-- Named for what it says, beside the other chat line this module has (Say When Turned Back On).
+module.options[#module.options].name = L.GATHERINGTRACKING_CHAT
 
 -- Reads the tracking list: the index of each of our spells the player knows, which of them is on,
 -- and whether any tracking spell is on (a hunter's Track Beasts counts). Read every time, since it
@@ -126,12 +137,29 @@ end
 
 local blocked = false -- the client refused SetTracking from an addon; stop until /reload
 local last -- the last of our spells seen on, turned back on first
+local turnedOn -- the spell Turn Back On just asked for, until the game says it's on
 
 local function track(i)
     local ok, err = pcall(C_Minimap.SetTracking, i, true)
     if not ok and not blocked then
         blocked = true
         module:Print(format(L.GATHERINGTRACKING_FAILED, tostring(err)))
+    end
+end
+
+-- Say When Turned Back On: once the game shows the spell we asked for as on, so the line means
+-- it took, not only that we tried. Not for swaps, which would say it every few seconds.
+local function confirm(index, ours)
+    if not (turnedOn and ours == turnedOn) then
+        return
+    end
+    turnedOn = nil
+    if module.db.announce then
+        local info = C_Minimap.GetTrackingInfo(index[ours])
+        local name = type(info) == "table" and info.name
+        if ns.IsText(name) then
+            ns.Print(format(L.GATHERINGTRACKING_ANNOUNCED, name))
+        end
     end
 end
 
@@ -170,6 +198,7 @@ local function reapply()
         return
     end
     local index, ours, any = scan()
+    confirm(index, ours) -- in case the game's event for it came before the list showed it
     local spells = SPELLS[module.db.track]
     if (not any and module.db.reapply) or (switch and ours and not chosen(spells, ours)) then
         local first
@@ -183,6 +212,7 @@ local function reapply()
             end
         end
         if first then
+            turnedOn = first
             track(index[first])
         end
     end
@@ -237,8 +267,9 @@ end
 -- Events --------------------------------------------------------------------------------------
 
 local function onTrackingChanged()
-    local _, ours = scan()
+    local index, ours = scan()
     last = ours or last
+    confirm(index, ours)
 end
 
 -- SetTracking may be protected on a later build; it then fails this way instead of erroring.

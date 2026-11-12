@@ -26,7 +26,7 @@ Everything is on by default except where noted. Each module can be turned off, a
 | Comprehend Scrolls | For Mages: right-clicking a scroll you read with Comprehension ("Scroll: CHAP BALK WELLES") in Blizzard's bags casts Comprehend Scroll on it, without opening the spellbook. Not in combat, when the bags work as usual. Does nothing for characters without the spell. |
 | Fishing Cast | Double right-click in the world with a fishing pole equipped to cast Fishing, and the click after that loots as usual. Never while in combat, and it warns you once when combat starts with the pole still equipped. Off by default. Its Louder Bobber option (off by default) turns sound effects up and music down while you fish, and puts your volumes back after. |
 | Fast Loot | With auto loot on, takes everything at once instead of waiting for the loot window. |
-| Gathering Tracking | Keeps Find Minerals or Find Herbs on after logging in, zoning, or dying, and can swap between the two. |
+| Gathering Tracking | Keeps Find Minerals or Find Herbs on after logging in, zoning, or dying, and can swap between the two. Say When Turned Back On (off by default) tells you in chat once it has. |
 | Skip Cinematics | Skips cinematics and movies you've already seen on any character, or every one. Hold the Watch Key (Shift, Ctrl, Alt, or none) to watch. Off by default. |
 | Auto Quest | Accepts quests and turns in finished ones as you talk to quest givers, going through a quest giver's list one by one. Never picks a reward when there's a choice, skips shared quests unless you allow them, and pauses while you hold Shift (or another key). Off by default. |
 | **Character** | |

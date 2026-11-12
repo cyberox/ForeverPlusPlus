@@ -81,6 +81,11 @@ L.GATHERINGTRACKING_SWAP_DESC = "Swap between Find Minerals and Find Herbs while
     .. "Waits during combat, casting, and flights."
 L.GATHERINGTRACKING_SWAP_EVERY_NAME = "Swap Every"
 L.GATHERINGTRACKING_SWAP_EVERY_DESC = "How long to wait between swaps."
+L.GATHERINGTRACKING_ANNOUNCE = "Say When Turned Back On"
+L.GATHERINGTRACKING_ANNOUNCE_DESC = "Say in chat when tracking has been turned back on for you, once "
+    .. "the game shows it as on. Useful with the tracking buff hidden."
+L.GATHERINGTRACKING_ANNOUNCED = "%s is back on." -- a tracking spell's name
+L.GATHERINGTRACKING_CHAT = "Warning Messages"
 L.GATHERINGTRACKING_CHAT_DESC = "Say in chat when the game stops Gathering Tracking from changing "
     .. "tracking."
 L.GATHERINGTRACKING_FAILED = "Gathering Tracking couldn't change tracking: %s" -- error

@@ -23,6 +23,9 @@ ns.changelog = {
                 { L.DUNGEONNAMEPLATES_TITLE, "A new module, off by default. Turns on the game's "
                     .. "Simplified nameplates only inside dungeons and raids, for the kinds you pick, "
                     .. "and puts your own setting back outside." },
+                { L.GATHERINGTRACKING_TITLE, "Say When Turned Back On (off by default) says in "
+                    .. "chat when tracking has been turned back on for you. Its other chat option "
+                    .. "is now called Warning Messages." },
                 { L.FLIGHTTIMER_TITLE, "Estimated Times, on by default, shows a flight you haven't "
                     .. "taken yet with the time the game's own flight paths give it, marked with ~, on "
                     .. "the bar and the flight map's tooltip, until your own time replaces it." },
