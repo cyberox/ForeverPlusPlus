@@ -317,11 +317,14 @@ end
 -- entry of its own.
 local SILENT_FRAMES = 3
 
+local messageAt -- GetTime() of the last one caught, so the two hooks below don't both catch one
+
 local function onBlockedMessage()
-    if busy or not allowed() then
+    if busy or messageAt == GetTime() or not allowed() then
         return
     end
     busy = true
+    messageAt = GetTime()
     local stack = readable(debugstack and debugstack(2), nil)
     local frames = {}
     if stack then
@@ -342,6 +345,16 @@ local function onBlockedMessage()
         time = time(),
     })
     busy = false
+end
+
+-- The same line written to chat by anything that doesn't go through the function above: a caller
+-- that kept its own reference to it from before we hooked it would get past that hook. This runs
+-- inside the function when it does print (it prints only the first time in a session), so it
+-- catches first and the hook after it sees the same moment and leaves it.
+local function onSystemMessage(message)
+    if ns.IsText(message) and message == _G.INTERFACE_ACTION_BLOCKED then
+        onBlockedMessage()
+    end
 end
 
 -- LUA_WARNING: older clients send a warning type before the text, newer ones only the text.
@@ -976,6 +989,7 @@ function module:OnEnable()
     listen("ADDON_ACTION_BLOCKED", onBlocked)
     listen("ADDON_ACTION_FORBIDDEN", onBlocked)
     self:Hook("DisplayInterfaceActionBlockedMessage", onBlockedMessage)
+    self:Hook(ChatFrameUtil, "AddSystemMessage", onSystemMessage)
     listen("LUA_WARNING", onWarning)
     if StaticPopup_Hide then
         self:Hook("StaticPopup_Show", onPopup)
