@@ -132,7 +132,7 @@ L.TALENTPLANNER_DELETE_CONFIRM = "Delete this talent plan?"
 -- Macros
 L.MACROS_TITLE = "Macros"
 L.MACROS_DESC = "Macros Forever++ makes in your general macros and keeps up to date, each with its own "
-    .. "checkbox, deleted when it's off. Drag one from the Macros window (/macro) or use its "
+    .. "checkbox, deleted when you turn it off. Drag one from the Macros window (/macro) or use its "
     .. "Pick Up button."
 L.MACROS_NOTICE = "Macros can't change in combat: they update when combat ends."
 L.MACROS_NOTICE_DESC = "The game doesn't let addons make or change macros in combat. Until combat "

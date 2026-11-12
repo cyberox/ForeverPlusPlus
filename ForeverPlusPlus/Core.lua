@@ -1044,8 +1044,14 @@ end
 ---Store at the other profile, and the modules that profile has on turn on and read it. A tool
 ---that is always on stays on and hears about each option that now reads differently. Settings
 ---redraws, and the API's listeners hear of each module that turned on or off.
+---
+---`ns.switching` is true meanwhile (and while a preset or Defaults resets the profile, in
+---Commands.lua): a module's `OnDisable` reads it to tell being turned off by the player from being
+---switched away from, and keeps what the player would miss if it came straight back (Macros'
+---macros, and with them their action bar slots).
 ---@param swap fun()
 function ns.ChangeProfile(swap)
+    ns.switching = true
     local was, values = {}, {}
     for i = #ns.order, 1, -1 do -- the last loaded first, as a module may build on one before it
         local module = ns.modules[ns.order[i]]
@@ -1078,6 +1084,7 @@ function ns.ChangeProfile(swap)
             moduleChanged(name, nil)
         end
     end
+    ns.switching = false
     if ns.RefreshSetting then
         for _, name in ipairs(ns.order) do
             ns.RefreshSetting(name)

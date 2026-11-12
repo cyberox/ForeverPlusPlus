@@ -530,4 +530,24 @@ do
     eq(Profiles.SetPreset(linked, "spec"), true, "presets: linking again")
     eq(own.Host.extra, false, "presets: keeps the player's choices")
     Profiles.Switch("default")
+
+    -- A module can tell being switched away from (a profile, a preset, Defaults) from being turned
+    -- off by the player: ns.switching is true only for the first.
+    local seen = {}
+    local onDisable = plain.OnDisable
+    plain.OnDisable = function(self)
+        seen[#seen + 1] = core.switching and true or false
+        if onDisable then
+            onDisable(self)
+        end
+    end
+    core.SetEnabled("Plain", true)
+    core.SetEnabled("Plain", false)
+    core.SetEnabled("Plain", true)
+    Profiles.Switch(linked)
+    Profiles.Switch("default")
+    eq(tostring(seen[1]) .. "," .. tostring(seen[2]), "false,true",
+        "switching: off by hand, then by a profile switch")
+    eq(core.switching, false, "switching: over once the switch is done")
+    plain.OnDisable = onDisable
 end

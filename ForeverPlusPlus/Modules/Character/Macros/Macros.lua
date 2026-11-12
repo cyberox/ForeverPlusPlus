@@ -138,11 +138,18 @@ function internal.Want(name)
 end
 
 ---Deletes the general macro `name`, now or once combat ends, unless its part is back on by then.
+---Only when the player turned its part off: a profile switch, a preset, or Defaults turning it
+---off (ns.switching) leaves the macro, since deleting it empties its action bar slots for good,
+---and it's often back on a moment later. Left behind, it's an ordinary macro the player can
+---delete in the Macros window.
 ---@param name string
 function internal.Delete(name)
     wanted[name] = nil
     states[name] = nil
     queueMarks()
+    if ns.switching then
+        return
+    end
     ns.AfterCombat(function()
         if wanted[name] then
             return

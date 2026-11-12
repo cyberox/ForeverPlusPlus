@@ -59,6 +59,7 @@ local function reset(preset, enable, options)
     for _, name in ipairs(enable or {}) do
         wanted[name] = true
     end
+    ns.switching = true -- modules turning off here weren't turned off by hand (Core)
     for _, name in ipairs(ns.order) do
         local module = ns.modules[name]
         local base = ns.BaseValue(module, "enabled") and true or false
@@ -74,6 +75,7 @@ local function reset(preset, enable, options)
             ns.OptionChanged(module, key)
         end
     end
+    ns.switching = false
     for _, name in ipairs(ns.order) do
         ns.RefreshSetting(name)
     end
