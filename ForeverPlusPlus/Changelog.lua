@@ -23,9 +23,9 @@ ns.changelog = {
                 { L.FLIGHTTIMER_TITLE, "Estimated Times, on by default, shows a flight you haven't "
                     .. "taken yet with the time the game's own flight paths give it, marked with ~, on "
                     .. "the bar and the flight map's tooltip, until your own time replaces it." },
-                { L.PROFESSIONS_TITLE, "Unlearned Recipes brings back Show Unlearned in the recipe "
-                    .. "list's Filter menu: the recipes you don't know yet show in the list itself, "
-                    .. "each with the skill it takes to learn and, on its page, the recipe item that "
+                { L.PROFESSIONS_TITLE, "Unlearned Recipes brings back Show Learned and Show "
+                    .. "Unlearned in the recipe list's Filter menu: the recipes you don't know yet "
+                    .. "show in the list itself, alone or among the ones you know, each with the skill it takes to learn and, on its page, the recipe item that "
                     .. "teaches it with its auction price. An Unlearned submenu filters them by "
                     .. "source, by when you can learn them, and to those whose item is in your bags." },
             } },
