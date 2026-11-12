@@ -9,7 +9,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Settings**: a profile can stay based on a preset. One made from Developer's Defaults follows it as it changes, keeping the settings you changed yourself, and Based On on the Profiles page shows or changes what a profile follows.
 - **Professions**: Skill Bar, on by default, shows under the selected recipe's name the skill levels it turns yellow, green, and gray at, with your skill marked, so you know how long it's worth buying materials for.
 - **Flight Timer**: Estimated Times, on by default, shows a flight you haven't taken yet with the time the game's own flight paths give it, marked with ~, on the bar and the flight map's tooltip, until your own time replaces it.
-- **Professions**: Unknown Recipes, on by default: a button by the skill bar lists the profession's recipes you don't know yet, the skill each takes to learn and whether you can now, and the recipe item that teaches it with its auction price.
+- **Professions**: Unlearned Recipes brings back Show Unlearned in the recipe list's Filter menu: the recipes you don't know yet show in the list itself, each with the skill it takes to learn and, on its page, the recipe item that teaches it with its auction price. An Unlearned submenu filters them by source, by when you can learn them, and to those whose item is in your bags.
 
 ### Changed
 
