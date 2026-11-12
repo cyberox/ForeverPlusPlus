@@ -599,6 +599,122 @@ function Professions.LevelBar(levels, skill)
     return { from = from, to = to, segments = segments, marker = marker }
 end
 
+-- Recipes the player doesn't know ---------------------------------------------------------------
+-- Professions' Data.lua has every recipe of the game's SkillLineAbility table as
+-- `{ yellow, gray, line, spell, item, learn }`, by its ability ID: the item that teaches it and
+-- the skill that item needs, where the tables say. A recipe no item teaches comes from a trainer
+-- or elsewhere, and the tables don't say what skill that takes (docs/table-survey.md, section 6).
+
+---Whether the player can learn a recipe that needs `learn` now, at their skill `skill` and with
+---their rank's most `max`: "now", "soon" (within `soon` points), "rank" (past what their rank
+---allows: they need the next rank first), "later", or "unknown" without a learn skill.
+---@param learn number?
+---@param skill number?
+---@param max number? the most the player's rank allows
+---@param soon number how many points away still counts as soon
+---@return string state
+function Professions.LearnState(learn, skill, max, soon)
+    if type(learn) ~= "number" or type(skill) ~= "number" then
+        return "unknown"
+    end
+    if skill >= learn then
+        return "now"
+    elseif type(max) == "number" and max > 0 and learn > max then
+        return "rank"
+    elseif learn - skill <= soon then
+        return "soon"
+    end
+    return "later"
+end
+
+-- The order recipes are listed in by state: "noitem" is a recipe no item teaches.
+Professions.LEARN_ORDER = { "now", "soon", "later", "rank", "unknown", "noitem" }
+
+---The recipes of skill line `line` the player doesn't know, from Data.lua's `recipes`, each
+---`{ ability, spell, item, learn, yellow, gray, name, state }` (state as Professions.LearnState
+---gives it, or "noitem" for one no item teaches), sorted by state (as LEARN_ORDER),
+---then the skill to learn (or yellow, without one), then name. Left out: abilities in `known`, a
+---recipe whose spell `nameOf` doesn't name (the game doesn't know it), one named like a known
+---recipe or one before it (the tables list some recipes twice; one an item teaches is kept), and
+---with `noItems` false one no item teaches.
+---@param recipes table ability ID -> { yellow, gray, line, spell, item?, learn? }
+---@param line number
+---@param known table<number, boolean> ability IDs the player knows
+---@param knownNames table<string, boolean> the names of the recipes the player knows
+---@param nameOf fun(spell: number): string?
+---@param options table { skill?, max?, soon, noItems = boolean, learnOf? = fun(item): number? }
+---@return table[] list
+function Professions.UnknownRecipes(recipes, line, known, knownNames, nameOf, options)
+    local soon, learnOf = options.soon or 0, options.learnOf
+    local byName = {}
+    for ability, entry in pairs(recipes) do
+        if entry[3] == line and not known[ability] then
+            local item = entry[5]
+            local name = (item or options.noItems) and nameOf(entry[4])
+            if name and not knownNames[name] then
+                local learn = entry[6]
+                if not learn and item and learnOf then
+                    learn = learnOf(item)
+                end
+                local recipe = {
+                    ability = ability, spell = entry[4], item = item, learn = learn,
+                    yellow = entry[1], gray = entry[2], name = name,
+                    state = item and Professions.LearnState(learn, options.skill, options.max, soon)
+                        or "noitem",
+                }
+                local other = byName[name]
+                -- Of two of one name, the one an item teaches, then the lower ability ID.
+                if not other or ((item ~= nil) ~= (other.item ~= nil) and item ~= nil)
+                    or ((item ~= nil) == (other.item ~= nil) and ability < other.ability) then
+                    byName[name] = recipe
+                end
+            end
+        end
+    end
+    local rank = {}
+    for i, state in ipairs(Professions.LEARN_ORDER) do
+        rank[state] = i
+    end
+    local list = {}
+    for _, recipe in pairs(byName) do
+        list[#list + 1] = recipe
+    end
+    table.sort(list, function(a, b)
+        if a.state ~= b.state then
+            return rank[a.state] < rank[b.state]
+        end
+        local la, lb = a.learn or a.yellow, b.learn or b.yellow
+        if la ~= lb then
+            return la < lb
+        end
+        if a.name ~= b.name then
+            return a.name < b.name
+        end
+        return a.ability < b.ability
+    end)
+    return list
+end
+
+---The skill line most of `abilities` (ability IDs the player knows) belong to in `recipes`, or nil
+---when none is there: which profession the open window shows.
+---@param recipes table ability ID -> { yellow, gray, line, ... }
+---@param abilities number[]
+---@return number? line
+function Professions.LineOfAbilities(recipes, abilities)
+    local counts, best = {}, nil
+    for _, ability in ipairs(abilities) do
+        local entry = recipes[ability]
+        local line = entry and entry[3]
+        if line then
+            counts[line] = (counts[line] or 0) + 1
+            if not best or counts[line] > counts[best] or (counts[line] == counts[best] and line < best) then
+                best = line
+            end
+        end
+    end
+    return best
+end
+
 local known -- skill line -> { rank, name, icon }, or nil until read
 local listening = false
 

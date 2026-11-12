@@ -23,6 +23,10 @@ ns.changelog = {
                 { L.FLIGHTTIMER_TITLE, "Estimated Times, on by default, shows a flight you haven't "
                     .. "taken yet with the time the game's own flight paths give it, marked with ~, on "
                     .. "the bar and the flight map's tooltip, until your own time replaces it." },
+                { L.PROFESSIONS_TITLE, "Unknown Recipes, on by default: a button by the skill bar "
+                    .. "lists the profession's recipes you don't know yet, the skill each takes to "
+                    .. "learn and whether you can now, and the recipe item that teaches it with its "
+                    .. "auction price." },
             } },
             { L.CHANGELOG_CHANGED, {
                 { L.WORLDMAP_TITLE, "Unexplored Areas' map data is up to date with the game's build "

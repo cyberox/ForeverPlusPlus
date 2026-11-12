@@ -58,7 +58,7 @@ local function levelsOf(info)
     if not (info and info.learned and not info.disabled and internal.ListHasSkillUps()) then
         return nil
     end
-    local data = internal.recipeLevels
+    local data = internal.recipes
     local entry = data and data[info.skillLineAbilityID]
     local gray = grayOf(info)
     if not entry or (gray and gray ~= entry[2]) then
@@ -385,7 +385,7 @@ local function dumpLevels()
     local form = Professions.RecipeForm()
     local selected = form and form.currentRecipeInfo
     if selected then
-        local data = internal.recipeLevels
+        local data = internal.recipes
         local entry = data and data[selected.skillLineAbilityID]
         ns.Print(format(L.PROFESSIONS_BAR_DUMP_SELECTED, tostring(selected.name),
             tostring(selected.skillLineAbilityID), tostring(entry and entry[1]),

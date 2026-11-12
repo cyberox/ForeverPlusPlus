@@ -135,6 +135,7 @@ Modules\Character\Professions\RecipeColors.lua
 Modules\Character\Professions\SkillUps.lua
 Modules\Character\Professions\SkillBar.lua
 Modules\Character\Professions\CraftingCosts.lua
+Modules\Character\Professions\UnknownRecipes.lua
 Modules\Interface\CombatAlert.lua
 Modules\Interface\MovableWindows.lua
 Modules\Interface\MacroIconSearch.lua
