@@ -422,7 +422,8 @@ local function profitRow(row, node)
     local profit
     if rowsOn() then
         local info = Professions.RowRecipe(row, node)
-        profit = info and info.recipeID and profitOf(info.recipeID)
+        -- Not on a recipe the player doesn't know (Unlearned Recipes' rows): it can't be made yet.
+        profit = info and info.learned and info.recipeID and profitOf(info.recipeID)
     end
     profitColumn:Use(rowsOn())
     local text = rowTexts:Set(row, profit)

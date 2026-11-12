@@ -604,6 +604,8 @@ end
 -- `{ yellow, gray, line, spell, item, learn }`, by its ability ID: the item that teaches it and
 -- the skill that item needs, where the tables say. A recipe no item teaches comes from a trainer
 -- or elsewhere, and the tables don't say what skill that takes (docs/table-survey.md, section 6).
+-- What's here is the pure part of Professions' Unlearned Recipes: whether one can be learned,
+-- the filters, the search match, and the categories it goes under in the recipe list.
 
 ---Whether the player can learn a recipe that needs `learn` now, at their skill `skill` and with
 ---their rank's most `max`: "now", "soon" (within `soon` points), "rank" (past what their rank
@@ -627,92 +629,173 @@ function Professions.LearnState(learn, skill, max, soon)
     return "later"
 end
 
--- The order recipes are listed in by state: "noitem" is a recipe no item teaches.
-Professions.LEARN_ORDER = { "now", "soon", "later", "rank", "unknown", "noitem" }
+-- When a recipe can be learned, as the filter menu groups it: a recipe past the rank's most can be
+-- learned later, once the next rank is. One without a learn skill has none.
+local LEARN_WHEN = { now = "now", soon = "soon", later = "later", rank = "later" }
 
----The recipes of skill line `line` the player doesn't know, from Data.lua's `recipes`, each
----`{ ability, spell, item, learn, yellow, gray, name, state }` (state as Professions.LearnState
----gives it, or "noitem" for one no item teaches), sorted by state (as LEARN_ORDER),
----then the skill to learn (or yellow, without one), then name. Left out: abilities in `known`, a
----recipe whose spell `nameOf` doesn't name (the game doesn't know it), one named like a known
----recipe or one before it (the tables list some recipes twice; one an item teaches is kept), and
----with `noItems` false one no item teaches.
----@param recipes table ability ID -> { yellow, gray, line, spell, item?, learn? }
----@param line number
----@param known table<number, boolean> ability IDs the player knows
----@param knownNames table<string, boolean> the names of the recipes the player knows
----@param nameOf fun(spell: number): string?
----@param options table { skill?, max?, soon, noItems = boolean, learnOf? = fun(item): number? }
----@return table[] list
-function Professions.UnknownRecipes(recipes, line, known, knownNames, nameOf, options)
-    local soon, learnOf = options.soon or 0, options.learnOf
-    local byName = {}
-    for ability, entry in pairs(recipes) do
-        if entry[3] == line and not known[ability] then
-            local item = entry[5]
-            local name = (item or options.noItems) and nameOf(entry[4])
-            if name and not knownNames[name] then
-                local learn = entry[6]
-                if not learn and item and learnOf then
-                    learn = learnOf(item)
-                end
-                local recipe = {
-                    ability = ability, spell = entry[4], item = item, learn = learn,
-                    yellow = entry[1], gray = entry[2], name = name,
-                    state = item and Professions.LearnState(learn, options.skill, options.max, soon)
-                        or "noitem",
-                }
-                local other = byName[name]
-                -- Of two of one name, the one an item teaches, then the lower ability ID.
-                if not other or ((item ~= nil) ~= (other.item ~= nil) and item ~= nil)
-                    or ((item ~= nil) == (other.item ~= nil) and ability < other.ability) then
-                    byName[name] = recipe
-                end
-            end
-        end
-    end
-    local rank = {}
-    for i, state in ipairs(Professions.LEARN_ORDER) do
-        rank[state] = i
-    end
-    local list = {}
-    for _, recipe in pairs(byName) do
-        list[#list + 1] = recipe
-    end
-    table.sort(list, function(a, b)
-        if a.state ~= b.state then
-            return rank[a.state] < rank[b.state]
-        end
-        local la, lb = a.learn or a.yellow, b.learn or b.yellow
-        if la ~= lb then
-            return la < lb
-        end
-        if a.name ~= b.name then
-            return a.name < b.name
-        end
-        return a.ability < b.ability
-    end)
-    return list
+---Which of the filter menu's Now, Soon, and Later a learn state (Professions.LearnState) is in, or
+---nil for "unknown".
+---@param state string
+---@return string|nil when
+function Professions.LearnWhen(state)
+    return LEARN_WHEN[state]
 end
 
----The skill line most of `abilities` (ability IDs the player knows) belong to in `recipes`, or nil
----when none is there: which profession the open window shows.
----@param recipes table ability ID -> { yellow, gray, line, ... }
----@param abilities number[]
----@return number? line
-function Professions.LineOfAbilities(recipes, abilities)
-    local counts, best = {}, nil
-    for _, ability in ipairs(abilities) do
-        local entry = recipes[ability]
-        local line = entry and entry[3]
-        if line then
-            counts[line] = (counts[line] or 0) + 1
-            if not best or counts[line] > counts[best] or (counts[line] == counts[best] and line < best) then
-                best = line
+---Where a recipe the player doesn't know comes from, as the filter menu offers them, in its order:
+---a recipe is the first kind whose `test(recipe)` is true, `recipe` being `{ item }` (the item that
+---teaches it, from Data.lua, or nil). The tables say only whether an item teaches it; a later source
+---of where recipes come from (QuestieDB: vendors, drops, quests, trainers) adds kinds before "other"
+---and gives the recipe what their tests read. Each kind's label is the module's.
+Professions.RECIPE_SOURCES = {
+    { key = "item", test = function(recipe) return recipe.item ~= nil end },
+    { key = "other", test = function() return true end },
+}
+
+---The key of the source kind (Professions.RECIPE_SOURCES) a recipe is.
+---@param recipe table `{ item? }`
+---@return string key
+function Professions.RecipeSource(recipe)
+    for _, kind in ipairs(Professions.RECIPE_SOURCES) do
+        if kind.test(recipe) then
+            return kind.key
+        end
+    end
+    return "other"
+end
+
+---Whether a recipe the player doesn't know passes the unlearned filters: its source kind is on in
+---`filters.sources` (by key), its time to learn (Professions.LearnWhen of `recipe.state`) is on in
+---`filters.when` (one without a learn skill always is, since when isn't known), and, with
+---`filters.bags`, the item that teaches it is in the bags (`recipe.inBags`).
+---@param recipe table `{ item?, state, inBags? }`
+---@param filters table `{ sources = { [key] = boolean }, when = { now, soon, later }, bags = boolean }`
+---@return boolean
+function Professions.PassesUnlearned(recipe, filters)
+    if not filters.sources[Professions.RecipeSource(recipe)] then
+        return false
+    end
+    local when = Professions.LearnWhen(recipe.state)
+    if when and not filters.when[when] then
+        return false
+    end
+    if filters.bags and not recipe.inBags then
+        return false
+    end
+    return true
+end
+
+---Whether a recipe's name matches the recipe list's search text the way a player reads it: the text
+---anywhere in the name, letters in any case, taken as plain text. Empty text matches everything.
+---@param name string
+---@param text string|nil
+---@return boolean
+function Professions.MatchesSearch(name, text)
+    if not text or text == "" then
+        return true
+    end
+    return name:lower():find(text:lower(), 1, true) ~= nil
+end
+
+-- Names the game's data gives test, placeholder, and retired recipes (as it does items: "[DNT]
+-- ...", "Deprecated ..."), which no player can learn.
+local JUNK_NAMES = { "^%[DNT%]", "^%[PH%]", "^Deprecated", "^DEPRECATED", "^zz", "^Test " }
+
+---Whether a recipe's info is one the game knows but no player can learn: disabled, a dummy, without
+---a name, or named as test or retired data.
+---@param info table a recipe's info (C_TradeSkillUI.GetRecipeInfo)
+---@return boolean
+function Professions.IsJunkRecipe(info)
+    local name = info.name
+    if info.disabled or info.isDummyRecipe or type(name) ~= "string" or name == "" then
+        return true
+    end
+    for _, pattern in ipairs(JUNK_NAMES) do
+        if name:find(pattern) then
+            return true
+        end
+    end
+    return false
+end
+
+local function byOrderThenName(a, b)
+    local oa, ob = a.info.uiOrder or 0, b.info.uiOrder or 0
+    if oa ~= ob then
+        return oa < ob
+    end
+    return (a.info.name or ""):lower() < (b.info.name or ""):lower()
+end
+
+-- Blizzard's order for a category's recipes (SortCategoryData, Blizzard_ProfessionsTemplates):
+-- the skill a recipe turns gray at, highest first, then item level, highest first, then name.
+local function byRecipe(a, b)
+    local ga, gb = a.maxTrivialLevel or 0, b.maxTrivialLevel or 0
+    if ga ~= gb then
+        return ga > gb
+    end
+    local la, lb = a.itemLevel or 0, b.itemLevel or 0
+    if la ~= lb then
+        return la > lb
+    end
+    local na, nb = (a.name or ""):lower(), (b.name or ""):lower()
+    if na ~= nb then
+        return na < nb
+    end
+    return (a.recipeID or 0) < (b.recipeID or 0)
+end
+
+---The categories `recipes` go under in the recipe list, as Blizzard's list builds them for its
+---unlearned recipes (Professions.GenerateCraftingDataProvider): each recipe in its category, and
+---each category under its parent. With `keepEmpty` false (not searching) a category with no recipes
+---of its own is left out, and what was under it stands at the top, as Blizzard's does. A recipe
+---whose category `categoryOf` doesn't know is left out. Returns the top categories, each
+---`{ info, categories, recipes }`, categories by `uiOrder` then name and recipes in Blizzard's order.
+---@param recipes table[] recipe infos: `{ recipeID, categoryID, name, maxTrivialLevel?, itemLevel? }`
+---@param categoryOf fun(id: number): table|nil a category's info: `{ categoryID, parentCategoryID?, name, uiOrder? }`
+---@param keepEmpty boolean
+---@return table[] top
+function Professions.RecipeTree(recipes, categoryOf, keepEmpty)
+    local nodes = {} -- category ID -> node, or false for one not known
+    local function nodeOf(id)
+        local node = nodes[id]
+        if node == nil then
+            local info = id and categoryOf(id)
+            node = info and { info = info, categories = {}, recipes = {} } or false
+            nodes[id] = node
+            if node and info.parentCategoryID then
+                nodeOf(info.parentCategoryID)
+            end
+        end
+        return node
+    end
+    for _, recipe in ipairs(recipes) do
+        local node = nodeOf(recipe.categoryID)
+        if node then
+            node.recipes[#node.recipes + 1] = recipe
+        end
+    end
+    local top = {}
+    for _, node in pairs(nodes) do
+        if node and (keepEmpty or #node.recipes > 0) then
+            local parent = nodes[node.info.parentCategoryID]
+            if parent and (keepEmpty or #parent.recipes > 0) then
+                parent.categories[#parent.categories + 1] = node
+            else
+                top[#top + 1] = node
             end
         end
     end
-    return best
+    local function sortNode(node)
+        table.sort(node.categories, byOrderThenName)
+        table.sort(node.recipes, byRecipe)
+        for _, child in ipairs(node.categories) do
+            sortNode(child)
+        end
+    end
+    for _, node in ipairs(top) do
+        sortNode(node)
+    end
+    table.sort(top, byOrderThenName)
+    return top
 end
 
 local known -- skill line -> { rank, name, icon }, or nil until read

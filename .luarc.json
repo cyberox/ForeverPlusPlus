@@ -288,6 +288,7 @@
     "C_SpellBook",
     "C_Spell",
     "C_TradeSkillUI",
+    "C_PetJournal",
     "ITEM_MIN_SKILL",
     "UnitPlayerControlled",
     "UnitIsTapDenied",
