@@ -59,6 +59,29 @@ function Taxi.FlightEstimate(hops)
     return floor(yards / Taxi.SPEED + 0.5), #hops == 2
 end
 
+-- A flight still under way after a reload: how long past its length it may run (an estimate can
+-- be short, and a clock has whole seconds), and the longest a flight of unknown length can be.
+local RESUME_SLACK, RESUME_LONGEST = 60, 1800
+
+---Seconds a flight has been under way, from when it took off (`at`, by the clock) to `now`, or
+---nil when it can't still be the same flight: no takeoff, a clock that went back, or longer
+---ago than its length (`total`, with half again and a minute for a short estimate) allows.
+---@param at number? the clock's seconds at takeoff
+---@param total number? the flight's seconds, when known or estimated
+---@param now number the clock's seconds now
+---@return number? elapsed
+function Taxi.ResumeElapsed(at, total, now)
+    if type(at) ~= "number" or type(now) ~= "number" then
+        return nil
+    end
+    local elapsed = now - at
+    local longest = type(total) == "number" and total * 1.5 + RESUME_SLACK or RESUME_LONGEST
+    if elapsed < 0 or elapsed > longest then
+        return nil
+    end
+    return elapsed
+end
+
 local function median(list)
     sort(list)
     local n = #list

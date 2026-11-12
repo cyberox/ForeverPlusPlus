@@ -72,6 +72,16 @@ do
     eq(Taxi.FlightEstimate({ 1, 2 }), 8, "taxi: the speed is one number")
     Taxi.SPEED = 30
 
+    -- A flight kept across a reload: only while it can still be the same one.
+    eq(Taxi.ResumeElapsed(1000, 120, 1030), 30, "taxi: a flight resumed part way")
+    eq(Taxi.ResumeElapsed(1000, 120, 1000), 0, "taxi: resumed at takeoff")
+    eq(Taxi.ResumeElapsed(1000, 120, 1240), 240, "taxi: an estimate may run over")
+    eq(Taxi.ResumeElapsed(1000, 120, 1241), nil, "taxi: too long ago for its length")
+    eq(Taxi.ResumeElapsed(1000, nil, 2800), 1800, "taxi: a flight of unknown length")
+    eq(Taxi.ResumeElapsed(1000, nil, 2801), nil, "taxi: no flight is that long")
+    eq(Taxi.ResumeElapsed(1000, 120, 990), nil, "taxi: the clock went back")
+    eq(Taxi.ResumeElapsed(nil, 120, 1030), nil, "taxi: nothing saved")
+
     -- Checking estimates against timed flights: only direct paths count.
     eq(Taxi.CheckEstimates({}), nil, "taxi: nothing to check")
     eq(Taxi.CheckEstimates({ ["1>3"] = 30 }), nil, "taxi: a flight with stops isn't checked")

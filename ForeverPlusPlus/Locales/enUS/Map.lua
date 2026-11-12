@@ -267,6 +267,7 @@ L.FLIGHTTIMER_ESTIMATES_DESC = "Before you've flown a route, show the time the g
     .. "paths give it, marked with ~, until your own time replaces it. Within a second or two "
     .. "without stops; rougher with stops."
 L.FLIGHTTIMER_ESTIMATE = "~%s" -- an estimated time like ~2:05
+L.FLIGHTTIMER_ESTIMATE_MARK = "~" -- the same mark alone, before the bar's time
 L.FLIGHTTIMER_CHECK = "Check Estimates"
 L.FLIGHTTIMER_CHECK_BUTTON = "Check"
 L.FLIGHTTIMER_CHECK_DESC = "Print how far the estimated times of direct flights are from the times "

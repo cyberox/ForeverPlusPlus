@@ -8,7 +8,7 @@
 local _, ns = ...
 
 local ipairs, floor, format, max, min, tonumber = ipairs, math.floor, string.format, math.max, math.min, tonumber
-local Enum, GetTime, UnitOnTaxi = Enum, GetTime, UnitOnTaxi
+local Enum, GetTime, UnitOnTaxi, time, wipe = Enum, GetTime, UnitOnTaxi, time, wipe
 local GetNumRoutes, TaxiGetNodeSlot = GetNumRoutes, TaxiGetNodeSlot
 local CreateFrame, UIParent, GameTooltip, PlaySound = CreateFrame, UIParent, GameTooltip, PlaySound
 
@@ -26,7 +26,11 @@ local module = ns.NewModule("FlightTimer", L.FLIGHTTIMER_DESC, {
     y = 250,
     -- Seconds by "fromNodeID>toNodeID". Data, not a setting.
     times = {},
+    -- The flight underway, for this character, so a reload mid-flight picks it up again:
+    -- { from, to, total, estimated, rough, name, at (the clock at takeoff), aborted }.
+    resume = {},
 })
+module.perCharacter = { resume = true }
 module.title = L.FLIGHTTIMER_TITLE
 module.category = "map"
 
@@ -53,6 +57,7 @@ module.options = {
 }
 
 local WIDTH, HEIGHT = 208, 16 -- about Blizzard's cast bar
+local MARK_DROP = -3 -- how far the "~" before an estimate sits below the line's middle
 local TOO_SHORT = 3 -- seconds; anything shorter wasn't a flight
 local WAIT = 10 -- seconds to wait for a flight to start after asking for it
 local LANDING = 5 -- seconds before landing that Sound on Landing plays
@@ -173,6 +178,12 @@ local function newBar()
     frame.name:SetWordWrap(false)
     frame.time = fill:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     frame.time:SetPoint("RIGHT", -4, 0)
+    -- An estimate's "~" is a string of its own: the game's font draws it at the top of the
+    -- line, so it sits lower here, level with the middle of the digits.
+    frame.mark = fill:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    frame.mark:SetPoint("RIGHT", frame.time, "LEFT", 0, MARK_DROP)
+    frame.mark:SetText(L.FLIGHTTIMER_ESTIMATE_MARK)
+    frame.mark:Hide()
     frame:Hide()
     return frame
 end
@@ -189,6 +200,7 @@ end
 -- Stops timing and takes the bar down, unless Edit Mode is showing it for placing.
 local function cancel()
     flight = nil
+    wipe(module.db.resume)
     if watcher then
         watcher:Hide()
     end
@@ -203,11 +215,13 @@ local function showFlight()
     if flight.total and not (flight.estimated and elapsed > flight.total) then
         local left = max(flight.total - elapsed, 0)
         fillTo(min(elapsed / flight.total, 1))
-        bar.time:SetText(timeText(left, flight.estimated))
+        bar.time:SetText(clock(left))
+        bar.mark:SetShown(flight.estimated and true or false)
     else
         -- A flight not flown before, without an estimate or past it: the time so far.
         fillTo(1)
         bar.time:SetText(clock(elapsed))
+        bar.mark:Hide()
     end
 end
 
@@ -272,6 +286,10 @@ local function tick()
     if not flight.started then
         if UnitOnTaxi("player") then
             flight.started = now
+            local saved = module.db.resume
+            saved.from, saved.to, saved.name = flight.from, flight.to, flight.name
+            saved.total, saved.estimated, saved.rough = flight.total, flight.estimated, flight.rough
+            saved.at = time()
             if module.db.bar then
                 bar:Show()
             end
@@ -310,7 +328,37 @@ end
 local function onEarlyLanding()
     if flight then
         flight.aborted = true -- the time to somewhere else says nothing about this flight
+        if flight.started and not flight.test then
+            module.db.resume.aborted = true
+        end
     end
+end
+
+-- A loading screen ends any timing, except a reload or login while still on the same flight:
+-- that one goes on from the clock time it took off at, so the reload's own seconds count too.
+local function onEnteringWorld()
+    local saved = module.db.resume
+    local from, to, name, at = saved.from, saved.to, saved.name, saved.at
+    local total, estimated, rough, aborted = saved.total, saved.estimated, saved.rough, saved.aborted
+    cancel()
+    local elapsed = from and to and UnitOnTaxi("player") and ns.Taxi.ResumeElapsed(at, total, time())
+    if not elapsed then
+        return
+    end
+    flight = {
+        from = from, to = to, name = name, total = total, estimated = estimated, rough = rough,
+        aborted = aborted, started = GetTime() - elapsed,
+        -- Past the landing sound's moment already: not again.
+        warned = total and total - elapsed <= LANDING or nil,
+    }
+    saved.from, saved.to, saved.name, saved.at = from, to, name, at
+    saved.total, saved.estimated, saved.rough, saved.aborted = total, estimated, rough, aborted
+    if module.db.bar then
+        bar:Show()
+        showFlight()
+    end
+    watcher:Show()
+    ns.Providers.Changed("flights")
 end
 
 -- The flight map's tooltip ---------------------------------------------------------------------
@@ -377,6 +425,7 @@ local function sample(active)
         bar.name:SetText(L.FLIGHTTIMER_TITLE)
         fillTo(0.6)
         bar.time:SetText(clock(45))
+        bar.mark:Hide()
         bar:Show()
     else
         bar:Hide()
@@ -473,7 +522,7 @@ function module:OnEnable()
     self:Hook("TakeTaxiNode", onTake)
     self:Hook("TaxiRequestEarlyLanding", onEarlyLanding)
     self:Hook(GameTooltip, "Show", onTooltipShow)
-    self:On("PLAYER_ENTERING_WORLD", cancel) -- a loading screen ends any timing
+    self:On("PLAYER_ENTERING_WORLD", onEnteringWorld)
     ns.EditMode.RegisterModule(self, bar, L.FLIGHTTIMER_TITLE, place, sample)
 end
 
