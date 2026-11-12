@@ -3,11 +3,13 @@
 -- for each pair of flight points. The next time, a bar shows the time left as you fly, and the
 -- flight map's tooltip on a flight point shows how long it will take. Each pair is its own time:
 -- flights differ each way, and a flight with stops is not the sum of its parts. Times are saved
--- for the whole account, since a flight is the same for every character.
+-- for the whole account, since a flight is the same for every character. Before a route has been
+-- flown, Estimated Times gives it the time the game's own flight paths say (ns.Taxi), marked "~".
 local _, ns = ...
 
-local ipairs, floor, format, max, min = ipairs, math.floor, string.format, math.max, math.min
+local ipairs, floor, format, max, min, tonumber = ipairs, math.floor, string.format, math.max, math.min, tonumber
 local Enum, GetTime, UnitOnTaxi = Enum, GetTime, UnitOnTaxi
+local GetNumRoutes, TaxiGetNodeSlot = GetNumRoutes, TaxiGetNodeSlot
 local CreateFrame, UIParent, GameTooltip, PlaySound = CreateFrame, UIParent, GameTooltip, PlaySound
 
 local L = ns.L
@@ -17,6 +19,7 @@ local module = ns.NewModule("FlightTimer", L.FLIGHTTIMER_DESC, {
     bar = true,
     tooltip = true,
     tooltipStyle = "double", -- "double" (label left, time right), "line", or "gray" (one line)
+    estimates = true,
     landingSound = false,
     scale = 100, -- percent
     x = 0, -- the bar's offset from the center of the screen
@@ -40,8 +43,12 @@ module.options = {
         },
     },
     {
+        key = "estimates", name = L.FLIGHTTIMER_ESTIMATES, description = L.FLIGHTTIMER_ESTIMATES_DESC,
+        added = "1.6.0",
+    },
+    {
         key = "landingSound", name = L.FLIGHTTIMER_LANDING_SOUND,
-        description = L.FLIGHTTIMER_LANDING_SOUND_DESC, added = "0.9.0",
+        description = L.FLIGHTTIMER_LANDING_SOUND_DESC, added = "0.9.0", changed = "1.6.0",
     },
 }
 
@@ -56,15 +63,16 @@ local clock = ns.Text.Clock
 
 -- Mainline's flight master API, at a flight master: slots are what the old API counts by, node
 -- IDs are the game's own. Filled when the flight map opens.
-local nodeOfSlot, nameOfNode = {}, {}
+local nodeOfSlot, slotOfNode, nameOfNode = {}, {}, {}
 local current -- the node ID the flight master is at
 
 local function readNodes()
-    nodeOfSlot, nameOfNode, current = {}, {}, nil
+    nodeOfSlot, slotOfNode, nameOfNode, current = {}, {}, {}, nil
     for _, node in ipairs((ns.Taxi.Nodes())) do
         if node.nodeID then
             if node.slotIndex then
                 nodeOfSlot[node.slotIndex] = node.nodeID
+                slotOfNode[node.nodeID] = node.slotIndex
             end
             nameOfNode[node.nodeID] = node.name
             if Enum.FlightPathState and node.state == Enum.FlightPathState.Current then
@@ -81,14 +89,66 @@ local function key(from, to)
 end
 
 -- How long the flight from one node to another takes, in seconds, if it has been flown.
-local function estimate(from, to)
+local function timed(from, to)
     return module.db.times[key(from, to)]
+end
+
+-- The flight points a flight from the flight master to a slot passes, from, each stop, then to,
+-- as the flight master routes it, or nil when it can't say.
+local function routeOf(slot, to)
+    if not (slot and current and GetNumRoutes and TaxiGetNodeSlot) then
+        return nil
+    end
+    local count = tonumber(GetNumRoutes(slot))
+    if not count or count < 1 then
+        return nil
+    end
+    local hops = { current }
+    for hop = 1, count do
+        local node = nodeOfSlot[TaxiGetNodeSlot(slot, hop, false)]
+        if not node then
+            return nil
+        end
+        hops[#hops + 1] = node
+    end
+    if hops[#hops] ~= to then
+        return nil
+    end
+    return hops
+end
+
+-- How long the flight from the flight master to a node takes: the player's own time once it has
+-- been flown, else the estimate from its route (Estimated Times). Also whether it's an estimate,
+-- and whether that estimate is the rougher kind, for a flight with stops.
+local function flightTime(to, slot)
+    local seconds = timed(current, to)
+    if seconds then
+        return seconds, false, false
+    end
+    if not module.db.estimates then
+        return nil
+    end
+    -- Without the flight master's route, only a direct path can be assumed: the game takes one
+    -- when there is one.
+    local estimate, direct = ns.Taxi.FlightEstimate(routeOf(slot, to) or { current, to })
+    if estimate then
+        return estimate, true, not direct
+    end
+end
+
+-- A time as the bar and tooltip show it, with "~" before an estimate.
+local function timeText(seconds, estimated)
+    if estimated then
+        return format(L.FLIGHTTIMER_ESTIMATE, clock(seconds))
+    end
+    return clock(seconds)
 end
 
 -- The flight underway ---------------------------------------------------------------------------
 
--- { from, to, total, name, asked, started, aborted, warned }, once one is asked for, and `test`
--- for Test Flight's.
+-- { from, to, total, estimated, rough, name, asked, started, aborted, warned }, once one is asked
+-- for, and `test` for Test Flight's. `total` is the player's time or, with `estimated`, the
+-- estimate (`rough` for a flight with stops).
 local flight
 local lastFlight -- { from, to, seconds } of the flight that last landed, for the public API
 
@@ -140,12 +200,12 @@ end
 local function showFlight()
     local elapsed = GetTime() - flight.started
     bar.name:SetText(flight.name or "")
-    if flight.total then
+    if flight.total and not (flight.estimated and elapsed > flight.total) then
         local left = max(flight.total - elapsed, 0)
         fillTo(min(elapsed / flight.total, 1))
-        bar.time:SetText(clock(left))
+        bar.time:SetText(timeText(left, flight.estimated))
     else
-        -- A flight not flown before: no length to count down, so the time so far.
+        -- A flight not flown before, without an estimate or past it: the time so far.
         fillTo(1)
         bar.time:SetText(clock(elapsed))
     end
@@ -180,9 +240,10 @@ local function playLanding()
 end
 
 -- Sound on Landing: once, a few seconds before a flight of known length lands. A flight too short
--- for that would play it at takeoff, so it stays quiet.
+-- for that would play it at takeoff, so it stays quiet, and so does a rough estimate, which can
+-- be off by more than those few seconds.
 local function checkLanding(now)
-    if flight.warned or not (flight.total and module.db.landingSound) then
+    if flight.warned or flight.rough or not (flight.total and module.db.landingSound) then
         return
     end
     if flight.total <= LANDING * 2 then
@@ -238,9 +299,9 @@ local function onTake(slot)
         flight = nil
         return
     end
-    local total = estimate(current, to)
+    local total, estimated, rough = flightTime(to, slot)
     flight = {
-        from = current, to = to, total = total,
+        from = current, to = to, total = total, estimated = estimated, rough = rough,
         name = nameOfNode[to], asked = GetTime(),
     }
     watcher:Show()
@@ -287,18 +348,19 @@ local function onTooltipShow(tooltip)
     if not (to and current) or to == current then
         return
     end
-    local time = estimate(current, to)
+    local time, estimated = flightTime(to, slotOfNode[to])
     if not time then
         return
     end
+    local text = timeText(time, estimated)
     adding = true
     local style = module.db.tooltipStyle
     if style == "line" then
-        tooltip:AddLine(format(L.FLIGHTTIMER_TIME_LINE, clock(time)), 1, 1, 1)
+        tooltip:AddLine(format(L.FLIGHTTIMER_TIME_LINE, text), 1, 1, 1)
     elseif style == "gray" then
-        tooltip:AddLine(format(L.FLIGHTTIMER_TIME_LINE, clock(time)), 0.5, 0.5, 0.5)
+        tooltip:AddLine(format(L.FLIGHTTIMER_TIME_LINE, text), 0.5, 0.5, 0.5)
     else
-        tooltip:AddDoubleLine(L.FLIGHTTIMER_TIME, clock(time), 1, 1, 1, 1, 1, 1)
+        tooltip:AddDoubleLine(L.FLIGHTTIMER_TIME, text, 1, 1, 1, 1, 1, 1)
     end
     tooltip:Show() -- to fit the new line
     adding = false
@@ -352,21 +414,42 @@ module.debugActions = {
             watcher:Show()
         end,
     },
+    {
+        name = L.FLIGHTTIMER_CHECK, button = L.FLIGHTTIMER_CHECK_BUTTON,
+        description = L.FLIGHTTIMER_CHECK_DESC, section = L.DEBUG_SECTION_TOOLS,
+        fn = function()
+            local check = ns.Taxi.CheckEstimates(module.db.times)
+            if not check then
+                ns.Print(L.FLIGHTTIMER_CHECK_NONE)
+                return
+            end
+            ns.Print(format(L.FLIGHTTIMER_CHECK_RESULT, check.count, check.median, check.worst,
+                check.worstRoute, check.speed, ns.Taxi.SPEED))
+        end,
+    },
 }
 
 -- What the public API (API.lua) reads while the module is on.
 local provider = {
     -- Seconds the flight between two flight point IDs takes, once it has been flown.
     Time = function(from, to)
-        return estimate(from, to)
+        return timed(from, to)
+    end,
+    -- Estimated seconds of the direct flight between two flight point IDs, from the game's flight
+    -- paths, whether or not it has been flown or Estimated Times is on. Nil without a direct path.
+    Estimate = function(from, to)
+        return (ns.Taxi.FlightEstimate({ from, to }))
     end,
     -- The flight underway: from and to node IDs, its length in seconds (nil the first time it's
-    -- flown), and the seconds since it took off. Nil when not flying.
+    -- flown), the estimate it's counted down by instead the first time (nil without one), and the
+    -- seconds since it took off. Nil when not flying.
     Current = function()
         if not (flight and flight.started) or flight.test then
             return nil
         end
-        return { from = flight.from, to = flight.to, total = flight.total,
+        return { from = flight.from, to = flight.to,
+            total = not flight.estimated and flight.total or nil,
+            estimate = flight.estimated and flight.total or nil,
             elapsed = GetTime() - flight.started }
     end,
     -- Every flight flown: "from>to" -> seconds.

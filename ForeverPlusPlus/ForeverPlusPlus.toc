@@ -71,6 +71,7 @@ Lib\Spellbook.lua
 Lib\Quests.lua
 Lib\QuestieDB.lua
 Lib\Taxi.lua
+Lib\TaxiRoutes.lua
 Lib\RealmTime.lua
 Modules\System\ErrorCatcher.lua
 Modules\Units\PlayerNameplates.lua

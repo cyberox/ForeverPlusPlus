@@ -3,5 +3,6 @@
 return {
     require("unexplored"),
     require("skilllevels"),
+    require("taxiroutes"),
     require("reference"),
 }
