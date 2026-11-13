@@ -630,15 +630,38 @@ function Professions.LearnState(learn, skill, max, soon)
 end
 
 -- When a recipe can be learned, as the filter menu groups it: a recipe past the rank's most can be
--- learned later, once the next rank is. One without a learn skill has none.
-local LEARN_WHEN = { now = "now", soon = "soon", later = "later", rank = "later" }
+-- learned later, once the next rank is. One without a learn skill is in a group of its own.
+local LEARN_WHEN = { now = "now", soon = "soon", later = "later", rank = "later", unknown = "unknown" }
 
----Which of the filter menu's Now, Soon, and Later a learn state (Professions.LearnState) is in, or
----nil for "unknown".
+---Which of the filter menu's Now, Soon, Later, and Unknown a learn state (Professions.LearnState)
+---is in.
 ---@param state string
 ---@return string|nil when
 function Professions.LearnWhen(state)
     return LEARN_WHEN[state]
+end
+
+-- The skill a trainer asks for a recipe, by the recipe's name: the tables don't have it, so it's
+-- learned from a profession trainer's window whenever one is open, for the account. No seed.
+local TRAINED = ns.GameData.New("trainerRecipes", {})
+
+---The skill a trainer asks to teach the recipe `name`, when a trainer's window has shown it.
+---@param name string
+---@return number? skill
+function Professions.TrainerSkill(name)
+    local value = type(name) == "string" and TRAINED:Get(name)
+    return type(value) == "number" and value or nil
+end
+
+---Learns that a trainer asks `skill` to teach the recipe `name`.
+---@param name string
+---@param skill number
+---@return boolean changed
+function Professions.LearnTrainerSkill(name, skill)
+    if type(name) ~= "string" or name == "" or type(skill) ~= "number" or skill <= 0 then
+        return false
+    end
+    return TRAINED:Learn(name, skill)
 end
 
 ---Where a recipe the player doesn't know comes from, as the filter menu offers them, in its order:
@@ -665,10 +688,10 @@ end
 
 ---Whether a recipe the player doesn't know passes the unlearned filters: its source kind is on in
 ---`filters.sources` (by key), its time to learn (Professions.LearnWhen of `recipe.state`) is on in
----`filters.when` (one without a learn skill always is, since when isn't known), and, with
----`filters.bags`, the item that teaches it is in the bags (`recipe.inBags`).
+---`filters.when` (one without a learn skill under `unknown`), and, with `filters.bags`, the item
+---that teaches it is in the bags (`recipe.inBags`).
 ---@param recipe table `{ item?, state, inBags? }`
----@param filters table `{ sources = { [key] = boolean }, when = { now, soon, later }, bags = boolean }`
+---@param filters table `{ sources = { [key] = boolean }, when = { now, soon, later, unknown }, bags = boolean }`
 ---@return boolean
 function Professions.PassesUnlearned(recipe, filters)
     if not filters.sources[Professions.RecipeSource(recipe)] then

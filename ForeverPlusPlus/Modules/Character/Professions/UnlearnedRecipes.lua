@@ -40,6 +40,7 @@ local module = professions:NewPart({
     unlearnedSoon = true, -- within unlearnedWithin points
     unlearnedWithin = 25,
     unlearnedLater = true, -- further off, or past the rank's most
+    unlearnedUnknown = true, -- the skill to learn it isn't known
     unlearnedBags = false, -- only those whose item is in the bags
 })
 
@@ -59,6 +60,7 @@ local WHEN_OPTIONS = {
     { when = "now", key = "unlearnedNow", name = L.PROFESSIONS_UNLEARNED_NOW },
     { when = "soon", key = "unlearnedSoon", name = L.PROFESSIONS_UNLEARNED_SOON },
     { when = "later", key = "unlearnedLater", name = L.PROFESSIONS_UNLEARNED_LATER },
+    { when = "unknown", key = "unlearnedUnknown", name = L.PROFESSIONS_UNLEARNED_UNKNOWN },
 }
 
 module:AddOptions({
@@ -87,6 +89,10 @@ module:AddOptions({
     {
         key = "unlearnedLater", name = L.PROFESSIONS_UNLEARNED_LATER, description = L.PROFESSIONS_UNLEARNED_LATER_DESC,
         requires = "unlearnedShow",
+    },
+    {
+        key = "unlearnedUnknown", name = L.PROFESSIONS_UNLEARNED_UNKNOWN,
+        description = L.PROFESSIONS_UNLEARNED_UNKNOWN_DESC, requires = "unlearnedShow",
     },
     {
         key = "unlearnedBags", name = L.PROFESSIONS_UNLEARNED_BAGS, description = L.PROFESSIONS_UNLEARNED_BAGS_DESC,
@@ -360,7 +366,10 @@ local function pick(has)
                 skill = { level, most }
                 skills[line] = skill
             end
-            recipe.state = Professions.LearnState(recipe.learn, skill and skill[1], skill and skill[2],
+            -- The item's skill from the tables, or else what a trainer's window said (read here,
+            -- not kept with the candidates, since a trainer may be visited with this window open).
+            recipe.need = recipe.learn or Professions.TrainerSkill(info.name)
+            recipe.state = Professions.LearnState(recipe.need, skill and skill[1], skill and skill[2],
                 db.unlearnedWithin)
             recipe.inBags = db.unlearnedBags and recipe.item ~= nil and (C_Item.GetItemCount(recipe.item) or 0) > 0
             if Professions.PassesUnlearned(recipe, wanted) then
@@ -520,7 +529,7 @@ local function rowNumber(row, node)
     end
     local info = Professions.RowRecipe(row, node)
     local recipe = module.enabled and info and not info.learned and shown[info.recipeID]
-    local value = recipe and recipe.state ~= "unknown" and recipe.learn or nil
+    local value = recipe and recipe.state ~= "unknown" and recipe.need or nil
     local text = numbers:Set(row, value)
     if text then
         text:SetText(value)
@@ -739,6 +748,31 @@ if Menu and Menu.ModifyMenu and MenuUtil and MenuUtil.CreateCheckbox then
     Menu.ModifyMenu(TAG, addEntries)
 end
 
+-- Trainers -----------------------------------------------------------------------------------------
+-- The skill a trainer asks for each recipe it teaches, which the tables lack: read from a
+-- profession trainer's window whenever it's open and remembered for the account
+-- (Professions.LearnTrainerSkill), by the recipe's name, which is all a service gives. A service
+-- without a skill (a profession's next rank) teaches nothing here. Probe: the calls are Mainline's
+-- Blizzard_TrainerUI's; Unverified on Forever.
+
+local function readTrainer()
+    local count, info, need = _G.GetNumTrainerServices, _G.GetTrainerServiceInfo, _G.GetTrainerServiceSkillReq
+    if not (count and info and need) or (_G.IsTradeskillTrainer and not _G.IsTradeskillTrainer()) then
+        return
+    end
+    local changed = false
+    for index = 1, count() or 0 do
+        local name = info(index)
+        local _, skill = need(index)
+        if ns.IsText(name) and ns.IsNumber(skill) then
+            changed = Professions.LearnTrainerSkill(name, skill) or changed
+        end
+    end
+    if changed and craftingPage() then
+        refresh()
+    end
+end
+
 -- Turning on and off -------------------------------------------------------------------------------
 
 -- The list, the rows' mixin, and the form are in a load-on-demand Blizzard addon: hooked once
@@ -778,6 +812,8 @@ function module:OnEnable()
     self:On("NEW_RECIPE_LEARNED", forget)
     self:On("BAG_UPDATE_DELAYED", redrawLine)
     self:On("ITEM_DATA_LOAD_RESULT", onItemData)
+    self:On("TRAINER_SHOW", readTrainer)
+    self:On("TRAINER_UPDATE", readTrainer)
     if hook() then
         refresh()
         redrawLine()

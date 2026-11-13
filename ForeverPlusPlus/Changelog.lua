@@ -36,7 +36,9 @@ ns.changelog = {
                     .. "show in the list itself, alone or among the ones you know, each with the skill it takes to learn and, on its page, the recipe item that "
                     .. "teaches it with its auction price. An Unlearned submenu filters them by "
                     .. "source, by when you can learn them, and to those whose item is in your bags. "
-                    .. "Season of Discovery's recipes, which the game still lists, are left out." },
+                    .. "Season of Discovery's recipes, which the game still lists, are left out. "
+                    .. "A trainer recipe's skill is learned the first time you open its trainer; "
+                    .. "until then it's listed under Unknown." },
             } },
             { L.CHANGELOG_CHANGED, {
                 { L.WHISPERWINDOW_TITLE, "The reply box grows as you type, up to four lines, so a "

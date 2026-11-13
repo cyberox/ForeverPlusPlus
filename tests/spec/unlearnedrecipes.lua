@@ -19,7 +19,15 @@ eq(state(100, nil, 150, 25), "unknown", "learn: no skill")
 
 eq(Professions.LearnWhen("now"), "now", "when: now")
 eq(Professions.LearnWhen("rank"), "later", "when: past the rank is later")
-eq(Professions.LearnWhen("unknown"), nil, "when: none without a learn skill")
+eq(Professions.LearnWhen("unknown"), "unknown", "when: its own group without a learn skill")
+
+-- What a trainer's window taught, by the recipe's name.
+eq(Professions.TrainerSkill("Copper Chain Belt"), nil, "trainer: nothing before a trainer was seen")
+ok(Professions.LearnTrainerSkill("Copper Chain Belt", 35), "trainer: learned")
+eq(Professions.TrainerSkill("Copper Chain Belt"), 35, "trainer: remembered")
+ok(not Professions.LearnTrainerSkill("Copper Chain Belt", 35), "trainer: the same again changes nothing")
+ok(not Professions.LearnTrainerSkill("Journeyman", 0), "trainer: no skill, nothing learned")
+ok(not Professions.LearnTrainerSkill("", 35), "trainer: no name")
 
 -- Sources: an item teaches it, or anything else.
 eq(Professions.RecipeSource({ item = 2002 }), "item", "source: an item")
@@ -32,7 +40,7 @@ end
 local function filters(over)
     local f = {
         sources = { item = true, other = true },
-        when = { now = true, soon = true, later = true },
+        when = { now = true, soon = true, later = true, unknown = true },
         bags = false,
     }
     for key, value in pairs(over or {}) do
@@ -50,7 +58,9 @@ local soonOnly = filters({ when = { now = true, soon = true, later = false } })
 ok(not Professions.PassesUnlearned(plans, soonOnly), "filter: later off")
 ok(Professions.PassesUnlearned({ item = 1, state = "rank" }, filters({ when = { later = true } })),
     "filter: past the rank counts as later")
-ok(Professions.PassesUnlearned(trainer, filters({ when = {} })), "filter: no learn skill passes any when")
+ok(not Professions.PassesUnlearned(trainer, filters({ when = { now = true, soon = true, later = true } })),
+    "filter: unknown off hides one without a learn skill")
+ok(Professions.PassesUnlearned(trainer, filters({ when = { unknown = true } })), "filter: unknown alone keeps it")
 local bags = filters({ bags = true })
 ok(not Professions.PassesUnlearned(plans, bags), "filter: bags, not carried")
 ok(Professions.PassesUnlearned({ item = 1, state = "now", inBags = true }, bags), "filter: bags, carried")
