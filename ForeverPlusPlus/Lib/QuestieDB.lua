@@ -35,7 +35,8 @@ local FIELDS = {
     Quest = { "name", "questLevel", "requiredLevel", "requiredMaxLevel", "startedBy", "finishedBy",
         "objectives", "objectivesText", "preQuestGroup", "preQuestSingle", "nextQuestInChain",
         "exclusiveTo", "zoneOrSort", "requiredRaces", "requiredClasses", "sourceItemId",
-        "requiredSkill", "breadcrumbForQuestId" },
+        "requiredSkill", "breadcrumbForQuestId", "specialFlags", "questFlags", "parentQuest",
+        "childQuests", "requiredMinRep", "requiredMaxRep" },
     Npc = { "name", "subName", "minLevel", "maxLevel", "rank", "spawns", "zoneID", "questStarts",
         "questEnds", "friendlyToFaction", "npcFlags" },
     Item = { "name", "npcDrops", "objectDrops", "itemDrops", "vendors", "questRewards", "startQuest",
@@ -465,6 +466,14 @@ local function group(tbl, index)
     return ids(type(tbl) == "table" and tbl[index] or nil)
 end
 
+-- A `{ factionID, value }` reputation requirement as `{ id, value }`, or nil for none.
+local function reputation(pair)
+    if type(pair) == "table" and id(pair[1]) and type(pair[2]) == "number" then
+        return { id = pair[1], value = pair[2] }
+    end
+    return nil
+end
+
 ---A quest, or nil when QuestieDB isn't ready or doesn't know it.
 ---
 ---`{ id, name, level, requiredLevel, maxLevel, races, classes, areaID, uiMapID, sortID,
@@ -474,7 +483,9 @@ end
 ---`"reputation"` with `value`, `"killCredit"` with `ids`, or `"spell"` with `itemID`). Every
 ---prerequisite in `all` and one of `any` must be done. `areaID` (and its `uiMapID`) is the zone the
 ---quest is listed in; `sortID` is the quest log category of one listed under a category instead.
----`races` and `classes` are masks, nil for anyone.
+---`races` and `classes` are masks, nil for anyone. Also `repeatable` (can be done again), `flags`
+---(the game's quest flag mask), `parent` (a quest that must be in the log) with `children`, and
+---`minRep` and `maxRep` (`{ id, value }`: a faction and the reputation it needs at least, or under).
 ---@param questID number
 ---@return table|nil
 function QuestieDB.Quest(questID)
@@ -482,6 +493,7 @@ function QuestieDB.Quest(questID)
     if not f then
         return nil
     end
+    local special = type(f.specialFlags) == "number" and f.specialFlags or 0
     local zone = type(f.zoneOrSort) == "number" and f.zoneOrSort or 0
     local skill = type(f.requiredSkill) == "table" and id(f.requiredSkill[1])
         and { id = f.requiredSkill[1], value = type(f.requiredSkill[2]) == "number" and f.requiredSkill[2] or 0 }
@@ -506,7 +518,72 @@ function QuestieDB.Quest(questID)
         breadcrumbFor = id(f.breadcrumbForQuestId),
         sourceItemID = id(f.sourceItemId),
         requiredSkill = skill or nil,
+        -- Questie's special flag 1 is "repeatable" (its QuestieDB.IsRepeatable).
+        repeatable = special % 2 == 1,
+        flags = type(f.questFlags) == "number" and f.questFlags or 0,
+        parent = id(f.parentQuest),
+        children = ids(f.childQuests),
+        minRep = reputation(f.requiredMinRep),
+        maxRep = reputation(f.requiredMaxRep),
     }
+end
+
+-- The one-field lists the light readers below ask for, made once.
+local STARTED_BY, NAME = { "startedBy" }, { "name" }
+local SPAWN_FIELDS = { Npc = { "spawns", "friendlyToFaction" }, Object = { "spawns" } }
+
+---Who starts a quest, without the rest of it, for walking every quest: `{ npcs, objects, items }`
+---as ID lists, or nil when QuestieDB isn't ready or doesn't know the quest.
+---@param questID number
+---@return table|nil
+function QuestieDB.Starters(questID)
+    local found = api()
+    if not found or type(questID) ~= "number" then
+        return nil
+    end
+    local values = try(found.Quest.GetAll, questID, STARTED_BY)
+    if type(values) ~= "table" then
+        return nil
+    end
+    local by = values[1]
+    return { npcs = group(by, 1), objects = group(by, 2), items = group(by, 3) }
+end
+
+---Where an NPC or object stands, without the rest of it: its spawns and instances as
+---`QuestieDB.Npc` gives them, and for an NPC the side it's friendly to (`"A"`, `"H"`, `"AH"`, or
+---nil). Nil when QuestieDB isn't ready or doesn't know it.
+---@param kind string "Npc" or "Object"
+---@param entityID number
+---@return table[]|nil spawns
+---@return number[]|nil instances
+---@return string|nil friendlyTo
+function QuestieDB.Spawns(kind, entityID)
+    local found = api()
+    local fields = SPAWN_FIELDS[kind]
+    if not found or not fields or type(entityID) ~= "number" then
+        return nil
+    end
+    local values = try(found[kind].GetAll, entityID, fields)
+    if type(values) ~= "table" then
+        return nil
+    end
+    local list, instances = spawns(values[1])
+    local friendly = values[2]
+    return list, instances, (friendly == "A" or friendly == "H" or friendly == "AH") and friendly or nil
+end
+
+---The name of a quest, NPC, item, or object in the game's language, without the rest of it, or
+---nil.
+---@param kind string "Quest", "Npc", "Item", or "Object"
+---@param entityID number
+---@return string|nil
+function QuestieDB.Name(kind, entityID)
+    local found = api()
+    if not found or not KINDS[kind] or type(entityID) ~= "number" then
+        return nil
+    end
+    local values = try(found[kind].GetAll, entityID, NAME)
+    return type(values) == "table" and str(values[1]) or nil
 end
 
 ---An NPC, or nil when QuestieDB isn't ready or doesn't know it.

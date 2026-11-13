@@ -13,6 +13,13 @@ ns.changelog = {
         version = L.CHANGELOG_UNRELEASED,
         sections = {
             { L.CHANGELOG_ADDED, {
+                { L.AVAILABLEQUESTS_TITLE, "A new module, off by default, that needs the QuestieDB "
+                    .. "addon. Shows on the world map where the quests you can pick up start, with "
+                    .. "an exclamation mark at each quest giver, colored by the quest's type. "
+                    .. "Shift+click one to put the map pin on it, and Shift+right-click to hide its "
+                    .. "quests. It has options for quest types, low-level and upcoming quests, icon "
+                    .. "colors and size, and the tooltip, lists a quest giver's quests on its "
+                    .. "tooltip, and adds the quest types to the map's filter menu." },
                 { L.HIDEERRORS_TITLE, "A new module, off by default. Keeps the red errors that "
                     .. "repeat while you fight, like Out of range and Not enough energy, off the "
                     .. "top of the screen, along with their sounds. Hide picks Ability Errors or "

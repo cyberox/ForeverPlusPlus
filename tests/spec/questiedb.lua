@@ -77,6 +77,8 @@ local DATA = {
             preQuestGroup = { 900000 }, preQuestSingle = nil, nextQuestInChain = 900002,
             exclusiveTo = nil, zoneOrSort = 10, requiredRaces = 0, requiredClasses = 8,
             sourceItemId = 0, requiredSkill = { 186, 50 }, breadcrumbForQuestId = 0,
+            specialFlags = 1, questFlags = 64, parentQuest = 900009, childQuests = { 900010 },
+            requiredMinRep = { 55, 3000 }, requiredMaxRep = 0,
         },
         [900002] = {
             name = "Sorted Errand", questLevel = 15, requiredLevel = 10, requiredMaxLevel = 20,
@@ -287,8 +289,22 @@ same(quest, {
     objectivesText = { "Bring the bits." },
     prerequisites = { all = { 900000 }, any = {} },
     next = 900002, exclusiveTo = {}, requiredSkill = { id = 186, value = 50 },
+    repeatable = true, flags = 64, parent = 900009, children = { 900010 },
+    minRep = { id = 55, value = 3000 },
 }, "questiedb: a quest in our shape")
+same(Q.Starters(900001), { npcs = { 800001 }, objects = {}, items = { 700002 } }, "questiedb: only a quest's starters")
+eq(Q.Starters(1), nil, "questiedb: no starters for an unknown quest")
+local spots, inside, friendly = Q.Spawns("Npc", 800001)
+eq(#spots == 2 and inside[1] == 20 and friendly == "AH", true, "questiedb: only an NPC's spawns and side")
+local crates = Q.Spawns("Object", 600001)
+eq(#crates == 1 and crates[1].uiMapID == 1411 and crates[1].x == 0.4, true, "questiedb: only an object's spawns")
+eq(Q.Spawns("Item", 700001), nil, "questiedb: no spawns for a kind without them")
+eq(Q.Name("Npc", 800001) == "Testy McTest" and Q.Name("Quest", 900002) == "Sorted Errand", true,
+    "questiedb: only a name")
+eq(Q.Name("Npc", 1), nil, "questiedb: no name for an unknown NPC")
 local sorted = Q.Quest(900002)
+eq(sorted.repeatable == false and sorted.flags == 0 and sorted.parent == nil and sorted.minRep == nil, true,
+    "questiedb: a quest without flags, a parent, or a reputation")
 eq(sorted.sortID == 61 and sorted.areaID == nil and sorted.maxLevel == 20, true, "questiedb: a quest under a category")
 same(sorted.prerequisites.any, { 900001 }, "questiedb: any one prerequisite, without 0")
 eq(Q.Quest(1), nil, "questiedb: an unknown quest")
