@@ -18,7 +18,7 @@ local metadata = ns.Metadata
 -- Who else wrote part of the addon, by the name they go by on GitHub, and what they added, for the
 -- Thanks line under the version. Keep it the same as the README's Contributors list.
 local CREDITS = {
-    { "cyberox", L.TOOLTIPS_QUEST_LINES },
+    { "cyberox", concat({ L.TOOLTIPS_QUEST_LINES, L.QUESTPINS_TITLE }, ", ") },
 }
 
 local function thanksText()

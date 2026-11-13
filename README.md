@@ -149,7 +149,7 @@ Bugs and ideas go in [GitHub issues](https://github.com/xIGBClutchIx/ForeverPlus
 
 Thanks to everyone who has added to Forever++ (also on the in-game About page):
 
-- [cyberox](https://github.com/cyberox): Tooltips' Quest Lines option, which hides quest lines on unit and object tooltips.
+- [cyberox](https://github.com/cyberox): Tooltips' Quest Lines option, which hides quest lines on unit and object tooltips, and the Quest Pins module, which shows on the world map where the quests you can take start.
 
 ## Contributing
 
