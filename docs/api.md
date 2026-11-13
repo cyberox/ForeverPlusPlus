@@ -14,7 +14,7 @@ Add `## OptionalDeps: ForeverPlusPlus` to your TOC so Forever++ loads first. The
 ## Promises
 
 - **`v1` never breaks.** Functions and return values may be added to it, but nothing is renamed or removed and no meaning changes. A breaking change would ship as `v2`, next to `v1`.
-- **Read only.** You get copies and plain values, never Forever++'s own tables. Changing one has no effect. Assigning into `ForeverPlusPlusAPI` or `v1` raises an error.
+- **Read only.** You get copies and plain values, never Forever++'s own tables. Changing one has no effect. Assigning into `ForeverPlusPlusAPI` or `v1` raises an error. The one thing you can add is a module of your own (see Plugins); you can't change Forever++'s.
 - **Calls can't break your addon.** An error inside Forever++ goes to the error handler (BugSack shows it) and the call returns `nil`. Bad input, like a table where an item belongs, also returns `nil`.
 - **`nil` means unknown.** Much of this data comes from modules the player can turn off, or from what Forever++ has seen in play. Always handle `nil`.
 
@@ -156,6 +156,72 @@ These come from Gathering Map, and return `nil` while it's off:
 | --- | --- |
 | `GetGatheringMaps()` | The zone map IDs (C_Map's `uiMapID`) with remembered nodes, lowest first. |
 | `GetGatheringNodes(mapID)` | The nodes remembered on a zone map, for the whole account, whatever the character shows or hides: a list of `{ name, kind, x, y, timesGathered, lastGathered, loot }`. `kind` is `"herb"`, `"ore"`, `"treasure"`, or `"fish"`. `x` and `y` run from 0 to 1 across the map. `timesGathered` is 0 for a node seen or tried but not gathered yet, and `lastGathered` is a `time()`, or `nil` then. `loot` is what it has given in all, item ID → count. An empty list for a map without any. |
+
+## Plugins
+
+An addon can add a module of its own to Forever++. It shows on the Modules page with its options, follows profiles, and turns on and off like a built-in one. This is the one place the API takes something from you; it still never lets you change Forever++'s own modules.
+
+List `## Dependencies: ForeverPlusPlus` in your TOC, and register while your files load. After `PLAYER_LOGIN` it is too late: Forever++ reads every module's saved settings once, then.
+
+```lua
+local FPP = ForeverPlusPlusAPI.v1
+local kit = FPP.GetPluginKit()
+local module = FPP.RegisterModule("MyAddonThing", "What it does, in a sentence or two.",
+    { size = 20, loud = true }, "MyAddon")
+module.title = "My Thing"
+module.category = "map"
+module.options = {
+    { key = "size", name = "Size", description = "How big it is.", min = 10, max = 40, step = 2 },
+    { key = "loud", name = "Loud", description = "Whether it's loud." },
+}
+function module:OnEnable()
+    self:On("PLAYER_LEVEL_UP", function(event, level) ... end)
+end
+function module:OnDisable() ... end
+function module:OnOptionChanged(key) ... end
+```
+
+| Function | Returns |
+| --- | --- |
+| `RegisterModule(name, description, defaults, addon)` | A handle on a new module, or `nil` (with the reason sent to the error handler) for a mistake: a name another module has, a name that isn't letters, digits, and underscores, defaults that aren't a table, or a call after `PLAYER_LOGIN`. Start `name` with your addon's name so no two plugins meet. `defaults` holds each setting and its default; `enabled` is false unless you give it, so the player turns the module on. A default that is a table is data the module collects, saved apart from settings. `addon` (optional) is your addon's folder name, shown on the module's page. |
+| `GetPluginKit()` | A read-only table of helpers, below. |
+
+**The handle** is not Forever++'s own module table. It takes only what is listed here, checks it as you set it, and raises an error for anything else, so a typo shows up at once.
+
+| You set | What it is |
+| --- | --- |
+| `title`, `category`, `added` | Its name on the Modules page; its group there (`automation`, `character`, `chat`, `interface`, `items`, `map`, `quests`, `system`, `units`; anything else lands under Other); and the version of your addon it first shipped in, which marks it NEW. |
+| `options` | A list of options, set before `PLAYER_LOGIN`. Each has a `key` (one of your defaults, not `enabled`) and a `name`, and may have a `description`, a `section` (a header), `requires` (another option's key it's nested under), `shown` (`fn(db)`, whether its row shows), and `added`. It's a checkbox when its default is true or false, a dropdown with `choices` (`{ { value, name }, ... }`, the default one of them), or a slider with `min`, `max`, and optionally `step` and `format` (such as `"%d%%"`). `slider = key` on a checkbox puts that slider in its row. Other fields are ignored. |
+| `actions` | Buttons after the options: `{ name, button, fn }`, optionally `description`, `section`, and `confirm` (a question asked first). |
+| `notice` | Gray rows above the options, one or a list: `{ text }`, optionally `description` and `shown` (`fn()`). Forever++ adds one of its own saying the module comes from another addon. |
+| `perCharacter` | `{ key = true }` for data (table defaults) kept for each character on its own, set before `PLAYER_LOGIN`. |
+| `OnEnable`, `OnDisable`, `OnOptionChanged` | Called with the handle when the module turns on, turns off (undo what `OnEnable` did), and when one of its options changes (with the option's key). Every module turns on and off live, with no reload. |
+| `IsAvailable`, `Problem` | `IsAvailable` returning false at login keeps the module off and out of the list. `Problem` returning true shows its name in red; say why in a notice. |
+
+| You read or call | What it is |
+| --- | --- |
+| `name`, `enabled` | Its name, and whether it's on. |
+| `db` | Its saved settings and data, from `PLAYER_LOGIN` on: `module.db.size`. Reading gives the default for what the player hasn't set; assigning saves. It follows the player's profile, so don't keep a reference to it past `OnDisable`. |
+| `module:On(event, fn)` | Calls `fn(event, ...)` for a game event while the module is on. It stops by itself when the module turns off. |
+| `module:Hook(target, method, fn)`, `module:HookScript(frame, script, fn)` | A `hooksecurefunc` or `HookScript` that is made once and does nothing while the module is off. `target` is a table, or left out for a global function's name. |
+| `module:TooltipPostCall(kind, fn)` | `fn(tooltip, data)` after the game fills in a tooltip of one kind (`Enum.TooltipDataType.Item`), while the module is on. |
+| `module:Print(message)` | A chat line, unless the player turned off an option of yours with the key `chat`. |
+
+**The kit:**
+
+| Helper | What it does |
+| --- | --- |
+| `AfterCombat(fn)` | Runs `fn` now, or once combat ends: for moving or showing protected frames. |
+| `Timer(module)` | A timer that waits for one run at a time: `timer:Start(seconds, fn)`, `timer:Cancel()`, `timer:IsPending()`. It's cancelled when the module turns off. |
+| `Coalesce(fn, delay, module)` | A function that runs `fn` once, `delay` seconds after the last call to it, for events that come in bursts. |
+| `HasEvent(event)` | Whether this client has a game event, before listening for one a patch may add or drop. |
+| `IsReadable(value)`, `IsText(value)`, `IsNumber(value)` | Whether a value isn't secret, and is a string or a number. Unit health, names, and auras can be secret in combat; check before comparing or joining them. |
+| `NewMapLayer(fill)` | A layer of icons on the world map. `fill(mapID, add)` runs each time the map shows a map and calls `add(x, y, info)` for each icon: x and y from 0 to 1, and `info` with `atlas` (or `texture`), `size` in pixels, `title`, and optionally `kind`, `lines` (a list, or `fn(info)` giving one), `color` (`{ r, g, b }`), `alpha`, `desaturated`, `round`, and `shiftClick` (`fn(pin, button)`). The layer has `:Enable()`, `:Disable()`, and `:Refresh()`. Icons let plain clicks through to the map. |
+| `Tooltip.Note(text)`, `Tooltip.Detail(text)`, `Tooltip.Pair(label, value)` | Lines for an icon's `lines`: gray, white, and a label with its value at the right edge. A plain string is a gold line. |
+| `SetWaypoint(mapID, x, y)`, `IsContinent(mapInfo, cosmic)` | Blizzard's map pin, as `v1.SetWaypoint`; and whether a `C_Map.GetMapInfo` result is a continent or the world. |
+| `QuestieDB` | The QuestieDB addon's quest, NPC, item, and object data in Forever++'s shapes, read only: `Status`, `IsAvailable`, `IsReady`, `OnReady`, `Cancel`, `Ids`, `IdsByName`, `Quest`, `Npc`, `Item`, `Object`, and `UiMapID`. [questiedb.md](questiedb.md) has each one's shape. Nothing is there unless the player has QuestieDB installed. |
+
+A plugin's settings are saved with Forever++'s. They are kept when your addon is turned off or missing for a while; settings and options you drop from `defaults` are cleared. The player-facing text is yours: the handle takes plain strings, in whatever language you choose.
 
 ## Callbacks
 

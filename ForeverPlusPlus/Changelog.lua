@@ -13,6 +13,11 @@ ns.changelog = {
         version = L.CHANGELOG_UNRELEASED,
         sections = {
             { L.CHANGELOG_ADDED, {
+                "For addon authors: another addon can add a module of its own to Forever++ "
+                    .. "through the public API (RegisterModule and GetPluginKit). It shows on the "
+                    .. "Modules page with its options, follows profiles, and turns on and off like "
+                    .. "a built-in one, with a note saying which addon it comes from. Thanks to "
+                    .. "cyberox.",
                 { L.QUESTPINS_TITLE, "A new module, off by default, that needs the QuestieDB addon. "
                     .. "Puts a ! on the world map where each quest you can still take starts, "
                     .. "colored by its kind, and lists the quests an NPC offers or waits for on its "

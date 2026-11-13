@@ -313,6 +313,10 @@ L.SETTINGS_EDIT_MODE_NOTE_DESC = "Its place, scale, and layout settings are in i
     .. "its right-click menu there, beside the frame they change."
 
 -- Gray rows on a module that reads the QuestieDB addon's data (Lib/QuestieDB.lua)
+L.PLUGIN_NOTICE = "Added by another addon."
+L.PLUGIN_NOTICE_ADDON = "Added by the %s addon." -- the addon's folder name
+L.PLUGIN_NOTICE_DESC = "This module isn't part of Forever++: another addon adds it here. Tell "
+    .. "that addon's author about problems with it."
 L.QUESTIEDB_NEEDED = "Needs the QuestieDB addon."
 L.QUESTIEDB_NEEDED_DESC = "Its quest, creature, item, and object data come from QuestieDB, a "
     .. "separate addon. Download and install it, turn it on in the AddOns list, and reload. "

@@ -1056,6 +1056,27 @@ ns.OnModuleChanged(function(name, key)
     end
 end)
 
+-- Plugins ----------------------------------------------------------------------------------------
+-- The one thing a caller adds: a module of its own (Lib/Plugins.lua). It never changes ours.
+
+---Adds a module of another addon's to Forever++ and returns a handle on it (added in 1.6.0). For
+---the time the plugin's files load, before PLAYER_LOGIN. A mistake (a name taken, defaults that
+---aren't a table, too late) goes to the error handler and returns nil.
+---@param name string letters, digits, and underscores; start it with the plugin's own name
+---@param description string shown under the module's title on the Modules page
+---@param defaults table its settings and their defaults; `enabled` is false unless given
+---@param addon? string the plugin's addon folder, named on the module's page
+---@return table|nil module
+export("RegisterModule", function(name, description, defaults, addon)
+    return ns.Plugins.Register(name, description, defaults, addon)
+end)
+
+---The helpers a plugin's module uses, as a read-only table (added in 1.6.0).
+---@return table kit
+export("GetPluginKit", function()
+    return ns.Plugins.Kit()
+end)
+
 -- The global ---------------------------------------------------------------------------------------
 
 ForeverPlusPlusAPI = readOnly({ v1 = readOnly(v1, "ForeverPlusPlusAPI.v1") }, "ForeverPlusPlusAPI")

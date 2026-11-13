@@ -1002,6 +1002,8 @@ function ns.Start()
     for _, name in ipairs(ns.order) do
         known[name] = true
     end
+    -- A plugin's module (Lib/Plugins.lua) keeps its settings through a session without its addon.
+    ns.Plugins.Remember(ns.db, known)
     Store.Prune(ns.db, ns.charDB, known)
     -- The profile this character uses, before any module reads its settings.
     ns.Profiles.Login(freshCharacter)

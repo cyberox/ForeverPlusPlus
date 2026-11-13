@@ -73,6 +73,7 @@ Lib\ActionButtons.lua
 Lib\Spellbook.lua
 Lib\Quests.lua
 Lib\QuestieDB.lua
+Lib\Plugins.lua
 Lib\Taxi.lua
 Lib\TaxiRoutes.lua
 Lib\RealmTime.lua

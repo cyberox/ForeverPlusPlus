@@ -139,7 +139,7 @@ Settings are saved per account in `ForeverPlusPlusDB`, every profile with them (
 
 ## For addon authors
 
-Other addons can read what Forever++ knows through `ForeverPlusPlusAPI.v1`: auction prices (its own or Auctionator's), what disenchanting an item gives and is worth, Upgrade Arrows' scores for any item, flight times, the class, level, race, and guild of players it has seen, class and level colors, dungeon and raid level ranges, gathering skills, and each module with its options. They can also set, read, and clear the map pin by zone name, and get callbacks when prices, scores, modules, options, or the pin change. It's versioned, read only, and can't break the addon calling it. See [docs/api.md](docs/api.md).
+Other addons can read what Forever++ knows through `ForeverPlusPlusAPI.v1`: auction prices (its own or Auctionator's), what disenchanting an item gives and is worth, Upgrade Arrows' scores for any item, flight times, the class, level, race, and guild of players it has seen, class and level colors, dungeon and raid level ranges, gathering skills, and each module with its options. They can also set, read, and clear the map pin by zone name, and get callbacks when prices, scores, modules, options, or the pin change. It's versioned, read only, and can't break the addon calling it. An addon can also add a module of its own, which shows on the Modules page with its options and follows profiles like a built-in one. See [docs/api.md](docs/api.md).
 
 ## Feedback
 
@@ -149,7 +149,7 @@ Bugs and ideas go in [GitHub issues](https://github.com/xIGBClutchIx/ForeverPlus
 
 Thanks to everyone who has added to Forever++ (also on the in-game About page):
 
-- [cyberox](https://github.com/cyberox): Tooltips' Quest Lines option, which hides quest lines on unit and object tooltips, and the Quest Pins module, which shows on the world map where the quests you can take start.
+- [cyberox](https://github.com/cyberox): Tooltips' Quest Lines option, which hides quest lines on unit and object tooltips, the Quest Pins module, which shows on the world map where the quests you can take start, and the first draft of the plugin API.
 
 ## Contributing
 
