@@ -19,6 +19,7 @@ local module = ns.NewModule("SquareMinimap", L.SQUAREMINIMAP_DESC, {
     borderScale = 100, -- the border art's size, in percent
     gap = 6, -- pixels between the map and the header row (zone name, tracking, calendar)
     sunKey = "shift", -- the key held to drag the day and night indicator, or off
+    mail = "topleft", -- the map's corner the mail icon sits in, or blizzard for Blizzard's place
     -- Data, not settings: where the player dragged the sun, from the map's middle, in its pixels.
     sun = {},
 })
@@ -138,6 +139,19 @@ module.options = {
         name = L.SQUAREMINIMAP_SUN_KEY,
         description = L.SQUAREMINIMAP_SUN_KEY_DESC,
         choices = SUN_KEYS,
+    },
+    {
+        key = "mail",
+        name = L.SQUAREMINIMAP_MAIL,
+        description = L.SQUAREMINIMAP_MAIL_DESC,
+        choices = {
+            { "topleft", L.SQUAREMINIMAP_MAIL_TOPLEFT },
+            { "topright", L.SQUAREMINIMAP_MAIL_TOPRIGHT },
+            { "bottomleft", L.SQUAREMINIMAP_MAIL_BOTTOMLEFT },
+            { "bottomright", L.SQUAREMINIMAP_MAIL_BOTTOMRIGHT },
+            { "blizzard", L.SQUAREMINIMAP_MAIL_BLIZZARD },
+        },
+        added = "1.6.0",
     },
 }
 
@@ -446,6 +460,48 @@ module:OnWhile(function(db) return db.sunKey ~= "off" end, {
     MODIFIER_STATE_CHANGED = updateHandle,
 })
 
+-- The mail icon -----------------------------------------------------------------------------------
+-- Blizzard hangs it under the zone name's left end (MinimapCluster.IndicatorFrame, a 32 by 24 row
+-- with the icon at its top left: Camelot's MinimapIndicatorFrameTemplate.xml and
+-- MinimapMailFrameTemplate.xml, wow-ui-source `forever` branch), which on the square map is over
+-- its top edge. It goes in a corner of the map instead, clear of the border, and back to
+-- Blizzard's place when the module or the option says so. Blizzard places it again with Edit
+-- Mode's Header Underneath, so its place is read again after that.
+
+local MAIL_INSET = 10 -- from the map's corner to the icon, in the indicator's pixels
+local MAIL_CORNERS = { -- the option's value -> the point, and which way is in
+    topleft = { "TOPLEFT", 1, -1 },
+    topright = { "TOPRIGHT", -1, -1 },
+    bottomleft = { "BOTTOMLEFT", 1, 1 },
+    bottomright = { "BOTTOMRIGHT", -1, 1 },
+}
+local mailHome -- Blizzard's anchors for it, while it's in a corner
+
+local function placeMail()
+    local frame = MinimapCluster and MinimapCluster.IndicatorFrame
+    if not frame then
+        return
+    end
+    local corner = squared and MAIL_CORNERS[module.db.mail]
+    if not corner then
+        if mailHome then
+            ns.Frames.SetPoints(frame, mailHome)
+            mailHome = nil
+        end
+        return
+    end
+    mailHome = mailHome or ns.Frames.GetPoints(frame)
+    -- The icon is at the row's top left, so the row's empty right and bottom hang past the corner.
+    local icon = frame.MailFrame and frame.MailFrame.MailIcon
+    local spareX = icon and frame:GetWidth() - icon:GetWidth() or 0
+    local spareY = icon and frame:GetHeight() - icon:GetHeight() or 0
+    local point, inX, inY = corner[1], corner[2], corner[3]
+    frame:ClearAllPoints()
+    frame:SetPoint(point, Minimap, point, inX * MAIL_INSET + (inX < 0 and spareX or 0),
+        inY * MAIL_INSET - (inY > 0 and spareY or 0))
+end
+
+
 -- Squares the minimap while the module is on (again after Blizzard set its own mask, as it does
 -- when Rotate Minimap changes), or puts Blizzard's round mask and frame back. Another addon that
 -- has taken over the shape is left to it.
@@ -466,6 +522,7 @@ local function update()
     drawBorder()
     placeMap()
     placeSun()
+    placeMail()
     if want ~= was then
         ns.MinimapPins.ShapeChanged()
     end
@@ -475,6 +532,13 @@ end
 -- change waits out combat rather than risk it.
 local function refresh()
     ns.AfterCombat(update)
+end
+
+-- After Blizzard put the header and the mail icon in their own places again
+-- (SetHeaderUnderneath): that's the icon's home now.
+local function onHeaderMoved()
+    mailHome = nil
+    refresh()
 end
 
 -- Blizzard pings only inside the round minimap (MinimapMixin:OnClick); a click in a corner, on
@@ -494,7 +558,7 @@ function module:OnEnable()
     if MinimapCluster then
         -- Each puts Blizzard's mask, the map, or the sun back in place (Camelot Minimap.lua, Diel.lua).
         self:Hook(MinimapCluster, "UpdateMinimapConfig", refresh)
-        self:Hook(MinimapCluster, "SetHeaderUnderneath", refresh)
+        self:Hook(MinimapCluster, "SetHeaderUnderneath", onHeaderMoved)
         self:Hook(MinimapCluster, "SetEditModeScale", refresh)
     end
     self:HookScript(Minimap, "OnMouseUp", onMouseUp)
@@ -512,5 +576,7 @@ function module:OnOptionChanged(key)
         ns.AfterCombat(placeMap)
     elseif key == "sunKey" then
         updateHandle()
+    elseif key == "mail" then
+        ns.AfterCombat(placeMail)
     end
 end
