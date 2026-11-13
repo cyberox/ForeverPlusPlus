@@ -82,6 +82,8 @@ Not entity fields: whole tables through `LibQuestieDB.Support.Get(name)`, which 
 
 **Converting zones.** QuestieDB's area IDs become uiMapIDs through its own ZoneDB table (override first), and its percents divide by 100. What still needs checking in game: that each uiMapID it names is a map this client has (`C_Map.GetMapInfo`), and that a point lands where the NPC stands (Self Test prints one, and its docs list Mulgore, Eastern Plaguelands, Redridge, and Stormwind as the zones whose frames moved from Era). There's no client API from an area ID to a uiMapID, so without its table we'd have to build our own from the client's tables (`tools/datagen` could, from `UiMapAssignment`/`AreaTable`).
 
+Quest Pins reads, beyond the fields above, a quest's `breadcrumbs`, `parentQuest`, `disabledByQuest`, `availableUntilCompleted`, `availableStartingWith`, `requiredMinRep`, `requiredMaxRep`, and `requiredSpell` (our `Quest` has them as `breadcrumbs`, `parent`, `disabledBy`, `untilCompleted`, `startingWith`, `minRep`, `maxRep`, and `spell`), and the NPC flag bits `LibQuestieDB.Enum.npcFlags` (`NpcFlags()`, contract 4). **Unverified** in game like the rest.
+
 ## What it doesn't have
 
 - **No vendor inventories.** An item lists the NPCs that sell it (`vendors`), but not the price, the stock, or a limited supply, and there's no list of what an NPC sells (we'd have to invert every item's `vendors`). `npcFlags` says which NPCs are vendors.

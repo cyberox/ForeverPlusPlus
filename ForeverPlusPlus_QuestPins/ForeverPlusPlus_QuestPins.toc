@@ -1,0 +1,14 @@
+## Interface: 16001
+## Title: Forever++ Quest Pins
+## Notes: Adds Quest Pins to Forever++: a world map pin for every quest you can pick up, from QuestieDB. A plugin for Forever++, through its public API.
+## Author: Wouter (BetterQuestPins), ported for Forever++
+## Version: dev
+## X-License: GPL-3.0-or-later
+## X-Credits: BetterQuestPins by Wouter; QuestieDB by Lawgon and TheCrux_BB, with data from Questie and its contributors
+## Dependencies: ForeverPlusPlus
+## Group: ForeverPlusPlus
+## IconTexture: Interface\AddOns\ForeverPlusPlus\Media\Icon
+
+Locale.lua
+Blacklist.lua
+QuestPins.lua

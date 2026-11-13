@@ -277,6 +277,7 @@ L.CHANGELOG_FIXED = "Fixed"
 L.CHANGELOG_REMOVED = "Removed"
 L.CHANGELOG_SETTINGS = "Settings"
 L.CHANGELOG_COMMANDS = "Commands"
+L.CHANGELOG_API = "API"
 
 -- Settings: the About page
 L.HOME_WELCOME = "Welcome to %s" -- addon title

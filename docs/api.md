@@ -157,6 +157,28 @@ These come from Gathering Map, and return `nil` while it's off:
 | `GetGatheringMaps()` | The zone map IDs (C_Map's `uiMapID`) with remembered nodes, lowest first. |
 | `GetGatheringNodes(mapID)` | The nodes remembered on a zone map, for the whole account, whatever the character shows or hides: a list of `{ name, kind, x, y, timesGathered, lastGathered, loot }`. `kind` is `"herb"`, `"ore"`, `"treasure"`, or `"fish"`. `x` and `y` run from 0 to 1 across the map. `timesGathered` is 0 for a node seen or tried but not gathered yet, and `lastGathered` is a `time()`, or `nil` then. `loot` is what it has given in all, item ID → count. An empty list for a map without any. |
 
+## Plugins
+
+An addon can add a module of its own to Forever++: it shows on the Modules page with its options, follows profiles, and turns on and off like a built-in one. List `## Dependencies: ForeverPlusPlus` in its TOC (so Forever++ loads first) and call these while its files load, before `PLAYER_LOGIN`, when Forever++ reads every module's saved settings once. [Quest Pins](../ForeverPlusPlus_QuestPins) is a worked example.
+
+```lua
+local API = ForeverPlusPlusAPI.v1
+local kit = API.GetPluginKit()
+local module = API.RegisterModule("MyAddonThing", "What it does.", { enabled = false, size = 20 })
+module.title = "My Thing"
+module.category = "map"
+module.options = { { key = "size", name = "Size", min = 10, max = 40, step = 2 } }
+function module:OnEnable() ... end
+function module:OnDisable() ... end
+```
+
+| Function | Returns |
+| --- | --- |
+| `RegisterModule(name, description, defaults)` | A new module, written like Forever++'s own (see "Add a module" in the README): fill in `title`, `category`, `options`, and `OnEnable`, `OnDisable`, `OnOptionChanged`, `IsAvailable` (false keeps it off and out of Settings, such as while an addon it needs is missing). It has `module.db` (its saved options, from `READY` on), `module.enabled`, and `module:On(event, fn)`, `module:OnWhile`, `module:Hook`, and `module:Print`, which stop by themselves when it turns off. Raises an error (reported like any other, and the call returns `nil`) when called after `PLAYER_LOGIN`, with a name that isn't letters, digits, and underscores, or with a name another module has: start yours with your addon's name. Added in 1.6.0. |
+| `GetPluginKit()` | A read-only table of helpers for a plugin's module, so it needs nothing of Forever++'s private tables: `L` (the text, `L.KEY`) and `AddStrings({ KEY = "English" })` (adds text; a key Forever++ has is kept), `NewMapLayer(fill)` (a layer of world map pins: `fill(mapID, add)` calls `add(x, y, info)` for each pin, with `layer:Enable()`, `layer:Disable()`, and `layer:Refresh()`; `info` is `{ atlas or texture, size, title, lines, kind, shiftClick, ... }` as Forever++'s own map icons take it), `SetWaypoint(map, x, y)`, `IsContinent(mapInfo, cosmic)`, `Note(text)` (a gray tooltip line), `Coalesce(fn, delay, module)`, `HasEvent(event)`, and `QuestieDB` (the QuestieDB addon's quests, NPCs, and objects in Forever++'s shapes: `IsAvailable`, `IsReady`, `OnReady`, `Cancel`, `Ids`, `Quest`, `Npc`, `Object`, `NpcFlags`). Added in 1.6.0. |
+
+A plugin's module is its own: it can't change Forever++'s modules, and what it does with the kit is limited to what is listed here.
+
 ## Callbacks
 
 ```lua

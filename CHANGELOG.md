@@ -6,6 +6,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 ### Added
 
+- **API**: `RegisterModule` and `GetPluginKit` let another addon add a module of its own to Forever++, with the options page, profiles, and toggling of a built-in one (docs/api.md, Plugins).
 - **Settings**: a profile can stay based on a preset. One made from Developer's Defaults follows it as it changes, keeping the settings you changed yourself, and Based On on the Profiles page shows or changes what a profile follows.
 - **Professions**: Skill Bar, on by default, shows under the selected recipe's name the skill levels it turns yellow, green, and gray at, with your skill marked, so you know how long it's worth buying materials for.
 - **Simplified Dungeon Nameplates**: a new module, off by default. Turns on the game's Simplified nameplates only inside dungeons and raids, for the kinds you pick, and puts your own setting back outside.

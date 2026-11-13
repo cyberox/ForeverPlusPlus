@@ -6,7 +6,8 @@
 --   * Versioned. ForeverPlusPlusAPI.v1 never changes in a way that breaks a caller: functions and
 --     return values are only ever added. A breaking change ships as v2 beside it.
 --   * Read only. Callers get copies and plain values, never our own tables, and can't replace a
---     function another addon also calls.
+--     function another addon also calls. The one thing a caller adds is a module of its own
+--     (RegisterModule, for plugins); it never changes ours.
 --   * Can't break the caller. Every call is wrapped: an error of ours is reported to the error
 --     handler (BugSack) and the call returns nil, as it does for anything we don't know.
 --   * Says what it doesn't have. Data comes from modules the player may have off (no auction prices
@@ -893,6 +894,113 @@ export("GetProfessionSkill", function(skillLine)
     end
     local level, max = ns.Professions.Progress(skillLine)
     return { rank = rank, level = level or rank, max = max, name = name }
+end)
+
+-- Plugins ----------------------------------------------------------------------------------------
+-- An addon that adds a module of its own to Forever++ (a plugin): it shows on the Modules page with
+-- its options, follows profiles, and is switched on and off like a built-in one. The plugin lists
+-- ForeverPlusPlus in its TOC's Dependencies, and calls these while its files load, before
+-- PLAYER_LOGIN: Forever++ reads every module's saved settings once, then. The plugin gets the
+-- module and a small kit of helpers, never Forever++'s private tables.
+
+local PLUGIN_NAME = "^[%a][%w_]*$"
+
+---Adds a module of the plugin's own to Forever++ and returns it (added in 1.6.0). Fill it in as Forever++'s own modules are: its
+---`title`, `category` (a group on the Modules page, such as "quests" or "map"), `options`, and the
+---functions `OnEnable`, `OnDisable`, `OnOptionChanged` and `IsAvailable` (false keeps it off and
+---out of sight, such as while another addon it needs is missing), which are called for it. It has
+---`module.db` (its saved options, from READY on), `module.enabled`, and the methods `module:On(event,
+---fn)`, `module:OnWhile`, `module:Hook` and `module:Print`, which stop by themselves when the
+---module turns off.
+---Errors, and returns nil, when it's called after PLAYER_LOGIN, or with a name another module has.
+---Name it with the plugin's name ("MyAddonThing"), so no two plugins meet.
+---@param name string letters, digits, and underscores
+---@param description string shown under the module's title on the Modules page
+---@param defaults table the module's options and their defaults, and `enabled`
+---@return table module
+export("RegisterModule", function(name, description, defaults)
+    if type(name) ~= "string" or not name:match(PLUGIN_NAME) then
+        error(addonName .. ": RegisterModule needs a name of letters, digits, and underscores", 0)
+    end
+    if ns.db then
+        error(addonName .. ": RegisterModule is for the time a plugin loads, before PLAYER_LOGIN", 0)
+    end
+    if ns.modules[name] then
+        error(addonName .. ": there is already a module called " .. name, 0)
+    end
+    if type(description) ~= "string" or type(defaults) ~= "table" then
+        error(addonName .. ": RegisterModule(name, description, defaults)", 0)
+    end
+    return ns.NewModule(name, description, defaults)
+end)
+
+local kit -- built once
+
+---The helpers a plugin's module uses, as a read-only table:
+---  AddStrings(strings)  adds English text (`{ KEY = "text" }`) to Forever++'s, so `kit.L.KEY` and the
+---                       module's `title` and options can use it; a key Forever++ has is kept
+---  L                    the text, `L.KEY` (a key nobody has shows as itself)
+---  NewMapLayer(fill)    a layer of world map pins, `fill(mapID, add)` calling `add(x, y, info)` for
+---                       each pin as Forever++'s own map pins are made; returns it, with `:Enable()`,
+---                       `:Disable()`, and `:Refresh()`
+---  SetWaypoint(map, x, y)  as v1.SetWaypoint
+---  IsContinent(mapInfo, cosmic)  whether a `C_Map.GetMapInfo` result is a continent or the world
+---  Note(text)           a gray tooltip line for a pin's `lines`
+---  Coalesce(fn, delay, module)  as `fn` run once, `delay` seconds after the last call to the
+---                       function returned; stops by itself while `module` is off
+---  HasEvent(event)      whether this client has the game event
+---  QuestieDB            the QuestieDB addon's data in our shapes, read only (Lib/QuestieDB.lua,
+---                       docs/questiedb.md): `IsAvailable`, `IsReady`, `OnReady`, `Cancel`, `Ids`,
+---                       `Quest`, `Npc`, `Object`, `NpcFlags`
+---@return table kit
+export("GetPluginKit", function()
+    if not kit then
+        local pins, tooltip = ns.MapPins, ns.MapTooltip
+        kit = readOnly({
+            L = ns.L,
+            AddStrings = function(strings)
+                if type(strings) ~= "table" then
+                    error(addonName .. ": AddStrings needs a table", 0)
+                end
+                local enUS = ns.NewLocale("enUS")
+                for key, text in pairs(strings) do
+                    if type(key) == "string" and type(text) == "string" and enUS[key] == nil then
+                        enUS[key] = text
+                    end
+                end
+            end,
+            NewMapLayer = function(fill)
+                return pins.New(fill)
+            end,
+            SetWaypoint = function(map, x, y)
+                return ns.WorldMap.SetWaypoint(map, x, y)
+            end,
+            IsContinent = function(info, cosmic)
+                return ns.WorldMap.IsContinent(info, cosmic)
+            end,
+            Note = function(text)
+                return tooltip.Note(text)
+            end,
+            Coalesce = function(fn, delay, module)
+                return ns.Frames.Coalesce(fn, delay, module)
+            end,
+            HasEvent = function(event)
+                return ns.HasEvent(event)
+            end,
+            QuestieDB = readOnly({
+                IsAvailable = ns.QuestieDB.IsAvailable,
+                IsReady = ns.QuestieDB.IsReady,
+                OnReady = ns.QuestieDB.OnReady,
+                Cancel = ns.QuestieDB.Cancel,
+                Ids = ns.QuestieDB.Ids,
+                Quest = ns.QuestieDB.Quest,
+                Npc = ns.QuestieDB.Npc,
+                Object = ns.QuestieDB.Object,
+                NpcFlags = ns.QuestieDB.NpcFlags,
+            }, "the QuestieDB reader"),
+        }, "the plugin kit")
+    end
+    return kit
 end)
 
 -- Callbacks --------------------------------------------------------------------------------------

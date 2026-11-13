@@ -13,6 +13,9 @@ ns.changelog = {
         version = L.CHANGELOG_UNRELEASED,
         sections = {
             { L.CHANGELOG_ADDED, {
+                { L.CHANGELOG_API, "RegisterModule and GetPluginKit let another addon add a module of "
+                    .. "its own to Forever++, with the options page, profiles, and toggling of a "
+                    .. "built-in one." },
                 { L.CHANGELOG_SETTINGS, "A profile can stay based on a preset. One made from "
                     .. "Developer's Defaults follows it as it changes, keeping the settings you "
                     .. "changed yourself, and Based On on the Profiles page shows or changes what a "

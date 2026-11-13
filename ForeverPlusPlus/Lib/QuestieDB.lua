@@ -35,7 +35,9 @@ local FIELDS = {
     Quest = { "name", "questLevel", "requiredLevel", "requiredMaxLevel", "startedBy", "finishedBy",
         "objectives", "objectivesText", "preQuestGroup", "preQuestSingle", "nextQuestInChain",
         "exclusiveTo", "zoneOrSort", "requiredRaces", "requiredClasses", "sourceItemId",
-        "requiredSkill", "breadcrumbForQuestId" },
+        "requiredSkill", "breadcrumbForQuestId", "breadcrumbs", "parentQuest", "disabledByQuest",
+        "availableUntilCompleted", "availableStartingWith", "requiredMinRep", "requiredMaxRep",
+        "requiredSpell" },
     Npc = { "name", "subName", "minLevel", "maxLevel", "rank", "spawns", "zoneID", "questStarts",
         "questEnds", "friendlyToFaction", "npcFlags" },
     Item = { "name", "npcDrops", "objectDrops", "itemDrops", "vendors", "questRewards", "startQuest",
@@ -298,6 +300,14 @@ local function ids(list)
     return out
 end
 
+-- A `{ ID, value }` pair as our own table, or nil when it isn't one or its ID is 0.
+local function pair(value)
+    if type(value) == "table" and id(value[1]) and type(value[2]) == "number" then
+        return { value[1], value[2] }
+    end
+    return nil
+end
+
 -- A list of strings as our own list.
 local function strings(list)
     local out = {}
@@ -469,12 +479,17 @@ end
 ---
 ---`{ id, name, level, requiredLevel, maxLevel, races, classes, areaID, uiMapID, sortID,
 ---starters = { npcs, objects, items }, finishers = { npcs, objects }, objectives, objectivesText,
----prerequisites = { all, any }, next, exclusiveTo, breadcrumbFor, sourceItemID, requiredSkill }`.
+---prerequisites = { all, any }, next, exclusiveTo, breadcrumbFor, breadcrumbs, parent, disabledBy,
+---untilCompleted, startingWith, minRep, maxRep, spell, sourceItemID, requiredSkill }`.
 ---`objectives` is a list of `{ kind, id, text }` (`kind` is `"npc"`, `"object"`, `"item"`,
 ---`"reputation"` with `value`, `"killCredit"` with `ids`, or `"spell"` with `itemID`). Every
 ---prerequisite in `all` and one of `any` must be done. `areaID` (and its `uiMapID`) is the zone the
 ---quest is listed in; `sortID` is the quest log category of one listed under a category instead.
----`races` and `classes` are masks, nil for anyone.
+---`races` and `classes` are masks, nil for anyone. `breadcrumbs` are the quests that lead to this
+---one; `parent` must be in the log to take it; `disabledBy` in the log rules it out; `untilCompleted`
+---is the quest that, once done, ends it; `startingWith` the quest that must be taken first; `minRep`
+---and `maxRep` are `{ factionID, value }` standing bounds (at least, and below); `spell` is a spell
+---ID the player must know, or negative for one they must not.
 ---@param questID number
 ---@return table|nil
 function QuestieDB.Quest(questID)
@@ -506,6 +521,14 @@ function QuestieDB.Quest(questID)
         breadcrumbFor = id(f.breadcrumbForQuestId),
         sourceItemID = id(f.sourceItemId),
         requiredSkill = skill or nil,
+        breadcrumbs = ids(f.breadcrumbs),
+        parent = id(f.parentQuest),
+        disabledBy = id(f.disabledByQuest),
+        untilCompleted = id(f.availableUntilCompleted),
+        startingWith = id(f.availableStartingWith),
+        minRep = pair(f.requiredMinRep),
+        maxRep = pair(f.requiredMaxRep),
+        spell = id(f.requiredSpell),
     }
 end
 
@@ -595,6 +618,23 @@ function QuestieDB.Object(objectID)
         questStarts = ids(f.questStarts),
         questEnds = ids(f.questEnds),
     }
+end
+
+---QuestieDB's NPC flag bits by name (`VENDOR`, `TRAINER`, `FLIGHT_MASTER`, ...), to test an NPC's
+---`flags` with. Empty while it isn't ready, or in a version older than its contract 4.
+---@return table<string, number>
+function QuestieDB.NpcFlags()
+    local found = api()
+    local enum = found and type(found.Enum) == "table" and found.Enum.npcFlags
+    local out = {}
+    if type(enum) == "table" then
+        for name, bit in pairs(enum) do
+            if type(name) == "string" and type(bit) == "number" then
+                out[name] = bit
+            end
+        end
+    end
+    return out
 end
 
 ---Every ID of a kind (`"Quest"`, `"Npc"`, `"Item"`, `"Object"`), ascending, as our own list; empty

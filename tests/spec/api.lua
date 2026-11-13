@@ -254,6 +254,54 @@ do
     local savedDB = api.db
     api.db = nil
     eq(v1.GetProfile(), nil, "api: no profile before READY")
+
+    -- Plugins: a module of another addon, before READY only, and the kit that goes with it.
+    local made = {}
+    api.NewModule = function(name, description, defaults)
+        local module = { name = name, description = description, defaults = defaults }
+        made[#made + 1] = module
+        api.modules[name] = module
+        return module
+    end
+    local enUS = { KNOWN = "kept" }
+    api.NewLocale = function(locale) return locale == "enUS" and enUS or nil end
+    local layers = {}
+    api.MapPins = { New = function(fill) local layer = { fill = fill }; layers[#layers + 1] = layer; return layer end }
+    api.MapTooltip = { Note = function(text) return { text, gray = true } end }
+    api.WorldMap = {
+        SetWaypoint = function(map, x, y) return map == 1 and x == 0.5 and y == 0.5 end,
+        IsContinent = function(info) return info.continent == true end,
+    }
+    api.QuestieDB = { IsAvailable = function() return true end, Ids = function() return { 1, 2 } end,
+        Quest = function() return { id = 1 } end, secret = function() return "no" end }
+    local plugin = v1.RegisterModule("MyAddonThing", "Does a thing.", { enabled = false, size = 20 })
+    eq(plugin ~= nil and plugin == made[1], true, "api: RegisterModule gives the module Core made")
+    eq(plugin.description .. "," .. plugin.defaults.size, "Does a thing.,20", "api: its description and defaults")
+    local before = #reported
+    eq(v1.RegisterModule("MyAddonThing", "Again.", {}), nil, "api: a name another module has")
+    eq(v1.RegisterModule("not a name", "x", {}), nil, "api: a name that isn't one word")
+    eq(v1.RegisterModule("NoDefaults", "x"), nil, "api: defaults are a table")
+    eq(#reported, before + 3, "api: those mistakes go to the error handler")
+    eq(#made, 1, "api: and make no module")
+    local kit = v1.GetPluginKit()
+    eq(kit == v1.GetPluginKit(), true, "api: one kit for every caller")
+    eq(pcall(function() kit.SetWaypoint = nil end), false, "api: the kit is read only")
+    eq(kit.SetWaypoint(1, 0.5, 0.5), true, "api: the kit sets the map pin")
+    eq(kit.IsContinent({ continent = true }), true, "api: and tells a continent")
+    eq(kit.Note("x").gray, true, "api: and makes a tooltip note")
+    eq(kit.NewMapLayer(function() end) == layers[1], true, "api: and a layer of map pins")
+    eq(kit.QuestieDB.Ids()[2], 2, "api: and reads QuestieDB")
+    eq(kit.QuestieDB.secret, nil, "api: only the QuestieDB calls it lists")
+    kit.AddStrings({ NEWKEY = "added", KNOWN = "changed", [1] = "x", BAD = 5 })
+    eq(enUS.NEWKEY .. "," .. enUS.KNOWN .. "," .. tostring(enUS.BAD), "added,kept,nil", "api: strings added, ours kept")
+    api.db = {}
+    eq(v1.RegisterModule("TooLate", "x", {}), nil, "api: no module once saved settings have loaded")
+    api.db = nil
+    for _ = 1, 4 do -- the mistakes above aren't what a later check counts
+        reported[#reported] = nil
+    end
+    api.NewModule, api.NewLocale, api.MapPins, api.MapTooltip, api.WorldMap, api.QuestieDB = nil, nil, nil, nil, nil, nil
+    api.modules.MyAddonThing = nil
     api.db = savedDB or {}
     local profileName, profileCount = v1.GetProfile()
     eq(profileName .. "," .. profileCount, "Default,3", "api: the profile in use and how many")

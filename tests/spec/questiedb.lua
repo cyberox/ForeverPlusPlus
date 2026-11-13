@@ -50,7 +50,8 @@ local SCHEMA = {
         "requiredSkill", "requiredMinRep", "requiredMaxRep", "requiredSourceItems",
         "nextQuestInChain", "questFlags", "specialFlags", "parentQuest", "reputationReward",
         "breadcrumbForQuestId", "breadcrumbs", "extraObjectives", "requiredSpell",
-        "requiredSpecialization", "requiredMaxLevel" },
+        "requiredSpecialization", "requiredMaxLevel", "disabledByQuest", "availableUntilCompleted",
+        "availableStartingWith" },
     Npc = { "name", "minLevelHealth", "maxLevelHealth", "minLevel", "maxLevel", "rank", "spawns",
         "waypoints", "zoneID", "questStarts", "questEnds", "factionID", "friendlyToFaction",
         "subName", "npcFlags" },
@@ -82,6 +83,9 @@ local DATA = {
             name = "Sorted Errand", questLevel = 15, requiredLevel = 10, requiredMaxLevel = 20,
             startedBy = {}, finishedBy = {}, objectives = {}, zoneOrSort = -61,
             preQuestSingle = { 900001, 0 },
+            breadcrumbs = { 900009 }, parentQuest = 900001, disabledByQuest = 900003,
+            availableUntilCompleted = 900004, availableStartingWith = 900001,
+            requiredMinRep = { 55, 3000 }, requiredMaxRep = { 56 }, requiredSpell = -7,
         },
     },
     Npc = {
@@ -169,6 +173,7 @@ local function newLib(changes)
         },
     }
     lib.Support = { Get = function(name) return support[name] end }
+    lib.Enum = { npcFlags = { TRAINER = 16, VENDOR = 128, bad = "x" } }
     for key, value in pairs(changes or {}) do
         lib[key] = value
     end
@@ -286,11 +291,17 @@ same(quest, {
     },
     objectivesText = { "Bring the bits." },
     prerequisites = { all = { 900000 }, any = {} },
-    next = 900002, exclusiveTo = {}, requiredSkill = { id = 186, value = 50 },
+    next = 900002, exclusiveTo = {}, requiredSkill = { id = 186, value = 50 }, breadcrumbs = {},
 }, "questiedb: a quest in our shape")
 local sorted = Q.Quest(900002)
 eq(sorted.sortID == 61 and sorted.areaID == nil and sorted.maxLevel == 20, true, "questiedb: a quest under a category")
 same(sorted.prerequisites.any, { 900001 }, "questiedb: any one prerequisite, without 0")
+same({ sorted.breadcrumbs, sorted.parent, sorted.disabledBy, sorted.untilCompleted, sorted.startingWith },
+    { { 900009 }, 900001, 900003, 900004, 900001 }, "questiedb: the quests that gate a quest")
+same(sorted.minRep, { 55, 3000 }, "questiedb: a reputation bound")
+eq(sorted.maxRep, nil, "questiedb: a bound without a value is none")
+eq(sorted.spell, -7, "questiedb: a spell the player must not know")
+same(Q.NpcFlags(), { TRAINER = 16, VENDOR = 128 }, "questiedb: NPC flags by name")
 eq(Q.Quest(1), nil, "questiedb: an unknown quest")
 eq(Q.Quest("900001"), nil, "questiedb: a quest ID that isn't a number")
 
