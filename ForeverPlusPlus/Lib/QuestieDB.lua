@@ -17,6 +17,7 @@ local _, ns = ...
 
 local type, pairs, ipairs, pcall, next = type, pairs, ipairs, pcall, next
 local loadstring, setfenv = loadstring, setfenv
+local floor = math.floor
 
 local L = ns.L
 
@@ -35,7 +36,7 @@ local FIELDS = {
     Quest = { "name", "questLevel", "requiredLevel", "requiredMaxLevel", "startedBy", "finishedBy",
         "objectives", "objectivesText", "preQuestGroup", "preQuestSingle", "nextQuestInChain",
         "exclusiveTo", "zoneOrSort", "requiredRaces", "requiredClasses", "sourceItemId",
-        "requiredSkill", "breadcrumbForQuestId" },
+        "requiredSkill", "breadcrumbForQuestId", "questFlags", "specialFlags" },
     Npc = { "name", "subName", "minLevel", "maxLevel", "rank", "spawns", "zoneID", "questStarts",
         "questEnds", "friendlyToFaction", "npcFlags" },
     Item = { "name", "npcDrops", "objectDrops", "itemDrops", "vendors", "questRewards", "startQuest",
@@ -460,6 +461,15 @@ local function objectives(groups)
     return out
 end
 
+-- QuestieDB's Enum.questFlags bits we read (its docs: src/corrections/enum/quests.lua).
+local QUEST_RAID, QUEST_DAILY, QUEST_WEEKLY, QUEST_MONTHLY = 64, 4096, 32768, 65536
+
+-- Whether a bit of a flag mask is set (Lua 5.1 has no bit operators; the client's `bit` isn't
+-- needed for one bit).
+local function hasFlag(mask, bit)
+    return floor(mask / bit) % 2 == 1
+end
+
 -- A list field of a startedBy/finishedBy table.
 local function group(tbl, index)
     return ids(type(tbl) == "table" and tbl[index] or nil)
@@ -469,12 +479,15 @@ end
 ---
 ---`{ id, name, level, requiredLevel, maxLevel, races, classes, areaID, uiMapID, sortID,
 ---starters = { npcs, objects, items }, finishers = { npcs, objects }, objectives, objectivesText,
----prerequisites = { all, any }, next, exclusiveTo, breadcrumbFor, sourceItemID, requiredSkill }`.
+---prerequisites = { all, any }, next, exclusiveTo, breadcrumbFor, sourceItemID, requiredSkill,
+---flags, specialFlags, repeatable, raid }`.
 ---`objectives` is a list of `{ kind, id, text }` (`kind` is `"npc"`, `"object"`, `"item"`,
 ---`"reputation"` with `value`, `"killCredit"` with `ids`, or `"spell"` with `itemID`). Every
 ---prerequisite in `all` and one of `any` must be done. `areaID` (and its `uiMapID`) is the zone the
 ---quest is listed in; `sortID` is the quest log category of one listed under a category instead.
----`races` and `classes` are masks, nil for anyone.
+---`races` and `classes` are masks, nil for anyone. `flags` and `specialFlags` are QuestieDB's
+---quest flag masks (0 when none); `repeatable` is true for a repeatable, daily, weekly, or monthly
+---quest, and `raid` for one its flags mark as a raid quest.
 ---@param questID number
 ---@return table|nil
 function QuestieDB.Quest(questID)
@@ -483,6 +496,8 @@ function QuestieDB.Quest(questID)
         return nil
     end
     local zone = type(f.zoneOrSort) == "number" and f.zoneOrSort or 0
+    local flags = type(f.questFlags) == "number" and f.questFlags or 0
+    local special = type(f.specialFlags) == "number" and f.specialFlags or 0
     local skill = type(f.requiredSkill) == "table" and id(f.requiredSkill[1])
         and { id = f.requiredSkill[1], value = type(f.requiredSkill[2]) == "number" and f.requiredSkill[2] or 0 }
     return {
@@ -506,6 +521,10 @@ function QuestieDB.Quest(questID)
         breadcrumbFor = id(f.breadcrumbForQuestId),
         sourceItemID = id(f.sourceItemId),
         requiredSkill = skill or nil,
+        flags = flags,
+        specialFlags = special,
+        repeatable = special % 2 == 1 or hasFlag(flags, QUEST_DAILY) or hasFlag(flags, QUEST_WEEKLY) or hasFlag(flags, QUEST_MONTHLY),
+        raid = hasFlag(flags, QUEST_RAID),
     }
 end
 
