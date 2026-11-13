@@ -8,7 +8,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 - **Settings**: a profile can stay based on a preset. One made from Developer's Defaults follows it as it changes, keeping the settings you changed yourself, and Based On on the Profiles page shows or changes what a profile follows.
 - **Hide Error Messages**: a new module, off by default. Keeps the red errors that repeat while you fight, like Out of range and Not enough energy, off the top of the screen, along with their sounds. Hide picks Ability Errors or All Errors.
-- **Hide Stance Bar**: a new module, off by default. Hides the stance bar; its keys in Key Bindings still work.
+- **Hide Stance Bar**: a new module, off by default. Hides the stance bar; its keys in Key Bindings still work. Show on Mouseover brings it back while the mouse is over it.
 - **Professions**: Skill Bar, on by default, shows under the selected recipe's name the skill levels it turns yellow, green, and gray at, with your skill marked, so you know how long it's worth buying materials for.
 - **Simplified Dungeon Nameplates**: a new module, off by default. Turns on the game's Simplified nameplates only inside dungeons and raids, for the kinds you pick, and puts your own setting back outside.
 - **Player Nameplates** and **NPC Nameplates**: Health Bar has a new choice, Always.

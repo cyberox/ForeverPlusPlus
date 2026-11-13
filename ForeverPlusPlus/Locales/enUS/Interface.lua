@@ -70,6 +70,9 @@ L.RECIPECOLORS_TITLE = "Recipe Colors"
 L.HIDESTANCEBAR_TITLE = "Hide Stance Bar"
 L.HIDESTANCEBAR_DESC = "Hide the stance bar: your stances, forms, auras, or stealth. Their keys in "
     .. "Key Bindings still work."
+L.HIDESTANCEBAR_MOUSEOVER = "Show on Mouseover"
+L.HIDESTANCEBAR_MOUSEOVER_DESC = "Show the stance bar while the mouse is over it, where you can "
+    .. "click it as usual."
 
 -- HideErrors
 L.HIDEERRORS_TITLE = "Hide Error Messages"
