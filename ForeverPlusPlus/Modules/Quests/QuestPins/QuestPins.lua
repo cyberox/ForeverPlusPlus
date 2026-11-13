@@ -21,7 +21,17 @@ local module = ns.NewModule("QuestPins", L.QUESTPINS_DESC, {
     pins = true, -- the world map's filter menu switches this one
     worldMap = true, -- on world and continent maps too
     clusters = true, -- one pin for each group of nearby spawns of a giver
+    clusterLimit = 6, -- the most pins one giver gets on a map
     size = 100, -- percent of PIN_PIXELS
+    color = "kind", -- "kind", "difficulty", or "plain"
+    alpha = 100, -- percent
+    fadeAlpha = 50, -- percent, for a pin of only upcoming quests
+    holiday = false,
+    upcoming = true, -- quests the player is upcomingLevels or fewer levels short of
+    upcomingLevels = 2,
+    tooltipGiver = true,
+    tooltipHints = true,
+    tooltipMax = 8, -- the most quests a pin's tooltip lists
     normal = true,
     repeatable = true,
     class = true,
@@ -67,8 +77,21 @@ module.options = {
         requires = "pins", section = PINS },
     { key = "clusters", name = L.QUESTPINS_CLUSTERS, description = L.QUESTPINS_CLUSTERS_DESC,
         requires = "pins", section = PINS },
+    { key = "clusterLimit", name = L.QUESTPINS_CLUSTER_LIMIT, description = L.QUESTPINS_CLUSTER_LIMIT_DESC,
+        requires = "clusters", section = PINS, min = 1, max = 12, step = 1, format = "%d" },
     { key = "size", name = L.QUESTPINS_SIZE, description = L.QUESTPINS_SIZE_DESC, requires = "pins",
         section = PINS, min = 50, max = 150, step = 10, format = "%d%%" },
+    {
+        key = "color", name = L.QUESTPINS_COLOR, description = L.QUESTPINS_COLOR_DESC, requires = "pins",
+        choices = {
+            { "kind", L.QUESTPINS_COLOR_KIND },
+            { "difficulty", L.QUESTPINS_COLOR_DIFFICULTY },
+            { "plain", L.QUESTPINS_COLOR_PLAIN },
+        },
+        section = PINS,
+    },
+    { key = "alpha", name = L.QUESTPINS_ALPHA, description = L.QUESTPINS_ALPHA_DESC, requires = "pins",
+        section = PINS, min = 20, max = 100, step = 5, format = "%d%%" },
 
     { key = "normal", name = L.QUESTPINS_NORMAL, description = L.QUESTPINS_NORMAL_DESC, requires = "pins",
         section = KINDS },
@@ -79,6 +102,8 @@ module.options = {
     { key = "profession", name = L.QUESTPINS_PROFESSION, description = L.QUESTPINS_PROFESSION_DESC,
         requires = "pins", section = KINDS },
     { key = "dungeon", name = L.QUESTPINS_DUNGEON, description = L.QUESTPINS_DUNGEON_DESC,
+        requires = "pins", section = KINDS },
+    { key = "holiday", name = L.QUESTPINS_HOLIDAY, description = L.QUESTPINS_HOLIDAY_DESC,
         requires = "pins", section = KINDS },
     { key = "warEffort", name = L.QUESTPINS_WAR_EFFORT, description = L.QUESTPINS_WAR_EFFORT_DESC,
         requires = "pins", section = KINDS },
@@ -93,9 +118,21 @@ module.options = {
         slider = "highGap", section = LEVELS },
     { key = "highGap", name = L.QUESTPINS_HIGH_GAP, description = L.QUESTPINS_HIGH_GAP_DESC,
         requires = "hideHigh", section = LEVELS, min = 3, max = 14, step = 1, format = "%d" },
+    { key = "upcoming", name = L.QUESTPINS_UPCOMING, description = L.QUESTPINS_UPCOMING_DESC,
+        slider = "upcomingLevels", section = LEVELS },
+    { key = "upcomingLevels", name = L.QUESTPINS_UPCOMING_LEVELS, description = L.QUESTPINS_UPCOMING_LEVELS_DESC,
+        requires = "upcoming", section = LEVELS, min = 1, max = 10, step = 1, format = "%d" },
+    { key = "fadeAlpha", name = L.QUESTPINS_FADE_ALPHA, description = L.QUESTPINS_FADE_ALPHA_DESC,
+        requires = "upcoming", section = LEVELS, min = 20, max = 100, step = 5, format = "%d%%" },
 
     { key = "npcTooltips", name = L.QUESTPINS_NPC_TOOLTIPS, description = L.QUESTPINS_NPC_TOOLTIPS_DESC,
         section = TOOLTIPS },
+    { key = "tooltipGiver", name = L.QUESTPINS_TOOLTIP_GIVER, description = L.QUESTPINS_TOOLTIP_GIVER_DESC,
+        section = TOOLTIPS },
+    { key = "tooltipHints", name = L.QUESTPINS_TOOLTIP_HINTS, description = L.QUESTPINS_TOOLTIP_HINTS_DESC,
+        section = TOOLTIPS },
+    { key = "tooltipMax", name = L.QUESTPINS_TOOLTIP_MAX, description = L.QUESTPINS_TOOLTIP_MAX_DESC,
+        section = TOOLTIPS, min = 3, max = 20, step = 1, format = "%d" },
     ns.ChatOption(L.QUESTPINS_CHAT_DESC),
     { key = "debug", name = L.QUESTPINS_DEBUG, description = L.QUESTPINS_DEBUG_DESC, debug = true,
         section = L.DEBUG_SECTION_DIAGNOSTICS },

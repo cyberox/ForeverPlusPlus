@@ -6,13 +6,15 @@
 local _, ns = ...
 
 local ipairs, min = ipairs, math.min
+local InCombatLockdown, debugprofilestop = InCombatLockdown, debugprofilestop
 
 local QuestieDB = ns.QuestieDB
 
 local module = ns.modules.QuestPins
 local internal = module.internal
 
-local PER_STEP = 120 -- quests read in one step
+local PER_STEP = 5 -- quests read between looks at the clock
+local BUDGET = 4 -- milliseconds of reading a frame
 local DROP_SOURCES = 8 -- most NPCs and objects counted as where an item that starts a quest comes from
 
 internal.info = {}
@@ -108,15 +110,25 @@ local function indexQuest(questID)
     end
 end
 
+-- Reads quests for a few milliseconds, then waits for the next frame; never in combat, where a
+-- slow frame costs the most.
 local function step()
     if not module.enabled then
         return
     end
-    local last = min(position + PER_STEP - 1, #ids)
-    for i = position, last do
-        indexQuest(ids[i])
+    if InCombatLockdown() then
+        timer:Start(1, step)
+        return
     end
-    position = last + 1
+    local started = debugprofilestop()
+    local last = position
+    repeat
+        last = min(position + PER_STEP - 1, #ids)
+        for i = position, last do
+            indexQuest(ids[i])
+        end
+        position = last + 1
+    until position > #ids or debugprofilestop() - started >= BUDGET
     if position > #ids then
         ids = nil
         internal.ready = true

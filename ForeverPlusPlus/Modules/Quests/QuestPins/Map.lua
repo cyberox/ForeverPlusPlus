@@ -19,11 +19,11 @@ local internal = module.internal
 
 local PIN_PIXELS = 24 -- a pin's size on screen at 100%
 local CLUSTER_RADIUS = 48 -- pixels of the map's canvas: spawns closer than this share a pin
-local CLUSTER_LIMIT = 6
 local SAME_SPOT = 0.002 -- of the map: pins this close stack
 
 -- Pin colors, tinting Blizzard's plain quest ! (it's yellow): the kinds that aren't normal.
 local TINT = {
+    holiday = { 1, 0.55, 0.85 },
     instance = { 1, 0.32, 0.08 },
     repeatable = { 0.12, 0.72, 1 },
     profession = { 1, 0.65, 0.2 },
@@ -31,6 +31,7 @@ local TINT = {
 
 -- Where the pins' tooltip names what kind they are, at the right of the title.
 local KIND_NAME = {
+    holiday = L.QUESTPINS_KIND_HOLIDAY,
     instance = L.QUESTPINS_KIND_INSTANCE, class = L.QUESTPINS_KIND_CLASS,
     profession = L.QUESTPINS_KIND_PROFESSION, repeatable = L.QUESTPINS_KIND_REPEATABLE,
 }
@@ -47,9 +48,9 @@ local function canvasSize()
     return 1000, 667
 end
 
--- Points `{ x, y }` (0 to 1 on the shown map) grouped by nearness, into at most CLUSTER_LIMIT
--- groups: the nearest two groups join until it fits.
-local function cluster(points, width, height)
+-- Points `{ x, y }` (0 to 1 on the shown map) grouped by nearness, into at most `limit` groups:
+-- the nearest two groups join until it fits.
+local function cluster(points, width, height, limit)
     local groups = {}
     local radius2 = CLUSTER_RADIUS * CLUSTER_RADIUS
     for _, point in ipairs(points) do
@@ -76,7 +77,7 @@ local function cluster(points, width, height)
             groups[#groups + 1] = { point }
         end
     end
-    while #groups > CLUSTER_LIMIT do
+    while #groups > limit do
         local bi, bj, best
         for i = 1, #groups - 1 do
             for j = i + 1, #groups do
@@ -121,10 +122,10 @@ end
 -- Art ---------------------------------------------------------------------------------------------
 
 -- The color and the kind of a pin from its quests: the first kind every quest is of, else a plain
--- pin.
-local ORDER = { "instance", "class", "profession", "repeatable" }
+-- pin. Icon Colors can color it by how hard its first quest is instead, or not at all.
+local ORDER = { "holiday", "instance", "class", "profession", "repeatable" }
 
-local function look(quests)
+local function kindOf(quests)
     for _, kind in ipairs(ORDER) do
         local all = true
         for _, id in ipairs(quests) do
@@ -134,17 +135,27 @@ local function look(quests)
             end
         end
         if all then
-            if kind == "class" then
-                local color = ns.Colors.Class("player")
-                if color then
-                    return kind, { color:GetRGB() }
-                end
-                return kind, nil
-            end
-            return kind, TINT[kind]
+            return kind
         end
     end
-    return nil, nil
+    return nil
+end
+
+local function look(quests)
+    local kind = kindOf(quests)
+    local mode = module.db.color
+    if mode == "plain" then
+        return kind, nil
+    elseif mode == "difficulty" then
+        local level = internal.Level(quests[1])
+        local color = level and GetQuestDifficultyColor(level)
+        return kind, color and { color.r, color.g, color.b } or nil
+    end
+    if kind == "class" then
+        local color = ns.Colors.Class("player")
+        return kind, color and { color:GetRGB() } or nil
+    end
+    return kind, kind and TINT[kind] or nil
 end
 
 -- Tooltip -----------------------------------------------------------------------------------------
@@ -172,11 +183,24 @@ local function giverName(info)
 end
 
 local function tooltipLines(info)
+    local db = module.db
     local lines = {}
+    local most = db.tooltipMax
     for i = 2, #info.quests do
+        if i > most then
+            lines[#lines + 1] = MapTooltip.Note(format(L.QUESTPINS_MORE, #info.quests - most))
+            break
+        end
         lines[#lines + 1] = questLine(info.quests[i])
     end
-    local name = giverName(info)
+    -- An upcoming quest says the level it waits for.
+    for i, id in ipairs(info.quests) do
+        local required = i <= most and info.upcoming[id] and internal.RequiredLevel(id)
+        if required then
+            lines[#lines + 1] = MapTooltip.Note(format(L.QUESTPINS_REQUIRES_LEVEL, required))
+        end
+    end
+    local name = db.tooltipGiver and giverName(info)
     if name then
         lines[#lines + 1] = MapTooltip.Detail(name)
     end
@@ -190,8 +214,10 @@ local function tooltipLines(info)
         lines[#lines + 1] = MapTooltip.Note(format("%s %s, map %s %.1f, %.1f", tostring(info.giverKind),
             tostring(info.giverID), tostring(info.anchorMap), info.anchorX * 100, info.anchorY * 100))
     end
-    lines[#lines + 1] = MapTooltip.Note(L.QUESTPINS_HINT_WAYPOINT)
-    lines[#lines + 1] = MapTooltip.Note(L.QUESTPINS_HINT_HIDE)
+    if db.tooltipHints then
+        lines[#lines + 1] = MapTooltip.Note(L.QUESTPINS_HINT_WAYPOINT)
+        lines[#lines + 1] = MapTooltip.Note(L.QUESTPINS_HINT_HIDE)
+    end
     return lines
 end
 
@@ -232,6 +258,7 @@ local function fill(mapID, add)
     local width, height = canvasSize()
     local size = PIN_PIXELS * db.size / 100
     local checked = {}
+    local upcoming = {} -- quest ID -> true for one shown ahead of its level
     local pins = {}
     for _, zone in ipairs(mapsFor(mapID)) do
         for _, source in ipairs(internal.byMap[zone] or {}) do
@@ -239,7 +266,9 @@ local function fill(mapID, add)
             if internal.FriendlyToPlayer(source.friendly) then
                 for _, id in ipairs(source.quests) do
                     if checked[id] == nil then
-                        checked[id] = internal.Check(id)
+                        local ok, note = internal.Check(id)
+                        checked[id] = ok
+                        upcoming[id] = ok and note == "upcoming" or nil
                     end
                     if checked[id] then
                         quests[#quests + 1] = id
@@ -258,7 +287,7 @@ local function fill(mapID, add)
                     end
                 end
                 if #points > 0 then
-                    local groups = db.clusters and cluster(points, width, height) or { points }
+                    local groups = db.clusters and cluster(points, width, height, db.clusterLimit) or { points }
                     for _, group in ipairs(groups) do
                         local at = nearest(group, px, py)
                         pins[#pins + 1] = { x = at.x, y = at.y, quests = quests, count = #group,
@@ -295,10 +324,19 @@ local function fill(mapID, add)
         end
     end
     for _, pin in ipairs(stacked) do
-        sort(pin.quests)
+        -- Quests the player can take now before upcoming ones, each by ID.
+        sort(pin.quests, function(a, b)
+            if (upcoming[a] or false) ~= (upcoming[b] or false) then
+                return not upcoming[a]
+            end
+            return a < b
+        end)
         local kind, color = look(pin.quests)
+        -- A pin of only upcoming quests is faded; one quest to take now makes it whole.
+        local faded = upcoming[pin.quests[1]]
         add(pin.x, pin.y, {
             atlas = "QuestNormal", size = size, color = color, desaturated = color ~= nil,
+            alpha = (faded and db.fadeAlpha or db.alpha) / 100, upcoming = upcoming,
             title = questLine(pin.quests[1]), kind = kind and KIND_NAME[kind] or nil,
             lines = tooltipLines, shiftClick = shiftClick, quests = pin.quests, count = pin.count,
             anchorMap = pin.map, anchorX = pin.sx, anchorY = pin.sy,

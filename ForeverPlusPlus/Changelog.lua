@@ -13,6 +13,12 @@ ns.changelog = {
         version = L.CHANGELOG_UNRELEASED,
         sections = {
             { L.CHANGELOG_ADDED, {
+                { L.QUESTPINS_TITLE, "A new module, off by default, that needs the QuestieDB addon. "
+                    .. "Puts a ! on the world map where each quest you can still take starts, "
+                    .. "colored by its kind, and lists the quests an NPC offers or waits for on its "
+                    .. "tooltip. Shift+click a pin to put the map pin on it, and Shift+right-click "
+                    .. "to hide its quests. Options pick the kinds of quest, the levels to hide, "
+                    .. "upcoming quests, and the pins' colors, size, and opacity. Thanks to cyberox." },
                 { L.HIDEERRORS_TITLE, "A new module, off by default. Keeps the red errors that "
                     .. "repeat while you fight, like Out of range and Not enough energy, off the "
                     .. "top of the screen, along with their sounds. Hide picks Ability Errors or "

@@ -46,7 +46,9 @@ local function onUnit(tooltip, data)
     end
     local rows = {}
     for _, questID in ipairs(npc.questStarts) do
-        if internal.FriendlyToPlayer(npc.friendlyTo) and internal.Check(questID) then
+        local ok, note = internal.Check(questID)
+        -- Not an upcoming quest: the NPC doesn't offer it yet.
+        if ok and note ~= "upcoming" and internal.FriendlyToPlayer(npc.friendlyTo) then
             rows[#rows + 1] = row(questID, "!")
         end
     end

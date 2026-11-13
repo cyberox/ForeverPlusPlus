@@ -7,6 +7,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 ### Added
 
 - **Settings**: a profile can stay based on a preset. One made from Developer's Defaults follows it as it changes, keeping the settings you changed yourself, and Based On on the Profiles page shows or changes what a profile follows.
+- **Quest Pins**: a new module, off by default, that needs the QuestieDB addon. Puts a ! on the world map where each quest you can still take starts, colored by its kind, and lists the quests an NPC offers or waits for on its tooltip. Shift+click a pin to put the map pin on it, and Shift+right-click to hide its quests. Options pick the kinds of quest, the levels to hide, upcoming quests, and the pins' colors, size, and opacity. Thanks to cyberox.
 - **Hide Error Messages**: a new module, off by default. Keeps the red errors that repeat while you fight, like Out of range and Not enough energy, off the top of the screen, along with their sounds. Hide picks Ability Errors or All Errors.
 - **Hide Stance Bar**: a new module, off by default. Hides the stance bar; its keys in Key Bindings still work. Show on Mouseover brings it back while the mouse is over it.
 - **Professions**: Skill Bar, on by default, shows under the selected recipe's name the skill levels it turns yellow, green, and gray at, with your skill marked, so you know how long it's worth buying materials for.

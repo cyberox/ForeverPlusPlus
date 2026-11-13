@@ -10,13 +10,20 @@ local L = ns.L
 local module = ns.modules.QuestPins
 local internal = module.internal
 
--- QuestieDB's quest sorts (negative zoneOrSort, src/corrections/enum/quests.lua): the holidays,
--- which never show (nothing here knows when an event runs; Darkmoon Faire isn't in Forever), and
--- the war effort of Ahn'Qiraj's opening.
-local HOLIDAY = { [-404] = true, [-402] = true, [-378] = true, [-376] = true, [-375] = true,
-    [-374] = true, [-370] = true, [-369] = true, [-366] = true, [-364] = true, [-41] = true,
-    [-22] = true, [-21] = true }
-local WAR_EFFORT = -365
+-- QuestieDB's quest sorts (a negative zoneOrSort, which `ns.QuestieDB.Quest` gives as a positive
+-- `sortID`; src/corrections/enum/quests.lua): the holidays, shown only when asked (nothing here
+-- knows when an event runs; Darkmoon Faire isn't in Forever), and the war effort of Ahn'Qiraj's
+-- opening. Seed from QuestieDB's enum at commit d57637f4.
+local HOLIDAY = ns.GameData.New("questPinsHolidaySorts", { [404] = true, [402] = true, [378] = true,
+    [376] = true, [375] = true, [374] = true, [370] = true, [369] = true, [366] = true, [364] = true,
+    [41] = true, [22] = true, [21] = true }, { label = "Quest Pins: holiday quest categories" })
+local WAR_EFFORT = 365
+
+-- The bits of QuestieDB's race mask each side's races have: the race ID less one for Classic's
+-- eight, and bits 33 and 34 for Forever's two new races (its Forever masks use them; which race
+-- IDs the client gives those isn't checked). A race past the eight is judged by its side's bits.
+local CLASSIC_RACES = 8
+local SIDE_BITS = { Alliance = { 1, 3, 4, 7, 33 }, Horde = { 2, 5, 6, 8, 34 } }
 
 -- The client's quest tags for a dungeon or a raid (Classic's: Dungeon, Raid, Heroic, Raid 10 and
 -- 25, Scenario).
@@ -26,6 +33,24 @@ local tagged = {} -- quest ID -> true or false, once the client has answered
 -- Whether a mask of races or classes has the bit of an ID (1, 2, 3, ... from the lowest bit).
 local function inMask(mask, id)
     return floor(mask / 2 ^ (id - 1)) % 2 == 1
+end
+
+-- Whether a race mask has the player's race: by its own bit, or for a race past Classic's eight,
+-- by any bit of its side. A side the game doesn't name lets the quest show.
+local function raceInMask(mask, race)
+    if race <= CLASSIC_RACES then
+        return inMask(mask, race)
+    end
+    local bits = SIDE_BITS[UnitFactionGroup("player") or ""]
+    if not bits then
+        return true
+    end
+    for _, bit in ipairs(bits) do
+        if inMask(mask, bit) then
+            return true
+        end
+    end
+    return false
 end
 
 local function isInstance(id, info)
@@ -43,8 +68,8 @@ local function isInstance(id, info)
     return info.raid
 end
 
----What a quest is for its pin's color and its kind's checkbox: "instance", "class", "profession",
----"repeatable", "war", or "normal".
+---What a quest is for its pin's color and its kind's checkbox: "holiday", "instance", "class",
+---"profession", "repeatable", "war", or "normal".
 ---@param id number
 ---@return string
 function internal.Category(id)
@@ -52,7 +77,9 @@ function internal.Category(id)
     if not info then
         return "normal"
     end
-    if isInstance(id, info) then
+    if info.sort and HOLIDAY:Get(info.sort) then
+        return "holiday"
+    elseif isInstance(id, info) then
         return "instance"
     elseif info.classes then
         return "class"
@@ -153,9 +180,18 @@ local function levelOf(id, info)
     return info.level or info.required
 end
 
+---A quest's level as the game or QuestieDB has it, or nil.
+---@param id number
+---@return number?
+function internal.Level(id)
+    local info = internal.info[id]
+    return info and levelOf(id, info) or nil
+end
+
 ---Whether the player can take a quest and has a reason to see its pin: true, or false with why
----("done", "log", "hidden", "kind", "event", "war effort", "prerequisite", "taken", "race",
----"class", "skill", "level", "low", "high").
+---("done", "log", "hidden", "kind", "war effort", "prerequisite", "taken", "race", "class",
+---"skill", "level", "low", "high"). True comes with "upcoming" for a quest the player is a few
+---levels short of, shown ahead of time with Upcoming Quests on.
 ---@param id number
 ---@return boolean
 ---@return string? why
@@ -173,9 +209,7 @@ function internal.Check(id)
         return false, "hidden"
     end
     local kind = internal.Category(id)
-    if HOLIDAY[info.sort] then
-        return false, "event"
-    elseif kind == "instance" and not db.dungeon or kind == "class" and not db.class
+    if kind == "holiday" and not db.holiday or kind == "instance" and not db.dungeon or kind == "class" and not db.class
         or kind == "profession" and not db.profession or kind == "normal" and not db.normal
         or kind == "repeatable" and not db.repeatable then
         return false, "kind"
@@ -197,7 +231,7 @@ function internal.Check(id)
     end
     if info.races then
         local _, _, race = UnitRace("player")
-        if race and not inMask(info.races, race) then
+        if race and not raceInMask(info.races, race) then
             return false, "race"
         end
     end
@@ -211,7 +245,11 @@ function internal.Check(id)
         return false, "skill"
     end
     local player = UnitLevel("player")
-    if info.required and player < info.required or info.max and player > info.max then
+    if info.max and player > info.max then
+        return false, "level"
+    end
+    local upcoming = info.required ~= nil and player < info.required
+    if upcoming and not (db.upcoming and info.required - player <= db.upcomingLevels) then
         return false, "level"
     end
     local level = levelOf(id, info)
@@ -220,7 +258,15 @@ function internal.Check(id)
     elseif level and db.hideHigh and level - player >= db.highGap then
         return false, "high"
     end
-    return true
+    return true, upcoming and "upcoming" or nil
+end
+
+---The level a quest needs, for an upcoming one's tooltip line.
+---@param id number
+---@return number?
+function internal.RequiredLevel(id)
+    local info = internal.info[id]
+    return info and info.required or nil
 end
 
 ---Whether a giver QuestieDB says is friendly to one side or both is friendly to the player's.
