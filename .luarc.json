@@ -166,6 +166,8 @@
     "GameTooltip_Hide",
     "StaticPopupDialogs",
     "StaticPopup_Show",
+    "StanceBar",
+    "GetGameMessageInfo",
     "YES",
     "NO",
     "CANCEL",

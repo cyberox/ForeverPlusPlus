@@ -148,6 +148,8 @@ Modules\System\AddOnsList.lua
 Modules\Interface\CurrencyBar.lua
 Modules\Interface\LocalTime.lua
 Modules\Interface\LootRolls.lua
+Modules\Interface\HideStanceBar.lua
+Modules\Interface\HideErrors.lua
 Modules\Character\CharacterWindow\CharacterWindow.lua
 Modules\Character\CharacterWindow\Durability.lua
 Modules\Character\CharacterWindow\Skills.lua

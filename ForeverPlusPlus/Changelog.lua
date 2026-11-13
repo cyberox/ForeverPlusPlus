@@ -13,6 +13,12 @@ ns.changelog = {
         version = L.CHANGELOG_UNRELEASED,
         sections = {
             { L.CHANGELOG_ADDED, {
+                { L.HIDEERRORS_TITLE, "A new module, off by default. Keeps the red errors that "
+                    .. "repeat while you fight, like Out of range and Not enough energy, off the "
+                    .. "top of the screen, along with their sounds. Hide picks Ability Errors or "
+                    .. "All Errors." },
+                { L.HIDESTANCEBAR_TITLE, "A new module, off by default. Hides the stance bar; its "
+                    .. "keys in Key Bindings still work." },
                 { L.CHANGELOG_SETTINGS, "A profile can stay based on a preset. One made from "
                     .. "Developer's Defaults follows it as it changes, keeping the settings you "
                     .. "changed yourself, and Based On on the Profiles page shows or changes what a "

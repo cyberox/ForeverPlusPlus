@@ -66,6 +66,23 @@ L.TOOLTIPS_QUEST_LINES_ALL = "Hide on Players, NPCs, and Objects"
 -- RecipeColors, a part of Professions since 1.5.0: its title stays for its notes in the changelog.
 L.RECIPECOLORS_TITLE = "Recipe Colors"
 
+-- HideStanceBar
+L.HIDESTANCEBAR_TITLE = "Hide Stance Bar"
+L.HIDESTANCEBAR_DESC = "Hide the stance bar: your stances, forms, auras, or stealth. Their keys in "
+    .. "Key Bindings still work."
+
+-- HideErrors
+L.HIDEERRORS_TITLE = "Hide Error Messages"
+L.HIDEERRORS_DESC = "Keep the red errors that repeat while you fight, like Out of range and Not "
+    .. "enough energy, off the top of the screen, along with their sounds."
+L.HIDEERRORS_HIDE = "Hide"
+L.HIDEERRORS_HIDE_DESC = "Ability Errors hides the ones from using abilities and attacking: not "
+    .. "ready yet, out of range, not enough mana, rage, or energy, no target or the wrong one, and "
+    .. "facing the wrong way. All Errors hides every red error except a few worth seeing, like full "
+    .. "bags and a full quest log."
+L.HIDEERRORS_HIDE_ABILITY = "Ability Errors"
+L.HIDEERRORS_HIDE_ALL = "All Errors"
+
 -- CombatAlert
 L.COMBATALERT_TITLE = "Combat Alert"
 L.COMBATALERT_DESC = "Show a line of text that floats up and fades when you enter or leave "
