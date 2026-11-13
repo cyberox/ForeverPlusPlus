@@ -14,7 +14,7 @@
 -- modern game hides most of these itself.
 local _, ns = ...
 
-local type = type
+local _G, type, ipairs = _G, type, ipairs
 
 local L = ns.L
 
@@ -25,6 +25,8 @@ local module = ns.NewModule("HideErrors", L.HIDEERRORS_DESC, {
 module.title = L.HIDEERRORS_TITLE
 module.category = "interface"
 module.added = "1.6.0"
+-- In the Minimap Button's menu, to see errors again for a moment without opening Settings.
+module.quickToggle = "other"
 
 module.options = {
     {
@@ -76,14 +78,33 @@ local KEPT = {
     ERR_QUEST_LOG_FULL = true,
     ERR_RAID_GROUP_ONLY = true,
     ERR_PLAYER_DEAD = true,
+    ERR_PET_SPELL_DEAD = true,
+    ERR_ALREADY_PICKPOCKETED = true,
+    ERR_PARTY_LFG_TELEPORT_IN_COMBAT = true,
 }
+local KEPT_PREFIX = "^ERR_PARTY_LFG_BOOT_" -- why a vote to kick can't start
+-- Kept by their text, in either mode: they come as the catch-all failed spell, whose name says
+-- nothing. A rogue needs to know a target has no pockets.
+local KEPT_TEXT = { "SPELL_FAILED_TARGET_NO_POCKETS" }
 
-local function hidden(id)
-    if type(id) ~= "string" then
-        return false -- unknown: shown
+local function keptText(message)
+    if not ns.IsText(message) then
+        return false
+    end
+    for _, name in ipairs(KEPT_TEXT) do
+        if message == _G[name] then
+            return true
+        end
+    end
+    return false
+end
+
+local function hidden(id, message)
+    if type(id) ~= "string" or keptText(message) then
+        return false -- unknown, or always worth seeing: shown
     end
     if module.db.hide == "all" then
-        return not KEPT[id]
+        return not (KEPT[id] or id:find(KEPT_PREFIX))
     end
     return ABILITY[id] or id:find(OUT_OF) ~= nil
 end
@@ -94,7 +115,7 @@ local function onError(_, messageType, message)
         return
     end
     local id = ns.IsNumber(messageType) and GetGameMessageInfo and GetGameMessageInfo(messageType)
-    if not hidden(id) then
+    if not hidden(id, message) then
         frame:TryDisplayMessage(messageType, message, RED_FONT_COLOR:GetRGB())
     end
 end
