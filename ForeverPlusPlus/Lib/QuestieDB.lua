@@ -36,7 +36,8 @@ local FIELDS = {
     Quest = { "name", "questLevel", "requiredLevel", "requiredMaxLevel", "startedBy", "finishedBy",
         "objectives", "objectivesText", "preQuestGroup", "preQuestSingle", "nextQuestInChain",
         "exclusiveTo", "zoneOrSort", "requiredRaces", "requiredClasses", "sourceItemId",
-        "requiredSkill", "breadcrumbForQuestId", "questFlags", "specialFlags" },
+        "requiredSkill", "breadcrumbForQuestId", "questFlags", "specialFlags",
+        "requiredMinRep", "requiredMaxRep" },
     Npc = { "name", "subName", "minLevel", "maxLevel", "rank", "spawns", "zoneID", "questStarts",
         "questEnds", "friendlyToFaction", "npcFlags" },
     Item = { "name", "npcDrops", "objectDrops", "itemDrops", "vendors", "questRewards", "startQuest",
@@ -475,12 +476,21 @@ local function group(tbl, index)
     return ids(type(tbl) == "table" and tbl[index] or nil)
 end
 
+-- A `{ factionID, value }` reputation requirement as `{ id, value }`, or nil for none.
+local function reputation(pair)
+    if type(pair) == "table" and id(pair[1]) and type(pair[2]) == "number" then
+        return { id = pair[1], value = pair[2] }
+    end
+    return nil
+end
+
 ---A quest, or nil when QuestieDB isn't ready or doesn't know it.
 ---
 ---`{ id, name, level, requiredLevel, maxLevel, races, classes, areaID, uiMapID, sortID,
 ---starters = { npcs, objects, items }, finishers = { npcs, objects }, objectives, objectivesText,
 ---prerequisites = { all, any }, next, exclusiveTo, breadcrumbFor, sourceItemID, requiredSkill,
----flags, specialFlags, repeatable, raid }`.
+---flags, specialFlags, repeatable, raid, minRep, maxRep }`. `minRep` and `maxRep` are
+---`{ id, value }`: a faction and the reputation with it the quest needs at least, or less than.
 ---`objectives` is a list of `{ kind, id, text }` (`kind` is `"npc"`, `"object"`, `"item"`,
 ---`"reputation"` with `value`, `"killCredit"` with `ids`, or `"spell"` with `itemID`). Every
 ---prerequisite in `all` and one of `any` must be done. `areaID` (and its `uiMapID`) is the zone the
@@ -525,6 +535,8 @@ function QuestieDB.Quest(questID)
         specialFlags = special,
         repeatable = special % 2 == 1 or hasFlag(flags, QUEST_DAILY) or hasFlag(flags, QUEST_WEEKLY) or hasFlag(flags, QUEST_MONTHLY),
         raid = hasFlag(flags, QUEST_RAID),
+        minRep = reputation(f.requiredMinRep),
+        maxRep = reputation(f.requiredMaxRep),
     }
 end
 

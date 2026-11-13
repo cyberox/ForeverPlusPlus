@@ -195,7 +195,7 @@ local function tooltipLines(info)
     end
     -- An upcoming quest says the level it waits for.
     for i, id in ipairs(info.quests) do
-        local required = i <= most and info.upcoming[id] and internal.RequiredLevel(id)
+        local required = i <= most and info.upcoming[id] == "upcoming" and internal.RequiredLevel(id)
         if required then
             lines[#lines + 1] = MapTooltip.Note(format(L.QUESTPINS_REQUIRES_LEVEL, required))
         end
@@ -258,7 +258,7 @@ local function fill(mapID, add)
     local width, height = canvasSize()
     local size = PIN_PIXELS * db.size / 100
     local checked = {}
-    local upcoming = {} -- quest ID -> true for one shown ahead of its level
+    local upcoming = {} -- quest ID -> "upcoming" (shown ahead of its level) or "low" (far under the player's)
     local pins = {}
     for _, zone in ipairs(mapsFor(mapID)) do
         for _, source in ipairs(internal.byMap[zone] or {}) do
@@ -268,7 +268,7 @@ local function fill(mapID, add)
                     if checked[id] == nil then
                         local ok, note = internal.Check(id)
                         checked[id] = ok
-                        upcoming[id] = ok and note == "upcoming" or nil
+                        upcoming[id] = ok and note or nil
                     end
                     if checked[id] then
                         quests[#quests + 1] = id
@@ -324,7 +324,7 @@ local function fill(mapID, add)
         end
     end
     for _, pin in ipairs(stacked) do
-        -- Quests the player can take now before upcoming ones, each by ID.
+        -- Quests worth taking now before upcoming and low-level ones, each by ID.
         sort(pin.quests, function(a, b)
             if (upcoming[a] or false) ~= (upcoming[b] or false) then
                 return not upcoming[a]
@@ -332,10 +332,14 @@ local function fill(mapID, add)
             return a < b
         end)
         local kind, color = look(pin.quests)
-        -- A pin of only upcoming quests is faded; one quest to take now makes it whole.
+        -- A pin of only upcoming or low-level quests is faded; one quest worth taking now makes
+        -- it whole. Low-level ones are gray too, as the game draws a quest too low to matter.
         local faded = upcoming[pin.quests[1]]
+        if faded == "low" then
+            color = nil
+        end
         add(pin.x, pin.y, {
-            atlas = "QuestNormal", size = size, color = color, desaturated = color ~= nil,
+            atlas = "QuestNormal", size = size, color = color, desaturated = color ~= nil or faded == "low",
             alpha = (faded and db.fadeAlpha or db.alpha) / 100, upcoming = upcoming,
             title = questLine(pin.quests[1]), kind = kind and KIND_NAME[kind] or nil,
             lines = tooltipLines, shiftClick = shiftClick, quests = pin.quests, count = pin.count,
@@ -365,15 +369,35 @@ internal.OnChanged(apply)
 -- The world map's filter menu ---------------------------------------------------------------------
 -- A checkbox after Blizzard's own entries, the same switch as Show Quest Pins in Settings. Added
 -- once at load: the entry checks whether the module is on each time the menu opens.
+local MENU_KINDS = {
+    { key = "normal", name = L.QUESTPINS_NORMAL },
+    { key = "repeatable", name = L.QUESTPINS_REPEATABLE },
+    { key = "class", name = L.QUESTPINS_CLASS },
+    { key = "profession", name = L.QUESTPINS_PROFESSION },
+    { key = "dungeon", name = L.QUESTPINS_DUNGEON },
+    { key = "holiday", name = L.QUESTPINS_HOLIDAY },
+    { key = "warEffort", name = L.QUESTPINS_WAR_EFFORT },
+}
+
 if Menu and Menu.ModifyMenu then
     Menu.ModifyMenu("MENU_WORLD_MAP_TRACKING", function(_, root)
         if not module.enabled then
             return
         end
-        root:CreateCheckbox(L.QUESTPINS_FILTER, function()
+        local pins = root:CreateCheckbox(L.QUESTPINS_FILTER, function()
             return module.db.pins
         end, function()
             ns.SetOption(module.name, "pins", not module.db.pins)
         end)
+        -- Its submenu: a checkbox for each kind of quest, the same switches as in Settings.
+        for _, kind in ipairs(MENU_KINDS) do
+            pins:CreateCheckbox(kind.name, function()
+                return module.db[kind.key]
+            end, function()
+                ns.SetOption(module.name, kind.key, not module.db[kind.key])
+                -- Keep the menu open, to switch several.
+                return MenuResponse and MenuResponse.Refresh or nil
+            end)
+        end
     end)
 end

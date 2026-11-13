@@ -25,7 +25,7 @@ local module = ns.NewModule("QuestPins", L.QUESTPINS_DESC, {
     size = 100, -- percent of PIN_PIXELS
     color = "kind", -- "kind", "difficulty", or "plain"
     alpha = 100, -- percent
-    fadeAlpha = 50, -- percent, for a pin of only upcoming quests
+    fadeAlpha = 50, -- percent, for a pin of only upcoming or low-level quests
     holiday = false,
     upcoming = true, -- quests the player is upcomingLevels or fewer levels short of
     upcomingLevels = 2,
@@ -39,8 +39,9 @@ local module = ns.NewModule("QuestPins", L.QUESTPINS_DESC, {
     dungeon = true,
     warEffort = false,
     warEffortAlways = false,
-    hideLow = true, -- quests lowGap or more levels below the player
+    low = "hide", -- quests lowGap or more levels below the player: "hide", "fade", or "off" (shown)
     lowGap = 9,
+    reputation = true, -- leave out quests that need a reputation the player lacks
     hideHigh = false, -- quests highGap or more levels above the player
     highGap = 5,
     npcTooltips = true,
@@ -110,10 +111,17 @@ module.options = {
     { key = "warEffortAlways", name = L.QUESTPINS_WAR_EFFORT_ALWAYS,
         description = L.QUESTPINS_WAR_EFFORT_ALWAYS_DESC, requires = "warEffort", section = KINDS },
 
-    { key = "hideLow", name = L.QUESTPINS_HIDE_LOW, description = L.QUESTPINS_HIDE_LOW_DESC,
-        slider = "lowGap", section = LEVELS },
+    {
+        key = "low", name = L.QUESTPINS_LOW, description = L.QUESTPINS_LOW_DESC,
+        choices = {
+            { "hide", L.QUESTPINS_LOW_HIDE },
+            { "fade", L.QUESTPINS_LOW_FADE },
+            { "off", L.QUESTPINS_LOW_SHOW },
+        },
+        section = LEVELS,
+    },
     { key = "lowGap", name = L.QUESTPINS_LOW_GAP, description = L.QUESTPINS_LOW_GAP_DESC,
-        requires = "hideLow", section = LEVELS, min = 3, max = 15, step = 1, format = "%d" },
+        requires = "low", section = LEVELS, min = 3, max = 15, step = 1, format = "%d" },
     { key = "hideHigh", name = L.QUESTPINS_HIDE_HIGH, description = L.QUESTPINS_HIDE_HIGH_DESC,
         slider = "highGap", section = LEVELS },
     { key = "highGap", name = L.QUESTPINS_HIGH_GAP, description = L.QUESTPINS_HIGH_GAP_DESC,
@@ -123,7 +131,9 @@ module.options = {
     { key = "upcomingLevels", name = L.QUESTPINS_UPCOMING_LEVELS, description = L.QUESTPINS_UPCOMING_LEVELS_DESC,
         requires = "upcoming", section = LEVELS, min = 1, max = 10, step = 1, format = "%d" },
     { key = "fadeAlpha", name = L.QUESTPINS_FADE_ALPHA, description = L.QUESTPINS_FADE_ALPHA_DESC,
-        requires = "upcoming", section = LEVELS, min = 20, max = 100, step = 5, format = "%d%%" },
+        section = LEVELS, min = 20, max = 100, step = 5, format = "%d%%" },
+    { key = "reputation", name = L.QUESTPINS_REPUTATION, description = L.QUESTPINS_REPUTATION_DESC,
+        section = LEVELS },
 
     { key = "npcTooltips", name = L.QUESTPINS_NPC_TOOLTIPS, description = L.QUESTPINS_NPC_TOOLTIPS_DESC,
         section = TOOLTIPS },

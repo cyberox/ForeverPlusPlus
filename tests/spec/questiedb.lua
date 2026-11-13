@@ -78,6 +78,7 @@ local DATA = {
             exclusiveTo = nil, zoneOrSort = 10, requiredRaces = 0, requiredClasses = 8,
             sourceItemId = 0, requiredSkill = { 186, 50 }, breadcrumbForQuestId = 0,
             questFlags = 64 + 4096, specialFlags = 0,
+            requiredMinRep = { 55, 3000 }, requiredMaxRep = 0,
         },
         [900002] = {
             name = "Sorted Errand", questLevel = 15, requiredLevel = 10, requiredMaxLevel = 20,
@@ -289,6 +290,7 @@ same(quest, {
     prerequisites = { all = { 900000 }, any = {} },
     next = 900002, exclusiveTo = {}, requiredSkill = { id = 186, value = 50 },
     flags = 4160, specialFlags = 0, repeatable = true, raid = true,
+    minRep = { id = 55, value = 3000 },
 }, "questiedb: a quest in our shape")
 local sorted = Q.Quest(900002)
 eq(sorted.sortID == 61 and sorted.areaID == nil and sorted.maxLevel == 20, true, "questiedb: a quest under a category")

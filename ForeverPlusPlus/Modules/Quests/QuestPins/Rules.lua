@@ -172,6 +172,32 @@ local function skillMet(info)
     return rank ~= nil and rank >= (info.skillValue or 0)
 end
 
+-- The player's reputation with a faction as one number, as QuestieDB's requirements are (0 at the
+-- start of Neutral, 3000 at Friendly), or nil. Probe: Mainline's call, and whether its
+-- currentStanding is on that scale isn't checked on Forever.
+local function standing(factionID)
+    local reputation = _G.C_Reputation
+    local get = reputation and reputation.GetFactionDataByID
+    local data = get and get(factionID)
+    local value = type(data) == "table" and data.currentStanding
+    return ns.IsNumber(value) and value or nil
+end
+
+-- Whether the player's reputation fits a quest's: at least its lowest, and under its highest. A
+-- faction the game doesn't answer for keeps the quest shown.
+local function reputationMet(info)
+    local low, high = info.minRep, info.maxRep
+    local have = low and standing(low.id)
+    if have and have < low.value then
+        return false
+    end
+    have = high and standing(high.id)
+    if have and have >= high.value then
+        return false
+    end
+    return true
+end
+
 local function levelOf(id, info)
     local level = C_QuestLog and C_QuestLog.GetQuestDifficultyLevel and C_QuestLog.GetQuestDifficultyLevel(id)
     if type(level) == "number" and level > 0 then
@@ -190,8 +216,9 @@ end
 
 ---Whether the player can take a quest and has a reason to see its pin: true, or false with why
 ---("done", "log", "hidden", "kind", "war effort", "prerequisite", "taken", "race", "class",
----"skill", "level", "low", "high"). True comes with "upcoming" for a quest the player is a few
----levels short of, shown ahead of time with Upcoming Quests on.
+---"skill", "level", "reputation", "low", "high"). True comes with "upcoming" for a quest the
+---player is a few levels short of, shown ahead of time with Upcoming Quests on, or "low" for a
+---low-level quest shown faded.
 ---@param id number
 ---@return boolean
 ---@return string? why
@@ -252,13 +279,17 @@ function internal.Check(id)
     if upcoming and not (db.upcoming and info.required - player <= db.upcomingLevels) then
         return false, "level"
     end
+    if db.reputation and not reputationMet(info) then
+        return false, "reputation"
+    end
     local level = levelOf(id, info)
-    if level and db.hideLow and player - level >= db.lowGap then
+    local low = level ~= nil and db.low ~= "off" and player - level >= db.lowGap
+    if low and db.low == "hide" then
         return false, "low"
     elseif level and db.hideHigh and level - player >= db.highGap then
         return false, "high"
     end
-    return true, upcoming and "upcoming" or nil
+    return true, upcoming and "upcoming" or low and "low" or nil
 end
 
 ---The level a quest needs, for an upcoming one's tooltip line.

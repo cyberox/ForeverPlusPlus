@@ -83,6 +83,7 @@ local function indexQuest(questID)
         all = nonEmpty(q.prerequisites.all), any = nonEmpty(q.prerequisites.any),
         exclusive = nonEmpty(q.exclusiveTo), breadcrumbFor = q.breadcrumbFor,
         repeatable = q.repeatable, raid = q.raid, sort = q.sortID,
+        minRep = q.minRep, maxRep = q.maxRep,
         npcGiver = #q.starters.npcs > 0,
     }
     for _, npc in ipairs(q.starters.npcs) do

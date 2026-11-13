@@ -77,7 +77,7 @@ Not entity fields: whole tables through `LibQuestieDB.Support.Get(name)`, which 
 | `UiMapID(areaID)` | the uiMapID QuestieDB's ZoneDB maps an area to, or nil |
 | `DropRates(itemID)` | `{ [npcID] = percent }`: Wowhead's numbers, else CMaNGOS's, or nil |
 
-A quest also has `flags` and `specialFlags` (QuestieDB's masks, 0 for none), `repeatable` (special flag 1, or the daily, weekly, or monthly quest flag), and `raid` (quest flag 64).
+A quest also has `flags` and `specialFlags` (QuestieDB's masks, 0 for none), `repeatable` (special flag 1, or the daily, weekly, or monthly quest flag), `raid` (quest flag 64), and `minRep` and `maxRep` (`{ id, value }`: a faction and the reputation it needs at least, or less than). Quest Pins compares those with `C_Reputation.GetFactionDataByID`'s `currentStanding`, which is unchecked on Forever.
 
 Quest Pins (`Modules/Quests/QuestPins/`) is the first module to read it. What it assumes that still needs checking in game: a race mask's bit is the race ID less one for Classic's eight races and bits 33 and 34 for Forever's two new ones (a race past the eight is judged by its side's bits), and the holiday categories are QuestieDB's sort IDs 21, 22, 41, 364, 366, 369, 370, 374, 375, 376, 378, 402, and 404, with 365 the Ahn'Qiraj war effort.
 | `Notices()` | the two gray rows for `module.notice`: needs QuestieDB (while missing or off), and the version doesn't fit (while `Problem()`) |
