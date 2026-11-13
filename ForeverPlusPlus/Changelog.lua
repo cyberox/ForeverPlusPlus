@@ -69,7 +69,9 @@ ns.changelog = {
                 { L.FLIGHTTIMER_TITLE, "A reload in the middle of a flight keeps the bar counting "
                     .. "down, and the flight is still timed when you land." },
                 { L.WORLDMAP_TITLE, "Unexplored Areas' map data is up to date with the game's build "
-                    .. "70888." },
+                    .. "70938." },
+                { L.PROFESSIONS_TITLE, "Recipe levels are up to date with the game's build 70938, "
+                    .. "which changed when 26 recipes turn gray." },
                 { L.WORLDMAP_TITLE, "Dungeons' and raids' lowest levels come from the game's "
                     .. "dungeon finder data, so they're right before you've opened the finder "
                     .. "(Uldaman 35, not 41)." },
