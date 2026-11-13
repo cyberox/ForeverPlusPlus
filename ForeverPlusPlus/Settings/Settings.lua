@@ -523,7 +523,7 @@ local function newModuleCheck(parent, name, size)
             lock:SetTexture(LOCK_FILE)
         end
         box:HookScript("OnEnter", function(self)
-            Kit.ShowTooltip(self, module.title or name, L.SETTINGS_LOCKED)
+            Kit.ShowTooltip(self, module.title or name, module.lockedText or L.SETTINGS_LOCKED)
         end)
         box:HookScript("OnLeave", Kit.HideTooltip)
         return box

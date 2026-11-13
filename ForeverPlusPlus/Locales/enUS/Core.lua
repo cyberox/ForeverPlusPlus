@@ -315,7 +315,9 @@ L.SETTINGS_EDIT_MODE_NOTE_DESC = "Its place, scale, and layout settings are in i
 -- Gray rows on a module that reads the QuestieDB addon's data (Lib/QuestieDB.lua)
 L.QUESTIEDB_NEEDED = "Needs the QuestieDB addon."
 L.QUESTIEDB_NEEDED_DESC = "Its quest, creature, item, and object data come from QuestieDB, a "
-    .. "separate addon. Install it, turn it on in the AddOns list, and reload."
+    .. "separate addon. Download and install it, turn it on in the AddOns list, and reload. "
+    .. "Until then this module can't be turned on."
+L.QUESTIEDB_LOCKED = "Locked: this module needs the QuestieDB addon. Download it and reload."
 L.QUESTIEDB_PROBLEM = "This version of QuestieDB doesn't fit Forever++."
 L.QUESTIEDB_PROBLEM_DESC = "QuestieDB is on, but it doesn't answer the way Forever++ reads it. "
     .. "Update whichever of the two is older."

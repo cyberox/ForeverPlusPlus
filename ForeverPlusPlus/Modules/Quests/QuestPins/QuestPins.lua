@@ -2,7 +2,7 @@
 -- (normal, repeatable, dungeon and raid, class, profession), with the quests an NPC offers or waits
 -- to hear back on its tooltip. Idea from ForeverQuestPins; the quests, their givers and where
 -- those stand come from the QuestieDB addon at run time (Lib/QuestieDB.lua), never copied here.
--- Needs QuestieDB: without it the module isn't in the list at all.
+-- Needs QuestieDB: without it the module is red and locked off in the list, saying to get it.
 --
 -- This file holds the module, its options, and what changes the pins. Index.lua reads QuestieDB
 -- into a map-by-map list of givers, Rules.lua says which quests the player can take, Map.lua draws
@@ -57,17 +57,10 @@ module.added = "1.6.0"
 module.internal = {}
 local internal = module.internal
 
--- Without QuestieDB there are no quests to read, so the module isn't offered. One that's there but
--- off, or of a version we don't read, is shown, with its notice saying so.
-function module:IsAvailable()
-    return QuestieDB.Status() ~= "missing"
-end
-
-function module:Problem()
-    return QuestieDB.Problem()
-end
-
-module.notice = QuestieDB.Notices()
+-- Without QuestieDB there are no quests to read: the module stays in the list, red and locked off,
+-- with a notice saying to install it. One of a version we don't read is red too, its notice
+-- saying so.
+QuestieDB.Require(module)
 
 local PINS, KINDS, LEVELS, TOOLTIPS = L.QUESTPINS_SECTION_PINS, L.QUESTPINS_SECTION_KINDS,
     L.QUESTPINS_SECTION_LEVELS, L.QUESTPINS_SECTION_TOOLTIPS

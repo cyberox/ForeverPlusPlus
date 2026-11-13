@@ -193,6 +193,10 @@ eq(Q.Quest(900001), nil, "questiedb: no quest without it")
 same(Q.Ids("Quest"), {}, "questiedb: no IDs without it")
 eq(Q.UiMapID(10), nil, "questiedb: no zones without it")
 eq(Q.DropRates(700001), nil, "questiedb: no drops without it")
+local needs = {}
+Q.Require(needs)
+eq(needs.locked == true and needs.lockedText ~= nil and needs:Problem() == true and #needs.notice == 2, true,
+    "questiedb: a module that needs it is locked and red without it")
 local notices = Q.Notices()
 eq(notices[1].shown() and not notices[2].shown(), true, "questiedb: the missing notice shows")
 ok(notices[1].text and notices[1].description and notices[2].text, "questiedb: notices have text")
@@ -268,6 +272,9 @@ eq(Q.Status(), "ready", "questiedb: the documented Meta spelling")
 
 fresh(newLib())
 eq(Q.Status() == "ready" and Q.IsReady() and not Q.Problem(), true, "questiedb: ready")
+local works = {}
+Q.Require(works)
+eq(works.locked == nil and works:Problem() == false, true, "questiedb: a module that needs it works with it")
 eq(notices[1].shown() or notices[2].shown(), false, "questiedb: no notices while ready")
 same(Q.Info(), { status = "ready", version = "9.9.9", contract = 4, minContract = 1, readMode = "baked" },
     "questiedb: info")

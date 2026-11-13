@@ -728,6 +728,25 @@ function QuestieDB.Notices()
     }
 end
 
+---Sets a module up as one that can't work without QuestieDB, called as its file loads: it gets
+---the notices above, and its name is red in the Modules list while QuestieDB is missing, off, or
+---the wrong version (`module:Problem()`). While it's missing or off the module is locked off too
+---(`module.locked`), a padlock for its checkbox saying why, so it can be read about but not turned
+---on. QuestieDB is in our TOC's OptionalDeps, so it has loaded by the time a module's file asks,
+---and the AddOns list can't change without a reload.
+---@param module table
+function QuestieDB.Require(module)
+    module.notice = QuestieDB.Notices()
+    local now = QuestieDB.Status()
+    if now == "missing" or now == "off" then
+        module.locked = true
+        module.lockedText = L.QUESTIEDB_LOCKED
+    end
+    function module:Problem()
+        return self.locked or QuestieDB.Problem()
+    end
+end
+
 ---Forgets what was read and checked, for the tests (a new stub of LibQuestieDB).
 function QuestieDB.Reset()
     lib, status, zones, drops = nil, nil, nil, nil
