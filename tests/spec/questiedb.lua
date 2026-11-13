@@ -77,6 +77,7 @@ local DATA = {
             preQuestGroup = { 900000 }, preQuestSingle = nil, nextQuestInChain = 900002,
             exclusiveTo = nil, zoneOrSort = 10, requiredRaces = 0, requiredClasses = 8,
             sourceItemId = 0, requiredSkill = { 186, 50 }, breadcrumbForQuestId = 0,
+            questFlags = 64 + 4096, specialFlags = 0,
         },
         [900002] = {
             name = "Sorted Errand", questLevel = 15, requiredLevel = 10, requiredMaxLevel = 20,
@@ -287,6 +288,7 @@ same(quest, {
     objectivesText = { "Bring the bits." },
     prerequisites = { all = { 900000 }, any = {} },
     next = 900002, exclusiveTo = {}, requiredSkill = { id = 186, value = 50 },
+    flags = 4160, specialFlags = 0, repeatable = true, raid = true,
 }, "questiedb: a quest in our shape")
 local sorted = Q.Quest(900002)
 eq(sorted.sortID == 61 and sorted.areaID == nil and sorted.maxLevel == 20, true, "questiedb: a quest under a category")
