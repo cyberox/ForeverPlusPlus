@@ -390,7 +390,7 @@ internal.points = {
     },
     [2521] = { -- Zephras Isle
         -- Valanaar's skyships. Not checked in game.
-        { "zeppelin", 57.7, 81.0, "N", "Skywatcher Plateau", 1412 },
+        { "zeppelin", 57.8, 81.0, "N", "Skywatcher Plateau", 1412 }, -- 57.7 before build 70938
         { "zeppelin", 65.8, 83.8, "N", "Dalaran", 1416 },
         { "spirit", 41.0, 22.4 },
         { "spirit", 55.4, 45.0 },
