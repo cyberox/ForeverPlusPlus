@@ -73,7 +73,6 @@ Lib\ActionButtons.lua
 Lib\Spellbook.lua
 Lib\Quests.lua
 Lib\QuestieDB.lua
-Lib\QuestStarts.lua
 Lib\Taxi.lua
 Lib\TaxiRoutes.lua
 Lib\RealmTime.lua
@@ -159,7 +158,6 @@ Modules\Quests\ForeverQuestIcons.lua
 Modules\Quests\QuestTracker.lua
 Modules\Quests\QuestLevels.lua
 Modules\Quests\QuestItemSparkles.lua
-Modules\Quests\AvailableQuests.lua
 Modules\Character\TalentPlanner\TalentPlanner.lua
 Modules\Character\TalentPlanner\Tree.lua
 Modules\Character\TalentPlanner\Draw.lua
