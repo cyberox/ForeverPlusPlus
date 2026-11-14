@@ -7,6 +7,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 ### Fixed
 
 - **Auto Weapon Buff** and **Comprehend Scrolls**: with a bag addon that keeps Blizzard's bags open but out of sight, an item no longer sits unseen where Blizzard's bag would be, showing its tooltip through other windows.
+- **Gathering Tracking**: Mute Swap Sound no longer cuts every other sound for a moment at each swap.
 
 ## 1.6.0 (2026-11-14)
 

@@ -245,19 +245,11 @@ local ticker
 
 -- Mute Swap Sound: the tracking spell's cast sound isn't in the client's spell tables (no
 -- SpellXSpellVisual row for either spell, build 70938), so there's no one file to mute. The game's
--- sound effects go off for the moment of the swap instead, and back to the player's setting once
--- the game shows the new tracking (or MUTE_LONGEST later, if it never does). The player's value is
--- kept in `saved`, so a /reload in that moment still puts it back.
+-- sound effects go off only for the call that swaps, and are back at the player's setting before
+-- it returns: the client starts the spell's sound as the swap is asked for, so nothing else goes
+-- quiet. Dual Tracker and Tracking Switcher X do the same on Classic clients. (1.6.0 kept them off
+-- until the game showed the new tracking, which cut every other sound for up to a second.)
 local SFX = "Sound_EnableSFX"
-local MUTE_AFTER = 0.3 -- seconds the sound stays off after the tracking has changed
-local MUTE_LONGEST = 1.5
-local unmute = ns.Frames.Timer(module)
-local muted = false
-
-local function restoreSound()
-    muted = false
-    ns.CVars.Restore(module.db.saved, SFX)
-end
 
 local function swap()
     if blocked or busy() then
@@ -267,12 +259,14 @@ local function swap()
     -- Swap only while one of ours is on: off, or another tracker, is the player's choice.
     local other = (ours == MINERALS and HERBS) or (ours == HERBS and MINERALS)
     if other and module.db.track == "both" and index[other] then
-        if module.db.muteSwap then
-            muted = true
+        local mute = module.db.muteSwap
+        if mute then
             ns.CVars.Set(module.db.saved, SFX, "0")
-            unmute:Start(MUTE_LONGEST, restoreSound)
         end
-        track(index[other])
+        track(index[other]) -- never errors, so the sound always comes back
+        if mute then
+            ns.CVars.Restore(module.db.saved, SFX)
+        end
     end
 end
 
@@ -296,9 +290,6 @@ local function onTrackingChanged()
     local index, ours = scan()
     last = ours or last
     confirm(index, ours)
-    if muted then
-        unmute:Start(MUTE_AFTER, restoreSound)
-    end
 end
 
 -- SetTracking may be protected on a later build; it then fails this way instead of erroring.
@@ -320,7 +311,7 @@ function module:OnEnable()
     self:On("MINIMAP_UPDATE_TRACKING", onTrackingChanged)
     self:On("ADDON_ACTION_BLOCKED", onBlocked)
     self:On("ADDON_ACTION_FORBIDDEN", onBlocked)
-    ns.CVars.RestoreAll(self.db.saved) -- left off by a /reload in the middle of a swap
+    ns.CVars.RestoreAll(self.db.saved) -- left off by 1.6.0, after a /reload in the middle of a swap
     onTrackingChanged()
     startSwapping()
     request()
@@ -328,7 +319,6 @@ end
 
 function module:OnDisable()
     stopSwapping()
-    muted = false
     ns.CVars.RestoreAll(self.db.saved)
 end
 
