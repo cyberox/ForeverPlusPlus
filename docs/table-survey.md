@@ -189,6 +189,17 @@ Brackets, the same for weapons and armor:
 - **Bosses**: `DungeonEncounter` (376 rows on 47 maps, `Name_lang`, `MapID`, `OrderIndex`). Examples: Deadmines (36) 8 bosses from Rhahk'Zor, Molten Core (409) 11 from Lucifron, and Forever's Hall of Thanes (3065): Faldrim Anvilmar, Plunder, Infurnus, Durgen Dirgehammer. USABLE for boss lists. **Loot by boss is in no client table**: `JournalEncounter`, `JournalEncounterItem`, and `JournalInstance` don't exist for `wowf`, and `CreatureDifficultyTreasure` wasn't checked.
 - `AreaPOI` (372 rows: towns, graveyards, and other named spots with positions; 147 on Kalimdor, 120 on the Eastern Kingdoms). `QuestV2` (6,626) holds IDs only, with no names, levels, or givers (QuestieDB stays the source). `Creature` (189) holds only companions and other client creatures, not NPCs. `CollectableSourceVendorSparse` (3,568 rows) gives 174 vendors' positions for 1,181 collectable items, mostly gear appearances.
 
+## Checked later (build 70938, 2026-11-15)
+
+Looked at for generating more of the hand-kept data. None of it was checked in game.
+
+- **Weapon buff items: USABLE, now generated** (`Lib/Generated/WeaponBuffs.lua`). `SpellEquippedItems` exists (1,901 rows) and gives each use spell's weapon subclass mask. Forever's poisons, Scrolls of Imbue, and Firestones use `SpellEffect.Effect` 360, not 54.
+- **Comprehension scrolls: USABLE, now generated** (`Lib/Generated/ComprehendScrolls.lua`): `ItemSparse.RequiredSkill` 3012, 17 items.
+- **Spirit healers: absent.** `WorldSafeLocs` and `GraveyardZone` don't exist for `wowf` (HTTP 400). `AreaPOI`'s 21 graveyards are all battleground ones (Alterac Valley's), not the world's.
+- **Dungeon entrances: not usable.** `Map.Corpse_0/1` with `CorpseMapID` is where a ghost appears, which is near the door for about half of Classic's instances (Shadowfang Keep 44.7, 67.8 against our 44.8, 67.8; Zul'Farrak, Maraudon, Zul'Gurub, Scholomance, and Ragefire within 1%) and well off for others (Deadmines 38.2, 77.5 against 42.5, 71.7; Gnomeregan 17.7, 39.2 against 24.3, 39.8). Scarlet Monastery's lands in Western Plaguelands and Naxxramas' in Alterac Mountains. Every one of Forever's own dungeons has `CorpseMapID` -1, so the ones most likely to change have nothing. `JournalInstanceEntrance` doesn't exist.
+- **Spell levels: USABLE but not needed.** `SpellLevels` has Blessing of Kings (20217) at 20, the one level Smart Buff keeps by hand, so the hand value is right. One row isn't worth a generator.
+- **Skeleton keys and profession tools**: the items are in `ItemSparse`, four rows each. Too few to generate.
+
 ## Not checked
 
 - Anything in the live client. In particular: the suffix formula against a tooltip, what `itemKey.itemSuffix` and a suffixed link contain, whether TaxiPath's cost is what's charged, and why the October flight times ran at 36 yd/s.
