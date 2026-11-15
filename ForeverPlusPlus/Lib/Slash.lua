@@ -4,12 +4,12 @@
 -- (hash_SlashCmdList), so taking one away clears that too, like AceConsole does.
 local _, ns = ...
 
-local pairs, type, format, _G = pairs, type, string.format, _G
+local pairs, type, format, sort, _G = pairs, type, string.format, table.sort, _G
 
 local Slash = {}
 ns.Slash = Slash
 
-local added = {} -- key -> true while our command is registered
+local added = {} -- key -> { slash, help } while our command is registered
 local warned = {} -- slash -> true once the player has been told another addon has it
 local ready = false -- true after login: commands added then are the player's own doing
 
@@ -47,7 +47,8 @@ end
 ---@param key string the SlashCmdList key, FOREVERPLUSPLUS_<NAME>
 ---@param slash string like "/way"
 ---@param fn fun(message: string, editBox: table?)
-function Slash.Add(key, slash, fn)
+---@param help? { usage: string?, description: string, owner: string? } for /fpp help and the About page: what follows the slash, one line about it, and the module that adds it
+function Slash.Add(key, slash, fn, help)
     if added[key] then
         return
     end
@@ -61,7 +62,24 @@ function Slash.Add(key, slash, fn)
     end
     _G["SLASH_" .. key .. "1"] = slash
     SlashCmdList[key] = fn
-    added[key] = true
+    added[key] = { slash = slash, help = help }
+end
+
+---The commands added now that came with help, sorted by slash.
+---@return { slash: string, usage: string, description: string, owner: string? }[]
+function Slash.List()
+    local list = {}
+    for _, command in pairs(added) do
+        local help = command.help
+        if help then
+            list[#list + 1] = {
+                slash = command.slash, usage = help.usage or "",
+                description = help.description, owner = help.owner,
+            }
+        end
+    end
+    sort(list, function(a, b) return a.slash < b.slash end)
+    return list
 end
 
 ---Takes away command `key`, if we added it.

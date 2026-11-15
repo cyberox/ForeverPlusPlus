@@ -11,7 +11,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 ### Changed
 
-- **Settings**: the About page is two columns. Links to CurseForge, Wago, the source, releases, and bug and feature reports are buttons that show the link to copy, with credits and the addons Forever++ works with under them. The commands have a search box, sit under the module that adds them, and a click starts one in chat.
+- **Settings**: the About page is two columns. Links to CurseForge, Wago, the source, releases, and bug and feature reports are buttons that show the link to copy, with credits and the addons Forever++ works with under them. The commands have a search box, sit under the module that adds them, and a click starts one in chat. /way, /rl, and /clear are listed there and in /fpp help while they're on.
 
 ### Fixed
 

@@ -216,7 +216,7 @@ Generated files (never edited by hand; see Generated data): `InstanceLevels.lua`
 
 ### `Slash.lua`
 
-- `ns.Slash`: slash commands a module adds and takes away live, left to another addon that already has the same one.
+- `ns.Slash`: slash commands a module adds and takes away live, left to another addon that already has the same one. `List` gives the ones added with help (usage, description, owner), which `ns.Commands` adds to `/fpp help` and the About page.
 
 ### `SettingsKit.lua`
 

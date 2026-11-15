@@ -200,6 +200,8 @@ L.COMMANDS_DESC = "Add short slash commands: /rl to reload the UI and /clear to 
 L.COMMANDS_RELOAD = "/rl"
 L.COMMANDS_RELOAD_DESC = "/rl reloads the UI, like /reload. Left to another addon that already "
     .. "has /rl."
+L.COMMANDS_RELOAD_HELP = "reload the UI" -- a line of /fpp help, like the SLASH_ ones
+L.COMMANDS_CLEAR_HELP = "empty the chat window it's typed in"
 L.COMMANDS_CLEAR = "/clear"
 L.COMMANDS_CLEAR_DESC = "/clear empties the chat window you type it in. Left to another addon "
     .. "that already has /clear."

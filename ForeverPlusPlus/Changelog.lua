@@ -25,7 +25,8 @@ ns.changelog = {
                     .. "the source, releases, and bug and feature reports are buttons that show the "
                     .. "link to copy, with credits and the addons Forever++ works with under them. "
                     .. "The commands have a search box, sit under the module that adds them, and a "
-                    .. "click starts one in chat." },
+                    .. "click starts one in chat. /way, /rl, and /clear are listed there and in "
+                    .. "/fpp help while they're on." },
             } },
             { L.CHANGELOG_FIXED, {
                 { L.QUESTPINS_TITLE, "a Skyborne no longer sees quests meant for another race "

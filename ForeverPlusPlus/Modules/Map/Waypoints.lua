@@ -177,7 +177,8 @@ local WAY_KEY, WAY_SLASH = "FOREVERPLUSPLUS_WAY", "/way"
 
 local function syncWay()
     if module.enabled and module.db.way then
-        ns.Slash.Add(WAY_KEY, WAY_SLASH, way)
+        ns.Slash.Add(WAY_KEY, WAY_SLASH, way,
+            { usage = "[zone] x y [note]", description = L.WAYPOINTS_WAY_HELP, owner = "Waypoints" })
     else
         ns.Slash.Remove(WAY_KEY, WAY_SLASH)
     end

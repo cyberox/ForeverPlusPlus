@@ -342,6 +342,7 @@ L.FLIGHTTIMER_RESET_TIMES_DONE = "Flight times cleared."
 L.WAYPOINTS_TITLE = "Waypoints"
 L.WAYPOINTS_DESC = "Put the game's map pin on a spot with /way, and follow it with an arrow on "
     .. "screen that turns toward it as you turn."
+L.WAYPOINTS_WAY_HELP = "put the map pin on a spot, or clear or share it" -- a line of /fpp help
 L.WAYPOINTS_WAY = "/way"
 L.WAYPOINTS_WAY_DESC = "/way [zone] x y [note] puts the game's map pin on a spot and tracks it, in "
     .. "your zone or the one named, with the note under the arrow. /way share puts the pin's link "

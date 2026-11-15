@@ -1,8 +1,9 @@
--- The About page: what the addon is and its version across the top, then two columns. On the left
--- the links (a button each, which shows the link to copy), who wrote the addon, and the addons it
--- works with; on the right every /fpp command, under the module that adds it, with a search box.
--- The Defaults button is at the top right like the Modules page's. Built the first time it's
--- shown; the commands of the modules that are on are drawn again each time.
+-- The About page: what the addon is and how many modules are on across the top, with its version
+-- and the game's at the right, then two columns. On the left the links (a button each, which
+-- shows the link to copy), who wrote the addon, and the addons it works with; on the right every
+-- command, under the module that adds it, with a search box. The Defaults button is at the top
+-- right like the Modules page's. Built the first time it's shown; the module count and the
+-- commands of the modules that are on are drawn again each time.
 local _, ns = ...
 
 local ipairs, format, floor, concat = ipairs, string.format, math.floor, table.concat
@@ -11,9 +12,13 @@ local L = ns.L
 local S = ns.SettingsUI
 
 local LEFT = 16 -- the page's left margin
+local EDGE = 32 -- and its right one, which leaves room for the scroll bar
 local LEFT_WIDTH = 222 -- the links and credits column
-local RIGHT = LEFT + LEFT_WIDTH + 24 -- where the commands column starts
-local COLUMNS_TOP = -146
+local GUTTER = 28 -- between the columns, the line down its middle
+local RIGHT = LEFT + LEFT_WIDTH + GUTTER -- where the commands column starts
+local COLUMNS_TOP = -152
+local HEADING = 30 -- a heading, the line under it, and the space before what it heads
+local SECTION = 14 -- the space after a section, before the next heading
 local LINK_WIDTH, LINK_GAP = 108, 6 -- two link buttons fill the left column
 
 local WEBSITE = "https://github.com/xIGBClutchIx/ForeverPlusPlus"
@@ -43,10 +48,21 @@ local WORKS_WITH = {
     { "DungeonJournal", format(L.HOME_SUPPORT, L.POI_DUNGEON_MAPS) },
 }
 
-local function addHeading(frame, x, y, text)
+-- A faint line, `width` wide, like the one under a section of Blizzard's own pages.
+local function addLine(frame, point, x, y, width)
+    local line = frame:CreateTexture(nil, "ARTWORK")
+    line:SetColorTexture(1, 1, 1, 0.15)
+    line:SetSize(width, 1)
+    line:SetPoint(point, x, y)
+    return line
+end
+
+-- A section's heading with a line under it, the width of its column.
+local function addHeading(frame, x, y, text, width)
     local heading = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
     heading:SetPoint("TOPLEFT", x, y)
     heading:SetText(text)
+    addLine(frame, "TOPLEFT", x, y - 21, width)
     return heading
 end
 
@@ -63,11 +79,67 @@ local function addEntry(frame, y, name, text)
     return title:GetStringHeight() + 2 + line:GetStringHeight()
 end
 
+-- How many modules the player can turn on, and how many are on.
+local function countModules()
+    local on, total = 0, 0
+    for _, name in ipairs(ns.order) do
+        local module = ns.modules[name]
+        if not (module.unavailable or module.alwaysOn) then
+            total = total + 1
+            if module.enabled then -- not a locked one, whatever was saved
+                on = on + 1
+            end
+        end
+    end
+    return on, total
+end
+
+-- The top of the page: the icon, the name, what the addon is, and how many modules are on, with
+-- the addon's version and the game's at the right.
+local function buildHeader(frame, pageWidth)
+    local icon = frame:CreateTexture(nil, "ARTWORK")
+    icon:SetSize(64, 64)
+    icon:SetPoint("TOPLEFT", LEFT, -66)
+    icon:SetTexture(ns.icon)
+
+    local name = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
+    name:SetPoint("TOPLEFT", icon, "TOPRIGHT", 14, -2)
+    name:SetText(ns.title)
+
+    local version = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
+    version:SetPoint("TOPRIGHT", -EDGE, -70)
+    version:SetText(ns.version)
+
+    -- For a bug report: which game build this is.
+    local gameVersion, build = GetBuildInfo()
+    local game = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    game:SetPoint("TOPRIGHT", version, "BOTTOMRIGHT", 0, -5)
+    game:SetText(format(L.HOME_GAME_BUILD, gameVersion, build))
+
+    -- Wraps before it would run into the game's version.
+    local tagline = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    tagline:SetPoint("TOPLEFT", name, "BOTTOMLEFT", 0, -6)
+    tagline:SetJustifyH("LEFT")
+    tagline:SetText(metadata("Notes") ~= "" and metadata("Notes") or L.HOME_TAGLINE)
+    local room = pageWidth - (LEFT + 64 + 14) - EDGE - game:GetStringWidth() - 16
+    if tagline:GetStringWidth() > room then
+        tagline:SetWidth(room)
+    end
+
+    local status = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    status:SetPoint("TOPLEFT", tagline, "BOTTOMLEFT", 0, -6)
+    local function update()
+        status:SetText(format(L.HOME_MODULES_ON, countModules()))
+    end
+    update()
+    frame:HookScript("OnShow", update) -- after /fpp or the Modules page changed some
+end
+
 -- The left column: links, credits, and the addons we work with.
 local function buildLeft(frame)
     local y = COLUMNS_TOP
-    addHeading(frame, LEFT, y, L.HOME_LINKS)
-    y = y - 26
+    addHeading(frame, LEFT, y, L.HOME_LINKS, LEFT_WIDTH)
+    y = y - HEADING
     for i, link in ipairs(LINKS) do
         local column, row = (i - 1) % 2, floor((i - 1) / 2)
         local button = ns.SettingsKit.NewButton(frame, link[1], LINK_WIDTH, function()
@@ -79,18 +151,18 @@ local function buildLeft(frame)
     local hint = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     hint:SetPoint("TOPLEFT", LEFT, y)
     hint:SetText(L.HOME_LINK_HINT)
+    y = y - 12 - SECTION
 
-    y = y - 30
-    addHeading(frame, LEFT, y, L.HOME_CREDITS)
-    y = y - 24
+    addHeading(frame, LEFT, y, L.HOME_CREDITS, LEFT_WIDTH)
+    y = y - HEADING
     y = y - addEntry(frame, y, metadata("Author"), L.HOME_AUTHOR) - 8
     for _, credit in ipairs(CREDITS) do
         y = y - addEntry(frame, y, credit[1], credit[2]) - 8
     end
+    y = y + 8 - SECTION
 
-    y = y - 12
-    addHeading(frame, LEFT, y, L.HOME_WORKS_WITH)
-    y = y - 24
+    addHeading(frame, LEFT, y, L.HOME_WORKS_WITH, LEFT_WIDTH)
+    y = y - HEADING
     for _, addon in ipairs(WORKS_WITH) do
         y = y - addEntry(frame, y, addon[1], addon[2]) - 8
     end
@@ -102,19 +174,19 @@ local function plain(text)
 end
 
 -- The right column: the commands, scrolling, under a search box.
-local function buildCommands(frame)
-    addHeading(frame, RIGHT, COLUMNS_TOP, L.HOME_COMMANDS)
+local function buildCommands(frame, pageWidth)
+    local width = pageWidth - RIGHT - EDGE
+    addHeading(frame, RIGHT, COLUMNS_TOP, L.HOME_COMMANDS, width)
 
     local hint = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     hint:SetPoint("BOTTOMLEFT", RIGHT, 10)
     hint:SetText(L.HOME_COMMANDS_HINT)
     hint:SetTextColor(GREEN_FONT_COLOR:GetRGB())
+    addLine(frame, "BOTTOMLEFT", RIGHT, 28, width)
 
     local scroll = ns.SettingsKit.NewScroll(frame)
-    scroll:SetPoint("TOPLEFT", RIGHT, COLUMNS_TOP - 28)
-    scroll:SetPoint("BOTTOMRIGHT", -32, 28)
-    local width = frame:GetWidth()
-    width = (width > 0 and width or 615) - RIGHT - 32
+    scroll:SetPoint("TOPLEFT", RIGHT, COLUMNS_TOP - HEADING)
+    scroll:SetPoint("BOTTOMRIGHT", -EDGE, 34)
     local content = CreateFrame("Frame", nil, scroll)
     content:SetSize(width, 1)
     scroll:SetScrollChild(content)
@@ -131,11 +203,11 @@ local function buildCommands(frame)
         over:SetAllPoints()
         over:SetColorTexture(1, 1, 1, 0.08)
         row.command = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-        row.command:SetPoint("TOPLEFT", 4, -3)
+        row.command:SetPoint("TOPLEFT", 8, -3)
         row.description = row:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
         row.description:SetPoint("TOPLEFT", row.command, "BOTTOMLEFT", 0, -1)
         for _, text in ipairs({ row.command, row.description }) do
-            text:SetWidth(width - 8)
+            text:SetWidth(width - 16)
             text:SetJustifyH("LEFT")
         end
         row:SetScript("OnClick", function(self)
@@ -176,8 +248,8 @@ local function buildCommands(frame)
                 header = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
                 headers[i] = header
             end
-            y = y - (i > 1 and 8 or 0)
-            header:SetPoint("TOPLEFT", 4, y)
+            y = y - (i > 1 and 10 or 0)
+            header:SetPoint("TOPLEFT", 0, y)
             header:SetText(group.title)
             header:Show()
             y = y - 14
@@ -213,6 +285,7 @@ local function buildCommands(frame)
         content:SetHeight(-y > 1 and -y or 1)
     end
 
+    -- On the heading's row, its right edge the column's.
     local box = ns.SettingsKit.AddSearchBox(frame, nil, L.HOME_COMMANDS_SEARCH, function(text)
         query = text:lower()
         draw()
@@ -220,7 +293,7 @@ local function buildCommands(frame)
     if box then
         box:ClearAllPoints()
         box:SetSize(150, 20)
-        box:SetPoint("TOPRIGHT", -34, COLUMNS_TOP + 2)
+        box:SetPoint("TOPRIGHT", -EDGE, COLUMNS_TOP + 3)
     end
 
     draw()
@@ -234,35 +307,18 @@ function S.BuildAbout(frame)
     frame:HookScript("OnShow", function() ns.SetWelcome(false) end)
     S.addPageDefaults(frame)
 
-    local icon = frame:CreateTexture(nil, "ARTWORK")
-    icon:SetSize(64, 64)
-    icon:SetPoint("TOPLEFT", LEFT, -64)
-    icon:SetTexture(ns.icon)
+    local pageWidth = frame:GetWidth()
+    pageWidth = pageWidth > 0 and pageWidth or 615
 
-    local name = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
-    name:SetPoint("TOPLEFT", icon, "TOPRIGHT", 12, -4)
-    name:SetText(ns.title)
+    buildHeader(frame, pageWidth)
 
-    local version = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
-    version:SetPoint("TOPRIGHT", -34, -70)
-    version:SetText(ns.version)
-
-    local tagline = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    tagline:SetPoint("TOPLEFT", name, "BOTTOMLEFT", 0, -6)
-    tagline:SetText(metadata("Notes") ~= "" and metadata("Notes") or L.HOME_TAGLINE)
-
-    -- For a bug report: which game build this is.
-    local gameVersion, build, _, interface = GetBuildInfo()
-    local game = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    game:SetPoint("TOPLEFT", tagline, "BOTTOMLEFT", 0, -6)
-    game:SetText(format(L.HOME_GAME_BUILD, gameVersion, build, interface))
-
+    -- Down the middle of the gutter between the columns.
     local divider = frame:CreateTexture(nil, "ARTWORK")
-    divider:SetColorTexture(1, 1, 1, 0.12)
+    divider:SetColorTexture(1, 1, 1, 0.15)
     divider:SetWidth(1)
-    divider:SetPoint("TOPLEFT", RIGHT - 12, COLUMNS_TOP)
-    divider:SetPoint("BOTTOMLEFT", RIGHT - 12, 10)
+    divider:SetPoint("TOPLEFT", RIGHT - GUTTER / 2, COLUMNS_TOP)
+    divider:SetPoint("BOTTOMLEFT", RIGHT - GUTTER / 2, 10)
 
     buildLeft(frame)
-    buildCommands(frame)
+    buildCommands(frame, pageWidth)
 end

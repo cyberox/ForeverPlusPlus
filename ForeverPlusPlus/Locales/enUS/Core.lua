@@ -304,7 +304,8 @@ L.DEFAULTS_ASK = "Put all Forever++ settings back to defaults? This replaces you
     .. "Forever++ settings. The rest of the game's settings stay as they are."
 L.DEFAULTS_DEVELOPER = "Developer's Defaults"
 L.DEFAULTS_RECOMMENDED = "Recommended Defaults"
-L.HOME_GAME_BUILD = "Game %s (build %s, interface %s)" -- version, build, interface
+L.HOME_MODULES_ON = "%d of %d modules on" -- on, total
+L.HOME_GAME_BUILD = "Game %s (%s)" -- version, build
 L.HOME_LINKS = "Links"
 L.HOME_LINK_CURSEFORGE = "CurseForge"
 L.HOME_LINK_WAGO = "Wago"

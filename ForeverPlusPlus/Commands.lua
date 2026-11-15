@@ -330,5 +330,9 @@ function ns.Commands()
             lines[#lines + 1] = commandLine("/fpp " .. name, info.usage, info.description, info.owner)
         end
     end
+    -- The short commands modules add outside /fpp, like /way and /rl, while they're there.
+    for _, command in ipairs(ns.Slash.List()) do
+        lines[#lines + 1] = commandLine(command.slash, command.usage, command.description, command.owner)
+    end
     return lines
 end

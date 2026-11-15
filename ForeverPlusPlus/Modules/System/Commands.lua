@@ -46,14 +46,16 @@ end
 
 -- The commands, each behind the option with its key.
 local COMMANDS = {
-    { option = "reload", key = "FOREVERPLUSPLUS_RELOAD", slash = "/rl", fn = reload },
-    { option = "clear", key = "FOREVERPLUSPLUS_CLEAR", slash = "/clear", fn = clear },
+    { option = "reload", key = "FOREVERPLUSPLUS_RELOAD", slash = "/rl", fn = reload,
+        help = { description = L.COMMANDS_RELOAD_HELP, owner = "Commands" } },
+    { option = "clear", key = "FOREVERPLUSPLUS_CLEAR", slash = "/clear", fn = clear,
+        help = { description = L.COMMANDS_CLEAR_HELP, owner = "Commands" } },
 }
 
 local function sync()
     for _, command in ipairs(COMMANDS) do
         if module.enabled and module.db[command.option] then
-            ns.Slash.Add(command.key, command.slash, command.fn)
+            ns.Slash.Add(command.key, command.slash, command.fn, command.help)
         else
             ns.Slash.Remove(command.key, command.slash)
         end
