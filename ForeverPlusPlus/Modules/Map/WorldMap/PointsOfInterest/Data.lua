@@ -9,7 +9,8 @@
 -- learnFlights). Each point is one of:
 --   { "dungeon" or "raid", x, y, instance key }
 --   { "flight", x, y, faction, place }
---   { "ship" or "zeppelin", x, y, faction, destination place, destination map ID (or this map),
+--   { "ship", "zeppelin", or "tram", x, y, faction, destination place, destination map ID (or
+--     this map),
 --     via = place it stops at first, viaMap = that place's map ID }
 --   { "spirit", x, y }
 -- Factions are "A" (Alliance), "H" (Horde), and "N" (both). Places are English; a locale file can
@@ -211,8 +212,13 @@ internal.points = {
         { "flight", 70.9, 72.5, "A", "Trade District" },
         -- Forever's Stormwind Harbor, the southern-most dock.
         { "ship", 21.8, 56.9, "A", "Auberdine", 1439 },
+        -- The Deeprun Tram's station in the Dwarven District. Leatrix Maps' point, not checked
+        -- in game; no table has it, the tram being an instance entered by a door.
+        { "tram", 66.6, 34.7, "A", "Ironforge", 1455 },
     },
     [1455] = { -- Ironforge
+        -- The tram's station in Tinker Town. Leatrix Maps' point, not checked in game.
+        { "tram", 73.0, 50.2, "A", "Stormwind City", 1453 },
         -- The webbed stairs down, left of the High Seat. From Warcraft Tavern's and Wowhead
         -- commenters' coordinates (43.5, 52.0 and 43, 51), not checked in game.
         { "dungeon", 43.5, 52.0, "hallOfThanes" },

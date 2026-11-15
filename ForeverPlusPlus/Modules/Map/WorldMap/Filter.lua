@@ -19,7 +19,7 @@ local KINDS = {
     { name = L.POI_RAIDS, keys = { "raids" } },
     { name = L.POI_CAPITALS, keys = { "capitals" }, on = "ours" },
     { name = L.POI_FLIGHT, keys = { "flightMasters" } },
-    { name = L.WORLDMAP_FILTER_TRAVEL, keys = { "ships", "zeppelins" } },
+    { name = L.WORLDMAP_FILTER_TRAVEL, keys = { "ships", "zeppelins", "trams" } },
     { name = L.POI_SPIRIT, keys = { "spiritHealers" } },
 }
 

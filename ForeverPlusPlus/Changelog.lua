@@ -13,9 +13,12 @@ ns.changelog = {
         version = L.CHANGELOG_UNRELEASED,
         sections = {
             { L.CHANGELOG_ADDED, {
-                { L.WORLDMAP_TITLE, "clicking one of Points of Interest's boats or zeppelins "
-                    .. "shows the map of its next stop, out of combat. On a boat that goes round "
-                    .. "several stops, clicking on from each takes you round them all." },
+                { L.WORLDMAP_TITLE, "Points of Interest shows the Deeprun Tram's stations in "
+                    .. "Stormwind and Ironforge, with a checkbox of their own." },
+                { L.WORLDMAP_TITLE, "clicking one of Points of Interest's boats or zeppelins, or "
+                    .. "the tram, shows the map of its next stop, out of combat. On a boat that goes round "
+                    .. "several stops, clicking on from each takes you round them all. Click for "
+                    .. "Next Stop turns it off." },
             } },
             { L.CHANGELOG_CHANGED, {
                 { L.WORLDMAP_TITLE, "Points of Interest's Dungeon Maps shows a dungeon's or raid's "

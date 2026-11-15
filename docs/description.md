@@ -108,7 +108,7 @@ Everything is on by default except where noted. Each module can be turned off, a
 ### Map
 
 - **World Map**: Adds to the world map in four parts, each with its own checkbox.
-  - **Points of Interest**: dungeons, raids, capital cities, flight masters, boats, zeppelins, spirit healers, and Skyborne ley lines. Clicking a dungeon or raid shows its map, and clicking a boat or zeppelin the map of its next stop.
+  - **Points of Interest**: dungeons, raids, capital cities, flight masters, boats, zeppelins, the Deeprun Tram, spirit healers, and Skyborne ley lines. Clicking a dungeon or raid shows its map, and clicking a boat, zeppelin, or the tram the map of its next stop.
   - **Zone Info**: a panel with the zone's level range, faction, dungeons, and what can be gathered and fished there.
   - **Unexplored Areas**: shows the parts of a zone you haven't explored, tinted.
   - **Coordinates**: your and the cursor's coordinates in the map's title bar.

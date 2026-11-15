@@ -6,7 +6,8 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 ### Added
 
-- **World Map**: clicking one of Points of Interest's boats or zeppelins shows the map of its next stop, out of combat. On a boat that goes round several stops, clicking on from each takes you round them all.
+- **World Map**: Points of Interest shows the Deeprun Tram's stations in Stormwind and Ironforge, with a checkbox of their own.
+- **World Map**: clicking one of Points of Interest's boats or zeppelins, or the tram, shows the map of its next stop, out of combat. On a boat that goes round several stops, clicking on from each takes you round them all. Click for Next Stop turns it off.
 
 ### Changed
 

@@ -37,6 +37,8 @@ local module = ns.modules.WorldMap:NewPart({
     ships = true,
     shipSize = 80,
     shipsWorld = false,
+    trams = true, -- the Deeprun Tram's stations, at the boats' size
+    travelClicks = true, -- a click on a boat, zeppelin, or the tram shows its next stop's map
     zeppelins = true,
     zeppelinSize = 80,
     zeppelinsWorld = false,
@@ -109,6 +111,14 @@ for _, rows in ipairs({
     { section = TRAVEL, kind("flightMasters", "flightSize", L.POI_FLIGHT, L.POI_FLIGHT_DESC) },
     { section = TRAVEL, kind("ships", "shipSize", L.POI_SHIPS, L.POI_SHIPS_DESC) },
     { section = TRAVEL, kind("zeppelins", "zeppelinSize", L.POI_ZEPPELINS, L.POI_ZEPPELINS_DESC) },
+    { section = TRAVEL, {
+        key = "trams", name = L.POI_TRAMS, description = L.POI_TRAMS_DESC, added = "1.7.0",
+    } },
+    -- As Dungeon Maps is for dungeons: the click can be turned off, for a map that stays put.
+    { section = TRAVEL, {
+        key = "travelClicks", name = L.POI_TRAVEL_CLICKS, description = L.POI_TRAVEL_CLICKS_DESC,
+        added = "1.7.0",
+    } },
     -- After the travel points it's about.
     { section = TRAVEL,
         { key = "otherFaction", name = L.POI_OTHER_FACTION, description = L.POI_OTHER_FACTION_DESC } },
@@ -152,6 +162,12 @@ local KINDS = {
     flight = { show = "flightMasters", size = "flightSize", pixels = 18 },
     ship = { show = "ships", size = "shipSize", pixels = 22,
         atlases = { "FlightMasterFerry", "Vehicle-TempleofKotmogu-CyanBall" } },
+    -- The Deeprun Tram's two stations, with a checkbox of their own and the boats' size: a mine
+    -- cart, the nearest thing to a tram in the client's icons (UiTextureAtlasMember, wago.tools,
+    -- build 70938). Both are on city maps, so there's nothing to ask about continents.
+    tram = { show = "trams", size = "shipSize", pixels = 22,
+        atlases = { "Vehicle-SilvershardMines-Minecart", "Vehicle-Carriage",
+            "Vehicle-TempleofKotmogu-CyanBall" } },
     zeppelin = { show = "zeppelins", size = "zeppelinSize", pixels = 24,
         atlases = { "Vehicle-Air-Horde", "Vehicle-TempleofKotmogu-CyanBall" } },
     -- A glowing spirit, so it isn't mistaken for the corpse marker; the tombstone if it's missing.
@@ -173,6 +189,7 @@ local KINDS = {
 for _, kindInfo in pairs(KINDS) do
     kindInfo.world = kindInfo.show .. "World" -- the kind's On Continent Maps checkbox
 end
+KINDS.tram.world = "shipsWorld" -- it has none of its own
 internal.KINDS = KINDS
 
 -- A flight master not learned yet (or not known to be): the flight point icon in its faction's
@@ -382,20 +399,27 @@ local function pinFor(point, mapID, world)
                 info.lines[#info.lines + 1] = MapTooltip.Note(L.POI_FLIGHT_UNLEARNED)
             end
         end
-    elseif kindName == "ship" or kindName == "zeppelin" then
+    elseif kindName == "ship" or kindName == "zeppelin" or kindName == "tram" then
         if not forPlayer(point[4]) then
             return nil
         end
         info.atlas = atlasOf(kindInfo)
-        info.title = format(kindName == "ship" and L.POI_SHIP_TO or L.POI_ZEPPELIN_TO,
-            place(point[5]))
-        info.lines = linesOf(MapTooltip.Side(point[4]), MapTooltip.Detail(zoneName(point[6] or mapID)),
-            point.via and MapTooltip.Note(format(L.POI_VIA, place(point.via))))
+        if kindName == "tram" then
+            -- It goes to a city, which is the zone as well: named once, by the game.
+            info.title = format(L.POI_TRAM_TO, zoneName(point[6]))
+            info.lines = linesOf(MapTooltip.Side(point[4]))
+        else
+            info.title = format(kindName == "ship" and L.POI_SHIP_TO or L.POI_ZEPPELIN_TO,
+                place(point[5]))
+            info.lines = linesOf(MapTooltip.Side(point[4]),
+                MapTooltip.Detail(zoneName(point[6] or mapID)),
+                point.via and MapTooltip.Note(format(L.POI_VIA, place(point.via))))
+        end
         -- A click shows the map of its next stop: where it goes, or where it stops first on a
         -- round of several (clicking on from there goes round them all). Not one that stays on
         -- this map.
         local nextMap = point.viaMap or point[6]
-        if nextMap and nextMap ~= mapID then
+        if module.db.travelClicks and nextMap and nextMap ~= mapID then
             info.click = function()
                 ns.WorldMap.Show(nextMap)
             end
