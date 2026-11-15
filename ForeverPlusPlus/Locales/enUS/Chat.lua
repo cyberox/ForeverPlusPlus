@@ -114,6 +114,16 @@ L.PERSISTENTCHAT_TITLE = "Keep Chat Visible" -- Persistent Chat up to 1.4.0
 L.PERSISTENTCHAT_DESC = "Keep chat text on screen instead of fading it out after a while. Turning "
     .. "this off gives Blizzard's fading back."
 
+-- HideCombatLogTab
+L.HIDECOMBATLOGTAB_TITLE = "Hide Combat Log Tab"
+L.HIDECOMBATLOGTAB_DESC = "Take the Combat Log's tab off the chat window, while the log is docked "
+    .. "there. The log itself keeps working."
+
+-- HideChatButtons
+L.HIDECHATBUTTONS_TITLE = "Hide Chat Buttons"
+L.HIDECHATBUTTONS_DESC = "Hide the buttons beside the chat window until the mouse is over the "
+    .. "chat, fading in and out with its tabs."
+
 -- WhisperWindow
 L.WHISPERWINDOW_TITLE = "Whisper Window"
 L.WHISPERWINDOW_DESC = "Keep whispers in a window of their own, a conversation per person, with a "

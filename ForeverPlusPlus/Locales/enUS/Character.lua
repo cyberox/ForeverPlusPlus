@@ -347,8 +347,13 @@ L.SPELLRANKS_SIZE_DESC = "How big the warning badge is on a standard action butt
 L.SPELLRANKS_TOOLTIP = "Tooltip Line"
 L.SPELLRANKS_TOOLTIP_DESC = "Add the best rank you know to the tooltip of a spell that has a "
     .. "higher rank."
+L.SPELLRANKS_REPLACE = "Use Highest Rank"
+L.SPELLRANKS_REPLACE_DESC = "When you learn a spell, and when you turn this on, put the highest "
+    .. "rank you know on your action bars in place of every lower one. Out of combat, and not for "
+    .. "macros. Leave it off if you keep lower ranks on your bars on purpose."
+L.SPELLRANKS_REPLACED = "Put the highest rank of %d spells on your action bars." -- count
 L.SPELLRANKS_CHAT_DESC = "Say in chat how many action bar spells have a higher rank after you "
-    .. "learn new spells or level up."
+    .. "learn new spells or level up, and how many Use Highest Rank replaced."
 L.SPELLRANKS_BEST = "Higher Rank Known:"
 L.SPELLRANKS_BEST_RANK = "Rank %d" -- the best rank known
 L.SPELLRANKS_FOUND = "%d action bar spells have a higher rank. /fpp ranks lists them."
@@ -356,6 +361,14 @@ L.SPELLRANKS_COMMAND = "List the action bar spells that have a higher rank"
 L.SPELLRANKS_OFF = "Spell Ranks is off."
 L.SPELLRANKS_NONE = "Every spell on your action bars is its highest rank."
 L.SPELLRANKS_LINE = "Bar %d, slot %d: %s is Rank %d, and Rank %d is known." -- bar, slot, spell link, ranks
+
+-- TrainAll
+L.TRAINALL_TITLE = "Train All"
+L.TRAINALL_DESC = "Add a Train All button to the trainer window that learns everything you can "
+    .. "learn and afford. A new profession is left for you to choose."
+L.TRAINALL_BUTTON = "Train All"
+L.TRAINALL_TOOLTIP = "Learn %d skills for %s." -- count, money
+L.TRAINALL_NOTHING = "Nothing here that you can learn and afford."
 
 -- BuffTimers
 L.BUFFTIMERS_TITLE = "Buff Timers"

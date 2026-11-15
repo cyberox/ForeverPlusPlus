@@ -19,8 +19,24 @@ ns.changelog = {
                 { L.PROFESSIONS_TITLE, "Crafting Costs shows Vendor Value under an auction value, "
                     .. "and Sell At picks where Estimated Profit counts the item as sold: the "
                     .. "auction house, a vendor, or whichever pays more." },
+                { L.AUTOCONFIRM_TITLE, "a new module, off by default, that answers Yes when an "
+                    .. "enchant asks to replace the one an item has, and optionally when it would "
+                    .. "bind the item." },
+                { L.TRAINALL_TITLE, "a new module, off by default, that adds a Train All button to "
+                    .. "the trainer window. It learns everything you can learn and afford, except "
+                    .. "a new profession." },
+                { L.HIDECHATBUTTONS_TITLE, "a new module, off by default, that hides the buttons "
+                    .. "beside the chat window until the mouse is over the chat." },
+                { L.HIDECOMBATLOGTAB_TITLE, "a new module, off by default, that takes the Combat "
+                    .. "Log's tab off the chat window." },
+                { L.SPELLRANKS_TITLE, "Use Highest Rank (off by default) puts the highest rank you "
+                    .. "know on your action bars in place of lower ones when you learn a spell." },
+                { L.GATHERINGTRACKING_TITLE, "a Dwarf gets a Find Treasure checkbox, which keeps it "
+                    .. "on and lets it take turns with Find Minerals and Find Herbs." },
             } },
             { L.CHANGELOG_CHANGED, {
+                { L.TOOLTIPS_TITLE, "Hide Right-Click Hint is now Hide Right-Click Hints, and also "
+                    .. "takes the \"Right click for tab settings\" line off the chat tabs' tooltips." },
                 { L.CHANGELOG_SETTINGS, "the About page is two columns. Links to CurseForge, Wago, "
                     .. "the source, releases, and bug and feature reports are buttons that show the "
                     .. "link to copy, with credits and the addons Forever++ works with under them. "

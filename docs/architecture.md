@@ -314,6 +314,7 @@ What each module is, in the code's terms (what it does for players is in `README
 - **Auto Quest**
 - **Tooltips**
 - **Auto Decline**
+- **Auto Confirm**: the enchant popups answered with the C_Item call their own Yes makes, then closed.
 - **Auto Release**
 - **Skip Cinematics**
 - **Auto Dismount**
@@ -323,6 +324,7 @@ What each module is, in the code's terms (what it does for players is in `README
 - **Auto Screenshot**
 - **Professions**: a folder: the module and a part each for Recipe Colors, Skill-Ups Left, Skill Bar (the selected recipe's yellow, green, and gray levels as a bar, from the generated `Data.lua`), and Crafting Costs with Profit in Recipe List and the merchant prices it learns, and Unlearned Recipes (the open profession's recipes not known yet, added to Blizzard's own recipe list and Filter menu, with their learn skill from `Data.lua`).
 - **Spell Ranks**
+- **Train All**: a button of ours beside the trainer window's Train, buying one skill after each answer from the trainer.
 - **Buff Timers**
 - **Macros**: a folder: the module, which makes and deletes its macros and marks their buttons, and its Smart Buff macro as a part.
 - **Class Colors**
@@ -364,6 +366,8 @@ What each module is, in the code's terms (what it does for players is in `README
 - **Chat History**
 - **Chat Arrow Keys**: Up and Down in the chat box recall what was sent, without Alt.
 - **Social Button**
+- **Hide Chat Buttons**: an alpha on each chat button, faded after Blizzard's own fade calls for the chat window.
+- **Hide Combat Log Tab**: the tab scaled to almost nothing while the log is docked.
 - **Whisper Window**: a folder: the module and its window.
 
 ## API.lua

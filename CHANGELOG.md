@@ -8,8 +8,16 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 - **Item Tooltips**: Auction Prices' Scan Button (off by default) puts a button in the auction house's title bar that scans now, and Scan Every sets how long Scan When Opened waits between scans, from 15 minutes to 2 hours.
 - **Professions**: Crafting Costs shows Vendor Value under an auction value, and Sell At picks where Estimated Profit counts the item as sold: the auction house, a vendor, or whichever pays more.
+- **Auto Confirm**: a new module, off by default, that answers Yes when an enchant asks to replace the one an item has, and optionally when it would bind the item.
+- **Train All**: a new module, off by default, that adds a Train All button to the trainer window. It learns everything you can learn and afford, except a new profession.
+- **Hide Chat Buttons**: a new module, off by default, that hides the buttons beside the chat window until the mouse is over the chat.
+- **Hide Combat Log Tab**: a new module, off by default, that takes the Combat Log's tab off the chat window.
+- **Spell Ranks**: Use Highest Rank (off by default) puts the highest rank you know on your action bars in place of lower ones when you learn a spell.
+- **Gathering Tracking**: a Dwarf gets a Find Treasure checkbox, which keeps it on and lets it take turns with Find Minerals and Find Herbs.
 
 ### Changed
+
+- **Tooltips**: Hide Right-Click Hint is now Hide Right-Click Hints, and also takes the "Right click for tab settings" line off the chat tabs' tooltips.
 
 - **Settings**: the About page is two columns. Links to CurseForge, Wago, the source, releases, and bug and feature reports are buttons that show the link to copy, with credits and the addons Forever++ works with under them. The commands have a search box, sit under the module that adds them, and a click starts one in chat. /way, /rl, and /clear are listed there and in /fpp help while they're on.
 

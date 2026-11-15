@@ -6,8 +6,9 @@
 -- needed: slots and spells change out of combat, and the marks refresh after a short wait.
 local _, ns = ...
 
-local ipairs, pairs, format = ipairs, pairs, string.format
-local C_Spell = C_Spell
+local ipairs, pairs, format, pcall = ipairs, pairs, string.format, pcall
+local C_Spell, InCombatLockdown = C_Spell, InCombatLockdown
+local GetCursorInfo, PlaceAction, ClearCursor = GetCursorInfo, PlaceAction, ClearCursor
 local Enum, GameTooltip = Enum, GameTooltip
 
 local L = ns.L
@@ -22,6 +23,7 @@ local module = ns.NewModule("SpellRanks", L.SPELLRANKS_DESC, {
     size = 18, -- the badge's size, in pixels, like every mark's
     padding = 1, -- how far the badge sits in from its corner, in pixels
     tooltip = true, -- say the best known rank in spell tooltips
+    replace = false, -- put the best rank on the bars when a spell is learned
     chat = true,
 })
 module.title = L.SPELLRANKS_TITLE
@@ -44,6 +46,7 @@ module.options = {
     ItemButtons.SizeOption(L.SPELLRANKS_SIZE, L.SPELLRANKS_SIZE_DESC, nil, { shown = hasBadge, added = "1.2.0" }),
     ItemButtons.PaddingOption(nil, { shown = hasBadge, added = "1.2.0" }),
     { key = "tooltip", name = L.SPELLRANKS_TOOLTIP, description = L.SPELLRANKS_TOOLTIP_DESC },
+    { key = "replace", name = L.SPELLRANKS_REPLACE, description = L.SPELLRANKS_REPLACE_DESC, added = "1.7.0" },
     ns.ChatOption(L.SPELLRANKS_CHAT_DESC),
 }
 
@@ -54,6 +57,7 @@ local ALERT_ATLAS = "services-icon-warning" -- Blizzard's yellow warning triangl
 local ALERT_FILE = "Interface\\DialogFrame\\DialogAlertIcon" -- and its older art
 
 local known -- spell name -> the highest rank known, or nil until scanned
+local bestID = {} -- spell name -> that rank's spell ID
 local lowSlots = {} -- { bar, slot, spellID, rank, best } for every marked button, in bar order
 local lastCount = 0
 
@@ -116,9 +120,11 @@ end
 -- the other spec's spells, which can't be put on the bar).
 local function scan()
     local best = {}
+    bestID = {}
     local ranks, complete = Spellbook.Ranks()
     for name, list in pairs(ranks) do
         best[name] = list[#list].rank
+        bestID[name] = list[#list].id
     end
     return best, complete
 end
@@ -165,6 +171,29 @@ local function mark(button, on)
     ItemButtons.PlaceMark(frame.badge, frame, db, ACTION_BUTTON)
 end
 
+-- Use Highest Rank: puts the best rank known in the button's slot in place of the lower one, as
+-- dragging it there from the spellbook would. Only a slot that holds the spell itself: a macro
+-- names its own rank. The cursor has to be empty, since the spell goes through it, and the lower
+-- rank the slot hands back is dropped. True when the slot now holds the best rank.
+-- **Unverified** in game: C_Spell.PickupSpell and PlaceAction from an event, out of combat.
+local function replace(button, name)
+    local action, id = button.action, bestID[name]
+    local pickup = C_Spell.PickupSpell
+    if not (id and pickup and PlaceAction and ClearCursor and readable(action) and action)
+        or ActionButtons.Content(button) ~= "spell" or GetCursorInfo() then
+        return false
+    end
+    local ok = pcall(function()
+        pickup(id)
+        if GetCursorInfo() == "spell" then
+            PlaceAction(action)
+        end
+        ClearCursor()
+    end)
+    local kind, now = ActionButtons.Content(button)
+    return ok and kind == "spell" and now == id
+end
+
 -- The spellbook scan's own row on the Profiler page. Profiler.Call keeps one result, so the
 -- scan's two come back as a pair.
 local Profiler = ns.Profiler
@@ -188,12 +217,17 @@ local function refresh()
         module.incomplete = not complete
     end
     lowSlots = {}
+    local replaced = 0
+    -- Use Highest Rank, once after a spell is learned; in combat it waits for the next refresh.
+    local replacing = module.replace and module.db.replace and not InCombatLockdown()
     ActionButtons.Each(function(button, bar, slotNumber)
         local low = false
         local spellID = slotSpell(button)
         if spellID then
-            local _, rank, best = lowerRank(spellID)
-            if best then
+            local name, rank, best = lowerRank(spellID)
+            if best and replacing and replace(button, name) then
+                replaced = replaced + 1
+            elseif best then
                 low = true
                 lowSlots[#lowSlots + 1] = { bar = bar, slot = slotNumber,
                     spellID = spellID, rank = rank, best = best }
@@ -201,6 +235,12 @@ local function refresh()
         end
         mark(button, low)
     end)
+    if not InCombatLockdown() then
+        module.replace = false
+    end
+    if replaced > 0 then
+        module:Print(format(L.SPELLRANKS_REPLACED, replaced))
+    end
     -- Say it once when a level or a new spell adds marks, not on every bar change.
     if #lowSlots > lastCount and module.announce then
         module:Print(format(L.SPELLRANKS_FOUND, #lowSlots))
@@ -225,6 +265,7 @@ end
 -- Only a new spell or a level is worth a chat line; SPELLS_CHANGED also fires at every login.
 local function onLearned()
     module.announce = true
+    module.replace = true
     onSpellsChanged()
 end
 
@@ -274,6 +315,10 @@ function module:OnDisable()
 end
 
 function module:OnOptionChanged(key)
+    if key == "replace" and self.db.replace and self.enabled then
+        module.replace = true -- turning it on replaces what's on the bars now
+        queue()
+    end
     if (key == "style" or key == "corner" or key == "size" or key == "padding") and self.enabled then
         queue()
     end

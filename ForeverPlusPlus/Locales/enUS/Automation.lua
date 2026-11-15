@@ -67,7 +67,7 @@ L.AUTOSELLJUNK_FULL = "Buyback is full: %d junk items left unsold." -- count
 -- GatheringTracking
 L.GATHERINGTRACKING_TITLE = "Gathering Tracking"
 L.GATHERINGTRACKING_DESC = "Keep Find Minerals or Find Herbs on: turn it back on after logging in, "
-    .. "zoning, or dying, and swap between the two if you like."
+    .. "zoning, or dying, and swap between the two if you like. A Dwarf can add Find Treasure."
 L.GATHERINGTRACKING_TRACK = "Track"
 L.GATHERINGTRACKING_TRACK_DESC = "Which tracking to keep on. The game tracks one at a time, so both "
     .. "take turns."
@@ -77,8 +77,11 @@ L.GATHERINGTRACKING_TRACK_HERBS = "Herbs Only"
 L.GATHERINGTRACKING_REAPPLY = "Turn Back On"
 L.GATHERINGTRACKING_REAPPLY_DESC = "After logging in, zoning, or coming back to life, turn tracking "
     .. "back on if nothing is being tracked. Turning it off yourself lasts until then."
-L.GATHERINGTRACKING_SWAP = "Swap Between Both"
-L.GATHERINGTRACKING_SWAP_DESC = "Swap between Find Minerals and Find Herbs while one of them is on. "
+L.GATHERINGTRACKING_TREASURE = "Find Treasure"
+L.GATHERINGTRACKING_TREASURE_DESC = "Keep the Dwarf's Find Treasure on too. It takes turns with the "
+    .. "tracking chosen above, or is the one kept on if you know neither."
+L.GATHERINGTRACKING_SWAP = "Swap Between Them"
+L.GATHERINGTRACKING_SWAP_DESC = "Swap between the tracking you chose while one of them is on. "
     .. "Waits during combat, casting, and flights."
 L.GATHERINGTRACKING_SWAP_EVERY_NAME = "Swap Every"
 L.GATHERINGTRACKING_SWAP_EVERY_DESC = "How long to wait between swaps."
@@ -186,6 +189,16 @@ L.AUTODECLINE_DECLINED_INVITE = "Declined a party invite from %s." -- player nam
 L.AUTODECLINE_DECLINED_GUILD_INVITE = "Declined a guild invite from %s." -- player name
 L.AUTODECLINE_DECLINED_CHARTER = "Declined a guild charter from %s." -- player name
 L.AUTODECLINE_SOMEONE = "someone"
+
+-- AutoConfirm
+L.AUTOCONFIRM_TITLE = "Auto Confirm"
+L.AUTOCONFIRM_DESC = "Answer Yes to the popup that asks before an enchant replaces the one an "
+    .. "item has, so leveling Enchanting takes one click an enchant."
+L.AUTOCONFIRM_REPLACE = "Replacing an Enchant"
+L.AUTOCONFIRM_REPLACE_DESC = "Confirm an enchant that replaces the one the item already has."
+L.AUTOCONFIRM_BIND = "Binding the Item"
+L.AUTOCONFIRM_BIND_DESC = "Confirm an enchant that binds the item to you. The item can't be "
+    .. "traded or sold at auction afterwards."
 
 -- AutoRelease
 L.AUTORELEASE_TITLE = "Auto Release"

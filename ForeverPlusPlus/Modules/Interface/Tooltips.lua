@@ -412,6 +412,31 @@ local function dropClickHint(frame)
     end
 end
 
+-- A chat tab's tooltip is its name and a green "<Right click for tab settings>", both added by
+-- the tab's OnEnter and not as tooltip data (FloatingChatFrame.xml, ChatTabTemplate). After it has
+-- run, the tooltip is set again to its first line alone. A tab's name is never secret here: the
+-- tab of a whisper window whose name is, shows no tooltip of ours to change.
+local function dropTabHint(tab)
+    if not module.db.hideClickHint or not GameTooltip:IsOwned(tab) then
+        return
+    end
+    local line = leftLine(GameTooltip, 1)
+    local title = line and line:GetText()
+    if ns.IsText(title, true) and GameTooltip:NumLines() > 1 then
+        GameTooltip:SetText(title, 1, 1, 1)
+        GameTooltip:Show()
+    end
+end
+
+-- Every chat window's tab, and those of windows added later.
+local function hookTab(frame)
+    local name = frame.GetName and frame:GetName()
+    local tab = name and _G[name .. "Tab"]
+    if tab then
+        module:HookScript(tab, "OnEnter", dropTabHint)
+    end
+end
+
 -- A world object's tooltip: the bobber's, while fishing.
 local function onObject(tooltip)
     if module.db.hideFishing and tooltip == GameTooltip and fishing() then
@@ -602,6 +627,7 @@ function module:OnEnable()
     -- GameTooltip_SetDefaultAnchor is Blizzard's for every default-placed tooltip.
     self:Hook("GameTooltip_SetDefaultAnchor", onDefaultAnchor)
     self:Hook("UnitFrame_UpdateTooltip", dropClickHint)
+    ns.Chat.EachWindow(self, hookTab)
     self:HookScript(GameTooltip, "OnTooltipCleared", unfade)
     self:HookScript(GameTooltip, "OnHide", unfade)
     fadeHealthBar(self.db.hideHealthBar)

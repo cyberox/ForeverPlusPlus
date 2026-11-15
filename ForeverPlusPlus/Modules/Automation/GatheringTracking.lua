@@ -1,19 +1,24 @@
--- Gathering Tracking: keeps Find Minerals and Find Herbs on. After login, zoning, and coming back
--- to life it turns one back on when nothing is being tracked, and it can swap between the two
--- every few seconds so both kinds of node show on the minimap. Only one tracking spell is on at a
--- time, so swapping is the only way to see both. Never in combat, on a flight, or while casting:
+-- Gathering Tracking: keeps Find Minerals and Find Herbs on, and a Dwarf's Find Treasure when
+-- asked. After login, zoning, and coming back to life it turns one back on when nothing is being
+-- tracked, and it can swap between them every few seconds so each kind shows on the minimap. Only
+-- one tracking spell is on at a time, so swapping is the only way to see more than one. Never in
+-- combat, on a flight, or while casting:
 -- tracking is a spell, and casting it would stop a cast or a channel such as mining or fishing.
 local _, ns = ...
 
 local ipairs, type, tostring, pcall = ipairs, type, tostring, pcall
 local format = string.format
 local C_Minimap, C_Timer = C_Minimap, C_Timer
-local GetTime = GetTime
+local GetTime, UnitRace = GetTime, UnitRace
 
 local L = ns.L
 
 local HERBS = ns.GameData.Spell(2383, "Find Herbs")
 local MINERALS = ns.GameData.Spell(2580, "Find Minerals")
+-- The Dwarf racial, Classic's ID. **Unverified** on Forever: no Dwarf checked it in game.
+local TREASURE = ns.GameData.Spell(2481, "Find Treasure")
+
+local OURS = { [HERBS] = true, [MINERALS] = true, [TREASURE] = true }
 
 -- Which spells each `track` choice uses, the one to turn back on first before the other.
 local SPELLS = {
@@ -31,6 +36,7 @@ local FASTEST = 3
 local module = ns.NewModule("GatheringTracking", L.GATHERINGTRACKING_DESC, {
     enabled = true,
     track = "both", -- a key of SPELLS
+    treasure = false, -- Find Treasure too, after the Track choice's spells
     reapply = true,
     swap = false,
     swapEvery = 10, -- seconds between swaps
@@ -57,6 +63,11 @@ ns.Migrate(1, function(db)
     old.swap = old.swap >= FASTEST
 end)
 
+-- Whether more than one spell is chosen, so there is something to swap between.
+local function severalChosen(db)
+    return db.track == "both" or db.treasure
+end
+
 module.options = {
     {
         key = "track",
@@ -69,15 +80,24 @@ module.options = {
         },
     },
     {
+        key = "treasure",
+        name = L.GATHERINGTRACKING_TREASURE,
+        description = L.GATHERINGTRACKING_TREASURE_DESC,
+        added = "1.7.0",
+        -- Only a Dwarf has the spell.
+        shown = function()
+            local _, race = UnitRace("player")
+            return race == "Dwarf"
+        end,
+    },
+    {
         key = "swap",
         name = L.GATHERINGTRACKING_SWAP,
         description = L.GATHERINGTRACKING_SWAP_DESC,
         slider = "swapEvery",
         changed = "0.9.0", -- a checkbox and its slider
-        -- Swapping is between the two, so only with both chosen.
-        shown = function(db)
-            return db.track == "both"
-        end,
+        -- Swapping needs more than one spell chosen.
+        shown = severalChosen,
     },
     {
         key = "swapEvery",
@@ -93,9 +113,7 @@ module.options = {
         description = L.GATHERINGTRACKING_MUTE_SWAP_DESC,
         requires = "swap",
         added = "1.6.0",
-        shown = function(db)
-            return db.track == "both"
-        end,
+        shown = severalChosen,
     },
     {
         key = "reapply",
@@ -121,12 +139,12 @@ local function scan()
     local index, ours, any = {}, nil, false
     ns.MinimapPins.EachTracking(function(info, i)
         local spellID = info.spellID
-        if spellID == HERBS or spellID == MINERALS then
+        if OURS[spellID] then
             index[spellID] = i
         end
         if info.active and (info.type == "spell" or (spellID and spellID > 0)) then
             any = true
-            if spellID == HERBS or spellID == MINERALS then
+            if OURS[spellID] then
                 ours = spellID
             end
         end
@@ -183,6 +201,18 @@ local WATCH = 12
 -- more, even with Turn Back On off, since the player just picked it.
 local switch = false
 
+-- The spells the options choose, in the order they take turns: Track's, then Find Treasure.
+local function chosenSpells()
+    local spells = {}
+    for _, spellID in ipairs(SPELLS[module.db.track] or SPELLS.both) do
+        spells[#spells + 1] = spellID
+    end
+    if module.db.treasure then
+        spells[#spells + 1] = TREASURE
+    end
+    return spells
+end
+
 local function chosen(spells, spellID)
     for _, id in ipairs(spells) do
         if id == spellID then
@@ -204,7 +234,7 @@ local function reapply()
     end
     local index, ours, any = scan()
     confirm(index, ours) -- in case the game's event for it came before the list showed it
-    local spells = SPELLS[module.db.track]
+    local spells = chosenSpells()
     if (not any and module.db.reapply) or (switch and ours and not chosen(spells, ours)) then
         local first
         for _, spellID in ipairs(spells) do
@@ -256,9 +286,22 @@ local function swap()
         return
     end
     local index, ours = scan()
-    -- Swap only while one of ours is on: off, or another tracker, is the player's choice.
-    local other = (ours == MINERALS and HERBS) or (ours == HERBS and MINERALS)
-    if other and module.db.track == "both" and index[other] then
+    -- Swap only while one of the chosen is on: off, or another tracker, is the player's choice.
+    -- The next chosen spell the player knows takes its turn.
+    local spells, other = chosenSpells(), nil
+    for at, spellID in ipairs(spells) do
+        if spellID == ours then
+            for step = 1, #spells - 1 do
+                local nextID = spells[(at + step - 1) % #spells + 1]
+                if index[nextID] then
+                    other = nextID
+                    break
+                end
+            end
+            break
+        end
+    end
+    if other then
         local mute = module.db.muteSwap
         if mute then
             ns.CVars.Set(module.db.saved, SFX, "0")
@@ -329,7 +372,7 @@ function module:OnOptionChanged(key)
         startSwapping()
     elseif key == "reapply" and self.db.reapply then
         request()
-    elseif key == "track" then
+    elseif key == "track" or key == "treasure" then
         switch = true
         request()
     end

@@ -29,6 +29,7 @@ Everything is on by default except where noted. Each module can be turned off, a
 
 ### Automation
 
+- **Auto Confirm**: Answers Yes when an enchant asks to replace the one an item has, and optionally when it would bind the item. Off by default.
 - **Auto Decline**: Turns down duel requests, and optionally party invites, guild invites, and guild charters, saying who asked. Friends and guildmates can be let through. Off by default.
 - **Auto Dismount**: Dismounts or stands you up when a spell, flight, loot, or attack fails because you're mounted or sitting. Can also leave shapeshift forms.
 - **Auto Gossip**: Picks an NPC's only option for you, so the bank, shop, trainer, or flight map opens straight away. Hold the Skip Key to choose yourself. Off by default.
@@ -42,7 +43,7 @@ Everything is on by default except where noted. Each module can be turned off, a
 - **Comprehend Scrolls**: For Mages: right-clicking a scroll that needs Comprehension casts Comprehend Scroll on it. Not in combat.
 - **Fishing Cast**: Double right-click with a fishing pole equipped to cast Fishing. Louder Bobber turns sound effects up while you fish. Never in combat. Off by default.
 - **Fast Loot**: With auto loot on, takes everything at once instead of waiting for the loot window.
-- **Gathering Tracking**: Keeps Find Minerals or Find Herbs on after logging in, zoning, or dying, and can swap between the two every few seconds, silently if you like.
+- **Gathering Tracking**: Keeps Find Minerals or Find Herbs on after logging in, zoning, or dying, and can swap between the two every few seconds, silently if you like. A Dwarf can add Find Treasure.
 - **Skip Cinematics**: Skips cinematics and movies you've already seen, or every one. Hold the Watch Key to watch. Off by default.
 - **Auto Quest**: Accepts quests and turns in finished ones as you talk to quest givers. Never picks a reward for you, and pauses while you hold Shift. Off by default.
 
@@ -50,7 +51,8 @@ Everything is on by default except where noted. Each module can be turned off, a
 
 - **Buff Timers**: Shows the time left under buffs and debuffs as a clock (1:23) instead of rounded minutes. Can sort buffs by time left and hide tracking buffs.
 - **Macros**: Makes the macros you turn on and keeps them up to date. Smart Buff casts the right buff at the best rank for your target (Might for Warriors, Wisdom for mana users, and so on), skipping buffs they already have. Off by default.
-- **Spell Ranks**: Marks action bar spells that have a higher rank you already know, and names the best rank in the tooltip. `/fpp ranks` lists them.
+- **Spell Ranks**: Marks action bar spells that have a higher rank you already know, and names the best rank in the tooltip. `/fpp ranks` lists them, and Use Highest Rank (off by default) swaps them for the best rank when you learn a spell.
+- **Train All**: Adds a Train All button to the trainer window that learns everything you can learn and afford. Off by default.
 - **XP Bar Text**: Shows your experience on the bar all the time, with the percent, rested XP, and the XP of quests ready to turn in. Its tooltip adds XP per hour and time to level.
 - **Character Window**: Moves the Equipment, Titles, and Pet tabs to the side, shows your name in class color as the title, and puts a durability bar beside each item. Can color the weapon skills you have equipped.
 - **Durability Warning**: Warns you once when worn gear drops below a durability you pick (25% by default), and again when it breaks: red text, and optionally a chat line and a sound.
@@ -74,6 +76,8 @@ Everything is on by default except where noted. Each module can be turned off, a
 - **Chat History**: Shows each chat window's latest lines again after a login or reload, except whispers.
 - **Chat Arrow Keys**: Up and Down in the chat box bring back what you sent, and Left and Right move through the text, without holding Alt.
 - **Social Button**: Moves the social (Quick Join) button down beside the chat window's other buttons.
+- **Hide Chat Buttons**: Hides the buttons beside the chat window until the mouse is over the chat. Off by default.
+- **Hide Combat Log Tab**: Takes the Combat Log's tab off the chat window. Off by default.
 - **Whisper Window**: Keeps whispers in a window like a messenger: conversations with unread counts on the left, the one you pick on the right, and a box to reply in. Opens from a chat button or `/fpp whispers`, and can hide whispers from chat. Off by default.
 
 ### Interface
@@ -85,7 +89,7 @@ Everything is on by default except where noted. Each module can be turned off, a
 - **Loot Rolls**: Place the Need, Greed, and Pass rolls in Edit Mode, with their direction and spacing. Each roll shows the seconds left and what your group picked. Off by default.
 - **Local Time**: While the clock's Use Local Time is on, the calendar and a few other realm times show in your own time.
 - **Movable Windows**: Hold a key (Shift by default) and drag Blizzard's windows where you want them, by the whole window or only its title bar, and hold Ctrl and scroll to resize one. Positions and sizes are kept always, for the session, or until the window closes. Off by default.
-- **Tooltips**: Colors unit and item tooltips by class, reaction, or quality, and adds player titles and who a unit is targeting. Can hide the health bar, quest lines, the unit frames' right-click hint, and the fishing bobber's tooltip.
+- **Tooltips**: Colors unit and item tooltips by class, reaction, or quality, and adds player titles and who a unit is targeting. Can hide the health bar, quest lines, the unit frames' and chat tabs' right-click hints, and the fishing bobber's tooltip.
 - **Movable Framerate**: Lets you move and resize the framerate text (Ctrl+R) in Edit Mode. Off by default.
 
 ### Items

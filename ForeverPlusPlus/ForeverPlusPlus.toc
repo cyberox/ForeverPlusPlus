@@ -125,6 +125,7 @@ Modules\Automation\AutoStow.lua
 Modules\Automation\AutoGossip.lua
 Modules\Quests\AutoQuest.lua
 Modules\Automation\AutoDecline.lua
+Modules\Automation\AutoConfirm.lua
 Modules\Automation\AutoRelease.lua
 Modules\Automation\SkipCinematics.lua
 Modules\Automation\AutoDismount.lua
@@ -133,6 +134,7 @@ Modules\Automation\AutoWeaponBuff.lua
 Modules\Automation\ComprehendScrolls.lua
 Modules\Automation\AutoScreenshot.lua
 Modules\Character\SpellRanks.lua
+Modules\Character\TrainAll.lua
 Modules\Character\BuffTimers.lua
 Modules\Character\Macros\Macros.lua
 Modules\Character\Macros\SmartBuff.lua
@@ -183,6 +185,8 @@ Modules\Chat\PersistentChat.lua
 Modules\Chat\ChatHistory.lua
 Modules\Chat\ChatArrowKeys.lua
 Modules\Chat\SocialButton.lua
+Modules\Chat\HideChatButtons.lua
+Modules\Chat\HideCombatLogTab.lua
 Modules\Chat\WhisperWindow\WhisperWindow.lua
 Modules\Chat\WhisperWindow\Window.lua
 Modules\Units\ClassColors.lua
