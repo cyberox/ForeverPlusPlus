@@ -132,24 +132,26 @@ module.options = {
 -- Named for what it says, beside the other chat line this module has (Say When Turned Back On).
 module.options[#module.options].name = L.GATHERINGTRACKING_CHAT
 
--- Reads the tracking list: the index of each of our spells the player knows, which of them is on,
--- and whether any tracking spell is on (a hunter's Track Beasts counts). Read every time, since it
--- changes as spells are learned. GetTrackingInfo has no secret values.
+-- Reads the tracking list: the index of each tracking spell the player knows, which of ours is
+-- on, whether any tracking spell is on (a hunter's Track Beasts counts), and which. Read every
+-- time, since it changes as spells are learned. GetTrackingInfo has no secret values.
 local function scan()
-    local index, ours, any = {}, nil, false
+    local index, ours, any, active = {}, nil, false, nil
     ns.MinimapPins.EachTracking(function(info, i)
         local spellID = info.spellID
-        if OURS[spellID] then
+        local spell = spellID and spellID > 0
+        if spell then
             index[spellID] = i
         end
-        if info.active and (info.type == "spell" or (spellID and spellID > 0)) then
+        if info.active and (info.type == "spell" or spell) then
             any = true
+            active = spell and spellID or active
             if OURS[spellID] then
                 ours = spellID
             end
         end
     end)
-    return index, ours, any
+    return index, ours, any, active
 end
 
 -- Whether casting a tracking spell now would fail or get in the way: in combat, dead, on a
@@ -160,6 +162,10 @@ end
 
 local blocked = false -- the client refused SetTracking from an addon; stop until /reload
 local last -- the last of our spells seen on, turned back on first
+-- Another tracking spell (a hunter's Track Beasts, Sense Undead, Sense Demons) when that was the
+-- last one seen on: dying takes it off too, and it's what the player chose, so Turn Back On puts
+-- it back in place of ours. Forgotten once one of ours is on.
+local lastOther
 local turnedOn -- the spell Turn Back On just asked for, until the game says it's on
 
 local function track(i)
@@ -232,12 +238,14 @@ local function reapply()
         timer:Start(RETRY, reapply)
         return
     end
-    local index, ours, any = scan()
-    confirm(index, ours) -- in case the game's event for it came before the list showed it
+    local index, ours, any, active = scan()
+    confirm(index, active) -- in case the game's event for it came before the list showed it
     local spells = chosenSpells()
     if (not any and module.db.reapply) or (switch and ours and not chosen(spells, ours)) then
-        local first
-        for _, spellID in ipairs(spells) do
+        -- Another tracking spell that was on last comes back before ours, unless the player
+        -- just changed which of ours to track.
+        local first = not switch and lastOther and index[lastOther] and lastOther or nil
+        for _, spellID in ipairs(first and {} or spells) do
             if index[spellID] then
                 if spellID == last then
                     first = spellID
@@ -330,9 +338,14 @@ end
 -- Events --------------------------------------------------------------------------------------
 
 local function onTrackingChanged()
-    local index, ours = scan()
+    local index, ours, _, active = scan()
     last = ours or last
-    confirm(index, ours)
+    if ours then
+        lastOther = nil
+    elseif active then
+        lastOther = active
+    end
+    confirm(index, active)
 end
 
 -- SetTracking may be protected on a later build; it then fails this way instead of erroring.

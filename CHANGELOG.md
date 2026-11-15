@@ -17,6 +17,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 ### Changed
 
+- **Gathering Tracking**: Turn Back On puts back another tracking spell, such as a hunter's Track Beasts, when that was the one on before you died.
 - **Flight Timer**: an estimate on the flight map's tooltip reads "Estimated Time:" with no ~ before it, and the Tooltip Line choices say what each looks like.
 - **Tooltips**: Hide Right-Click Hint is now Hide Right-Click Hints, and also takes the "Right click for tab settings" line off the chat tabs' tooltips.
 
