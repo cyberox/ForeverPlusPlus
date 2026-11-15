@@ -77,7 +77,6 @@ local module = ns.NewModule("GatheringMap", L.GATHERINGMAP_DESC, {
 })
 module.perCharacter = { hidden = true, hiddenKinds = true, hiddenWorld = true, hiddenMinimap = true }
 module.title = L.GATHERINGMAP_TITLE
-module.pageTitle = L.GATHERINGMAP_PAGE_TITLE
 module.category = "map"
 module.quickToggle = "gathering"
 module.added = "1.2.0"

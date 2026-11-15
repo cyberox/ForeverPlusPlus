@@ -62,3 +62,42 @@ end
 -- So a scan that finds nothing can't pass by itself.
 eq(total > 1000, true, "locales: the scan finds the strings the files use (" .. total .. ")")
 eq(strings.L.MOVABLEWINDOWS_TITLE, "Movable Windows", "locales: a string reads its English")
+
+-- Another language: every key it sets is one enUS has, with the same placeholders (in any order,
+-- since "%2$s of %1$s" may move them). A key enUS dropped, or a lost %s, is caught here.
+local function placeholders(text)
+    local found = {}
+    for kind in text:gsub("%%%%", ""):gmatch("%%%d*%$?[-+ #0]*%d*%.?%d*([a-zA-Z])") do
+        found[#found + 1] = kind
+    end
+    table.sort(found)
+    return table.concat(found)
+end
+local function problems(theirs, english)
+    local list = {}
+    for key, text in pairs(theirs) do
+        if english[key] == nil then
+            list[#list + 1] = key .. " isn't an enUS key"
+        elseif placeholders(text) ~= placeholders(english[key]) then
+            list[#list + 1] = key .. " has other placeholders"
+        end
+    end
+    table.sort(list)
+    return table.concat(list, ", ")
+end
+eq(placeholders("%2$s of %1$d, 50%%"), "ds", "locales: placeholders are read whatever their order")
+eq(problems({ A = "%s zu %d", B = "x", C = "%s" }, { A = "%d to %s", C = "%d" }),
+    "B isn't an enUS key, C has other placeholders", "locales: a language's mistakes are found")
+
+local languages = {} -- code -> its strings
+for _, path in ipairs(files) do
+    local code = path:match("^Locales/(%w+)/")
+    if code and code ~= "enUS" then
+        languages[code] = languages[code] or {}
+        local theirs = languages[code]
+        T.load(path:gsub("%.lua$", ""), { NewLocale = function() return theirs end })
+    end
+end
+for code, theirs in pairs(languages) do
+    eq(problems(theirs, strings.L), "", "locales: " .. code .. " matches enUS")
+end

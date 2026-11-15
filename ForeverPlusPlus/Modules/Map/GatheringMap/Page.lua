@@ -754,7 +754,7 @@ end
 
 function module:BuildPage(frame)
     ui = { headers = {}, rows = {}, tierRows = {}, frame = frame }
-    Kit.AddPageTitle(frame, module.pageTitle)
+    Kit.AddPageTitle(frame, module.title)
     Kit.AddSearchBox(frame, nil, L.GATHERINGMAP_PAGE_SEARCH, function(text)
         search = lower(text)
         refresh()

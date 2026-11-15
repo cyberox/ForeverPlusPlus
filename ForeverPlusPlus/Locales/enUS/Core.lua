@@ -2,6 +2,15 @@
 -- under Locales/enUS/. Another language gets a folder of its own (Locales/deDE/, ...) whose files
 -- start the same way with its own code, set only the keys they translate, and go in the TOC after
 -- these. Splitting by category, as the modules are, is a choice: one file per language works too.
+--
+-- For a translation:
+--   * Keep every %s and %d a string has. To change their order, number them: "%2$s of %1$s".
+--   * The same English under two keys is two places (an option's name and the tooltip line it
+--     adds, two dropdowns' "Off"), which another language may word differently. Each key says
+--     where it shows in its name or the comment beside it.
+--   * What only someone debugging the addon reads can stay English: everything in Tools.lua, and
+--     keys with DEBUG, DUMP, TRACE, DIAG, or PRINT in their name.
+--   * tests/spec/locales.lua checks a language's keys and placeholders against these.
 -- This file has the core's own text: the Lib helpers, /fpp, and the Settings pages.
 local _, ns = ...
 
@@ -118,7 +127,6 @@ L.CATEGORY_ITEMS = "Items"
 L.CATEGORY_MAP = "Map"
 L.CATEGORY_QUESTS = "Quests"
 L.CATEGORY_SYSTEM = "System"
-L.CATEGORY_TOOLS = "Tools" -- pages for finding problems: Console Variables, Profiler, Debug
 L.CATEGORY_UNITS = "Units" -- unit frames and nameplates
 L.CATEGORY_OTHER = "Other"
 L.DEBUG = "Debug"

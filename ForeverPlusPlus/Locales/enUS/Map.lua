@@ -162,7 +162,7 @@ L.ZONEINFO_FISHING_DESC = "The Fishing skill the zone's waters need: red while y
     .. "it's enough."
 L.ZONEINFO_HERBS = "Herbs"
 L.ZONEINFO_HERBS_DESC = "The herbs in the zone. With Herbalism they're colored against your skill "
-    .. "like Profession Tooltips."
+    .. "like Gathering Skill Tooltips."
 L.ZONEINFO_ORE = "Ore"
 L.ZONEINFO_ORE_DESC = "The ore in the zone. With Mining it's colored against your skill."
 L.ZONEINFO_SKINNING = "Skinning"
@@ -421,8 +421,8 @@ L.GATHERINGMAP_FORGET_ALL_CONFIRM = "Forget every node Gathering Map remembers, 
 L.GATHERINGMAP_CLEAR_LEARNED = "Learned Herbs and Veins"
 L.GATHERINGMAP_CLEAR_LEARNED_BUTTON = "Clear"
 L.GATHERINGMAP_CLEAR_LEARNED_DESC = "Forget the items and skills of the herbs and veins learned in "
-    .. "game (Profession Tooltips uses them too). The nodes you've gathered stay, and they're learned "
-    .. "again as you gather them."
+    .. "game (Gathering Skill Tooltips uses them too). The nodes you've gathered stay, and they're "
+    .. "learned again as you gather them."
 L.GATHERINGMAP_CLEAR_LEARNED_CONFIRM = "Forget every herb and vein Forever++ has learned?"
 L.GATHERINGMAP_CLEAR_LEARNED_DONE = "Learned herbs and veins cleared."
 L.GATHERINGMAP_FORGOT = "Forgot %d nodes." -- count
@@ -498,7 +498,6 @@ L.GATHERINGMAP_SECTION_WORLDMAP = "World Map"
 L.GATHERINGMAP_SECTION_TOOLTIPS = "Tooltips"
 L.GATHERINGMAP_SECTION_NODES = "Remembered Nodes" -- sharing and forgetting them, and Chat Messages
 -- Its own page in Settings: every node, with a checkbox to show or hide it
-L.GATHERINGMAP_PAGE_TITLE = "Gathering Map"
 L.GATHERINGMAP_PAGE_NOTE = "Uncheck a node or a whole kind to hide it on both maps for this "
     .. "character. Hidden nodes are still remembered, for all your characters, and come back when "
     .. "you check them again."
