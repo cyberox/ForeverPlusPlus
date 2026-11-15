@@ -292,12 +292,13 @@ L.FLIGHTTIMER_TOOLTIP_DESC = "How long the flight takes, on a flight point's too
     .. "map. Each route is timed on its own."
 L.FLIGHTTIMER_TIME = "Flight Time:"
 L.FLIGHTTIMER_TIME_LINE = "Flight Time: %s" -- a time like 2:05
+L.FLIGHTTIMER_ESTIMATED = "Estimated Time:" -- for a route not flown yet
+L.FLIGHTTIMER_ESTIMATED_LINE = "Estimated Time: %s"
 L.FLIGHTTIMER_ESTIMATES = "Estimated Times"
 L.FLIGHTTIMER_ESTIMATES_DESC = "Before you've flown a route, show the time the game's own flight "
-    .. "paths give it, marked with ~, until your own time replaces it. Within a second or two "
-    .. "without stops; rougher with stops."
-L.FLIGHTTIMER_ESTIMATE = "~%s" -- an estimated time like ~2:05
-L.FLIGHTTIMER_ESTIMATE_MARK = "~" -- the same mark alone, before the bar's time
+    .. "paths give it, until your own time replaces it: Estimated Time on the tooltip, and ~ "
+    .. "before the bar's time. Within a second or two without stops; rougher with stops."
+L.FLIGHTTIMER_ESTIMATE_MARK = "~" -- before the bar's time while it's an estimate
 L.FLIGHTTIMER_CHECK = "Check Estimates"
 L.FLIGHTTIMER_CHECK_BUTTON = "Check"
 L.FLIGHTTIMER_CHECK_DESC = "Print how far the estimated times of direct flights are from the times "
@@ -308,10 +309,11 @@ L.FLIGHTTIMER_CHECK_NONE = "No timed direct flight to check the estimates agains
 L.FLIGHTTIMER_CHECK_RESULT = "Estimates against %d timed direct flights: %+.1f%% off (median), "
     .. "worst %+.1f%% (%s). They flew %.1f yards a second; estimates use %d."
 L.FLIGHTTIMER_STYLE = "Tooltip Line"
-L.FLIGHTTIMER_STYLE_DESC = "How the flight time looks on the tooltip."
-L.FLIGHTTIMER_STYLE_DOUBLE = "Time at the Right"
-L.FLIGHTTIMER_STYLE_LINE = "One Line"
-L.FLIGHTTIMER_STYLE_GRAY = "One Gray Line"
+L.FLIGHTTIMER_STYLE_DESC = "How the flight time's line looks. It is always a line of its own, under "
+    .. "the cost."
+L.FLIGHTTIMER_STYLE_DOUBLE = "Time at the Right Edge"
+L.FLIGHTTIMER_STYLE_LINE = "Time After the Label"
+L.FLIGHTTIMER_STYLE_GRAY = "Time After the Label, Gray"
 L.FLIGHTTIMER_COLOR = "Bar Color"
 L.FLIGHTTIMER_COLOR_DESC = "The color of the timer bar."
 L.FLIGHTTIMER_COLOR_GOLD = "Gold"

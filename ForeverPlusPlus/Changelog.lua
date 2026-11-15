@@ -35,6 +35,9 @@ ns.changelog = {
                     .. "on and lets it take turns with Find Minerals and Find Herbs." },
             } },
             { L.CHANGELOG_CHANGED, {
+                { L.FLIGHTTIMER_TITLE, "an estimate on the flight map's tooltip reads \"Estimated "
+                    .. "Time:\" with no ~ before it, and the Tooltip Line choices say what each "
+                    .. "looks like." },
                 { L.TOOLTIPS_TITLE, "Hide Right-Click Hint is now Hide Right-Click Hints, and also "
                     .. "takes the \"Right click for tab settings\" line off the chat tabs' tooltips." },
                 { L.CHANGELOG_SETTINGS, "the About page is two columns. Links to CurseForge, Wago, "

@@ -17,6 +17,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 ### Changed
 
+- **Flight Timer**: an estimate on the flight map's tooltip reads "Estimated Time:" with no ~ before it, and the Tooltip Line choices say what each looks like.
 - **Tooltips**: Hide Right-Click Hint is now Hide Right-Click Hints, and also takes the "Right click for tab settings" line off the chat tabs' tooltips.
 
 - **Settings**: the About page is two columns. Links to CurseForge, Wago, the source, releases, and bug and feature reports are buttons that show the link to copy, with credits and the addons Forever++ works with under them. The commands have a search box, sit under the module that adds them, and a click starts one in chat. /way, /rl, and /clear are listed there and in /fpp help while they're on.

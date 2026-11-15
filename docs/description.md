@@ -116,7 +116,7 @@ Everything is on by default except where noted. Each module can be turned off, a
   - **Zone Info**: a panel with the zone's level range, faction, dungeons, and what can be gathered and fished there.
   - **Unexplored Areas**: shows the parts of a zone you haven't explored, tinted.
   - **Coordinates**: your and the cursor's coordinates in the map's title bar.
-- **Flight Timer**: Times your flights and shows a countdown bar (placed in Edit Mode) and the time on the flight map. A route you haven't flown shows an estimate, marked with ~.
+- **Flight Timer**: Times your flights and shows a countdown bar (placed in Edit Mode) and the time on the flight map. A route you haven't flown shows an estimate, marked as one.
 - **Gathering Map**: Remembers every herb, vein, chest, and fishing pool you gather, for all your characters, and shows them on the world map and minimap. Near you on the minimap a node becomes an empty ring, so the game's tracking dot shows inside it when the node is up. Pick which nodes show on its own Settings page, forget one with Shift+right-click, and share them as text with Export and Import.
 - **Hide Filter Reset**: Hides the reset button on the world map's filter dropdown.
 - **Square Minimap**: Makes the minimap square, with a border in Blizzard's art (a dozen styles, or none). Minimap buttons and icons follow the square edge. Off by default.

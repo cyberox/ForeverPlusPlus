@@ -169,14 +169,6 @@ local function flightTime(to, slot)
     end
 end
 
--- A time as the bar and tooltip show it, with "~" before an estimate.
-local function timeText(seconds, estimated)
-    if estimated then
-        return format(L.FLIGHTTIMER_ESTIMATE, clock(seconds))
-    end
-    return clock(seconds)
-end
-
 -- The flight underway ---------------------------------------------------------------------------
 
 -- { from, to, total, estimated, rough, name, asked, started, aborted, warned }, once one is asked
@@ -438,15 +430,18 @@ local function onTooltipShow(tooltip)
     if not time then
         return
     end
-    local text = timeText(time, estimated)
+    -- An estimate is named in the label, not marked with the bar's "~": in the tooltip's font the
+    -- mark sits high beside the digits, and a piece of a line can't be moved down.
+    local text = clock(time)
     adding = true
     local style = module.db.tooltipStyle
-    if style == "line" then
-        tooltip:AddLine(format(L.FLIGHTTIMER_TIME_LINE, text), 1, 1, 1)
-    elseif style == "gray" then
-        tooltip:AddLine(format(L.FLIGHTTIMER_TIME_LINE, text), 0.5, 0.5, 0.5)
+    if style == "line" or style == "gray" then
+        local shade = style == "gray" and 0.5 or 1
+        local line = estimated and L.FLIGHTTIMER_ESTIMATED_LINE or L.FLIGHTTIMER_TIME_LINE
+        tooltip:AddLine(format(line, text), shade, shade, shade)
     else
-        tooltip:AddDoubleLine(L.FLIGHTTIMER_TIME, text, 1, 1, 1, 1, 1, 1)
+        local label = estimated and L.FLIGHTTIMER_ESTIMATED or L.FLIGHTTIMER_TIME
+        tooltip:AddDoubleLine(label, text, 1, 1, 1, 1, 1, 1)
     end
     tooltip:Show() -- to fit the new line
     adding = false
