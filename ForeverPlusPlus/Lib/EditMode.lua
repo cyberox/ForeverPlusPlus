@@ -367,6 +367,17 @@ end
 
 local dialog
 
+-- A change made with one of the dialog's own controls: saved, then the dialog redrawn as it stands.
+-- While `adjusting`, the dialog isn't moved and its sliders aren't set up again: either would take
+-- the slider out from under the mouse and change the value once more.
+local adjusting = false
+local function adjust(set, value)
+    adjusting = true
+    call(set, value)
+    EditMode.Refresh()
+    adjusting = false
+end
+
 -- The keys held while the dialog is up, for Shift: the dialog keeps every key, as Blizzard's does.
 local downKeys = {}
 local NUDGE = { UP = { 0, 1 }, DOWN = { 0, -1 }, LEFT = { -1, 0 }, RIGHT = { 1, 0 } }
@@ -446,9 +457,8 @@ local function newDialog()
             function(_, value)
                 local info = selected and registered[selected]
                 if info and info.scale and not frame.refreshing then
-                    call(info.scale.set, value)
                     -- A frame that changes size changes what it snaps against.
-                    EditMode.Refresh()
+                    adjust(info.scale.set, value)
                 end
             end, frame)
     end
@@ -491,8 +501,7 @@ local function newSettingRow(setting)
         text:SetPoint("LEFT", box, "RIGHT", 2, 0)
         text:SetText(setting.name)
         box:SetScript("OnClick", function(self)
-            call(setting.set, self:GetChecked() and true or false)
-            EditMode.Refresh()
+            adjust(setting.set, self:GetChecked() and true or false)
         end)
         row.update = function() box:SetChecked(setting.get() and true or false) end
         return row
@@ -508,8 +517,7 @@ local function newSettingRow(setting)
             ns.Menus.SetupDropdown(dropdown, function(_, root)
                 for _, choice in ipairs(setting.choices) do
                     root:CreateRadio(choice[2], function() return setting.get() == choice[1] end, function()
-                        call(setting.set, choice[1])
-                        EditMode.Refresh()
+                        adjust(setting.set, choice[1])
                     end)
                 end
             end)
@@ -523,11 +531,13 @@ local function newSettingRow(setting)
         slider:SetWidth(200)
         slider:RegisterCallback(MinimalSliderWithSteppersMixin.Event.OnValueChanged, function(_, value)
             if not dialog.refreshing then
-                call(setting.set, value)
-                EditMode.Refresh()
+                adjust(setting.set, value)
             end
         end, row)
         row.update = function()
+            if adjusting then
+                return
+            end
             slider:Init(setting.get(), setting.min, setting.max, (setting.max - setting.min) / setting.step,
                 sliderLabels(setting))
         end
@@ -556,7 +566,9 @@ function refreshDialog()
     if dialog.slider then
         dialog.slider:SetShown(showSlider and true or false)
     end
-    if showSlider then
+    if showSlider and adjusting then
+        height = height + 40
+    elseif showSlider then
         dialog.refreshing = true
         local steps = (scale.max - scale.min) / scale.step
         local formatter = CreateMinimalSliderFormatter and MinimalSliderWithSteppersMixin.Label
@@ -603,22 +615,28 @@ function refreshDialog()
         height = height + 34
     end
     dialog:SetHeight(height + 20)
+    -- A change made in the dialog leaves it where it is: the frame it changed may be a new size,
+    -- and a dialog that followed would take the slider out from under the mouse.
+    if adjusting and dialog:IsShown() then
+        return
+    end
     -- Beside the frame on the side of the screen with room, and above it when it fills the width.
-    local cx, cy, width = box(frame)
+    -- Placed on the screen, not anchored to the frame, so it stays put as the frame is scaled.
+    local cx, cy, width, tall = box(frame)
     dialog:ClearAllPoints()
     if cx then
         local left = cx - width / 2
         local right = UIParent:GetWidth() - (cx + width / 2)
         if left >= dialog:GetWidth() + 10 or right >= dialog:GetWidth() + 10 then
             if right >= left then
-                dialog:SetPoint("LEFT", frame, "RIGHT", 10, 0)
+                dialog:SetPoint("LEFT", UIParent, "BOTTOMLEFT", cx + width / 2 + 10, cy)
             else
-                dialog:SetPoint("RIGHT", frame, "LEFT", -10, 0)
+                dialog:SetPoint("RIGHT", UIParent, "BOTTOMLEFT", cx - width / 2 - 10, cy)
             end
         elseif cy > UIParent:GetHeight() / 2 then
-            dialog:SetPoint("TOP", frame, "BOTTOM", 0, -10)
+            dialog:SetPoint("TOP", UIParent, "BOTTOMLEFT", cx, cy - tall / 2 - 10)
         else
-            dialog:SetPoint("BOTTOM", frame, "TOP", 0, 10)
+            dialog:SetPoint("BOTTOM", UIParent, "BOTTOMLEFT", cx, cy + tall / 2 + 10)
         end
     else
         dialog:SetPoint("CENTER")

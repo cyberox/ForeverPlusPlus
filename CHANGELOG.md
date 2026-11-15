@@ -17,6 +17,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 - **Auto Weapon Buff** and **Comprehend Scrolls**: with a bag addon that keeps Blizzard's bags open but out of sight, an item no longer sits unseen where Blizzard's bag would be, showing its tooltip through other windows.
 - **Movable Windows**: the last word of a wrapped tooltip line, such as a Waylaid Crate's "Use:" line in a moved bag, no longer hops between two lines while you hover.
+- In Edit Mode, the settings box of one of Forever++'s frames stays put while you change its scale. It followed the frame as it grew, pulling the slider out from under the mouse so the value jittered.
 - **Gathering Tracking**: Mute Swap Sound no longer cuts every other sound for a moment at each swap.
 
 ## 1.6.0 (2026-11-14)

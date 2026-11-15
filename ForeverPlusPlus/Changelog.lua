@@ -35,6 +35,9 @@ ns.changelog = {
                 { L.MOVABLEWINDOWS_TITLE, "the last word of a wrapped tooltip line, such as a Waylaid "
                     .. "Crate's \"Use:\" line in a moved bag, no longer hops between two lines "
                     .. "while you hover." },
+                "In Edit Mode, the settings box of one of Forever++'s frames stays put while you "
+                    .. "change its scale. It followed the frame as it grew, pulling the slider out "
+                    .. "from under the mouse so the value jittered.",
                 { L.GATHERINGTRACKING_TITLE, "Mute Swap Sound no longer cuts every other sound for "
                     .. "a moment at each swap." },
             } },
