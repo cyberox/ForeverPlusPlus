@@ -410,12 +410,15 @@ local function nodeOfOwner(owner)
     if owner.nodeID then
         return owner.nodeID
     end
-    -- Only the old map's own buttons (TaxiButtonN on TaxiRouteMap): a bag slot or action button
-    -- has an ID too.
-    local routes = _G.TaxiRouteMap
-    if TaxiFrame and TaxiFrame:IsShown() and routes and owner.GetID and owner.GetParent
-        and owner:GetParent() == routes then
-        return nodeOfSlot[owner:GetID()]
+    -- Only the old map's own buttons, TaxiButtonN: a bag slot or action button has an ID too.
+    -- Found by name, not by parent: Blizzard makes them on TaxiRouteMap, but their template's own
+    -- parent (TaxiFrame) wins, so GetParent isn't the frame they were made on (Cameron, build
+    -- 70938, 2026-11-15).
+    if TaxiFrame and TaxiFrame:IsShown() and owner.GetID then
+        local slot = owner:GetID()
+        if slot and _G["TaxiButton" .. slot] == owner then
+            return nodeOfSlot[slot]
+        end
     end
 end
 

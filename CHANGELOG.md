@@ -24,6 +24,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 ### Fixed
 
 - **Settings**: the Changelog page's By Module view lists Commands notes at the top with General and Settings, not under Other.
+- **Flight Timer**: the flight map's tooltips show flight times again.
 - **Quest Pins**: a Skyborne no longer sees quests meant for another race of its side, such as a Dwarf's. Thanks to cyberox.
 
 ## 1.6.1 (2026-11-14)
