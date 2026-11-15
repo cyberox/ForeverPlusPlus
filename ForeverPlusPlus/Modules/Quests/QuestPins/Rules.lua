@@ -19,11 +19,15 @@ local HOLIDAY = ns.GameData.New("questPinsHolidaySorts", { [404] = true, [402] =
     [41] = true, [22] = true, [21] = true }, { label = "Quest Pins: holiday quest categories" })
 local WAR_EFFORT = 365
 
--- The bits of QuestieDB's race mask each side's races have: the race ID less one for Classic's
--- eight, and bits 33 and 34 for Forever's two new races (its Forever masks use them; which race
--- IDs the client gives those isn't checked). A race past the eight is judged by its side's bits.
+-- QuestieDB's race mask: the race ID's own bit for Classic's eight, and bits 33 and 34 for
+-- Forever's two Skyborne races, 95 (Alliance) and 96 (Horde), as its raceMaskById has them
+-- (QuestieDB src/corrections/enum/expansions.lua, read 2026-11-15). Its Forever data sets a
+-- Skyborne's bit on every quest one can take: all 3461 quests for a whole side have it, and so do
+-- class quests shared with another race (a Night Elf's druid quests), counted in its data at
+-- build commit 4dbb8244. So the bit alone decides. By race ID, not by side: the side isn't
+-- always known (early in login), and a guess there would hide or show every quest.
 local CLASSIC_RACES = 8
-local SIDE_BITS = { Alliance = { 1, 3, 4, 7, 33 }, Horde = { 2, 5, 6, 8, 34 } }
+local NEW_RACE_BITS = { [95] = 33, [96] = 34 }
 
 -- The client's quest tags for a dungeon or a raid (Classic's: Dungeon, Raid, Heroic, Raid 10 and
 -- 25, Scenario).
@@ -35,22 +39,14 @@ local function inMask(mask, id)
     return floor(mask / 2 ^ (id - 1)) % 2 == 1
 end
 
--- Whether a race mask has the player's race: by its own bit, or for a race past Classic's eight,
--- by any bit of its side. A side the game doesn't name lets the quest show.
+-- Whether a race mask has the player's race, by its own bit. Never by another race of its side: a
+-- Dwarf's quest isn't a Skyborne's. A race the masks have no bit for lets the quest show.
 local function raceInMask(mask, race)
     if race <= CLASSIC_RACES then
         return inMask(mask, race)
     end
-    local bits = SIDE_BITS[UnitFactionGroup("player") or ""]
-    if not bits then
-        return true
-    end
-    for _, bit in ipairs(bits) do
-        if inMask(mask, bit) then
-            return true
-        end
-    end
-    return false
+    local bit = NEW_RACE_BITS[race]
+    return not bit or inMask(mask, bit)
 end
 
 local function isInstance(id, info)

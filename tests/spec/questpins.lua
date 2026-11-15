@@ -141,17 +141,25 @@ same(check(quest(55, { all = { 997 } })), { false, "prerequisite" }, "rules: a p
 same(check(quest(60, { races = 2 })), { true }, "rules: an orc's quest (bit 2)")
 same(check(quest(61, { races = 1 })), { false, "race" }, "rules: a human's quest")
 same(check(quest(62, { races = 2 + 16 + 32 + 128 })), { true }, "rules: a Horde races mask")
--- A new race (past the eight) is judged by its side's bits, 33 for Alliance and 34 for Horde.
-me.race = 70
-same(check(quest(63, { races = 2 ^ 33 })), { true }, "rules: a new Horde race by bit 34")
-same(check(quest(64, { races = 2 ^ 32 })), { false, "race" }, "rules: a new Horde race against bit 33")
-same(check(60), { true }, "rules: a new Horde race by any Horde bit")
-same(check(61), { false, "race" }, "rules: a new Horde race against an Alliance mask")
-player.faction = "Alliance"
-same(check(64), { true }, "rules: a new Alliance race by bit 33")
+-- A Skyborne (95 Alliance, 96 Horde) by its own bit, 33 or 34, and nothing else.
+me.race = 96
+same(check(quest(63, { races = 2 ^ 33 })), { true }, "rules: a Horde Skyborne by bit 34")
+same(check(quest(64, { races = 2 ^ 32 })), { false, "race" }, "rules: a Horde Skyborne against bit 33")
+same(check(60), { false, "race" }, "rules: an orc's quest isn't a Horde Skyborne's")
+same(check(62), { false, "race" }, "rules: nor one for every Classic Horde race without bit 34")
+same(check(quest(66, { races = 2 + 16 + 32 + 128 + 2 ^ 33 })), { true }, "rules: the whole Horde's mask, as QuestieDB has it")
+same(check(61), { false, "race" }, "rules: a Horde Skyborne against an Alliance mask")
+me.race = 95
+same(check(64), { true }, "rules: an Alliance Skyborne by bit 33")
+same(check(quest(65, { races = 4 })), { false, "race" }, "rules: a dwarf's quest isn't an Alliance Skyborne's")
+same(check(quest(67, { races = 8 + 2 ^ 32 })), { true }, "rules: a class quest shared with night elves (QuestieDB's 4294967304)")
+same(check(quest(68, { races = 2 ^ 32 + 2 ^ 33 })), { true }, "rules: a quest for both Skyborne")
 player.faction = nil
-same(check(61), { true }, "rules: a side the game doesn't name keeps the quest shown")
+same(check(64), { true }, "rules: a Skyborne's quests don't wait on the side being known")
+same(check(65), { false, "race" }, "rules: nor does hiding another race's")
 player.faction = "Horde"
+me.race = 70
+same(check(61), { true }, "rules: a race the masks have no bit for keeps the quest shown")
 me.race = 2
 
 -- Class.

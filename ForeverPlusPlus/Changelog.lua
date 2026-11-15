@@ -20,6 +20,10 @@ ns.changelog = {
                     .. "and Sell At picks where Estimated Profit counts the item as sold: the "
                     .. "auction house, a vendor, or whichever pays more." },
             } },
+            { L.CHANGELOG_FIXED, {
+                { L.QUESTPINS_TITLE, "a Skyborne no longer sees quests meant for another race "
+                    .. "of its side, such as a Dwarf's. Thanks to cyberox." },
+            } },
         },
     },
     {
