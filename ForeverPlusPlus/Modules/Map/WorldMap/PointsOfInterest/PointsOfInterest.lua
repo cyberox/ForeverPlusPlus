@@ -85,13 +85,13 @@ for _, rows in ipairs({
     -- or hands the dungeon to the addon that draws them.
     { section = INSTANCES, {
         key = "dungeonMaps", name = L.POI_DUNGEON_MAPS, description = L.POI_DUNGEON_MAPS_DESC,
-        added = "1.6.0", changed = "1.7.0", available = ns.DungeonMaps.Has,
+        added = "1.6.0", changed = "1.6.1", available = ns.DungeonMaps.Has,
         needs = format(L.SETTINGS_NEEDS_ADDON, "DungeonJournal"),
     }, {
         -- Ours first unless the player would sooner have DungeonJournal's, which has bosses on
         -- it. Either way the other is used for a dungeon the first has no map of.
         key = "dungeonMapsFirst", name = L.POI_DUNGEON_MAPS_FIRST,
-        description = L.POI_DUNGEON_MAPS_FIRST_DESC, requires = "dungeonMaps", added = "1.7.0",
+        description = L.POI_DUNGEON_MAPS_FIRST_DESC, requires = "dungeonMaps", added = "1.6.1",
         choices = {
             { "game", L.POI_DUNGEON_MAPS_FIRST_GAME },
             { "journal", L.POI_DUNGEON_MAPS_FIRST_JOURNAL },
@@ -112,12 +112,12 @@ for _, rows in ipairs({
     { section = TRAVEL, kind("ships", "shipSize", L.POI_SHIPS, L.POI_SHIPS_DESC) },
     { section = TRAVEL, kind("zeppelins", "zeppelinSize", L.POI_ZEPPELINS, L.POI_ZEPPELINS_DESC) },
     { section = TRAVEL, {
-        key = "trams", name = L.POI_TRAMS, description = L.POI_TRAMS_DESC, added = "1.7.0",
+        key = "trams", name = L.POI_TRAMS, description = L.POI_TRAMS_DESC, added = "1.6.1",
     } },
     -- As Dungeon Maps is for dungeons: the click can be turned off, for a map that stays put.
     { section = TRAVEL, {
         key = "travelClicks", name = L.POI_TRAVEL_CLICKS, description = L.POI_TRAVEL_CLICKS_DESC,
-        added = "1.7.0",
+        added = "1.6.1",
     } },
     -- After the travel points it's about.
     { section = TRAVEL,

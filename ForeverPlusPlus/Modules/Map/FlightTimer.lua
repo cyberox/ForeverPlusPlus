@@ -61,7 +61,7 @@ module.options = {
     -- In Edit Mode, where the bar is on screen to see the color on.
     {
         key = "barColor", name = L.FLIGHTTIMER_COLOR, description = L.FLIGHTTIMER_COLOR_DESC,
-        editMode = true, added = "1.7.0",
+        editMode = true, added = "1.6.1",
         choices = {
             { "gold", L.FLIGHTTIMER_COLOR_GOLD },
             { "class", L.FLIGHTTIMER_COLOR_CLASS },

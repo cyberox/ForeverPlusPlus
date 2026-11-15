@@ -10,7 +10,7 @@ local L = ns.L
 
 ns.changelog = {
     {
-        version = L.CHANGELOG_UNRELEASED,
+        version = "1.6.1", date = "2026-11-14",
         sections = {
             { L.CHANGELOG_ADDED, {
                 { L.WORLDMAP_TITLE, "Points of Interest shows the Deeprun Tram's stations in "
@@ -34,6 +34,8 @@ ns.changelog = {
                 "Auto Weapon Buff and Comprehend Scrolls: with a bag addon that keeps Blizzard's "
                     .. "bags open but out of sight, an item no longer sits unseen where Blizzard's "
                     .. "bag would be, showing its tooltip through other windows.",
+                { L.COMPREHENDSCROLLS_TITLE, "every Mage gets the right-click on an undeciphered "
+                    .. "scroll. It could do nothing when the game didn't report the spell as known." },
                 { L.MOVABLEWINDOWS_TITLE, "the last word of a wrapped tooltip line, such as a Waylaid "
                     .. "Crate's \"Use:\" line in a moved bag, no longer hops between two lines "
                     .. "while you hover." },
