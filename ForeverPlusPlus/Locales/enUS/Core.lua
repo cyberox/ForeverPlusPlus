@@ -297,16 +297,7 @@ L.CHANGELOG_SETTINGS = "Settings"
 L.CHANGELOG_COMMANDS = "Commands"
 
 -- Settings: the About page
-L.HOME_WELCOME = "Welcome to %s" -- addon title
 L.HOME_TAGLINE = "Small additions and changes to the default UI for WoW Forever."
-L.HOME_VERSION = "Version %s by %s" -- version, author
-L.HOME_THANKS = "Thanks to %s" -- the contributors, each as HOME_CREDIT, joined by commas
-L.HOME_CREDIT = "%s (%s)" -- contributor's name, what they added
-L.HOME_INTRO = "Each module is one small change to Blizzard's interface, made to look like it "
-    .. "shipped with the game. Turn them on and off on the Modules page, and click one there to "
-    .. "see what it does and its options. Settings are saved for your whole account, and the "
-    .. "Profiles page gives characters sets of their own."
-L.HOME_MODULES_ON = "%d of %d modules on" -- on, total
 L.HOME_DEFAULTS = "Defaults"
 -- The popup of the Defaults button at the top right of the Modules, Changelog, and About pages
 L.DEFAULTS_ASK = "Put all Forever++ settings back to defaults? This replaces your current "
@@ -315,11 +306,23 @@ L.DEFAULTS_DEVELOPER = "Developer's Defaults"
 L.DEFAULTS_RECOMMENDED = "Recommended Defaults"
 L.HOME_GAME_BUILD = "Game %s (build %s, interface %s)" -- version, build, interface
 L.HOME_LINKS = "Links"
-L.HOME_WEBSITE = "Website"
-L.HOME_ISSUES = "Feedback"
-L.HOME_COPY = "Select the link and press Ctrl+C to copy it."
-L.HOME_REQUESTS = "Want something changed or a new feature? Ask for it at the link above."
+L.HOME_LINK_CURSEFORGE = "CurseForge"
+L.HOME_LINK_WAGO = "Wago"
+L.HOME_LINK_SOURCE = "Source"
+L.HOME_LINK_RELEASES = "Releases"
+L.HOME_LINK_BUG = "Report a Bug"
+L.HOME_LINK_REQUEST = "Request"
+L.HOME_LINK_HINT = "Click one for its link to copy."
+L.HOME_COPY = "Press Ctrl+C to copy the link."
+L.HOME_CREDITS = "Credits"
+L.HOME_AUTHOR = "Author"
+L.HOME_WORKS_WITH = "Works With"
+L.HOME_QUEST_DATA ="Quest data for %s" -- the modules that read QuestieDB
+L.HOME_SUPPORT = "Extra support in %s" -- the module or option another addon adds to
 L.HOME_COMMANDS = "Commands"
+L.HOME_COMMANDS_GENERAL = "General" -- the commands no one module owns
+L.HOME_COMMANDS_SEARCH = "Search"
+L.HOME_COMMANDS_HINT = "<Click to type a command in chat>"
 
 -- Edit Mode dialog for our own frames (Lib/EditMode.lua)
 L.EDITMODE_SCALE = "Scale"

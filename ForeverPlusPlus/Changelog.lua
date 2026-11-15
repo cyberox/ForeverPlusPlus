@@ -20,6 +20,13 @@ ns.changelog = {
                     .. "and Sell At picks where Estimated Profit counts the item as sold: the "
                     .. "auction house, a vendor, or whichever pays more." },
             } },
+            { L.CHANGELOG_CHANGED, {
+                { L.CHANGELOG_SETTINGS, "the About page is two columns. Links to CurseForge, Wago, "
+                    .. "the source, releases, and bug and feature reports are buttons that show the "
+                    .. "link to copy, with credits and the addons Forever++ works with under them. "
+                    .. "The commands have a search box, sit under the module that adds them, and a "
+                    .. "click starts one in chat." },
+            } },
             { L.CHANGELOG_FIXED, {
                 { L.QUESTPINS_TITLE, "a Skyborne no longer sees quests meant for another race "
                     .. "of its side, such as a Dwarf's. Thanks to cyberox." },

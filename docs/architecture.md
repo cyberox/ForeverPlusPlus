@@ -386,7 +386,7 @@ What each module is, in the code's terms (what it does for players is in `README
 
 - The Settings pages.
 - `Settings.lua` has Modules as the top Forever++ entry (a list of the modules with a checkbox each, grouped under a label per category, and the selected one's description and options beside it), a page per module `BuildPage`, and what the other pages share (`ns.SettingsUI`).
-- `Profiles.lua` the Profiles page right after it (this character's and new characters' profile, the profiles with who uses each, the preset each is based on (Based On), their characters, and Export and Import), `Debug.lua` draws the Debug module's page, and `Changelog.lua` and `About.lua` (version, links, commands) the rest.
+- `Profiles.lua` the Profiles page right after it (this character's and new characters' profile, the profiles with who uses each, the preset each is based on (Based On), their characters, and Export and Import), `Debug.lua` draws the Debug module's page, and `Changelog.lua` and `About.lua` (version, link buttons, credits, the addons we work with, and the searchable commands) the rest.
 
 ## CI and releases (`check.yml`)
 

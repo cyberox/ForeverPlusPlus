@@ -305,22 +305,29 @@ SlashCmdList.FOREVERPLUSPLUS = function(message)
     end
 end
 
+-- A line of ns.Commands: the whole text and its description, and for the About page the command
+-- alone, what follows it, and the module it needs.
+local function commandLine(command, usage, description, owner)
+    local text = usage ~= "" and command .. " " .. usage or command
+    return { text, description, command = command, usage = usage, owner = owner }
+end
+
 ---Every /fpp command, built in and added by modules, for help text and the About page.
----@return table lines { { "/fpp ...", description }, ... }
+---@return table lines { { "/fpp ...", description, command = "/fpp ...", usage = "", owner = module name? }, ... }
 function ns.Commands()
     local lines = {
-        { "/fpp, /forever++", L.SLASH_OPEN },
-        { "/fpp list", L.SLASH_LIST },
-        { "/fpp toggle <module> [option]", L.SLASH_TOGGLE },
-        { "/fpp options <module>", L.SLASH_OPTIONS },
-        { "/fpp set <module> <option> [value]", L.SLASH_SET },
-        { "/fpp reset", L.SLASH_RESET },
+        commandLine("/fpp", "", L.SLASH_OPEN),
+        commandLine("/fpp list", "", L.SLASH_LIST),
+        commandLine("/fpp toggle", "<module> [option]", L.SLASH_TOGGLE),
+        commandLine("/fpp options", "<module>", L.SLASH_OPTIONS),
+        commandLine("/fpp set", "<module> <option> [value]", L.SLASH_SET),
+        commandLine("/fpp reset", "", L.SLASH_RESET),
     }
+    lines[1][1] = "/fpp, /forever++"
     for _, name in ipairs(commandOrder) do
         local info = commands[name]
         if commandOn(info) then
-            local usage = info.usage ~= "" and " " .. info.usage or ""
-            lines[#lines + 1] = { format("/fpp %s%s", name, usage), info.description }
+            lines[#lines + 1] = commandLine("/fpp " .. name, info.usage, info.description, info.owner)
         end
     end
     return lines
