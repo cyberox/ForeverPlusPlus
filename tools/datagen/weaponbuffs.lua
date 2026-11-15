@@ -1,0 +1,119 @@
+-- Lib/Generated/WeaponBuffs.lua: the items that put a temporary buff on a weapon (sharpening
+-- stones, weightstones, oils, poisons, fishing lures, Forever's imbue scrolls and stones), and
+-- the kinds of weapon each goes on.
+--
+-- An item's use spell is ItemXItemEffect -> ItemEffect (TriggerType 0, on use) -> SpellID. It is
+-- one of these when a SpellEffect of that spell has Effect 54 (enchant item, temporary) or 360
+-- (what Forever's poisons, imbue scrolls, and Warlock stones use; 53 is a permanent enchant and
+-- left out), and SpellEquippedItems says the spell needs a weapon (EquippedItemClass 2).
+--
+-- What's written for an item is that row's EquippedItemSubclass: a mask of weapon subclasses
+-- (bit n is Enum.ItemWeaponSubclass n). A row with no subclass mask names inventory types
+-- instead (EquippedItemInvTypes): one that takes weapons gets ANY_MELEE, the mask oils have, and
+-- one for shields alone is left out. Also left out: items ItemSparse has no row for (no name to
+-- tell a test item by), test items and spells, and items that are worn themselves (a fishing hat
+-- with a lure).
+local CSV = require("csv")
+local Lua = require("luaout")
+
+local M = {
+    path = "ForeverPlusPlus/Lib/Generated/WeaponBuffs.lua",
+    tables = { "ItemSparse", "ItemEffect", "ItemXItemEffect", "SpellEffect", "SpellEquippedItems", "SpellName" },
+}
+
+local Int = CSV.Int
+
+local ON_USE = 0 -- ItemEffect.TriggerType
+local TEMPORARY = { [54] = true, [360] = true } -- SpellEffect.Effect
+local WEAPON = 2 -- Enum.ItemClass.Weapon
+local SHIELD_ONLY = 2 ^ 14 -- EquippedItemInvTypes: Enum.InventoryType.IndexShieldType alone
+local ANY_MELEE = 173555 -- the subclass mask of Shadow Oil's spell: every melee weapon
+
+local function test(name)
+    return name:find("^%[DNT%]") or name:find("^Deprecated") or name:find("Test") or name:find("DONOTREUSE")
+end
+
+-- For summary.lua: an item line's key (its ID) and the line itself.
+function M.Entry(line)
+    local id = line:match("^    %[(%d+)%] = %d+,")
+    if id then
+        return "item " .. id, line
+    end
+end
+
+function M.Build(t, build, script)
+    local temporary = {} -- spell ID -> true
+    for _, row in ipairs(CSV.Records(t.SpellEffect, "SpellEffect", { "SpellID", "Effect" })) do
+        if TEMPORARY[Int(row.Effect, "Effect")] then
+            temporary[Int(row.SpellID, "SpellEffect.SpellID")] = true
+        end
+    end
+    for _, row in ipairs(CSV.Records(t.SpellName, "SpellName", { "ID", "Name_lang" })) do
+        if test(row.Name_lang) then
+            temporary[Int(row.ID, "SpellName.ID")] = nil
+        end
+    end
+
+    local kinds = {} -- spell ID -> mask of weapon subclasses
+    for _, row in ipairs(CSV.Records(t.SpellEquippedItems, "SpellEquippedItems",
+        { "SpellID", "EquippedItemClass", "EquippedItemInvTypes", "EquippedItemSubclass" })) do
+        local spell = Int(row.SpellID, "SpellEquippedItems.SpellID")
+        if temporary[spell] and Int(row.EquippedItemClass, "EquippedItemClass") == WEAPON then
+            local mask = Int(row.EquippedItemSubclass, "EquippedItemSubclass")
+            if mask == 0 and Int(row.EquippedItemInvTypes, "EquippedItemInvTypes") ~= SHIELD_ONLY then
+                mask = ANY_MELEE
+            end
+            kinds[spell] = mask > 0 and mask or nil
+        end
+    end
+
+    local spells = {} -- item effect ID -> its on-use spell, when that is one of `kinds`
+    for _, row in ipairs(CSV.Records(t.ItemEffect, "ItemEffect", { "ID", "TriggerType", "SpellID" })) do
+        local spell = Int(row.SpellID, "ItemEffect.SpellID")
+        if Int(row.TriggerType, "TriggerType") == ON_USE and kinds[spell] then
+            spells[Int(row.ID, "ItemEffect.ID")] = spell
+        end
+    end
+
+    local items = {} -- item ID -> { name, worn }
+    for _, row in ipairs(CSV.Records(t.ItemSparse, "ItemSparse", { "ID", "Display_lang", "InventoryType" })) do
+        items[Int(row.ID, "ItemSparse.ID")] = {
+            name = row.Display_lang,
+            worn = Int(row.InventoryType, "InventoryType") ~= 0,
+        }
+    end
+
+    local list, seen = {}, {}
+    for _, row in ipairs(CSV.Records(t.ItemXItemEffect, "ItemXItemEffect", { "ItemEffectID", "ItemID" })) do
+        local spell = spells[Int(row.ItemEffectID, "ItemEffectID")]
+        local id = Int(row.ItemID, "ItemID")
+        local item = items[id]
+        if spell and item and not item.worn and not test(item.name) and not seen[id] then
+            seen[id] = true
+            list[#list + 1] = { id = id, name = item.name, kind = kinds[spell] }
+        end
+    end
+    table.sort(list, function(a, b)
+        return a.id < b.id
+    end)
+
+    local out = {
+        "-- The items that put a temporary buff on a weapon, by item ID, and the weapons each goes on: a",
+        "-- mask of weapon subclasses (bit n is Enum.ItemWeaponSubclass n; 1048576 is a fishing pole). From",
+        "-- the game's ItemEffect, SpellEffect (Effect 54 or 360), and SpellEquippedItems tables.",
+        "--",
+        "-- Generated by " .. script .. " from wago.tools' tables for build " .. build .. ".",
+        "-- Don't edit it by hand: run the script again after a patch.",
+        "local _, ns = ...",
+        "",
+        "ns.TableData = ns.TableData or {}",
+        "ns.TableData.weaponBuffs = {",
+    }
+    for _, entry in ipairs(list) do
+        out[#out + 1] = ("    [%d] = %d, -- %s"):format(entry.id, entry.kind, Lua.Comment(entry.name))
+    end
+    out[#out + 1] = "}"
+    return table.concat(out, "\n") .. "\n"
+end
+
+return M

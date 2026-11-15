@@ -171,4 +171,21 @@ eq(boxes[4632], 1, "lockboxes: Ornate Bronze Lockbox")
 eq(boxes[16885], 250, "lockboxes: Heavy Junkbox, 250 in the tables")
 eq(boxes[227937], 175, "lockboxes: Forever's Puzzle Box")
 eq(boxes[241233], nil, "lockboxes: test items left out")
+
+-- Comprehend Scrolls' and Auto Weapon Buff's seeds, generated from the client's tables.
+T.load("Lib/Generated/ComprehendScrolls")
+T.load("Lib/Generated/WeaponBuffs")
+eq(ns.TableData.comprehendScrolls[211780], true, "scrolls: a Comprehension scroll")
+local buffs = ns.TableData.weaponBuffs
+local function takes(itemID, subclass)
+    local mask = buffs[itemID]
+    return mask ~= nil and math.floor(mask / 2 ^ subclass) % 2 == 1
+end
+eq(takes(2862, 7), true, "weapon buffs: a sharpening stone goes on a sword")
+eq(takes(2862, 4), false, "weapon buffs: a sharpening stone doesn't go on a mace")
+eq(takes(3239, 4), true, "weapon buffs: a weightstone goes on a mace")
+eq(takes(6947, 15), true, "weapon buffs: Instant Poison goes on a dagger")
+eq(takes(6947, 20), false, "weapon buffs: a poison doesn't go on a fishing pole")
+eq(takes(6529, 20), true, "weapon buffs: a lure goes on a fishing pole")
+eq(buffs[259846], nil, "weapon buffs: a worn item (the fishing hat) is left out")
 ns.db = savedDB

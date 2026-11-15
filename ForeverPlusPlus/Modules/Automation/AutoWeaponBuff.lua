@@ -28,7 +28,8 @@ local _, ns = ...
 local C_Item, C_Container, C_PaperDollInfo = C_Item, C_Container, C_PaperDollInfo
 local GetInventoryItemID, GetWeaponEnchantInfo, GetTime = GetInventoryItemID, GetWeaponEnchantInfo, GetTime
 local GetActionInfo, InCombatLockdown = GetActionInfo, InCombatLockdown
-local pairs, ipairs, select, setmetatable, tostring, type = pairs, ipairs, select, setmetatable, tostring, type
+local pairs, select, setmetatable, tostring, type = pairs, select, setmetatable, tostring, type
+local floor = math.floor
 
 local L = ns.L
 
@@ -62,26 +63,17 @@ module.options = {
 
 local MAINHAND, OFFHAND = 16, 17
 local WEAPON, FISHING_POLE = ns.Equipment.WEAPON, ns.Equipment.FISHING_POLE
-local FIST = 13 -- Enum.ItemWeaponSubclass.Unarmed
 
--- Weapon subclasses a sharpening stone ("sharp") or weightstone ("blunt") goes on. Fist weapons
--- are in neither: which stone they take is Unverified, so they're left to the cursor.
-local SHARP = { [0] = true, [1] = true, [6] = true, [7] = true, [8] = true, [15] = true }
-local BLUNT = { [4] = true, [5] = true, [10] = true }
+-- The seed: item ID to the weapons it goes on, a mask of weapon subclasses (bit n is
+-- Enum.ItemWeaponSubclass n), generated from the client's tables
+-- (Lib/Generated/WeaponBuffs.lua). What was learned in play is a table instead: `kind` (the
+-- seed's, or nil for an item it lacks) and weapon subclass -> true for each kind of weapon the
+-- item went on, which wins over the mask.
+local BUFFS = ns.GameData.New("weaponBuffs", ns.TableData and ns.TableData.weaponBuffs or {},
+    { kind = "item", label = "Auto Weapon Buff items" })
 
--- The seed: item ID to the weapons it goes on: "sharp", "blunt", "melee" (oils and poisons, any
--- weapon but a fishing pole), or "pole" (fishing lures). What was learned in play is a table
--- instead: `kind` (the seed's, or nil for an item it lacks) and weapon subclass -> true for each
--- kind of weapon the item went on, which wins over the kind.
--- The items of each kind are kept by hand in Data/Items.lua.
-local KINDS = {}
-for kind, items in pairs(ns.Data.weaponBuffs) do
-    for _, itemID in ipairs(items) do
-        KINDS[itemID] = kind
-    end
-end
-
-local BUFFS = ns.GameData.New("weaponBuffs", KINDS, { kind = "item", label = "Auto Weapon Buff items" })
+-- What a `kind` learned up to 1.6.1 holds, when the seed named kinds: the mask each stood for.
+local NAMED = { sharp = 33219, blunt = 9264, melee = 173555, pole = 1048576 }
 
 function module:IsAvailable()
     return ns.BagClicks.IsAvailable() and C_Item and C_Item.GetItemInfoInstant and GetInventoryItemID
@@ -91,8 +83,7 @@ end
 local weaponSubclass = ns.Equipment.WeaponSubclass
 
 -- Whether an item with this entry (BUFFS's) can go on the weapon in this slot: true, false, or nil
--- when we don't know (a stone on a fist weapon, or a learned item on a kind of weapon it never
--- went on).
+-- when we don't know (a learned item on a kind of weapon it never went on).
 local function fits(entry, slot)
     local subclassID = weaponSubclass(slot)
     if not subclassID then
@@ -100,28 +91,20 @@ local function fits(entry, slot)
     elseif not entry then
         return nil
     end
-    local kind = entry
+    local mask = entry
     if type(entry) == "table" then
         if entry[subclassID] then
             return slot == MAINHAND or subclassID ~= FISHING_POLE
         end
-        kind = entry.kind
-        if not kind then
-            return nil
-        end
+        mask = entry.kind
     end
-    if kind == "pole" then
-        return slot == MAINHAND and subclassID == FISHING_POLE
-    elseif subclassID == FISHING_POLE then
-        return false
-    elseif subclassID == FIST and (kind == "sharp" or kind == "blunt") then
+    mask = NAMED[mask] or mask
+    if type(mask) ~= "number" then
         return nil
-    elseif kind == "sharp" then
-        return SHARP[subclassID] or false
-    elseif kind == "blunt" then
-        return BLUNT[subclassID] or false
+    elseif subclassID == FISHING_POLE and slot ~= MAINHAND then
+        return false
     end
-    return true
+    return floor(mask / 2 ^ subclassID) % 2 == 1
 end
 
 -- Milliseconds left on the slot's temporary buff, or nil when it has none.

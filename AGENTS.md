@@ -66,7 +66,7 @@ Load order is the TOC's: `Core.lua`, `Commands.lua`, `Locales/`, `Data/`, `Lib/`
 | `Core.lua` | The shared `ns`: events, modules and parts, saved settings, hooks, timers, migrations, printing, and the locale table `ns.L`. |
 | `Commands.lua` | `/fpp` and its subcommands, `/fpp set` and `toggle`, and the Defaults popup's resets (`ns.ApplyPreset`, `ns.UsePreset`). |
 | `Locales/<language>/*.lua` | Player-facing text, a file per category. `enUS/` has every key and is the fallback; another language sets only what it translates. |
-| `Data/*.lua` | Game data kept by hand, in one place so a patch's change is one edit: plain tables on `ns.Data`, with where each came from. `Instances.lua` (the dungeons and raids, and their map art), `Professions.lua` (herbs, veins, chests, pools, tools, skeleton keys), `Spells.lua` (spell IDs more than one file uses, through `ns.Data.Spell`), `Items.lua` (the item lists of Auto Open Containers, Auto Weapon Buff, and Comprehend Scrolls), `Buffs.lua` (Smart Buff's). No logic. |
+| `Data/*.lua` | Game data kept by hand, in one place so a patch's change is one edit: plain tables on `ns.Data`, with where each came from. `Instances.lua` (the dungeons and raids, and their map art), `Professions.lua` (herbs, veins, chests, pools, tools, skeleton keys), `Spells.lua` (spell IDs more than one file uses, through `ns.Data.Spell`), `Items.lua` (the containers Auto Open Containers leaves), `Buffs.lua` (Smart Buff's). No logic. |
 | `Lib/*.lua` | Shared services any module can use. They cost nothing until a module uses them. |
 | `Modules/<Category>/` | One change each. |
 | `API.lua` | The public API, `ForeverPlusPlusAPI.v1`. |
@@ -180,7 +180,7 @@ One line here says what each file is for. [docs/architecture.md](docs/architectu
 | `Quests.lua` | `Quests` | Which quest Blizzard's quest windows show, a quest's level, and whether it's a group quest. |
 | `QuestieDB.lua` | `QuestieDB` | The one place we read the separate QuestieDB addon, at run time (`Require` for a module that needs it). |
 
-**Generated**, in `Lib/Generated/` (never edit by hand): `InstanceLevels.lua`, `DisenchantBrackets.lua`, `LockboxSkills.lua`, `TaxiRoutes.lua`.
+**Generated**, in `Lib/Generated/` (never edit by hand): `InstanceLevels.lua`, `DisenchantBrackets.lua`, `LockboxSkills.lua`, `ComprehendScrolls.lua`, `WeaponBuffs.lua`, `TaxiRoutes.lua`.
 
 ### Modules
 
@@ -208,7 +208,7 @@ One line here says what each file is for. [docs/architecture.md](docs/architectu
 
 ### Generated data
 
-`lua5.1 tools/datagen/generate.lua [build]` downloads the tables a `wowf` build needs from wago.tools and writes every generated file: Unexplored Areas' and Professions' `Data.lua`, the four files in `Lib/Generated/`, and `Reference.txt` (what the tables say about data kept by hand, so a new build's diff shows what to check). [docs/architecture.md](docs/architecture.md#generated-data-toolsdatagen) has what each comes from, `summary.lua` and `survey.lua`, and the `table-data.yml` workflow that regenerates for a new build and opens a pull request.
+`lua5.1 tools/datagen/generate.lua [build]` downloads the tables a `wowf` build needs from wago.tools and writes every generated file: Unexplored Areas' and Professions' `Data.lua`, the six files in `Lib/Generated/`, and `Reference.txt` (what the tables say about data kept by hand, so a new build's diff shows what to check). [docs/architecture.md](docs/architecture.md#generated-data-toolsdatagen) has what each comes from, `summary.lua` and `survey.lua`, and the `table-data.yml` workflow that regenerates for a new build and opens a pull request.
 
 - **Never edit a generated file by hand.** Change the generator (one module per file, listed in `generators.lua`) and run it again.
 - `BUILD` is the build they came from. Output is sorted, so the same build gives the same bytes.

@@ -8,4 +8,6 @@ return {
     require("instancelevels"),
     require("disenchant"),
     require("lockboxes"),
+    require("scrolls"),
+    require("weaponbuffs"),
 }

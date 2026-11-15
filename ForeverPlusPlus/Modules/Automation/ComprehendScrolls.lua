@@ -32,9 +32,10 @@ module.notice = { text = L.COMPREHENDSCROLLS_NOTICE, description = L.COMPREHENDS
 local COMPREHEND_SCROLL = ns.GameData.Spell(1296017, "Comprehend Scroll")
 local COMPREHENSION = 3012
 
--- The scrolls that need Comprehension, Mage only. The seed is kept by hand in Data/Items.lua; any
--- other bag item whose tooltip says "Requires Comprehension (N)" is learned as one too.
-local SCROLLS = ns.GameData.New("comprehendScrolls", ns.Data.comprehendScrolls,
+-- The scrolls that need Comprehension, Mage only. The seed is generated from the client's tables
+-- (Lib/Generated/ComprehendScrolls.lua); any other bag item whose tooltip says "Requires
+-- Comprehension (N)" is learned as one too.
+local SCROLLS = ns.GameData.New("comprehendScrolls", ns.TableData and ns.TableData.comprehendScrolls or {},
     { kind = "item", label = "Comprehend Scrolls" })
 
 local skillName -- Comprehension in the client's language, once known

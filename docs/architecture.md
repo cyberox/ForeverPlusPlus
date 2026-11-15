@@ -31,7 +31,7 @@ Game data kept by hand, loaded after the locales and before `Lib/`: plain tables
 - `Instances.lua`: `instances` (each dungeon and raid: instance ID, English name, lowest and highest level, raid flag, by a short key; `Lib/Instances.lua`) and `dungeonArt` (the old map textures of each, by the same key, with Dire Maul's and Scarlet Monastery's wings; `Lib/DungeonMaps.lua`).
 - `Professions.lua`: `professionNodes` (herbs and veins: skill line, skill, item), `miningStones`, `sharedSpawns`, `treasureNodes` (chests), `fishingPools`, `fishingBobbers`, `professionTools` (`Lib/Professions.lua`, `Lib/Gathering.lua`), and `skeletonKeys` (Gathering Skill Tooltips).
 - `Spells.lua`: `spells`, the spell IDs more than one file uses, read with `ns.Data.Spell("FISHING")`, which registers the ID for Self Test.
-- `Items.lua`: `autoOpenKept` (Auto Open Containers), `weaponBuffs` (Auto Weapon Buff, by kind), `comprehendScrolls` (Comprehend Scrolls).
+- `Items.lua`: `autoOpenKept` (Auto Open Containers).
 - `Buffs.lua`: `smartBuffs` (each class's buffs), `smartBuffStronger`, `smartBuffLevels` (Macros' Smart Buff).
 
 World Map's two big lists are still in their module: `PointsOfInterest/Data.lua` and `ZoneInfo/Data.lua`.
@@ -40,7 +40,7 @@ World Map's two big lists are still in their module: `PointsOfInterest/Data.lua`
 
 Shared services any module can use, loaded before the modules. They cost nothing until a module uses them.
 
-Generated files, in `Lib/Generated/` (never edited by hand; see Generated data): `InstanceLevels.lua`, `DisenchantBrackets.lua`, `LockboxSkills.lua`, `TaxiRoutes.lua`.
+Generated files, in `Lib/Generated/` (never edited by hand; see Generated data): `InstanceLevels.lua`, `DisenchantBrackets.lua`, `LockboxSkills.lua`, `ComprehendScrolls.lua`, `WeaponBuffs.lua`, `TaxiRoutes.lua`.
 
 ### `Store.lua`
 
@@ -424,7 +424,7 @@ What each module is, in the code's terms (what it does for players is in `README
 ## Generated data (`tools/datagen/`)
 
 - The generator of data files made from the client's database tables (not shipped).
-- `lua5.1 tools/datagen/generate.lua [build]` downloads the tables it needs for a `wowf` build from wago.tools with curl (the latest build when none is given; `--latest` only prints it), caches them in `cache/` (ignored by git), and writes every generated file: Unexplored Areas' `Data.lua` (WorldMapOverlay, WorldMapOverlayTile, UiMapXMapArt, UiMap), Professions' `Data.lua` (SkillLineAbility, SkillLine, ItemEffect, ItemXItemEffect, ItemSparse, TradeSkillCategory: each recipe's yellow and gray levels, skill line, spell, and teaching item with its skill, and the Season of Discovery recipe categories Unlearned Recipes leaves out), `Lib/Generated/InstanceLevels.lua` (LFGDungeons, ContentTuning, Map, AreaTable: each instance's dungeon finder level), `Lib/Generated/DisenchantBrackets.lua` (ItemDisenchantLoot), `Lib/Generated/LockboxSkills.lua` (ItemSparse, Lock: each lockbox's Lockpicking), `Lib/Generated/TaxiRoutes.lua` (TaxiPath, TaxiPathNode: each direct flight's length and what flying through a stop saves), and `Reference.txt`, what the tables say about data kept by hand (the Map table's dungeons and raids against `Data/Instances.lua`, TaxiNodes' flight points and TaxiPathNode's transport stops in zone percent, for Points of Interest's `Data.lua`), so a new build's diff shows what to check there.
+- `lua5.1 tools/datagen/generate.lua [build]` downloads the tables it needs for a `wowf` build from wago.tools with curl (the latest build when none is given; `--latest` only prints it), caches them in `cache/` (ignored by git), and writes every generated file: Unexplored Areas' `Data.lua` (WorldMapOverlay, WorldMapOverlayTile, UiMapXMapArt, UiMap), Professions' `Data.lua` (SkillLineAbility, SkillLine, ItemEffect, ItemXItemEffect, ItemSparse, TradeSkillCategory: each recipe's yellow and gray levels, skill line, spell, and teaching item with its skill, and the Season of Discovery recipe categories Unlearned Recipes leaves out), `Lib/Generated/InstanceLevels.lua` (LFGDungeons, ContentTuning, Map, AreaTable: each instance's dungeon finder level), `Lib/Generated/DisenchantBrackets.lua` (ItemDisenchantLoot), `Lib/Generated/LockboxSkills.lua` (ItemSparse, Lock: each lockbox's Lockpicking), `Lib/Generated/ComprehendScrolls.lua` (ItemSparse: the items that need skill line 3012), `Lib/Generated/WeaponBuffs.lua` (ItemEffect, ItemXItemEffect, SpellEffect, SpellEquippedItems, SpellName: each item whose use puts a temporary buff on a weapon, with the mask of weapon subclasses it goes on), `Lib/Generated/TaxiRoutes.lua` (TaxiPath, TaxiPathNode: each direct flight's length and what flying through a stop saves), and `Reference.txt`, what the tables say about data kept by hand (the Map table's dungeons and raids against `Data/Instances.lua`, TaxiNodes' flight points and TaxiPathNode's transport stops in zone percent, for Points of Interest's `Data.lua`), so a new build's diff shows what to check there.
 - `BUILD` is the build they came from.
 - Never edit a generated file by hand: change the generator (one module per file, listed in `generators.lua`) and run it again.
 - Output is sorted, so the same build gives the same bytes.

@@ -35,6 +35,8 @@ ns.changelog = {
                     .. "on and lets it take turns with Find Minerals and Find Herbs." },
             } },
             { L.CHANGELOG_CHANGED, {
+                { L.AUTOWEAPONBUFF_TITLE, "knows Forever's own poisons, sharpening stones, baits, "
+                    .. "and imbue scrolls, and puts weightstones on fist weapons." },
                 { L.GATHERINGTRACKING_TITLE, "Turn Back On puts back another tracking spell, such "
                     .. "as a hunter's Track Beasts, when that was the one on before you died." },
                 { L.FLIGHTTIMER_TITLE, "an estimate on the flight map's tooltip reads \"Estimated "
