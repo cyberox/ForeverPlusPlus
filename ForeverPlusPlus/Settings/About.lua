@@ -159,6 +159,8 @@ local function buildLeft(frame)
     for _, credit in ipairs(CREDITS) do
         y = y - addEntry(frame, y, credit[1], credit[2]) - 8
     end
+    -- And the players who report, fix, and suggest.
+    y = y - addEntry(frame, y, L.HOME_EVERYONE, L.HOME_EVERYONE_THANKS) - 8
     y = y + 8 - SECTION
 
     addHeading(frame, LEFT, y, L.HOME_WORKS_WITH, LEFT_WIDTH)
