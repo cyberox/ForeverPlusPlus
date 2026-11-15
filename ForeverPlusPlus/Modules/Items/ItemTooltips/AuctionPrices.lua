@@ -26,6 +26,7 @@ local module = itemTooltips:NewPart({
     scanAgeRedHours = 12, -- hours old at which "age" is fully red
     scanOnOpen = true,
     scanInterval = 15, -- minutes between automatic scans (15 is what Auctionator waits)
+    scanButton = false, -- a button in the auction house's title bar that scans now
     auctionator = false, -- Auctionator's prices instead of our scans, while it's loaded
     chat = true,
     -- Data, not settings: it isn't in the options.
@@ -87,6 +88,10 @@ module:AddOptions({
         key = "scanInterval", name = L.AUCTIONPRICES_SCAN_INTERVAL,
         description = L.AUCTIONPRICES_SCAN_INTERVAL_DESC, requires = "scanOnOpen", added = "1.7.0",
         min = 15, max = 120, step = 15, format = ns.Text.Minutes,
+    },
+    {
+        key = "scanButton", name = L.AUCTIONPRICES_SCAN_BUTTON_OPTION,
+        description = L.AUCTIONPRICES_SCAN_BUTTON_DESC, added = "1.7.0",
     },
     {
         key = "auctionator", name = L.AUCTIONPRICES_AUCTIONATOR, description = L.AUCTIONPRICES_AUCTIONATOR_DESC,
@@ -296,5 +301,7 @@ function module:OnOptionChanged(key)
         -- A scan running when Auctionator's prices take over stops, keeping what it saw. Either
         -- way the scan button follows whose prices they are (StopScan does nothing with no scan).
         auction.StopScan()
+    elseif key == "scanButton" then
+        auction.UpdateScanButton()
     end
 end

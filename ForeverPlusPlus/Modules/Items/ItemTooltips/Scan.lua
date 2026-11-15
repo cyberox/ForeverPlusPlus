@@ -75,15 +75,20 @@ local function getScanButton()
     return scanButton
 end
 
--- Shown while the prices are ours to scan. DisableScan hides it with the part.
+-- Shown while Scan Button is on and the prices are ours to scan. DisableScan hides it with the
+-- part. The indicator sits left of where the button goes, when it shows.
 local function updateScanButton()
-    local button = not ns.Prices.UsingAuctionator() and getScanButton()
+    local button = module.db.scanButton and not ns.Prices.UsingAuctionator() and getScanButton()
     if button then
         button:Show()
     elseif scanButton then
         scanButton:Hide()
     end
+    if indicator then
+        indicator:SetPoint("TOPRIGHT", indicator:GetParent(), "TOPRIGHT", button and -50 or -30, -1)
+    end
 end
+auction.UpdateScanButton = updateScanButton
 
 local function getIndicator()
     local parent = _G.AuctionHouseFrame
@@ -93,8 +98,9 @@ local function getIndicator()
     if not indicator then
         indicator = CreateFrame("Frame", nil, parent)
         indicator:SetSize(1, 20)
-        -- Left of the scan button, when there is one.
-        indicator:SetPoint("TOPRIGHT", parent, "TOPRIGHT", getScanButton() and -50 or -30, -1)
+        -- Left of the scan button, while it shows (updateScanButton moves it with the button).
+        local button = scanButton and scanButton:IsShown()
+        indicator:SetPoint("TOPRIGHT", parent, "TOPRIGHT", button and -50 or -30, -1)
         indicator:SetFrameLevel(titleLevel(parent))
         indicator.text = indicator:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
         indicator.text:SetPoint("RIGHT")

@@ -13,8 +13,8 @@ ns.changelog = {
         version = L.CHANGELOG_UNRELEASED,
         sections = {
             { L.CHANGELOG_ADDED, {
-                { L.ITEMTOOLTIPS_TITLE, "Auction Prices has a button in the auction house's title "
-                    .. "bar that scans now, and Scan Every sets how long Scan When Opened waits "
+                { L.ITEMTOOLTIPS_TITLE, "Auction Prices' Scan Button (off by default) puts a button "
+                    .. "in the auction house's title bar that scans now, and Scan Every sets how long Scan When Opened waits "
                     .. "between scans, from 15 minutes to 2 hours." },
                 { L.PROFESSIONS_TITLE, "Crafting Costs shows Vendor Value under an auction value, "
                     .. "and Sell At picks where Estimated Profit counts the item as sold: the "

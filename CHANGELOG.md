@@ -6,7 +6,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 ### Added
 
-- **Item Tooltips**: Auction Prices has a button in the auction house's title bar that scans now, and Scan Every sets how long Scan When Opened waits between scans, from 15 minutes to 2 hours.
+- **Item Tooltips**: Auction Prices' Scan Button (off by default) puts a button in the auction house's title bar that scans now, and Scan Every sets how long Scan When Opened waits between scans, from 15 minutes to 2 hours.
 - **Professions**: Crafting Costs shows Vendor Value under an auction value, and Sell At picks where Estimated Profit counts the item as sold: the auction house, a vendor, or whichever pays more.
 
 ## 1.6.1 (2026-11-14)
