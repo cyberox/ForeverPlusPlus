@@ -29,6 +29,8 @@ ns.changelog = {
                     .. "/fpp help while they're on." },
             } },
             { L.CHANGELOG_FIXED, {
+                { L.CHANGELOG_SETTINGS, "the Changelog page's By Module view lists Commands notes "
+                    .. "at the top with General and Settings, not under Other." },
                 { L.QUESTPINS_TITLE, "a Skyborne no longer sees quests meant for another race "
                     .. "of its side, such as a Dwarf's. Thanks to cyberox." },
             } },

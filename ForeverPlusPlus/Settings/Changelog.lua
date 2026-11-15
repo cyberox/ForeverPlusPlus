@@ -58,12 +58,14 @@ end
 -- `{ entry, name, text }`: the entry from Changelog.lua and what shows of it, `name` in gold
 -- before `text`. As written, the groups are its sections and the names its modules'. With
 -- `byModule`, the groups are its modules', and the names the sections': first those of no one
--- module (General for entries without a name, then Settings), marked `apart`, then the modules'
--- by their `category` in the Modules page's order, and alphabetical within it. A name that's no
--- module's title now (a module since renamed or removed) goes under Other.
+-- module (General for entries without a name, then Settings and Commands), marked `apart`, then
+-- the modules' by their `category` in the Modules page's order, and alphabetical within it. A
+-- name that's no module's title now (a module since renamed or removed) goes under Other.
 local function noteGroups(release, byModule)
     local groups, byName = {}, {}
-    local apart = { [L.CHANGELOG_GENERAL] = 1, [L.CHANGELOG_SETTINGS] = 2 }
+    local apart = {
+        [L.CHANGELOG_GENERAL] = 1, [L.CHANGELOG_SETTINGS] = 2, [L.CHANGELOG_COMMANDS] = 3,
+    }
     local categories -- module title -> its category, made only with byModule
     if byModule then
         categories = {}
@@ -99,7 +101,7 @@ local function noteGroups(release, byModule)
     end
     if byModule then
         sort(groups, function(a, b)
-            local x, y = a.apart or 3, b.apart or 3 -- the modules' after General and Settings
+            local x, y = a.apart or 4, b.apart or 4 -- the modules' after the ones kept apart
             if x ~= y then
                 return x < y
             end

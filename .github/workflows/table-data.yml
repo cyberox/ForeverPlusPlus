@@ -129,7 +129,7 @@ jobs:
           latest=$LATEST
           branch=$BRANCH
           summary="$RUNNER_TEMP/summary.txt"
-          title="chore(worldmap): regenerate the table data for build $latest"
+          title="chore(core): regenerate the table data for build $latest"
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

@@ -186,7 +186,7 @@ local function allowed()
 end
 
 -- The stack and locals of the function that raised the error. Blizzard's own handler finds it
--- from the two stack heights; without them, it's three levels up (this, the pcall, the handler).
+-- from the two stack heights; without them, it's level 4: this is 1, the pcall 2, the handler 3.
 -- Must be called through pcall straight from the handler, for the fallback depth to be right.
 local function capture()
     local level = 4
