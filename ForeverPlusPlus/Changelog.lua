@@ -53,8 +53,7 @@ ns.changelog = {
                 { L.CHANGELOG_SETTINGS, "the Changelog page's By Module view lists Commands notes "
                     .. "at the top with General and Settings, not under Other." },
                 { L.FLIGHTTIMER_TITLE, "the flight map's tooltips show flight times again." },
-                { L.CHATARROWKEYS_TITLE, "Up and Down bring back what you sent again, and the "
-                    .. "arrow keys keep working after a name or emote list closes." },
+                { L.CHATARROWKEYS_TITLE, "Up and Down bring back what you sent again." },
                 { L.QUESTPINS_TITLE, "a Skyborne no longer sees quests meant for another race "
                     .. "of its side, such as a Dwarf's. Thanks to cyberox." },
             } },

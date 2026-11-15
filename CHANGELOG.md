@@ -27,7 +27,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 - **Settings**: the Changelog page's By Module view lists Commands notes at the top with General and Settings, not under Other.
 - **Flight Timer**: the flight map's tooltips show flight times again.
-- **Chat Arrow Keys**: Up and Down bring back what you sent again, and the arrow keys keep working after a name or emote list closes.
+- **Chat Arrow Keys**: Up and Down bring back what you sent again.
 - **Quest Pins**: a Skyborne no longer sees quests meant for another race of its side, such as a Dwarf's. Thanks to cyberox.
 
 ## 1.6.1 (2026-11-14)

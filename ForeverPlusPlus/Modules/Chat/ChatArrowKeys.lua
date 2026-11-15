@@ -81,10 +81,8 @@ local function onArrow(box, key)
     box:SetText(back == 0 and "" or lines[#lines + 1 - back])
 end
 
+-- Opening the box starts from the newest line again.
 local function onFocusGained(box)
-    -- An autocomplete list (Blizzard's, or another addon's) puts back the mode it found when it
-    -- closes, which can be the one from before ours. So set it again each time the box is typed in.
-    box:SetAltArrowKeyMode(false)
     place[box] = nil
 end
 
@@ -99,8 +97,8 @@ local function apply(frame)
             module:Hook(box, "AddHistoryLine", onHistoryLine)
             module:HookScript(box, "OnArrowPressed", onArrow)
             module:HookScript(box, "OnEditFocusGained", onFocusGained)
+            box:SetAltArrowKeyMode(false)
         end
-        box:SetAltArrowKeyMode(false)
     elseif modes[box] ~= nil then
         box:SetAltArrowKeyMode(modes[box])
         modes[box] = nil
