@@ -45,6 +45,7 @@ local module = ns.NewModule("GatheringMap", L.GATHERINGMAP_DESC, {
     minimapAlpha = 100, -- percent
     minimapEdge = false, -- a node just past the minimap's edge sits on the edge
     minimapTooltips = true, -- an icon shows its node's tooltip
+    minimapEmptyTips = true, -- a herb's or vein's icon does too while the game has no dot for it
     -- Each line of a node's tooltip: "always", "shift" (while Shift is held), or "never".
     tipSkill = "always",
     tipGathered = "always",
@@ -229,6 +230,10 @@ module.options = {
     {
         key = "minimapTooltips", name = L.GATHERINGMAP_TOOLTIPS, description = L.GATHERINGMAP_TOOLTIPS_DESC,
         section = MINIMAP, requires = "minimap",
+    },
+    {
+        key = "minimapEmptyTips", name = L.GATHERINGMAP_EMPTY_TIPS, description = L.GATHERINGMAP_EMPTY_TIPS_DESC,
+        section = MINIMAP, requires = "minimapTooltips", added = "1.7.0",
     },
     {
         key = "worldMap", name = L.GATHERINGMAP_WORLDMAP, description = L.GATHERINGMAP_WORLDMAP_DESC,
@@ -846,6 +851,11 @@ local function onMinimapTooltip(tooltip)
         -- tracking off). Then the tooltip is all ours, as the world map's is: the game left it
         -- empty this frame, and fills nothing over it.
         local node, yards = nodeAtCursor(nil)
+        -- Without Tooltips Without a Dot, a herb or vein with no dot says nothing, so a tooltip
+        -- there means the node is up. A chest or a pool never has a dot, and keeps its tooltip.
+        if node and not module.db.minimapEmptyTips and (node.kind == "herb" or node.kind == "ore") then
+            node = nil
+        end
         if node then
             local title = internal.Title(node)
             -- With nothing under the mouse the game's call leaves the tooltip without an owner,

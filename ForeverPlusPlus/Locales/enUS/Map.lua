@@ -457,6 +457,10 @@ L.GATHERINGMAP_TOOLTIPS = "Minimap Tooltips"
 L.GATHERINGMAP_TOOLTIPS_DESC = "Add a node's lines to the game's tooltip when you point at its dot on "
     .. "the minimap, and show a tooltip for an icon the game has no dot for: a node that's gone or "
     .. "just gathered, a chest, or a fishing pool."
+L.GATHERINGMAP_EMPTY_TIPS = "Tooltips Without a Dot"
+L.GATHERINGMAP_EMPTY_TIPS_DESC = "Show a tooltip for a herb or vein the game has no dot for: one that's gone, "
+    .. "just gathered, or not tracked now. Turn it off and a tooltip there means the node is up. Chests "
+    .. "and fishing pools always show theirs."
 -- A node's tooltip: the lines, each a label and its value as Blizzard's Sell Price line
 L.GATHERINGMAP_REQUIRES = "Requires %s (%d)" -- profession, skill; Blizzard's ITEM_MIN_SKILL when it has one
 L.GATHERINGMAP_TIP_GATHERED = "Gathered:"
