@@ -35,83 +35,32 @@ Professions.TRIVIAL = GRAY -- what Difficulty gives once gathering no longer rai
 local HERB, MINE = Professions.HERBALISM, Professions.MINING
 
 -- Herbs and veins by their name in the world: the skill line that gathers them, the skill it
--- takes, and the item they give first. The seed is Classic's, in English; the game teaches the
--- rest (Professions.LearnRequirement, LearnNodeItem), so other languages and Forever's changes
--- fill in as the player meets them. A learned node may lack its skill or its item.
-local NODES = ns.GameData.New("professionNodes", { -- object name -> { skill line, skill, item ID }
-    ["Peacebloom"] = { HERB, 1, 2447 },
-    ["Silverleaf"] = { HERB, 1, 765 },
-    ["Earthroot"] = { HERB, 15, 2449 },
-    ["Mageroyal"] = { HERB, 50, 785 },
-    ["Briarthorn"] = { HERB, 70, 2450 },
-    ["Stranglekelp"] = { HERB, 85, 3820 },
-    ["Bruiseweed"] = { HERB, 100, 2453 },
-    ["Wild Steelbloom"] = { HERB, 115, 3355 },
-    ["Grave Moss"] = { HERB, 120, 3369 },
-    ["Kingsblood"] = { HERB, 125, 3356 },
-    ["Liferoot"] = { HERB, 150, 3357 },
-    ["Fadeleaf"] = { HERB, 160, 3818 },
-    ["Goldthorn"] = { HERB, 170, 3821 },
-    ["Khadgar's Whisker"] = { HERB, 185, 3358 },
-    ["Wintersbite"] = { HERB, 195, 3819 },
-    ["Firebloom"] = { HERB, 205, 4625 },
-    ["Purple Lotus"] = { HERB, 210, 8831 },
-    ["Arthas' Tears"] = { HERB, 220, 8836 },
-    ["Sungrass"] = { HERB, 230, 8838 },
-    ["Blindweed"] = { HERB, 235, 8839 },
-    ["Ghost Mushroom"] = { HERB, 245, 8845 },
-    ["Gromsblood"] = { HERB, 250, 8846 },
-    ["Golden Sansam"] = { HERB, 260, 13464 },
-    ["Dreamfoil"] = { HERB, 270, 13463 },
-    ["Mountain Silversage"] = { HERB, 280, 13465 },
-    ["Plaguebloom"] = { HERB, 285, 13466 },
-    ["Icecap"] = { HERB, 290, 13467 },
-    ["Black Lotus"] = { HERB, 300, 13468 },
-
-    ["Copper Vein"] = { MINE, 1, 2770 },
-    ["Tin Vein"] = { MINE, 65, 2771 },
-    ["Incendicite Mineral Vein"] = { MINE, 65, 3340 },
-    ["Silver Vein"] = { MINE, 75, 2775 },
-    ["Ooze Covered Silver Vein"] = { MINE, 75, 2775 },
-    ["Lesser Bloodstone Deposit"] = { MINE, 75, 4278 },
-    ["Iron Deposit"] = { MINE, 125, 2772 },
-    ["Ooze Covered Iron Deposit"] = { MINE, 125, 2772 },
-    ["Indurium Mineral Vein"] = { MINE, 150, 5833 },
-    ["Gold Vein"] = { MINE, 155, 2776 },
-    ["Ooze Covered Gold Vein"] = { MINE, 155, 2776 },
-    ["Mithril Deposit"] = { MINE, 175, 3858 },
-    ["Ooze Covered Mithril Deposit"] = { MINE, 175, 3858 },
-    ["Truesilver Deposit"] = { MINE, 230, 7911 },
-    ["Ooze Covered Truesilver Deposit"] = { MINE, 230, 7911 },
-    ["Dark Iron Deposit"] = { MINE, 230, 11370 },
-    ["Small Thorium Vein"] = { MINE, 245, 10620 },
-    ["Ooze Covered Thorium Vein"] = { MINE, 245, 10620 },
-    ["Rich Thorium Vein"] = { MINE, 275, 10620 },
-    ["Ooze Covered Rich Thorium Vein"] = { MINE, 275, 10620 },
-    ["Hakkari Thorium Vein"] = { MINE, 275, 10620 },
-    ["Small Obsidian Chunk"] = { MINE, 305, 22202 },
-    ["Large Obsidian Chunk"] = { MINE, 305, 22203 },
-}, { label = "Herbs and veins" })
+-- takes, and the item they give first: object name -> { skill line, skill, item ID }. The seeds
+-- here are kept by hand in Data/Professions.lua; the game teaches the rest
+-- (Professions.LearnRequirement, LearnNodeItem), so other languages and Forever's changes fill in
+-- as the player meets them. A learned node may lack its skill or its item.
+local Data = ns.Data
+local NODES = ns.GameData.New("professionNodes", Data.professionNodes, { label = "Herbs and veins" })
 
 -- The stone a vein gives besides its ore, which no node lists as its item: item ID -> the Mining
--- skill of the lowest vein that gives it. Classic's values.
-local STONES = ns.GameData.New("miningStones", {
-    [2835] = 1, -- Rough Stone
-    [2836] = 65, -- Coarse Stone
-    [2838] = 125, -- Heavy Stone
-    [7912] = 175, -- Solid Stone
-    [12365] = 245, -- Dense Stone
-}, { kind = "item", label = "Stones from veins" })
+-- skill of the lowest vein that gives it.
+local STONES = ns.GameData.New("miningStones", Data.miningStones,
+    { kind = "item", label = "Stones from veins" })
 
 -- Profession tools a character can equip but carries for their profession, not to fight with:
--- item ID -> the skill line. Classic's IDs (Classic Era 1.15 item data); Self Test checks them.
--- Fishing poles are told by their weapon subclass instead, so every pole counts.
-local TOOLS = ns.GameData.New("professionTools", {
-    [2901] = Professions.MINING, -- Mining Pick
-    [5956] = Professions.BLACKSMITHING, -- Blacksmith Hammer
-    [7005] = Professions.SKINNING, -- Skinning Knife
-    [6219] = 202, -- Arclight Spanner (Engineering)
-}, { kind = "item", label = "Profession tools" })
+-- item ID -> the skill line. Fishing poles are told by their weapon subclass instead, so every
+-- pole counts.
+local TOOLS = ns.GameData.New("professionTools", Data.professionTools,
+    { kind = "item", label = "Profession tools" })
+
+-- The items herbs and veins give, made a set only so Self Test checks the client still has them.
+do
+    local items = {}
+    for _, node in pairs(Data.professionNodes) do
+        items[node[3]] = true
+    end
+    ns.GameData.New("professionNodeItems", items, { kind = "item", label = "Herb and ore items" })
+end
 
 ---Whether an item is the stone a vein gives besides its ore (Rough Stone, Coarse Stone, ...).
 ---@param itemID number
@@ -289,16 +238,9 @@ function Professions.LearnNodeItem(name, item, line)
     return NODES:Learn(name, { knownLine or line, node and node[2], knownItem or item })
 end
 
--- Spots that spawn either of two veins: the rarer one -> the vein it takes the place of. Classic's
--- (the rare spawns GatherMate2 also knows); the game shows no list of them.
-local SPAWNS = ns.GameData.New("sharedSpawns", {
-    ["Silver Vein"] = "Tin Vein",
-    ["Gold Vein"] = "Iron Deposit",
-    ["Truesilver Deposit"] = "Mithril Deposit",
-    ["Ooze Covered Silver Vein"] = "Tin Vein",
-    ["Ooze Covered Gold Vein"] = "Iron Deposit",
-    ["Ooze Covered Truesilver Deposit"] = "Mithril Deposit",
-}, { label = "Shared vein spawns" })
+-- Spots that spawn either of two veins: the rarer one -> the vein it takes the place of
+-- (Data/Professions.lua); the game shows no list of them.
+local SPAWNS = ns.GameData.New("sharedSpawns", Data.sharedSpawns, { label = "Shared vein spawns" })
 
 ---Whether a spot that spawned node `a` can spawn node `b` instead, so the two are one node on a
 ---map: the same name, a rare vein and the one it takes the place of (Silver for Tin), or two
@@ -339,24 +281,10 @@ end
 -- Chests ----------------------------------------------------------------------------------------
 -- The chests in the world, by name: true, or the Lockpicking a locked one takes once its "Requires
 -- Lockpicking (N)" line was read. The Opening spell opens much besides chests (quest objects, crates
--- a quest asks for), so only these count as treasure. Seed: Classic's world chests, from memory of
--- Classic Era (2026-11-07), unverified on Forever; a world object's Lockpicking line teaches more.
--- (Pick Lock doesn't: it's cast on lockboxes in the bags too.)
-local CHESTS = ns.GameData.New("treasureNodes", {
-    ["Battered Chest"] = true,
-    ["Tattered Chest"] = true,
-    ["Solid Chest"] = true,
-    ["Large Battered Chest"] = true,
-    ["Large Iron Bound Chest"] = true,
-    ["Large Solid Chest"] = true,
-    ["Large Mithril Bound Chest"] = true,
-    ["Dented Footlocker"] = true,
-    ["Mossy Footlocker"] = true,
-    ["Waterlogged Footlocker"] = true,
-    ["Buccaneer's Strongbox"] = true,
-    ["Box of Assorted Parts"] = true,
-    ["Burial Chest"] = true,
-})
+-- a quest asks for), so only these count as treasure. The seed is in Data/Professions.lua; a world
+-- object's Lockpicking line teaches more. (Pick Lock doesn't: it's cast on lockboxes in the bags
+-- too.)
+local CHESTS = ns.GameData.New("treasureNodes", Data.treasureNodes)
 
 local LOCK = Professions.LOCKPICKING
 
@@ -397,22 +325,9 @@ end
 
 -- Fishing pools -----------------------------------------------------------------------------------
 -- The pools in the world, by name, and the world object ID each was seen with, so a pool's loot
--- (whose source is the pool) names it even when nothing else did. Seed: Classic's pools, from
--- memory of Classic Era (2026-11-07), unverified on Forever; play teaches more.
-local POOLS = ns.GameData.New("fishingPools", {
-    ["Floating Wreckage"] = true,
-    ["Floating Debris"] = true,
-    ["Oil Spill"] = true,
-    ["Patch of Elemental Water"] = true,
-    ["School of Deviate Fish"] = true,
-    ["Oily Blackmouth School"] = true,
-    ["Firefin Snapper School"] = true,
-    ["Sagefish School"] = true,
-    ["Greater Sagefish School"] = true,
-    ["Stonescale Eel Swarm"] = true,
-    ["Schooner Wreckage"] = true,
-    ["Waterlogged Wreckage"] = true,
-})
+-- (whose source is the pool) names it even when nothing else did. The seed is in
+-- Data/Professions.lua; play teaches more.
+local POOLS = ns.GameData.New("fishingPools", Data.fishingPools)
 local POOL_OBJECTS = ns.GameData.New("fishingPoolObjects", {}) -- world object ID -> pool name
 
 ---Whether `name` is a fishing pool.
@@ -871,7 +786,7 @@ end
 
 -- Lockpicking isn't a profession in the list above: rogues have it as a skill they learn with
 -- Pick Lock, and, as in Classic, it's five times their level up to 300.
-local PICK_LOCK = ns.GameData.Spell(1804, "Pick Lock")
+local PICK_LOCK = ns.Data.Spell("PICK_LOCK")
 local LOCKPICKING_CAP = 300
 
 local function lockpicking()

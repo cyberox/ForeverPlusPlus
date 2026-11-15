@@ -387,7 +387,7 @@ end
 -- Hide Bobber Tooltip: while Fishing channels, the thing under the mouse is the bobber, and its
 -- tooltip (worse at the cursor, with Anchor to Cursor) sits over it just when it's watched for the
 -- splash. Any rank of Fishing counts, by the spell's name.
-local FISHING = ns.GameData.Spell(7620, "Fishing")
+local FISHING = ns.Data.Spell("FISHING")
 
 local function fishing()
     local spellID = select(8, UnitChannelInfo("player"))

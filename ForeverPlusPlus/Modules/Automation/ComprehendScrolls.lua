@@ -32,15 +32,10 @@ module.notice = { text = L.COMPREHENDSCROLLS_NOTICE, description = L.COMPREHENDS
 local COMPREHEND_SCROLL = ns.GameData.Spell(1296017, "Comprehend Scroll")
 local COMPREHENSION = 3012
 
--- The scrolls that need Comprehension (ItemSparse.RequiredSkill 3012), Mage only. A seed: any
+-- The scrolls that need Comprehension, Mage only. The seed is kept by hand in Data/Items.lua; any
 -- other bag item whose tooltip says "Requires Comprehension (N)" is learned as one too.
--- **[web]** (wago.tools ItemSparse for 1.60.1.70374)
-local SCROLLS = ns.GameData.New("comprehendScrolls", {
-    [211780] = true, [211784] = true, [211785] = true, [211786] = true, [211787] = true,
-    [211853] = true, [211854] = true, [211855] = true,
-    [213543] = true, [213544] = true, [213545] = true, [213546] = true, [213547] = true,
-    [281015] = true, [281016] = true, [281017] = true, [281018] = true,
-}, { kind = "item", label = "Comprehend Scrolls" })
+local SCROLLS = ns.GameData.New("comprehendScrolls", ns.Data.comprehendScrolls,
+    { kind = "item", label = "Comprehend Scrolls" })
 
 local skillName -- Comprehension in the client's language, once known
 local checked = {} -- itemID -> true once its tooltip was read this session

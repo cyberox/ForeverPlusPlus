@@ -52,77 +52,28 @@ local NAME = L.MACROS_SMARTBUFF_MACRO -- the macro's name, at most 16 letters
 local BUTTON_NAME = "ForeverPlusPlusSmartBuffButton" -- a global name, since /click needs one
 local DELAY = 0.1 -- seconds to wait for a burst of changes to settle
 
--- Each buff's first rank (build 70374, Classic's IDs); the spellbook gives the rest by name. Made
--- only so Self Test checks the client still has them.
-ns.GameData.New("smartBuffSpells", {
-    [19740] = "Blessing of Might",
-    [19742] = "Blessing of Wisdom",
-    [20217] = "Blessing of Kings",
-    [1243] = "Power Word: Fortitude",
-    [14752] = "Divine Spirit",
-    [588] = "Inner Fire",
-    [1459] = "Arcane Intellect",
-    [7302] = "Ice Armor",
-    [168] = "Frost Armor",
-    [1126] = "Mark of the Wild",
-    [467] = "Thorns",
-    [16864] = "Omen of Clarity",
-    [706] = "Demon Armor",
-    [687] = "Demon Skin",
-    [324] = "Lightning Shield",
-    [6673] = "Battle Shout",
-    [19506] = "Trueshot Aura",
-    -- Stronger versions that count as having the buff (Classic's IDs, first rank).
-    [25782] = "Greater Blessing of Might",
-    [25894] = "Greater Blessing of Wisdom",
-    [25898] = "Greater Blessing of Kings",
-    [21562] = "Prayer of Fortitude",
-    [27681] = "Prayer of Spirit",
-    [23028] = "Arcane Brilliance",
-    [21849] = "Gift of the Wild",
-}, { kind = "spell", label = L.MACROS_SMARTBUFF })
+-- Each class's buffs, the one it prefers first, with `who` can get each, its `group`, and the
+-- `stronger` buffs that count as having it. Kept by hand in Data/Buffs.lua, which explains them.
+local BUFFS = ns.Data.smartBuffs
 
--- The level of buffs the game doesn't give a learned level for, since a talent isn't learned from a
--- trainer (Classic's spell levels; Forever refused Kings on a level 7 on 2026-10-20). A buff
--- can go on someone up to 10 levels below it.
-local LEVELS = ns.GameData.New("smartBuffLevels", {
-    [20217] = 20, -- Blessing of Kings
-}, { kind = "spell", label = L.MACROS_SMARTBUFF })
+-- Every buff's spell ID, made a set only so Self Test checks the client still has them.
+do
+    local spells = {}
+    for _, list in pairs(BUFFS) do
+        for _, entry in ipairs(list) do
+            spells[entry.id] = entry.name
+        end
+    end
+    for id, name in pairs(ns.Data.smartBuffStronger) do
+        spells[id] = name
+    end
+    ns.GameData.New("smartBuffSpells", spells, { kind = "spell", label = L.MACROS_SMARTBUFF })
+end
 
--- Each class's buffs, the one it prefers first. `who` is who can get it: "any", "mana" (those who
--- use mana), "physical" (those who don't, or a Paladin or Druid of a melee tree), or "self". Of a
--- `group`, a unit holds one from each caster: a Paladin's Blessings, a Mage's or Warlock's armor.
--- `stronger` are buffs that count as having it: its group version, from anyone.
-local BUFFS = {
-    PALADIN = {
-        -- Kings first: 10% of every stat beats Might or Wisdom once it's learned.
-        { id = 20217, who = "any", group = "blessing", stronger = { 25898 } },
-        { id = 19740, who = "physical", group = "blessing", stronger = { 25782 } },
-        { id = 19742, who = "mana", group = "blessing", stronger = { 25894 } },
-    },
-    PRIEST = {
-        { id = 1243, who = "any", stronger = { 21562 } },
-        { id = 14752, who = "mana", stronger = { 27681 } },
-        { id = 588, who = "self" },
-    },
-    MAGE = {
-        { id = 1459, who = "mana", stronger = { 23028 } },
-        { id = 7302, who = "self", group = "armor" },
-        { id = 168, who = "self", group = "armor" },
-    },
-    DRUID = {
-        { id = 1126, who = "any", stronger = { 21849 } },
-        { id = 467, who = "physical" },
-        { id = 16864, who = "self" },
-    },
-    WARLOCK = {
-        { id = 706, who = "self", group = "armor" },
-        { id = 687, who = "self", group = "armor" },
-    },
-    SHAMAN = { { id = 324, who = "self" } },
-    WARRIOR = { { id = 6673, who = "self" } },
-    HUNTER = { { id = 19506, who = "self" } },
-}
+-- The level of buffs the game doesn't give a learned level for (Data/Buffs.lua). A buff can go on
+-- someone up to 10 levels below it.
+local LEVELS = ns.GameData.New("smartBuffLevels", ns.Data.smartBuffLevels,
+    { kind = "spell", label = L.MACROS_SMARTBUFF })
 
 -- Classes that don't use mana; anyone else gets the mana buffs.
 local PHYSICAL = { WARRIOR = true, ROGUE = true }

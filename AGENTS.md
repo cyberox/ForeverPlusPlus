@@ -57,7 +57,7 @@ There is no build step or library folder. Plain Lua, loaded straight from the TO
 
 ### The addon folder
 
-Load order is the TOC's: `Core.lua`, `Commands.lua`, `Locales/`, `Lib/`, `Modules/`, `API.lua`, `Changelog.lua`, `Settings/`, `Init.lua`.
+Load order is the TOC's: `Core.lua`, `Commands.lua`, `Locales/`, `Data/`, `Lib/`, `Modules/`, `API.lua`, `Changelog.lua`, `Settings/`, `Init.lua`.
 
 | Path | What it is |
 | --- | --- |
@@ -66,6 +66,7 @@ Load order is the TOC's: `Core.lua`, `Commands.lua`, `Locales/`, `Lib/`, `Module
 | `Core.lua` | The shared `ns`: events, modules and parts, saved settings, hooks, timers, migrations, printing, and the locale table `ns.L`. |
 | `Commands.lua` | `/fpp` and its subcommands, `/fpp set` and `toggle`, and the Defaults popup's resets (`ns.ApplyPreset`, `ns.UsePreset`). |
 | `Locales/<language>/*.lua` | Player-facing text, a file per category. `enUS/` has every key and is the fallback; another language sets only what it translates. |
+| `Data/*.lua` | Game data kept by hand, in one place so a patch's change is one edit: plain tables on `ns.Data`, with where each came from. `Instances.lua` (the dungeons and raids, and their map art), `Professions.lua` (herbs, veins, chests, pools, tools, skeleton keys), `Spells.lua` (spell IDs more than one file uses, through `ns.Data.Spell`), `Items.lua` (the item lists of Auto Open Containers, Auto Weapon Buff, and Comprehend Scrolls), `Buffs.lua` (Smart Buff's). No logic. |
 | `Lib/*.lua` | Shared services any module can use. They cost nothing until a module uses them. |
 | `Modules/<Category>/` | One change each. |
 | `API.lua` | The public API, `ForeverPlusPlusAPI.v1`. |
@@ -248,7 +249,7 @@ When unsure whether an API exists, check it in game (`/dump C_Foo`, `/api`) or f
 - Plumbing that a second module could want goes in `Lib/`, not inside a module. Modules never reach into each other; they share only `Lib/`, `Core.lua`, and `Commands.lua`.
 - Default to on only for changes nearly everyone wants; otherwise `enabled = false`.
 - When replacing behavior, delete the old path: no shims or renamed-key fallbacks in module code. Rename or drop a setting freely; the core clears settings for modules and options that no longer exist, and a dropdown whose saved value isn't a choice any more goes back to its default.
-- Add a new file to the TOC, after `Core.lua` and `Commands.lua` and before `Init.lua`: `Locales/` first (`enUS/` before other languages), then `Lib/`, then `Modules/`.
+- Add a new file to the TOC, after `Core.lua` and `Commands.lua` and before `Init.lua`: `Locales/` first (`enUS/` before other languages), then `Data/`, then `Lib/`, then `Modules/`.
 - Record things learned about the Forever client in `docs/forever-api.md`, tagged with how you know. Promote a fact to "How Forever differs from Classic" only when it changes how code must be written.
 
 **Docs to update with a change:**
@@ -264,8 +265,10 @@ When unsure whether an API exists, check it in game (`/dump C_Foo`, `/api`) or f
 
 - Read it from the game where an API or tooltip line says it.
 - Otherwise ship it as a seed with `ns.GameData.New(name, seed, { kind = "item" })` and `set:Learn` what play shows, so a patch mends itself instead of breaking the module.
-- A lone ID gets `ns.GameData.Spell(id, "Name")` (or `Item`, `Map`), which Self Test checks.
-- Say where a seed came from (build and source) in a comment.
+- A seed kept by hand is a table in `Data/` (`ns.Data.<name>`), not in the Lib file or module that uses it. That file makes the `ns.GameData` set from it. Never keep the same list or ID in two places.
+- A lone ID gets `ns.GameData.Spell(id, "Name")` (or `Item`, `Map`), which Self Test checks. One that a second file needs goes in `Data/Spells.lua` and is read with `ns.Data.Spell("KEY")`.
+- Say where a seed came from (build and source) in a comment, beside the data.
+- The two big map lists are still in their module: World Map's `PointsOfInterest/Data.lua` and `ZoneInfo/Data.lua`.
 
 **Migrations.** When a release renames or merges a module or setting the player chose, or one holding data they built up, migrate it.
 

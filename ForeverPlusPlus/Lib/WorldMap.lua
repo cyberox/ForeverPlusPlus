@@ -149,6 +149,7 @@ end
 -- Forever's Azeroth map (Classic map IDs: Kalimdor 1414, Eastern Kingdoms 1415), for finding a
 -- zone by name where the player has no map, like in a dungeon.
 local AZEROTH = ns.GameData.Map(947, "Azeroth")
+WorldMap.AZEROTH = AZEROTH
 
 -- A name made easy to compare: lowercase letters and digits only.
 local function plain(text)

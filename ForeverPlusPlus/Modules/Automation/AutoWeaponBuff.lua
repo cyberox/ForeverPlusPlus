@@ -28,7 +28,7 @@ local _, ns = ...
 local C_Item, C_Container, C_PaperDollInfo = C_Item, C_Container, C_PaperDollInfo
 local GetInventoryItemID, GetWeaponEnchantInfo, GetTime = GetInventoryItemID, GetWeaponEnchantInfo, GetTime
 local GetActionInfo, InCombatLockdown = GetActionInfo, InCombatLockdown
-local pairs, select, setmetatable, tostring, type = pairs, select, setmetatable, tostring, type
+local pairs, ipairs, select, setmetatable, tostring, type = pairs, ipairs, select, setmetatable, tostring, type
 
 local L = ns.L
 
@@ -73,24 +73,13 @@ local BLUNT = { [4] = true, [5] = true, [10] = true }
 -- weapon but a fishing pole), or "pole" (fishing lures). What was learned in play is a table
 -- instead: `kind` (the seed's, or nil for an item it lacks) and weapon subclass -> true for each
 -- kind of weapon the item went on, which wins over the kind.
+-- The items of each kind are kept by hand in Data/Items.lua.
 local KINDS = {}
-local function add(kind, ...)
-    for i = 1, select("#", ...) do
-        KINDS[select(i, ...)] = kind
+for kind, items in pairs(ns.Data.weaponBuffs) do
+    for _, itemID in ipairs(items) do
+        KINDS[itemID] = kind
     end
 end
--- Sharpening stones: Rough, Coarse, Heavy, Solid, Dense, Elemental, Consecrated.
-add("sharp", 2862, 2863, 2871, 7964, 12404, 18262, 23122)
--- Weightstones: Rough, Coarse, Heavy, Solid, Dense.
-add("blunt", 3239, 3240, 3241, 7965, 12643)
--- Wizard and mana oils, Blessed Wizard Oil, Shadow Oil, Frost Oil.
-add("melee", 20744, 20746, 20750, 20749, 20745, 20747, 20748, 23123, 3824, 3829)
--- Poisons: Instant I-VI, Deadly I-V, Crippling I-II, Mind-numbing I-III, Wound I-IV.
-add("melee", 6947, 6949, 6950, 8926, 8927, 8928, 2892, 2893, 8984, 8985, 20844, 3775, 3776,
-    5237, 6951, 9186, 10918, 10920, 10921, 10922)
--- Lures: Shiny Bauble, Nightcrawlers, Bright Baubles, Aquadynamic Fish Attractor, Flesh Eating
--- Worm, Aquadynamic Fish Lens.
-add("pole", 6529, 6530, 6532, 6533, 7307, 6811)
 
 local BUFFS = ns.GameData.New("weaponBuffs", KINDS, { kind = "item", label = "Auto Weapon Buff items" })
 

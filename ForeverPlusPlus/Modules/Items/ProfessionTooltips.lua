@@ -81,19 +81,22 @@ module.options = {
 }
 
 -- Data ---------------------------------------------------------------------------------------
--- The skill each gathers at, from Classic. Forever may change some; fix them here. Herbs and
--- veins are in Lib/Professions, which Gathering Map shares and which learns them in game.
+-- The skill each gathers at: object name -> { skill line, skill }. Herbs, veins, and chests are
+-- in Lib/Professions (seeded from Data/Professions.lua), which Gathering Map shares and which
+-- learns them in game.
 
-local NODES = setmetatable({ -- object name -> { skill line, skill }
-    -- Locked chests in the world; add more (and doors) here as they're confirmed in game.
-    ["Solid Chest"] = { LOCK, 1 },
-    ["Large Solid Chest"] = { LOCK, 1 },
-}, {
-    -- Herbs and veins, seeded and learned, once their skill is known.
+local NODES = setmetatable({}, {
     __index = function(_, name)
+        -- Herbs and veins, seeded and learned, once their skill is known.
         local node = Professions.Node(name)
         if node and node[1] and node[2] then
             return node
+        end
+        -- A chest: Lockpicking, with the skill once its "Requires Lockpicking (N)" line taught it
+        -- (nil until then, so Blizzard's own line is still colored).
+        local chest, need = Professions.Chest(name)
+        if chest then
+            return { LOCK, need }
         end
     end,
 })
@@ -106,17 +109,14 @@ local LOCKBOXES = ns.GameData.New("lockboxes", ns.TableData and ns.TableData.loc
     { kind = "item", label = "Lockboxes" })
 
 -- Blacksmiths make skeleton keys that open locks like Lockpicking: item ID, the skill it opens
--- up to, and the Blacksmithing skill that makes it. From Classic; fix them here.
-local KEYS = {
-    { id = 15869, skill = 100, smith = 100 }, -- Silver Skeleton Key
-    { id = 15870, skill = 150, smith = 150 }, -- Golden Skeleton Key
-    { id = 15871, skill = 200, smith = 200 }, -- Truesilver Skeleton Key
-    { id = 15872, skill = 275, smith = 275 }, -- Arcanite Skeleton Key
-}
+-- up to, and the Blacksmithing skill that makes it. Kept by hand in Data/Professions.lua.
+local KEYS = ns.Data.skeletonKeys
 local KEY_SKILL = {}
 for _, key in ipairs(KEYS) do
     KEY_SKILL[key.id] = key.skill
 end
+-- Made a set only so Self Test checks the client still has the keys.
+ns.GameData.New("skeletonKeys", KEY_SKILL, { kind = "item", label = "Skeleton keys" })
 
 local OPTION = { [HERB] = "herbalism", [MINE] = "mining", [SKIN] = "skinning", [LOCK] = "lockpicking" }
 local FALLBACK_NAME = {
@@ -202,7 +202,7 @@ local leftLine = ns.Text.LeftLine
 -- The skill line and its color for the node named in `text`, or nil.
 local function nodeLine(text)
     local node = NODES[clean(text)]
-    if node then
+    if node and node[2] then
         return skillLine(node[1], node[2], L.PROFTOOLTIPS_REQUIRES)
     end
 end

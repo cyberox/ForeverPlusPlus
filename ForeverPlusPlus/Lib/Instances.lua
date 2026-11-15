@@ -10,53 +10,8 @@ local GetRealZoneText, GetTime, format = GetRealZoneText, GetTime, string.format
 
 local L = ns.L
 
--- A nil lowest level is the dungeon finder's from the client's tables (Lib/Generated/InstanceLevels.lua,
--- generated). A number is kept by hand: the tables lack the instance, or play showed otherwise
--- (said beside it). The highest levels are guides', since no table has one.
-local Instances = {
-    -- Not in the finder's tables (build 70888).
-    aq20 = { 509, "Ruins of Ahn'Qiraj", 60, 60, true },
-    aq40 = { 531, "Temple of Ahn'Qiraj", 60, 60, true },
-    blackfathom = { 48, "Blackfathom Deeps", nil, 32 },
-    brd = { 230, "Blackrock Depths", nil, 60 },
-    brs = { 229, "Blackrock Spire", nil, 60 },
-    bwl = { 469, "Blackwing Lair", nil, 60, true },
-    deadmines = { 36, "The Deadmines", nil, 26 },
-    diremaul = { 429, "Dire Maul", nil, 60 },
-    gnomeregan = { 90, "Gnomeregan", nil, 38 },
-    -- Forever's. The instance IDs are the client's Map table (build 70009; the five after Hall of
-    -- Thanes from 70888, see tools/datagen/Reference.txt). The five after Hall of Thanes have the
-    -- Group Finder's levels (C_LFGList activities, seen in game 2026-11-07), which also gave Hall
-    -- of Thanes' 13-20.
-    hallOfThanes = { 3065, "Hall of Thanes", nil, 20 },
-    drownedCity = { 2970, "The Drowned City", nil, 42 },
-    kroldok = { 3039, "Krol'dok Stronghold", nil, 47 },
-    alcazPrison = { 2994, "Alcaz Prison", nil, 55 },
-    blackmawHold = { 2974, "Blackmaw Hold", nil, 60 },
-    -- 58 in the Group Finder in game (2026-11-07); the tables say 60.
-    shapersTerrace = { 3001, "The Shaper's Terrace", 58, 60 },
-    ruinsOfLordaeron = { 2999, "Ruins of Lordaeron", nil, 20 },
-    excavationSite = { 2998, "Excavation Site: Wetlands", nil, 31 },
-    dalaran = { 2959, "City of Dalaran", nil, 33 },
-    maraudon = { 349, "Maraudon", nil, 55 },
-    mc = { 409, "Molten Core", nil, 60, true },
-    -- Not in the finder's tables (build 70888).
-    naxxramas = { 533, "Naxxramas", 60, 60, true },
-    onyxia = { 249, "Onyxia's Lair", nil, 60, true },
-    ragefire = { 389, "Ragefire Chasm", nil, 18 },
-    razorfenDowns = { 129, "Razorfen Downs", nil, 46 },
-    razorfenKraul = { 47, "Razorfen Kraul", nil, 38 },
-    scarlet = { 189, "Scarlet Monastery", nil, 45 },
-    scholomance = { 289, "Scholomance", nil, 60 },
-    shadowfang = { 33, "Shadowfang Keep", nil, 30 },
-    stockade = { 34, "The Stockade", nil, 30 },
-    stratholme = { 329, "Stratholme", nil, 60 },
-    sunkenTemple = { 109, "The Temple of Atal'Hakkar", nil, 60 },
-    uldaman = { 70, "Uldaman", nil, 51 },
-    wailing = { 43, "Wailing Caverns", nil, 24 },
-    zulfarrak = { 209, "Zul'Farrak", nil, 54 },
-    zulgurub = { 309, "Zul'Gurub", nil, 60, true },
-}
+-- The seed is kept by hand in Data/Instances.lua, which says where each value came from.
+local Instances = ns.Data.instances
 
 -- The finder's lowest levels in place of the nils; one the tables lack (a patch dropped it) takes
 -- the highest, so a range is always whole until the finder fixes it.

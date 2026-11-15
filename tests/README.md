@@ -15,7 +15,7 @@ On Windows: `"C:\Program Files (x86)\Lua\5.1\lua.exe" tests/run.lua`. CI runs `l
 | Path | What |
 | --- | --- |
 | `run.lua` | The runner. It finds every file in `spec/`, runs them in name order, and prints a line per spec and the totals. |
-| `lib/env.lua` | A fresh copy of the addon for each spec: stubbed WoW globals, an `ns`, the enUS Core and Map strings, and the pure-logic `Lib/` files. |
+| `lib/env.lua` | A fresh copy of the addon for each spec: stubbed WoW globals, an `ns`, the enUS Core and Map strings, the `Data/` files those need, and the pure-logic `Lib/` files. |
 | `lib/standin.lua` | The whole addon loaded offline, every file in the TOC, against a stand-in for each WoW global that isn't stubbed, for the `modules` and `migrations` specs (`T.Whole`). |
 | `lib/harness.lua` | The checks: `eq`, `same`, `near`, `ok`, `raises`. |
 | `lib/bytecode.lua` | The globals a file reads and writes, with their lines, and the strings in its code, from its Lua 5.1 bytecode (what `luac -l` lists as GETGLOBAL and SETGLOBAL), for the `globals` and `rules` specs. |

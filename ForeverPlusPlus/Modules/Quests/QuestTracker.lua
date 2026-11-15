@@ -565,7 +565,7 @@ end
 -- by hand stays until you leave. Out of combat only, like sorting; Sort by Level then sorts
 -- what's left as the watch list changes.
 
-local AZEROTH = 947 -- Forever's Azeroth map, over every zone and instance
+local AZEROTH = ns.WorldMap.AZEROTH -- Forever's Azeroth map, over every zone and instance
 local mapNames -- lowercase name -> true for every map under Azeroth, made when first needed
 local filteredZone -- the zone the watch list was last filtered for
 local zoneAfterCombat = false

@@ -23,14 +23,15 @@ local Professions = ns.Professions
 local Gathering = {}
 ns.Gathering = Gathering
 
--- The spells that gather, by the kind of node they take. Each is Classic's first rank; the other
--- ranks (Forever's Mining arrives as 2576, Journeyman) share its name, so they're matched by it.
+-- The spells that gather, by the kind of node they take (their IDs are in Data/Spells.lua). Each
+-- is the first rank; the other ranks share its name, so they're matched by it.
+local Spell = ns.Data.Spell
 local SPELLS = {
-    { ns.GameData.Spell(2575, "Mining"), "ore", Professions.MINING },
-    { ns.GameData.Spell(2366, "Herb Gathering"), "herb", Professions.HERBALISM },
-    { ns.GameData.Spell(3365, "Opening"), "treasure" },
-    { ns.GameData.Spell(1804, "Pick Lock"), "treasure", Professions.LOCKPICKING },
-    { ns.GameData.Spell(7620, "Fishing"), "fish", Professions.FISHING },
+    { Spell("MINING"), "ore", Professions.MINING },
+    { Spell("HERB_GATHERING"), "herb", Professions.HERBALISM },
+    { Spell("OPENING"), "treasure" },
+    { Spell("PICK_LOCK"), "treasure", Professions.LOCKPICKING },
+    { Spell("FISHING"), "fish", Professions.FISHING },
 }
 
 local byID = {} -- spell ID -> its entry in SPELLS, or false for a spell that doesn't gather
@@ -71,9 +72,9 @@ local HOVER_WAIT = 5 -- seconds an object tooltip still names what the player th
 -- the player (Classic's cast lands about 15 yards off; unverified on Forever).
 local FISH_WAIT = 25
 local CAST_YARDS = 15
--- The bobber is a world object too: loot from it is open water, not a pool. Seed: Classic's
--- Fishing Bobber, object 35591; unverified on Forever.
-local BOBBERS = ns.GameData.New("fishingBobbers", { [35591] = true })
+-- The bobber is a world object too: loot from it is open water, not a pool. The seed is in
+-- Data/Professions.lua.
+local BOBBERS = ns.GameData.New("fishingBobbers", ns.Data.fishingBobbers)
 -- The bobber's name as this client writes it, once a catch from it showed which object was
 -- hovered to click it, and when the last catch came: what the player hovered before then was the
 -- bobber, not the pool the next cast aims at.

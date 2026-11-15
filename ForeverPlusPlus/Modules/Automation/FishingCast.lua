@@ -44,7 +44,7 @@ module.options = {
 
 local MAINHAND = 16
 -- Classic's ID: Self Test on build 70338 found Mainline's 131474 isn't in Forever's data.
-local FISHING = ns.GameData.Spell(7620, "Fishing")
+local FISHING = ns.Data.Spell("FISHING")
 
 local button -- our secure button, made on first enable (a frame can't be removed)
 local lastClick = 0

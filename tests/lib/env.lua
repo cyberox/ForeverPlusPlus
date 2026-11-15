@@ -13,6 +13,7 @@ Env.ROOT = "ForeverPlusPlus/"
 -- What every spec gets loaded. Lib files that need frames (Frames, Players, ...) are loaded by the
 -- specs that test them, after their stubs.
 Env.LOCALES = { "Core", "Map" }
+Env.DATA = { "Instances", "Professions", "Spells" } -- the hand-kept data those Lib files read
 Env.LIBS = {
     "Secret", "Colors", "Text", "GameData", "WorldMap", "Generated/InstanceLevels", "Instances", "Chat", "TalentPlan", "Errors",
     "Prices", "Providers", "Generated/DisenchantBrackets", "Disenchant", "Presets", "Store", "Keys", "Professions", "ItemStats", "Equipment",
@@ -176,6 +177,9 @@ function Env.New()
 
     for _, file in ipairs(Env.LOCALES) do
         load("Locales/enUS/" .. file)
+    end
+    for _, file in ipairs(Env.DATA) do
+        load("Data/" .. file)
     end
     for _, file in ipairs(Env.LIBS) do
         load("Lib/" .. file)

@@ -390,8 +390,8 @@ module.actions = {
 }
 
 -- What decides which nodes show: the player's professions, and their tracking.
-local HERBS = ns.GameData.Spell(2383, "Find Herbs")
-local MINERALS = ns.GameData.Spell(2580, "Find Minerals")
+local HERBS = ns.Data.Spell("FIND_HERBS")
+local MINERALS = ns.Data.Spell("FIND_MINERALS")
 local tracking = {} -- kind -> true while its tracking spell is on
 
 local function readTracking()

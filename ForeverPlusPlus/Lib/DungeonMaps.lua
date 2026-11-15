@@ -14,7 +14,7 @@
 -- while ForeverDungeonJournalFrame isn't shown).
 local _, ns = ...
 
-local type, pcall, rawget, ipairs = type, pcall, rawget, ipairs
+local type, pcall, rawget, ipairs, pairs = type, pcall, rawget, ipairs, pairs
 local min, CreateFrame, hooksecurefunc = math.min, CreateFrame, hooksecurefunc
 
 local L = ns.L
@@ -31,69 +31,18 @@ end
 -- The game's art ---------------------------------------------------------------------------------
 -- Each floor of an instance is 12 textures, Interface\WorldMap\<name>1 to 12: a grid 4 across and
 -- 3 down of 256 pixel tiles, of which the last column uses 234 pixels and the last row 156, so a
--- map is 1002 by 668. By instance ID, a name for each floor in order. The names are Leatrix Maps'
--- list (1.60.28-forever, read 2026-11-14), which drew its maps from the same art; the Deadmines'
--- first tile is in the client (GetFileIDFromPath gave 449591, enUS, build 70938). An instance
--- whose first tile isn't in this client counts as having no art.
--- Wailing Caverns' art is the game's later layout, without what Forever added to it.
--- Dire Maul and Scarlet Monastery are one instance of several wings, each entered by its own
--- door: their floors are listed by wing, each with a key to ask for it by, so a wing is shown on
--- its own instead of paged through.
+-- map is 1002 by 668. Which textures each instance has is in Data/Instances.lua (dungeonArt, by
+-- instance key), read here by instance ID. An instance whose first tile isn't in this client
+-- counts as having no art.
 local ART_PATH = "Interface\\WorldMap\\"
 
-local function wing(key, name, ...)
-    return { key = key, name = name, floors = { ... } }
+local ART = {} -- instance ID -> its floors, or { wings = { { key, name, floors }, ... } }
+for key, art in pairs(ns.Data.dungeonArt) do
+    local instance = ns.Data.instances[key]
+    if instance then
+        ART[instance[1]] = art
+    end
 end
-
-local ART = {
-    [389] = { "Ragefire\\Ragefire1_" },
-    [36] = { "TheDeadmines\\TheDeadmines1_", "TheDeadmines\\TheDeadmines2_" },
-    [43] = { "WailingCaverns\\WailingCaverns1_" },
-    [33] = { "ShadowfangKeep\\ShadowfangKeep1_", "ShadowfangKeep\\ShadowfangKeep2_",
-        "ShadowfangKeep\\ShadowfangKeep3_", "ShadowfangKeep\\ShadowfangKeep4_",
-        "ShadowfangKeep\\ShadowfangKeep5_", "ShadowfangKeep\\ShadowfangKeep7_",
-        "ShadowfangKeep\\ShadowfangKeep6_" },
-    [34] = { "TheStockade\\TheStockade1_" },
-    [48] = { "BlackFathomDeeps\\BlackFathomDeeps1_", "BlackFathomDeeps\\BlackFathomDeeps2_",
-        "BlackFathomDeeps\\BlackFathomDeeps3_" },
-    [90] = { "Gnomeregan\\Gnomeregan1_", "Gnomeregan\\Gnomeregan2_", "Gnomeregan\\Gnomeregan3_",
-        "Gnomeregan\\Gnomeregan4_" },
-    [47] = { "RazorfenKraul\\RazorfenKraul1_" },
-    [189] = { wings = {
-        wing("graveyard", L.DUNGEONMAPS_SM_GRAVEYARD, "ScarletMonastery\\ScarletMonastery1_"),
-        wing("library", L.DUNGEONMAPS_SM_LIBRARY, "ScarletMonastery\\ScarletMonastery2_"),
-        wing("armory", L.DUNGEONMAPS_SM_ARMORY, "ScarletMonastery\\ScarletMonastery3_"),
-        wing("cathedral", L.DUNGEONMAPS_SM_CATHEDRAL, "ScarletMonastery\\ScarletMonastery4_"),
-    } },
-    [129] = { "RazorfenDowns\\RazorfenDowns1_" },
-    [70] = { "Uldaman\\Uldaman1_", "Uldaman\\Uldaman2_" },
-    [209] = { "ZulFarrak\\ZulFarrak" },
-    [349] = { "Maraudon\\Maraudon1_", "Maraudon\\Maraudon2_" },
-    [109] = { "TheTempleOfAtalHakkar\\TheTempleOfAtalHakkar1_" },
-    [230] = { "BlackrockDepths\\BlackrockDepths1_", "BlackrockDepths\\BlackrockDepths2_" },
-    [229] = { "BlackrockSpire\\BlackrockSpire1_", "BlackrockSpire\\BlackrockSpire2_",
-        "BlackrockSpire\\BlackrockSpire3_", "BlackrockSpire\\BlackrockSpire4_",
-        "BlackrockSpire\\BlackrockSpire5_", "BlackrockSpire\\BlackrockSpire6_" },
-    [409] = { "MoltenCore\\MoltenCore1_" },
-    [469] = { "BlackwingLair\\BlackwingLair1_", "BlackwingLair\\BlackwingLair2_",
-        "BlackwingLair\\BlackwingLair3_", "BlackwingLair\\BlackwingLair4_" },
-    -- Its six floors as Leatrix Maps names them: Gordok Commons (north), Capital Gardens, Court
-    -- of the Highborne, and Prison of Immol'thar (west), Warpwood Quarter and The Shrine of
-    -- Eldretharr (east).
-    [429] = { wings = {
-        wing("east", L.DUNGEONMAPS_DM_EAST, "DireMaul\\DireMaul5_", "DireMaul\\DireMaul6_"),
-        wing("west", L.DUNGEONMAPS_DM_WEST, "DireMaul\\DireMaul2_", "DireMaul\\DireMaul3_",
-            "DireMaul\\DireMaul4_"),
-        wing("north", L.DUNGEONMAPS_DM_NORTH, "DireMaul\\DireMaul1_"),
-    } },
-    [329] = { "Stratholme\\Stratholme1_", "Stratholme\\Stratholme2_" },
-    [309] = { "ZulGurub\\ZulGurub" },
-    [249] = { "OnyxiasLair\\OnyxiasLair1_" },
-    [509] = { "RuinsofAhnQiraj\\RuinsofAhnQiraj" },
-    [531] = { "AhnQiraj\\AhnQiraj1_", "AhnQiraj\\AhnQiraj2_", "AhnQiraj\\AhnQiraj3_" },
-    [533] = { "Naxxramas\\Naxxramas1_", "Naxxramas\\Naxxramas2_", "Naxxramas\\Naxxramas3_",
-        "Naxxramas\\Naxxramas4_", "Naxxramas\\Naxxramas5_", "Naxxramas\\Naxxramas6_" },
-}
 local COLUMNS, ROWS, TILE = 4, 3, 256
 local LAST_WIDTH, LAST_HEIGHT = 234, 156 -- the pixels of a tile used in the last column and row
 local MAP_WIDTH = TILE * (COLUMNS - 1) + LAST_WIDTH

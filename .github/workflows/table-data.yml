@@ -153,7 +153,7 @@ jobs:
             if grep -qx 'data: same' "$summary"; then
               echo "The data didn't change: only the build named in the files' headers and \`tools/datagen/BUILD\`, so the record stays current."
             else
-              echo "Check the diff before merging. \`tools/datagen/Reference.txt\` isn't shipped: a change there is a hint to update data kept by hand (\`Lib/Instances.lua\`, Points of Interest's \`Data.lua\`)."
+              echo "Check the diff before merging. \`tools/datagen/Reference.txt\` isn't shipped: a change there is a hint to update data kept by hand (\`Data/Instances.lua\`, Points of Interest's \`Data.lua\`)."
             fi
             echo
             echo "Before pushing, this job ran the Lua 5.1 syntax check, the ASCII check, and \`lua5.1 tests/run.lua\` on this tree, and they passed. Check (check.yml) doesn't run on a branch the bot pushed; push a commit as a person to run it. Nothing here was tested in game."

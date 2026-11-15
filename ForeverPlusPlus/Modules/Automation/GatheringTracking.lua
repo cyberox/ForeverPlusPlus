@@ -13,10 +13,10 @@ local GetTime, UnitRace = GetTime, UnitRace
 
 local L = ns.L
 
-local HERBS = ns.GameData.Spell(2383, "Find Herbs")
-local MINERALS = ns.GameData.Spell(2580, "Find Minerals")
+local HERBS = ns.Data.Spell("FIND_HERBS")
+local MINERALS = ns.Data.Spell("FIND_MINERALS")
 -- The Dwarf racial, Classic's ID. **Unverified** on Forever: no Dwarf checked it in game.
-local TREASURE = ns.GameData.Spell(2481, "Find Treasure")
+local TREASURE = ns.Data.Spell("FIND_TREASURE")
 
 local OURS = { [HERBS] = true, [MINERALS] = true, [TREASURE] = true }
 
