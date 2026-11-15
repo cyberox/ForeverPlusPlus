@@ -29,10 +29,10 @@ local metadata = ns.Metadata
 local LINKS = {
     { L.HOME_LINK_CURSEFORGE, "https://www.curseforge.com/wow/addons/foreverplusplus" },
     { L.HOME_LINK_WAGO, "https://addons.wago.io/addons/foreverplusplus" },
-    { L.HOME_LINK_BUG, WEBSITE .. "/issues/new?template=bug_report.yml" },
-    { L.HOME_LINK_REQUEST, WEBSITE .. "/issues/new?template=feature_request.yml" },
-    { L.HOME_LINK_SOURCE, WEBSITE },
     { L.HOME_LINK_RELEASES, WEBSITE .. "/releases" },
+    { L.HOME_LINK_SOURCE, WEBSITE },
+    { L.HOME_LINK_REQUEST, WEBSITE .. "/issues/new?template=feature_request.yml" },
+    { L.HOME_LINK_BUG, WEBSITE .. "/issues/new?template=bug_report.yml" },
 }
 
 -- Who else wrote part of the addon, by the name they go by on GitHub, and what they added. Keep
