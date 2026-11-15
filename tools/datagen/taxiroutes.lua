@@ -3,6 +3,7 @@
 -- flight is timed. A path's length is the sum of the distances between its points in order, on
 -- one continent. Only paths between two flight points of TaxiNodes with a length are written; the
 -- speed a flight covers them at lives in Lib/Taxi.lua, so a patch that changes it is one line.
+-- Then, for each stop, the yards a flight through it saves by not landing (SHORTCUTS).
 local CSV = require("csv")
 local Lua = require("luaout")
 

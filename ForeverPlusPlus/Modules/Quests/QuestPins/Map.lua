@@ -1,6 +1,6 @@
 -- Quest Pins on the world map: a layer of Lib/MapPins.lua with a ! at each place quests the player
 -- can take start, on the zone map shown and, on a continent map, the zones below it. Spawns of one
--- giver that lie close together share a pin (up to CLUSTER_LIMIT a giver), and pins on the same
+-- giver that lie close together share a pin (up to clusterLimit a giver), and pins on the same
 -- spot stack into one that lists every quest. Ctrl+click puts Blizzard's map pin on the pin's
 -- nearest spawn, Shift+right-click hides its quests for this character.
 local _, ns = ...
@@ -122,7 +122,7 @@ end
 -- Art ---------------------------------------------------------------------------------------------
 
 -- The color and the kind of a pin from its quests: the first kind every quest is of, else a plain
--- pin. Icon Colors can color it by how hard its first quest is instead, or not at all.
+-- pin. Pin Colors can color it by how hard its first quest is instead, or not at all.
 local ORDER = { "holiday", "instance", "class", "profession", "repeatable" }
 
 local function kindOf(quests)
@@ -358,6 +358,7 @@ local function apply()
     end
 end
 
+---Takes the pins off the map, when the module turns off.
 function internal.MapOff()
     layer:Disable()
 end

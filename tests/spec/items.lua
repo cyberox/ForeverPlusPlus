@@ -1,4 +1,5 @@
--- Items: item stats, stat weights, which worn items an item would replace, and talents.
+-- Items: marks on item buttons and the walk over every place, item stats, stat weights and their
+-- share strings, which worn items an item would replace, and talents without the trait API.
 local T = ...
 local ns, eq, near, game = T.ns, T.eq, T.near, T.game
 

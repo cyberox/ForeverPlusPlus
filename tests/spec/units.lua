@@ -1,6 +1,7 @@
--- Units: who a unit is to the player (group, friend, recent ally, guildmate), the same by name,
--- what's known of a player from their GUID and the lists, summons, and NPC titles. Dim Other
--- Players and the friendly plates read these, so a wrong "no" fades a friend.
+-- Units: whether the player is busy, who a unit is to the player (group, friend, recent ally,
+-- guildmate), the same by name, what's known of a player from their GUID and the lists, summons,
+-- NPC titles, and NPC IDs. Dim Other Players and the friendly plates read these, so a wrong "no"
+-- fades a friend.
 local T = ...
 local ns, eq, game = T.ns, T.eq, T.game
 

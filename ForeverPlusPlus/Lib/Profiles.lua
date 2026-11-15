@@ -166,7 +166,11 @@ function Profiles.Find(name)
     end
 end
 
--- Checks a name for a new or renamed profile: the cleaned name, or nil and why not.
+---Checks a name for a new or renamed profile: the cleaned name, or nil and why not.
+---@param name any
+---@param except? string the profile being renamed, which may keep its own name
+---@return string? name
+---@return string? reason
 local function checkName(name, except)
     name = Profiles.CleanName(name)
     if name == "" then
@@ -197,9 +201,13 @@ function Profiles.FreeName(name)
     return try
 end
 
--- What a profile holds, as plain tables: its settings, its profile data by module and key, and the
--- preset it's based on as saved (a name this version may not have, kept for one that does).
--- Default's profile data is in the account's data, beside the account's own.
+---What a profile holds, as plain tables: its settings, its profile data by module and key, and the
+---preset it's based on as saved (a name this version may not have, kept for one that does).
+---Default's profile data is in the account's data, beside the account's own.
+---@param id string
+---@return table settings
+---@return table data
+---@return string? preset
 local function contents(id)
     local root = Store.Root(db(), storeID(id))
     local settings = copy(type(root.settings) == "table" and root.settings or {})
@@ -413,6 +421,7 @@ function Profiles.NewCharacters()
     return Profiles.Exists(id) and id or Profiles.DEFAULT
 end
 
+---Sets the profile a character new to the addon starts on.
 ---@param id string
 function Profiles.SetNewCharacters(id)
     if Profiles.Exists(id) then
@@ -567,7 +576,9 @@ function Profiles.Preset(id)
     return Store.Preset(db(), storeID(id))
 end
 
--- What a preset says that differs from the modules' defaults, as settings of the profile's own.
+---What a preset says that differs from the modules' defaults, as settings of the profile's own.
+---@param preset string
+---@return table settings { [module] = { [key] = value } }
 local function snapshot(preset)
     local settings = {}
     for name, values in pairs(ns.Presets.Resolve(preset)) do
@@ -647,8 +658,12 @@ function Profiles.CreateFromPreset(name, preset)
     return Profiles.CreateFrom(name, {}, {}, preset)
 end
 
--- What a profile holds, counted: the modules it has on and the settings that differ from the
--- modules' defaults, reading the preset it's based on for what it doesn't set itself.
+---What a profile holds, counted: the modules it has on and the settings that differ from the
+---modules' defaults, reading the preset it's based on for what it doesn't set itself.
+---@param settings table { [module] = { [key] = value } }
+---@param preset? string
+---@return integer modules
+---@return integer settings
 local function count(settings, preset)
     if preset and not ns.Presets.Exists(preset) then
         preset = nil

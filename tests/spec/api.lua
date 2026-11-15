@@ -1,8 +1,10 @@
--- API: the public ForeverPlusPlusAPI.v1 other addons read.
+-- API: the public ForeverPlusPlusAPI.v1 other addons read, and that v1 only grows (every name it
+-- has had is still exported and in docs/api.md).
 local T = ...
 local ns, eq = T.ns, T.eq
 
--- API.lua against the Lib files loaded above, with the few things it needs from Core stubbed.
+-- API.lua against the Lib files every spec gets (tests/lib/env.lua), with the few things it needs
+-- from Core stubbed.
 
 do
     local reported = {}

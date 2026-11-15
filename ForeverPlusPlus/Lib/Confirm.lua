@@ -1,5 +1,6 @@
 -- A yes/no confirmation in Blizzard's own popup, for anything that throws data away, such as a
 -- module's Reset button in Settings, and a popup that asks for a line of text or shows one to copy.
+-- While the controller interface is on, each is a frame of our own instead (see below).
 local _, ns = ...
 
 local StaticPopupDialogs, StaticPopup_Show, YES, NO = StaticPopupDialogs, StaticPopup_Show, YES, NO

@@ -1,4 +1,5 @@
--- WorldMap: the map tree, zones by name, the map pin, the player's side, and Toward.
+-- WorldMap: the map tree, the player's position, map sizes, zones by name, the map pin, a quest's
+-- and the corpse's spot, the player's side, and Toward.
 local T = ...
 local ns, eq, near, game, player = T.ns, T.eq, T.near, T.game, T.player
 

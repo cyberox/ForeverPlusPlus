@@ -124,7 +124,7 @@ L.MINIMAPBUTTON_COMPARTMENT_COUNT = "%s (%d)" -- Forever++, errors this session
 L.MINIMAPBUTTON_TIP_SESSION = "Errors This Session"
 L.MINIMAPBUTTON_TIP_SAVED = "Saved Errors"
 L.MINIMAPBUTTON_TIP_NONE = "None" -- a count of 0 errors
--- The right-click menu's groups.
+-- The quick toggles' groups, by what you're doing (Menu Order's Activity).
 L.MINIMAPBUTTON_GROUP_LOOT = "Vendors and Loot"
 L.MINIMAPBUTTON_GROUP_NPCS = "NPCs and Quests"
 L.MINIMAPBUTTON_GROUP_WORLD = "Out in the World"
@@ -163,7 +163,7 @@ L.MINIMAPBUTTON_PLACE_RESET_DESC = "Put the minimap button back on the minimap's
 L.MINIMAPBUTTON_LEFT_CLICK = "Click"
 L.MINIMAPBUTTON_RIGHT_CLICK = "Right click"
 L.MINIMAPBUTTON_KEY_LEFT_CLICK = "%s click" -- a key, such as Shift
-L.MINIMAPBUTTON_KEY_RIGHT_CLICK = "%s right click" -- the same with Swap Clicks on
+L.MINIMAPBUTTON_KEY_RIGHT_CLICK = "%s right click" -- the same, with Click Opens Quick Toggles on
 L.MINIMAPBUTTON_SWAP = "Click Opens Quick Toggles"
 L.MINIMAPBUTTON_SWAP_DESC = "A click opens the quick toggles and a right-click opens settings. "
     .. "Off, it's the other way round."

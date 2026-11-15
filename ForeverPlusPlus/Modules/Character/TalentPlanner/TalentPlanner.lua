@@ -1,11 +1,11 @@
 -- Talent Planner: a Plan Talents button on the talent window. While planning, clicking a talent
 -- adds a point to a saved plan instead of learning it, in the order clicked, and a level box limits
 -- the plan to the points a character has at that level. Out of planning, the plan's next talent
--- glows when you have a point to spend, and talent tooltips say at which levels the plan takes
--- it, and Level-Up Reminder names it in chat when a point comes. Blizzard's tree
--- still draws the talents; while planning, our own buttons sit over its buttons (theirs go
--- transparent) and show the plan's ranks with Blizzard's own art. The tree's data comes from
--- C_Traits (docs/forever-api.md, Talents); nothing here learns a talent.
+-- glows when you have a point to spend, talent tooltips say at which levels the plan takes it,
+-- and Level-Up Reminder names it in chat when a point comes. Blizzard's tree still draws the
+-- talents; while planning, our own buttons sit over its buttons (theirs go transparent) and show
+-- the plan's ranks with Blizzard's own art. The tree's data comes from C_Traits
+-- (docs/forever-api.md, Talents); nothing here learns a talent.
 --
 -- This file has the module, its hooks, and refresh; the tree and saved plans are in Tree.lua, what
 -- goes on Blizzard's tree in Draw.lua, the bar along the window's bottom in Bar.lua, and the
@@ -22,8 +22,8 @@ local module = ns.NewModule("TalentPlanner", L.TALENTPLANNER_DESC, {
     enabled = true,
     glow = true, -- the plan's next talent glows
     tooltip = true, -- talent tooltips say when the plan takes them
-    -- A chat line naming the plan's next talent when a point comes. Its own checkbox is the Chat
-    -- Messages one: up to 1.4.0 it had both, and the line needed the two on.
+    -- A chat line naming the plan's next talent when a point comes. This checkbox stands in for
+    -- Chat Messages, so the line needs only it on.
     reminder = false,
     -- Saved per character: spec tab -> { active = index, list = { { name, level, picks }, ... } },
     -- where picks are nodeIDs in order and level is the plan's level cap.

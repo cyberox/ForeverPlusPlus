@@ -159,6 +159,7 @@ function CVars.Bind(module, map)
             CVars.Restore(module.db.saved, names)
         end
     end
+    ---Applies every mapped option.
     function bound.ApplyAll()
         for key in pairs(map) do
             bound.Apply(key)

@@ -70,8 +70,8 @@ local function initials(name)
     return text ~= "" and text or nil
 end
 
--- Each style's short form of a channel, from its number and full name: the part before the
--- number's ". ", if any, and the part after it.
+-- Each style's short form of a channel's full name, the part that follows the number; the
+-- NUMBERED styles keep the number and ". " before it (shortName).
 local FORMS = {
     number = function() return nil end,
     letter = function(name) return name:match(FIRST_CHARACTER) end,

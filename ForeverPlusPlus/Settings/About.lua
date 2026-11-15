@@ -302,6 +302,8 @@ local function buildCommands(frame, pageWidth)
     frame:HookScript("OnShow", draw) -- after /fpp or the Modules page turned some on or off
 end
 
+---Draws the About page, the first time it's shown.
+---@param frame table the empty page
 function S.BuildAbout(frame)
     ns.SettingsKit.AddPageTitle(frame, L.ABOUT)
     -- The NEW tag on the Minimap Button can go. On every show, since Reset Welcome sets it again.

@@ -1,6 +1,7 @@
 -- Our lines in item tooltips, kept together where Blizzard puts the sell price. Modules add price
 -- lines with `OnPrices`: right after the sell price, or after the item's last line of data when
--- it has none. Other lines about the item (`OnInfo`) go just above them. One module may redraw
+-- it has none. Other lines about the item (`OnInfo`) go just above them, and lines about the
+-- prices (`OnPriceNotes`) just below. One module may redraw
 -- the sell price line itself with `ReplaceSellPrice`, and any module another of Blizzard's lines
 -- with `ReplaceLine`. That module also gets to draw a sell price where Blizzard draws none (quest
 -- rewards). Nothing is hooked until a module first calls in.

@@ -1,4 +1,5 @@
--- Taxi: the open flight master's nodes, read once a frame.
+-- Taxi: the open flight master's nodes, read once a frame, and flight estimates: from the routes,
+-- resumed across a reload, and checked against timed flights.
 local T = ...
 local ns, eq, ok, near, game = T.ns, T.eq, T.ok, T.near, T.game
 

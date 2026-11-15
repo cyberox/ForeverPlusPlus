@@ -123,8 +123,8 @@ local function skipLine(_, line)
     return unknown ~= nil and ns.IsText(text) and text == unknown
 end
 
-local results = {} -- link -> true (not collected) or false, with the time it was looked at
-local checkedAt = {}
+local results = {} -- link -> true (not collected) or false
+local checkedAt = {} -- link -> GetTime() its answer was looked up
 local waiting = {} -- itemID -> true while the game has no tooltip for it yet
 -- The lookups' own row on the Profiler page: reading an item's tooltip is the costly part.
 local Profiler = ns.Profiler

@@ -124,6 +124,7 @@ L.APPEARANCEICONS_HIDE_LINE = "Hide Tooltip Line"
 L.APPEARANCEICONS_HIDE_LINE_DESC = "Leave \"You haven't collected this appearance\" out of item "
     .. "tooltips, since the icon already says so."
 
+-- UnusableItemsTint
 L.UNUSABLEITEMSTINT_TITLE = "Unusable Items Tint"
 L.UNUSABLEITEMSTINT_PART_LOOKUP = "reading item tooltips" -- its row on the Profiler page
 L.UNUSABLEITEMSTINT_DESC = "Tint red the items you can't use, because of your class, armor or weapon skill, level, "

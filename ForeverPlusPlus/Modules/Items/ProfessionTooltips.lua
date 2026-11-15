@@ -1,7 +1,7 @@
--- Profession Tooltips: the skill a herb, vein, skinnable beast, or locked lockbox or chest needs,
--- in its tooltip, colored against the player's skill the way a trainer colors recipes: red can't
--- yet, then orange, yellow, green, and gray as it gets easier. Herbs, ore, and stone items say
--- the skill that gathers them. Gathering is shown only for professions the player has, or always
+-- Gathering Skill Tooltips: the skill a herb, vein, skinnable beast, or locked lockbox or chest
+-- needs, in its tooltip, colored against the player's skill the way a trainer colors recipes: red
+-- can't yet, then orange, yellow, green, and gray as it gets easier. Herbs, ore, and stone items
+-- say the skill that gathers them. Gathering is shown only for professions the player has, or always
 -- (red without it); Lockpicking only for characters who can pick locks. Ideas from
 -- GatherSkillTooltip; none of its code.
 --
@@ -513,7 +513,7 @@ end
 
 -- itemID -> { line index, Lockpicking needed } of the item's "Requires Lockpicking (N)" line, or
 -- false for an item without one. Looked for once per item, since this runs before every line of
--- every item tooltip; later builds only compare line tables.
+-- every item tooltip; after that, each line only compares line tables.
 local lockLines = {}
 
 -- An item's Lockpicking line, learned for the box, or false. A box we know counts whatever the

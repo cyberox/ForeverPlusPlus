@@ -176,8 +176,9 @@ end
 -- uses. Otherwise { cost (copper), missing (a reagent has no price), oldest (when the oldest auction
 -- price used was seen), output (the itemID made; nil for an enchant, which has no value or profit),
 -- low and high (how many it makes), value (of all it makes, or nil with no price), fromVendor,
--- profit (after the auction house's cut; nil without a value or a reagent's price), loading (the
--- output's item data hasn't come yet, so a merchant's price for it can't be read) }.
+-- vendor (what a merchant pays for all it makes, beside an auction value), profit (after the
+-- auction house's cut; nil without a value or a reagent's price), loading (the output's item data
+-- hasn't come yet, so a merchant's price for it can't be read) }.
 local function craftSums(recipeID)
     local schematic = recipeID and C_TradeSkillUI and C_TradeSkillUI.GetRecipeSchematic
         and C_TradeSkillUI.GetRecipeSchematic(recipeID, false)

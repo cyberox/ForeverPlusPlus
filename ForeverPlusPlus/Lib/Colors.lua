@@ -49,7 +49,8 @@ end
 
 ---The color of a level range (a zone's or a dungeon's) against the player's level, like a quest's:
 ---red or orange while it's above you, yellow while you're in it, green or gray once you've
----outleveled it. Two below the top counts as outleveled, so a range you've finished isn't yellow.
+---outleveled it. Past the top it's colored as a quest two levels below the top, so a range you've
+---just finished isn't yellow.
 ---Nil without Blizzard's quest colors. Probe: they're FrameXML's.
 ---@param low number
 ---@param high number

@@ -62,7 +62,7 @@ local TEMPLATES = {
         HEAL = 0.6, HIT = 5, CRIT = 5, SPELLHIT = 5, SPELLCRIT = 5, DPS = 2 },
 }
 
--- The attributes the game's conversions decide, and the rates behind each.
+-- The attributes the game's conversions decide (derive below).
 local DERIVED = { STR = true, AGI = true, STA = true, INT = true }
 internal.DERIVED = DERIVED
 
@@ -164,7 +164,7 @@ end
 -- for Arms, Retribution, and Enhancement, the off hand for Fury and Combat, crit for the crit
 -- trees (Arms, Fire, Destruction, Elemental, Assassination, Marksmanship), hit for Fury,
 -- Combat, and Shadow, mana for Warlocks (Life Tap) and Arcane, Spirit for the healers who regen
--- on it, spell damage and mana for Paladins, and armor and stamina for Demonology.
+-- on it, spell damage and mana for Paladins, and stamina and health for Demonology.
 -- docs/stat-weights.md says why each number is what it is.
 local NUDGES = {
     WARRIOR = {

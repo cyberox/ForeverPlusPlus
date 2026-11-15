@@ -1,7 +1,8 @@
 -- Item Tooltips' Auction Prices, its scan: scans the auction house when it opens, keeping the
 -- lowest buyout of each item in the prices AuctionPrices.lua saves and gives out, with a spinner
--- in the auction house's title bar while it runs, a button there to scan now, and /fpp scan. Shares the part through
--- `internal.auction` (see AuctionPrices.lua), which turns this on and off with it.
+-- in the auction house's title bar while it runs, a button there to scan now, and /fpp scan.
+-- Shares the part through `internal.auction` (see AuctionPrices.lua), which turns this on and off
+-- with it.
 --
 -- The scan is an empty browse search paged to the end, the same one Auctionator's default scan
 -- uses on Forever. C_AuctionHouse.ReplicateItems is in the client too, but it's unproven here,

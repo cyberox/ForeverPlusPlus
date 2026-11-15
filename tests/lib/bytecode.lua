@@ -1,10 +1,13 @@
 -- The globals a Lua 5.1 file reads and writes, from its compiled bytecode (string.dump), with the
--- line of each. The same GETGLOBAL and SETGLOBAL instructions `luac -l` lists, read in plain Lua
--- so the tests need no luac. Only Lua 5.1's format (lundump.c) is read.
+-- line of each, and the strings in its code. The same GETGLOBAL and SETGLOBAL instructions
+-- `luac -l` lists, read in plain Lua so the tests need no luac. Only Lua 5.1's format (lundump.c)
+-- is read.
 local Bytecode = {}
 
 local byte, floor = string.byte, math.floor
 
+-- Lua 5.1's opcode numbers (lopcodes.h). An instruction is the opcode in its low 6 bits, then A
+-- (8 bits), then C (9) and B (9), or Bx (18) in their place: so Bx and C start at 2^14 = 16384.
 local GETGLOBAL, SETGLOBAL, SETLIST = 5, 7, 34
 
 -- A reader over the dumped string, with the header's sizes.

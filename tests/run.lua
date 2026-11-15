@@ -7,7 +7,8 @@
 -- Each file in tests/spec/ is a spec, found by itself and run in name order. A spec gets a fresh
 -- copy of the addon (tests/lib/env.lua: its own globals and `ns`) and the checks in
 -- tests/lib/harness.lua, as `local T = ...`. A spec that errors is a failure, and the run goes on.
--- The exit code is 0 only when every check passed. See tests/README.md.
+-- One that makes no checks is a failure too. The exit code is 0 only when every check passed and
+-- no spec failed that way. See tests/README.md.
 
 local function import(path)
     return assert(loadfile(path))()

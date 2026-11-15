@@ -1,6 +1,7 @@
 -- Friendly nameplates that always show the unit's name, and the health bar only while it's hurt or
--- in combat (or always, only in combat, or never: the module's Health Bar setting). Built on Blizzard's own nameplates: the bar fades, Blizzard's name hides, and our label
--- (ns.PlateLabel) shows instead. Player Nameplates and NPC Nameplates each run one of these for
+-- in combat (or always, only in combat, or never: the module's Health Bar setting). Built on
+-- Blizzard's own nameplates: the bar fades, Blizzard's name hides, and our label (ns.PlateLabel)
+-- shows instead. Player Nameplates and NPC Nameplates each run one of these for
 -- their own kind of unit:
 --
 --   local plates = ns.FriendlyPlates.New(module, {
@@ -19,9 +20,10 @@
 -- set here still reaches them, but nothing else does.
 --
 -- New gives the module its OnEnable, OnDisable and OnOptionChanged (unless it has its own
--- OnDisable or OnOptionChanged). The module's settings come from FriendlyPlates.Defaults: they
--- need healthBar, level, levelFrame, levelSize, buffs, nameSize, centerLine, and `saved = {}` for
--- the CVars. FriendlyPlates.Options puts the General options at the top of the module's list.
+-- OnDisable or OnOptionChanged). The module's defaults go through FriendlyPlates.Defaults, which
+-- adds the settings these plates read (healthBar, level, levelFrame, levelSize, buffs, nameSize,
+-- centerLine, and `saved` for the CVars). FriendlyPlates.Options puts the General options at the
+-- top of the module's list.
 local _, ns = ...
 
 local pairs, ipairs, setmetatable, hooksecurefunc, type = pairs, ipairs, setmetatable, hooksecurefunc, type
@@ -361,9 +363,7 @@ function FriendlyPlates.New(module, spec)
             self:Layout(unit)
         end
     end
-    -- The module's turning on and off and option changes are the same for every plate module. It
-    -- keeps its own OnDisable and OnOptionChanged if it has them, and `spec.OnEnable(module)` adds
-    -- to turning on.
+    -- Turning on and off and option changes are the same for every plate module (see the top).
     function module.OnEnable(mod)
         self:Enable()
         if spec.OnEnable then
@@ -649,8 +649,8 @@ function Plates:ApplyCVars(changing)
     end
 end
 
----Sets the CVars, and starts handling plates and their events (through module:On, so they stop
----when the module turns off).
+---Sets the CVars, and starts handling plates and their events (the events through module:On, so
+---they stop by themselves when the module turns off).
 function Plates:Enable()
     active[self] = true
     local module = self.module

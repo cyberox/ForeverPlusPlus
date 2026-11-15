@@ -1,4 +1,5 @@
--- Chat: colored lines, timestamps, and offsets between colored and plain text.
+-- Chat: colored lines, timestamps, offsets between colored and plain text, the hook on each
+-- window's messages, and quieting harmless "Interface action failed" lines.
 local T = ...
 local ns, eq = T.ns, T.eq
 

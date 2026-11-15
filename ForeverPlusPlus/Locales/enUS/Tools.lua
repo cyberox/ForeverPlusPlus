@@ -8,10 +8,12 @@ end
 
 -- ConsoleVariables
 L.CONSOLEVARIABLES_TITLE = "Console Variables"
+-- Debug (its title, L.DEBUG, is in Core.lua)
 L.DEBUG_DESC = "Show every module's debug options and the testing tools (Self Test, Gear Probe, "
     .. "Screenshots) on a Debug page in the Settings sidebar, and turn on their commands."
 L.DEBUG_NOTICE = "Turning Debug off puts every debug option back to its default." -- a gray row atop the module
 L.DEBUG_NOTICE_DESC = "So nothing set here goes on working out of sight."
+-- ConsoleVariables
 L.CONSOLEVARIABLES_DESC ="Browse the game's console variables (CVars) on a page in Settings, "
     .. "change them, and lock the ones you want kept, even those the game puts back at every login."
 L.CONSOLEVARIABLES_CHAT_DESC = "Say in chat when a locked console variable can't be kept at its value."

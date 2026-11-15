@@ -153,7 +153,7 @@ end
 
 -- The first time a talent is shown its spell isn't loaded yet; when it loads, Blizzard redraws the
 -- tooltip from the data it was given, which is only the rank's text we appended, so our name,
--- rank, and lines went missing until the next hover. Draw ours again over it.
+-- rank, and lines would be gone until the next hover. Draw ours again over it.
 local redrawing = false
 function internal.onTooltipRefreshed(tooltip)
     if redrawing or tooltip ~= GameTooltip then

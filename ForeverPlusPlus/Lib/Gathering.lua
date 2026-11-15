@@ -128,7 +128,7 @@ local function targetName(target)
     return nil, "none"
 end
 
-local trace -- fn(step, a, b, c) while a module logs what's heard, for finding out why a gather wasn't
+local trace -- fn(step, a, b, c) while a module logs what's heard, to find out why a gather wasn't told
 
 ---Has `fn(step, a, b, c)` told each step of hearing a gather, while a module logs them: "cast"
 ---(any spell the player casts: its name or ID, the target, and whether it gathers), "success"
@@ -580,8 +580,9 @@ end
 -- Remembering nodes ----------------------------------------------------------------------------
 -- A map's nodes are a list of { name, kind, x, y, count, time }: x and y from 0 to 1 across the
 -- map, rounded to 4 places (half a yard on a big zone), how many times it was gathered, and when
--- last (time()). The player stands a few yards from what they gather, from a different side each
--- time, so a node's spot is the average of where they stood.
+-- last (time()); a node also seen (See) has `sightings` and `seen`, and one whose spot spawns more
+-- than one name has `names`. The player stands a few yards from what they gather, from a different
+-- side each time, so a node's spot is the average of where they stood.
 
 local floor, sqrt = math.floor, math.sqrt
 
@@ -597,6 +598,12 @@ function Gathering.Round(v)
 end
 
 ---How far apart two spots on a map are, in yards, for a map `width` by `height` yards.
+---@param x1 number
+---@param y1 number
+---@param x2 number
+---@param y2 number
+---@param width number the map's size in yards
+---@param height number
 ---@return number yards
 function Gathering.Distance(x1, y1, x2, y2, width, height)
     local dx, dy = (x1 - x2) * width, (y1 - y2) * height
@@ -900,8 +907,9 @@ end
 ---"softinteract", "tooltip", or "none"); `kind` ("herb", "ore", "treasure", "fish") and `line`,
 ---the skill line of the spell; where the player stood when they cast, on their zone's map
 ---(`mapID`, `x`, `y`, nil where it can't be read; for a pool, where the line landed); the world
----object's ID from its loot (nil without loot); and `items`, the loot as `{ id, count, icon }`. A herb or vein the player's skill was too low for is told too, with
----`requires`, the rank it takes, and no loot: it wasn't gathered. Gathers in instances aren't told.
+---object's ID from its loot (nil without loot); and `items`, the loot as `{ id, count, icon }`.
+---A herb or vein the player's skill was too low for is told too, with `requires`, the rank it
+---takes, and no loot: it wasn't gathered. Gathers in instances aren't told.
 ---Don't keep or change the table.
 ---@param fn fun(gather: table)
 ---@param on boolean

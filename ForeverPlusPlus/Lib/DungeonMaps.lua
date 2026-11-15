@@ -1,8 +1,8 @@
 -- Dungeon maps, for a module that wants to show one. The client has no dungeon map to open (no
 -- dungeon-type UiMap, build 70938), but it still has the old dungeon map art as textures, so an
 -- instance with art is drawn in a view of our own over the world map: the art, with Previous and
--- Next for an instance of several floors, and a right click to go back. Nothing is shipped; the art has
--- boss skulls and some banners painted in, and that's left as it is.
+-- Next for an instance of several floors, and a right click to go back. Nothing is shipped; the
+-- art has boss skulls and some banners painted in, and that's left as it is.
 --
 -- An instance without art (Scholomance in its Classic layout, Forever's new dungeons, or a game
 -- language that lacks the textures) goes to the DungeonJournal addon (ForeverDungeonJournal,

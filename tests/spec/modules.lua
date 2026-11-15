@@ -2,7 +2,10 @@
 -- each option has a name, a description, and a default that fits it (a dropdown's is one of its
 -- choices, a slider's is in its range), and every `requires`, `slider`, and `conflicts` names an
 -- option the module has. These are the mistakes that only show in game, as a broken row in
--- Settings or an option that never greys out, often after a rename.
+-- Settings or an option that never greys out, often after a rename. Also: no file makes a frame,
+-- hook, timer, or listener as it loads; no migration step is past Store.VERSION; each preset a
+-- module declares fits it; and Console Variables' Popular list, the Health Bar migration, and
+-- the Modules page's categories.
 local T = ...
 local eq = T.eq
 

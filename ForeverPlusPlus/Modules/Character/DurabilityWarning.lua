@@ -7,7 +7,7 @@
 -- It warns only when the level gets worse (ns.Durability.ShouldWarn): low, then broken. Repairing,
 -- or taking the item off, brings the level back down, and the next drop warns again. Durability
 -- events come in bursts (every hit in a fight), so a look waits for them to settle. After logging
--- in, gear that's already low gets one quiet warning (chat only) once the world has loaded; a
+-- in, gear that's already low gets one quiet warning (see warn) once the world has loaded; a
 -- reload or a loading screen says nothing new.
 local _, ns = ...
 

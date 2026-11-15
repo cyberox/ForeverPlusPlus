@@ -2,10 +2,10 @@
 -- which one new characters start on, at the top; under them the profiles in a list on the left,
 -- with how many characters use each and a mark on this character's, and the selected one on the
 -- right: its name, what it holds, who uses it, the preset it's based on (Based On), its buttons
--- (Use on This Character, Rename, Delete),
--- every character seen with a checkbox each (checked uses this profile), its Share buttons, and a
--- note on what a profile holds. Defaults on the Modules page resets the profile in use, so there
--- is no Reset here. Drawn from Lib/Profiles.lua each time something about the profiles changes.
+-- (Use on This Character, Rename, Delete), every character seen with a checkbox each (checked uses
+-- this profile), its Share buttons, and a note on what a profile holds. Defaults on the Modules
+-- page resets the profile in use, so there is no Reset here. Drawn from Lib/Profiles.lua each time
+-- something about the profiles changes.
 local _, ns = ...
 
 local ipairs, format, concat, max, pcall = ipairs, string.format, table.concat, math.max, pcall
@@ -389,6 +389,8 @@ function draw()
 end
 S.DrawProfiles = draw
 
+---Draws the Profiles page, the first time it's shown.
+---@param frame table the empty page
 function S.BuildProfiles(frame)
     Kit.AddPageTitle(frame, L.PROFILES)
     page = { listRows = {}, characterRows = {}, dropdowns = {} }
@@ -518,7 +520,7 @@ function S.BuildProfiles(frame)
     frame:HookScript("OnShow", draw)
 end
 
--- Anything about the profiles changing, or a module turned on or off (the counts), redraws it.
+-- Anything about the profiles changing, or a module or option changing (the counts), redraws it.
 Profiles.OnChanged(function()
     draw()
 end)

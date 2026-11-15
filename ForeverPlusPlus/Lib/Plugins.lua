@@ -1334,6 +1334,7 @@ function Plugins.Kit()
         IsKeyDown = function(key)
             return type(key) == "string" and safe(ns.Keys.IsDown, key) or false
         end,
+        -- Blizzard's map pin, and the map tree
         SetWaypoint = function(map, x, y, name)
             if not (finite(x) and finite(y)) then
                 return false, "range"

@@ -1,4 +1,5 @@
--- Text: clocks, durations, versions, "ago", plain text, format patterns, and splitting chat.
+-- Text: numbers, clocks, durations, yards, versions, "ago", plain text, format patterns,
+-- splitting chat, and a bar's status text.
 local T = ...
 local ns, eq = T.ns, T.eq
 

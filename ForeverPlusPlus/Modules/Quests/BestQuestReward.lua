@@ -38,7 +38,7 @@ module.options = {
     }),
 }
 
--- How far past the icon's corner the coin hangs, as it always has.
+-- How far past the icon's corner the coin hangs (a negative padding pushes it out).
 local COIN_OUT = -3
 
 local COIN_TEXTURE = "Interface\\MoneyFrame\\UI-GoldIcon"

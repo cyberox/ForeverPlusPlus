@@ -70,8 +70,7 @@ local function debugInfo()
 end
 
 -- How many hooks a module has made (`module:Hook`, `HookScript`, `TooltipPostCall`,
--- `TooltipLinePreCall`). They stay but
--- do nothing while the module is off.
+-- `TooltipLinePreCall`). They stay but do nothing while the module is off.
 local function hookCount(module)
     local count = 0
     for _, byMethod in pairs(module.hooked or {}) do

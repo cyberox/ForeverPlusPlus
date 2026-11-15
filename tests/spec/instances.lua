@@ -1,4 +1,5 @@
--- Instances: the seed's dungeons and raids, their names in the player's language, and levels.
+-- Instances: the seed's dungeons and raids, their names in the player's language, levels, and
+-- icons, and the kind of instance the player is in.
 local T = ...
 local ns, eq, game, player = T.ns, T.eq, T.game, T.player
 

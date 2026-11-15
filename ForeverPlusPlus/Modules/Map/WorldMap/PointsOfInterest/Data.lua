@@ -4,14 +4,13 @@
 -- tables for build 70009 (TaxiNodes, and the stops of TaxiPathNode's transport paths, placed with
 -- UiMapAssignment), which agree with the Classic ones here to 0.5%. Kept by hand:
 -- tools/datagen/Reference.txt lists those tables' points for a newer build to check these against
--- (still the same in 70888). The flight points are a seed:
--- where a flight master's map puts one wins, and ones it lists that aren't here are added (see
--- learnFlights). Each point is one of:
+-- (still the same in 70888). The flight points are a seed: where a flight master's map puts one
+-- wins, and ones it lists that aren't here are added (see learnFlights in Flights.lua). Each
+-- point is one of:
 --   { "dungeon" or "raid", x, y, instance key }
 --   { "flight", x, y, faction, place }
 --   { "ship", "zeppelin", or "tram", x, y, faction, destination place, destination map ID (or
---     this map),
---     via = place it stops at first, viaMap = that place's map ID }
+--     this map), via = place it stops at first, viaMap = that place's map ID }
 --   { "spirit", x, y }
 -- Factions are "A" (Alliance), "H" (Horde), and "N" (both). Places are English; a locale file can
 -- translate one with L["Booty Bay"] = "...". Dungeons the game's own entrance list has and this

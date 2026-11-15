@@ -1,12 +1,12 @@
 -- Plugins: what another addon's module is handed (Lib/Plugins.lua). The handle's fields and its
--- life through login are in spec/core.lua; this is the promise around them: a plugin gets tables
--- of its own, never ours, what it gives us is checked, its functions are called guarded, and it
--- can't do while its module is off what our own modules can't.
+-- life through login are in spec/core_plugins.lua; this is the promise around them: a plugin gets
+-- tables of its own, never ours, what it gives us is checked, its functions are called guarded,
+-- and it can't do while its module is off what our own modules can't.
 local T = ...
 local eq, raises = T.eq, T.raises
 
 -- The real Core.lua, Lib/Frames.lua and Lib/Plugins.lua in an `ns` of their own, against stub
--- frames and a clock for C_Timer, as spec/core.lua has them.
+-- frames and a clock for C_Timer, as tests/lib/core.lua has them.
 do
     local frames = {}
     local Frame = {}

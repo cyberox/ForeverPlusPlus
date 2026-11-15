@@ -1,5 +1,6 @@
 -- Professions' columns at the right end of the recipe rows: where each sits as the others come
--- into use and go, and the recipe's name cut short before them.
+-- into use and go, and the recipe's name cut short before them. Then the recipe a row is about,
+-- the recipe form, and watching the window load.
 local T = ...
 local ns, eq, ok = T.ns, T.eq, T.ok
 

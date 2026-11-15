@@ -28,7 +28,7 @@ local memory = 1000
 UpdateAddOnMemoryUsage = function() end
 GetAddOnMemoryUsage = function() return memory end
 T.load("Locales/enUS/Tools")
-T.load("Lib/Profiler") -- it caches debugprofilestop, CreateFrame, and InCombatLockdown
+T.load("Lib/Profiler") -- it caches debugprofilestop, CreateFrame, InCombatLockdown, and wipe
 local Profiler = ns.Profiler
 
 local function takes(spent)
@@ -119,7 +119,7 @@ local kept = Profiler.Spikes()
 eq(#kept, 10, "profiler: only the worst spikes are kept")
 eq(kept[1].ms > kept[#kept].ms, true, "profiler: worst first")
 
--- Memory: how fast it grew since Record.
+-- Memory: how fast it grew since Start.
 memory = 1500
 near(Profiler.MemoryGrowth(memory), 500 / 12, "profiler: memory growth in KB a second")
 

@@ -112,8 +112,8 @@ for _, args in ipairs({
     module.options[#module.options + 1] = size
 end
 
--- The last quest ID of original Classic (inferred from Classic quest data). Nothing in play says
--- it, so a fix ships as a new seed.
+-- The last quest ID of original Classic (see the top of the file). Nothing in play says it, so a
+-- fix ships as a new seed.
 local CLASSIC_QUESTS = ns.GameData.New("foreverQuestIcons", { lastClassicQuest = 9665 },
     { label = "Forever Quest Icons" })
 

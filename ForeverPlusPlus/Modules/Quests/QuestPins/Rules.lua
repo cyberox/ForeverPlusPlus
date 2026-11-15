@@ -95,7 +95,8 @@ end
 
 local warSeen = false
 
----Notes that the player has a war effort quest, called as quests are accepted.
+---Has the next check look through the quest log for a war effort quest again, called as quests
+---are accepted.
 function internal.NoteWarEffort()
     warSeen = false -- looked for again
 end

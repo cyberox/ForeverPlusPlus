@@ -506,7 +506,7 @@ function Menus.Open(menuOwner, generator, anchor)
 end
 
 ---Gives one of Blizzard's dropdown buttons (a `DropdownButton` frame we made from
----`WowStyle1DropdownTemplate`) its menu, in place of its own `SetupMenu`. The button, its text,
+---`WowStyle1DropdownTemplate`) its menu, in place of calling its `SetupMenu`. The button, its text,
 ---and the mouse wheel stay Blizzard's; only opening changes: with the controller interface on, the
 ---list that drops down is our own. `OpenMenu` is replaced on our own frame, never on the mixin.
 ---@param dropdown table

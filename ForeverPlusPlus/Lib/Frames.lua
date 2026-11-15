@@ -1,7 +1,8 @@
 -- Small frame helpers modules share: probing for Blizzard art and templates, the box tooltips are
--- drawn in, Escape closing our windows, red text in the error frame, running something once
--- after a burst of calls, a timer that waits for one run at a time, and whether the player is in
--- combat or moving.
+-- drawn in, our portrait windows and Escape closing them, Blizzard's panel button, saving and
+-- putting back a frame's anchors, red text in the error frame, running something once after a
+-- burst of calls, a throttled OnUpdate, a timer that waits for one run at a time, and whether the
+-- player is in combat or moving.
 local _, ns = ...
 
 local select, ipairs, tinsert, CreateFrame, C_Timer = select, ipairs, table.insert, CreateFrame, C_Timer

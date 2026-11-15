@@ -171,7 +171,7 @@ local function fromRows(bracket)
     return list
 end
 
--- A learned tally's materials: item ID -> times, min, max.
+-- One material's "times:min:max" in a learned tally, as numbers.
 local function parse(text)
     if type(text) ~= "string" then
         return nil

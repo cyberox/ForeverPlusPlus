@@ -87,8 +87,8 @@ local function getPin(i)
 end
 
 -- Sets a pin's look for `node`: the same as on the world map, at the minimap's size. Near the
--- player (`close`, with Near You set to Empty Ring or Whole Minimap), the ring alone, so the
--- game's own dot shows inside it when the node is there.
+-- player (`close`, with Show Nodes As set to Empty Rings Near You or Empty Rings Everywhere), the
+-- ring alone, so the game's own dot shows inside it when the node is there.
 local function style(pin, node, size, alpha, close)
     internal.Look(node, look, "minimap")
     if close then
@@ -133,9 +133,10 @@ end
 
 -- Draws an icon for each node followed that's on the minimap now. A pin is restyled only when it
 -- shows another node, comes near the player or leaves, or an option changed (`restyle`), and
--- moved only when its spot changed. Anywhere on the minimap (Near You's Whole Minimap), or within
--- its yards of the player, a herb or vein is an empty ring or hidden, as GatherLite does close
--- up: only the game's own dot can say whether a node is there now, so ours leaves room for it.
+-- moved only when its spot changed. Anywhere on the minimap (Show Nodes As's Empty Rings
+-- Everywhere), or within its yards of the player, a herb or vein is an empty ring or hidden, as
+-- GatherLite does close up: only the game's own dot can say whether a node is there now, so ours
+-- leaves room for it.
 local function draw(v, restyle)
     local db = module.db
     local size, alpha = db.minimapSize, db.minimapAlpha / 100

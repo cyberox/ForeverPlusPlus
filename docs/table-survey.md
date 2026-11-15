@@ -1,6 +1,6 @@
 # Client table survey
 
-What WoW: Forever's client database tables actually hold, for replacing data the addon keeps by hand and for features built on generated data. Every number here was read from build **1.60.1.70888** (product `wowf`, the latest on 2026-11-11 and the one in `tools/datagen/BUILD`), as wago.tools publishes the tables (`https://wago.tools/db2/<Table>/csv?build=<build>`). wago.tools lists **619 tables** for this build.
+What WoW: Forever's client database tables actually hold, for replacing data the addon keeps by hand and for features built on generated data. Every number here was read from build **1.60.1.70888** (product `wowf`, the latest on 2026-11-11 and the one in `tools/datagen/BUILD` then), as wago.tools publishes the tables (`https://wago.tools/db2/<Table>/csv?build=<build>`). wago.tools lists **619 tables** for this build.
 
 Rerun the counts after a patch with `lua5.1 tools/datagen/survey.lua [build]`. It prints most of the numbers below and compares them with the addon's seeds. The examples and the flight time comparison were worked out by hand from the same cached CSVs.
 
@@ -23,7 +23,7 @@ Column names are wago.tools' names for this build. A few may be mislabeled for `
 
 ## Findings worth acting on now
 
-These are hand-kept data the tables contradict, or gaps the tables show:
+These are hand-kept data the tables contradict, or gaps the tables show. The disenchant brackets, the instances' lowest levels, and direct flight times have since been generated from these tables (`Lib/DisenchantBrackets.lua`, `Lib/InstanceLevels.lua`, `Lib/TaxiRoutes.lua`); the comparisons below are with the hand-kept data as it was.
 
 - **`Lib/Disenchant.lua` returns nothing for brackets the game has** (ItemDisenchantLoot, 70888): rare items at item level 5-10 (the code's rare rows start at 11; the table's start at 5), rare items above 65 (code ends at 65; table has 61-99), uncommon and epic items above 65 and 80 (table 61-99). Among ItemSparse's equippable items, that's 93 rare items at item level 5-10, 148 rare at 66-80, 39 uncommon at 81-99, and 235 epics at 81-99 with no Disenchant line. The code's bracket edges also differ: it has rare 11-25 as one row where the table has 5-15, 16-20, and 21-25. The table doesn't say what each bracket gives, so the new rows' materials are still a guess.
 - **Random suffixes are bonus lists on Forever, not ItemRandomSuffix IDs.** `Lib/ItemButtons.lua` puts an auction row's `itemKey.itemSuffix` into the link's suffix field (`item:ID:::::::suffix`). If Forever's links carry suffixes as bonus IDs (the tables' IDs are 12688-13784), that link reaches Upgrade Arrows without the suffix's stats. This isn't proven wrong: the tables can't show what number `itemSuffix` holds. Check in game: `/dump` a browse result's `itemKey` and a bag item's link with a suffix.

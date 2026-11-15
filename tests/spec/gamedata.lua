@@ -1,4 +1,5 @@
--- GameData: seeds and what play teaches, the dungeon finder's instances, and gathering nodes.
+-- GameData: seeds and what play teaches, the dungeon finder's instances, and gathering nodes,
+-- chests, pools, and lockboxes.
 local T = ...
 local ns, eq = T.ns, T.eq
 

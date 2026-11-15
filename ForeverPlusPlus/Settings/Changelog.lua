@@ -251,6 +251,8 @@ local function buildNotes(content, width, release, byModule)
     return view
 end
 
+---Draws the Changelog page, the first time it's shown.
+---@param frame table the empty page
 function S.BuildChangelog(frame)
     Kit.AddPageTitle(frame, L.CHANGELOG)
     local split = Kit.NewSplit(frame, CHANGELOG_LIST_WIDTH)

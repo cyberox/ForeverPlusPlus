@@ -76,7 +76,7 @@ These come from Upgrade Arrows while it's on. They use the same stat weights for
 | --- | --- |
 | `HasUpgradeScores()` | Whether scores can be read (Upgrade Arrows is on). |
 | `GetItemUpgradeInfo(item)` | `{ canUpgrade, isUpgrade, isDowngrade, percent, score, equippedScore }`. `percent` is how much better or worse the item is than what it would replace (`nil` against an empty slot). `canUpgrade` is false for something that can never be an upgrade: not gear, can't be used, or already worn. `nil` while Upgrade Arrows is off or the client hasn't loaded the item. `isUpgrade` uses the player's Upgrade Threshold. |
-| `GetItemScore(item)` | The item's score by the weights in use, whether or not it could be an upgrade. |
+| `GetItemScore(item)` | The item's score by the weights in use, whether or not it could be an upgrade. Nil while Upgrade Arrows is off or the client hasn't loaded the item. |
 | `GetUpgradeProfile()` | The weights in use: `{ key ("MAGE:3"), class, tab, bear, guess, weights }`. `weights` maps stats in short keys (`"STR"`, `"SP"`, `"HIT"`, as in [stat-weights.md](stat-weights.md)) to their weight. `guess` is true while there are no talent points to go by. |
 
 Scores change when gear, level, talents, weights, or Upgrade Arrows' options change. `UPGRADES_UPDATED` says when.
@@ -142,6 +142,13 @@ Levels are the last ones seen, so they can be behind. Check `lastSeen`.
 | `GetFishingPoolByObject(objectID)` | The fishing pool a world object ID (from its GUID) was seen as, by name, or `nil`. |
 | `GetProfessionSkill(skillLine)` | The player's skill in a profession: `{ rank, level, max, name }`. `rank` counts gear and racial bonuses, `level` is what the profession window shows, and `max` is the most its rank allows. Takes 633 for a rogue's Lockpicking. `nil` without the profession. |
 
+These come from Gathering Map, and return `nil` while it's off:
+
+| Function | Returns |
+| --- | --- |
+| `GetGatheringMaps()` | The zone map IDs (C_Map's `uiMapID`) with remembered nodes, lowest first. |
+| `GetGatheringNodes(mapID)` | The nodes remembered on a zone map, for the whole account, whatever the character shows or hides: a list of `{ name, kind, x, y, timesGathered, lastGathered, loot }`. `kind` is `"herb"`, `"ore"`, `"treasure"`, or `"fish"`. `x` and `y` run from 0 to 1 across the map. `timesGathered` is 0 for a node seen or tried but not gathered yet, and `lastGathered` is a `time()`, or `nil` then. `loot` is what it has given in all, item ID → count. An empty list for a map without any. |
+
 ## Recipes and zones
 
 | Function | Returns |
@@ -156,13 +163,6 @@ Forever keeps Classic's three talent trees inside the Mainline talent system, so
 | Function | Returns |
 | --- | --- |
 | `GetTalentTabs()` | The player's talent trees in order, as a list of `{ index, name, spent }`, and the `index` of the one with the most points (the first wins a tie). `nil` while the game has no talent data yet. |
-
-These come from Gathering Map, and return `nil` while it's off:
-
-| Function | Returns |
-| --- | --- |
-| `GetGatheringMaps()` | The zone map IDs (C_Map's `uiMapID`) with remembered nodes, lowest first. |
-| `GetGatheringNodes(mapID)` | The nodes remembered on a zone map, for the whole account, whatever the character shows or hides: a list of `{ name, kind, x, y, timesGathered, lastGathered, loot }`. `kind` is `"herb"`, `"ore"`, `"treasure"`, or `"fish"`. `x` and `y` run from 0 to 1 across the map. `timesGathered` is 0 for a node seen or tried but not gathered yet, and `lastGathered` is a `time()`, or `nil` then. `loot` is what it has given in all, item ID → count. An empty list for a map without any. |
 
 ## Plugins
 

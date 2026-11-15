@@ -25,7 +25,7 @@ local module = ns.modules.GatheringMap
 local internal = module.internal
 
 -- The kinds the page lists, in order. Herbs and ore sort under the trainer's ranks (`ranked`);
--- chests have none.
+-- chests and pools have none.
 local KINDS = {
     { kind = "herb", name = L.GATHERINGMAP_PAGE_HERBS, ranked = true },
     { kind = "ore", name = L.GATHERINGMAP_PAGE_ORE, ranked = true },
@@ -286,7 +286,7 @@ local function newHeader(list, kind)
     return row
 end
 
--- A node's row: its checkbox, icon, name, and spots remembered.
+-- A node's row: its checkbox, skill, icon, name, and spots remembered.
 local function newNodeRow(list)
     local row
     row = Kit.NewListButton(list, function() return isSelected(row) end)

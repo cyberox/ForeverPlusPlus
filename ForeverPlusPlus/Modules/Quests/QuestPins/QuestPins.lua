@@ -57,9 +57,7 @@ module.added = "1.6.0"
 module.internal = {}
 local internal = module.internal
 
--- Without QuestieDB there are no quests to read: the module stays in the list, red and locked off,
--- with a notice saying to install it. One of a version we don't read is red too, its notice
--- saying so.
+-- Red and locked off without QuestieDB, red with a version we don't read, a notice saying which.
 QuestieDB.Require(module)
 
 local PINS, KINDS, LEVELS, TOOLTIPS = L.QUESTPINS_SECTION_PINS, L.QUESTPINS_SECTION_KINDS,
@@ -255,6 +253,7 @@ function internal.OnChanged(fn)
     redraws[#redraws + 1] = fn
 end
 
+---Calls every `fn` given to OnChanged: something that decides the pins changed.
 function internal.Changed()
     for i = 1, #redraws do
         redraws[i]()

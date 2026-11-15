@@ -11,10 +11,12 @@ The detail behind `AGENTS.md`'s project map: what each part of the addon holds, 
 - Modules (`ns.NewModule`, `ns.SetEnabled`, and `module:NewPart` for a module made of parts the player turns on one by one, by a checkbox or, with `choices`, a dropdown whose "off" turns it off; `ns.PartOn` says whether one is on).
 - Timers that stop when their module (or part) turns off (`ns.Frames.Timer(module)` and `ns.Frames.Coalesce(fn, delay, module)`: Core cancels them after `OnDisable`, and they don't run while it's off).
 - Hooks that do nothing while a module is off (`module:Hook`, `module:HookScript`, `module:TooltipPostCall`, and `module:TooltipLinePreCall`, whose true leaves a tooltip line out; they skip a target this client doesn't have).
-- Migrations of saved settings (`ns.Migrate`, `ns.MoveSettings`).
+- `module:OnLoad()`, called once at `PLAYER_LOGIN` when its `db` is there, before it turns on.
+- Migrations of saved settings (`ns.Migrate`, `ns.MigrateCharacter` for data kept per character, `ns.MoveSettings`).
 - `ns.Print`.
 - `module:Print` with `ns.ChatOption`.
-- `ns.ResetOption` (back to the default, forgetting the choice).
+- `ns.SetOption`, `ns.ResetOption` (back to the default, forgetting the choice), and `ns.BaseValue` (what a reset gives, through the profile's preset).
+- `ns.ChangeProfile` (switching the profile in use live, turning the modules off and on again).
 - `ns.OnModuleChanged` (the player turned a module on or off or changed an option, for the public API's callbacks).
 - The locale table `ns.L`.
 
@@ -79,7 +81,7 @@ Generated files (never edited by hand; see Generated data): `InstanceLevels.lua`
 
 ### `Confirm.lua`
 
-- `ns.Confirm`: a yes/no popup before something throws data away, and `ns.Prompt`: a popup that asks for a line of text or shows one to copy, `ns.PromptName` for a name.
+- `ns.Confirm`: a yes/no popup before something throws data away, `ns.ConfirmChoice` and `ns.ConfirmButtons` for two or three choices beside Cancel, and `ns.Prompt`: a popup that asks for a line of text or shows one to copy, `ns.PromptName` for a name.
 
 ### `Text.lua`
 
@@ -126,7 +128,7 @@ Generated files (never edited by hand; see Generated data): `InstanceLevels.lua`
 ### `Units.lua`
 
 - `ns.Units`: in my group, a friend, a recent ally, a guildmate. `NpcID(guid)` is a creature's NPC ID out of its GUID.
-- The player's own state, for a module that acts by itself (casts, sheathes, opens): `PlayerBusy` gives why now is a bad time ("combat", "dead", "taxi", "casting") or nil, and `PlayerCasting` whether a cast or channel is under way. An answer the game hides counts as busy, so a module waits instead of interrupting. Every module asks here, never the unit calls directly: five used to, with three different guards.
+- The player's own state, for a module that acts by itself (casts, sheathes, opens): `PlayerBusy` gives why now is a bad time ("combat", "dead", "taxi", "casting") or nil, and `PlayerCasting` whether a cast or channel is under way. An answer the game hides counts as busy, so a module waits instead of interrupting. Every module asks here, never the unit calls directly, so they all guard alike.
 
 ### `Bags.lua`
 
@@ -142,7 +144,7 @@ Generated files (never edited by hand; see Generated data): `InstanceLevels.lua`
 
 ### `ItemTooltip.lua`
 
-- `ns.ItemTooltip`: price lines together at the sell price, notes about them after every price line (`OnPriceNotes`), other item lines just above them, stack counts, Shift redraws, drawing one of Blizzard's lines again with something beside it, and `ColorText` in the quantity colors.
+- `ns.ItemTooltip`: price lines together at the sell price (`OnPrices`, `AddPrice`), notes about them after every price line (`OnPriceNotes`), other item lines just above them (`OnInfo`, `AddInfo`), stack counts, Shift redraws, drawing one of Blizzard's lines again with something beside it, and `ColorText` in the quantity colors.
 
 ### `ItemButtons.lua`
 
@@ -176,7 +178,7 @@ Generated files (never edited by hand; see Generated data): `InstanceLevels.lua`
 
 ### `MapTooltip.lua`
 
-- `ns.MapTooltip`: how every tooltip over the world map looks: white title (with its kind in gold at the right, when given), gold kind line, white details, label and value lines like the Sell Price line (`Pair`), gray notes, faction colors, and no-break text.
+- `ns.MapTooltip`: how every tooltip over the world map looks: white title (with its kind in gold at the right, when given), gold kind line, white details, label and value lines like the Sell Price line (`Pair`), gray notes, faction colors, no-break text, and click hints (`Hint`).
 
 ### `Instances.lua`
 
@@ -207,7 +209,6 @@ Generated files (never edited by hand; see Generated data): `InstanceLevels.lua`
 ### `Chat.lua`
 
 - `ns.Chat`: the chat windows as they come and go (`EachWindow`), each line a window adds that can be read (`OnMessage`, which a module uses instead of hooking `AddMessage` itself), rewriting the lines they show (`Transform`), a chat line in its colors for an edit box, filters that hide chat lines (`AddFilter`), and the column of buttons beside the chat window, with `NewButton` in Blizzard's art, those that don't fit a short chat window listed in its speech bubble's menu instead, and `SetBadge` for what one has waiting, which the speech bubble shows while it's there.
-
 - `QuietRefusals` keeps the yellow "Interface action failed because of an AddOn" line out of chat when it's the controller navigation refusing addon code with nothing lost (`HarmlessRefusal`, which Error Catcher skips by too); Settings calls it before it opens a page.
 
 ### `TalentPlan.lua`
@@ -295,7 +296,7 @@ What each module is, in the code's terms (what it does for players is in `README
 - **Fast Loot**
 - **Auto Repair**
 - **Auto Sell Junk**
-- **Auto Open Containers**: opens the containers in the bags by themselves, when nothing is in the way.
+- **Auto Open Containers**: `AutoOpen`: opens the containers in the bags by themselves, when nothing is in the way.
 - **Item Tooltips**: a folder: the module and its parts, Sell Price, Repair Cost, Item Count, Disenchant, Stat Colors, Compare Crafted Gear, and Auction Prices, with its auction house scan in `Scan.lua`.
 - **Waylaid Crates**: a folder: the module, Bundle Costs, and its auction house category.
 - **Already Known**
@@ -323,7 +324,7 @@ What each module is, in the code's terms (what it does for players is in `README
 - **Professions**: a folder: the module and a part each for Recipe Colors, Skill-Ups Left, Skill Bar (the selected recipe's yellow, green, and gray levels as a bar, from the generated `Data.lua`), and Crafting Costs with Profit in Recipe List and the merchant prices it learns, and Unlearned Recipes (the open profession's recipes not known yet, added to Blizzard's own recipe list and Filter menu, with their learn skill from `Data.lua`).
 - **Spell Ranks**
 - **Buff Timers**
-- **Macros**: a folder: the module, which makes and deletes its macros and marks their buttons, and its Smart Buff macro.
+- **Macros**: a folder: the module, which makes and deletes its macros and marks their buttons, and its Smart Buff macro as a part.
 - **Class Colors**
 - **World Map**: a folder: the module, its quick checkboxes in the world map's filter menu (`Filter.lua`), and a part each for Points of Interest (with its flight points, ley lines, and Blizzard icons in files of their own), Zone Info, Unexplored Areas, and Coordinates, with their map, zone, and map art data.
 - **Flight Timer**
@@ -331,7 +332,7 @@ What each module is, in the code's terms (what it does for players is in `README
 - **Square Minimap**: a square mask and border in place of the round frame, saying so through `GetMinimapShape`.
 - **Waypoints**: `/way` and a waypoint arrow.
 - **Compass Bar**: a compass across the top of the screen, sized in Edit Mode, with the selected quest, the map pin, the corpse, the group, and, as the player picks, quests on the map, flight masters, Gathering Map's nodes through its provider, and rares on it.
-- **Gathering Map**: a folder: the module, which remembers each herb, vein, chest, and fishing pool gathered for the account, its world map and minimap icons, and its page of nodes to show or hide for each character.
+- **Gathering Map**: a folder: the module, which remembers each herb, vein, chest, and fishing pool gathered for the account, its world map and minimap icons, its kinds in the world map's filter menu (`Filter.lua`), and its page of nodes to show or hide for each character.
 - **Combat Alert**
 - **Macro Icon Search**: a search box in the macro icon picker, over the icons of the player's spells and items.
 - **Movable Windows**: drag Blizzard's windows with a key held, and resize one with a key and the mouse wheel (a frame of our own takes the wheel while the key is held, so no Blizzard frame gets a wheel handler), remembered always, for the session, or until closed.
@@ -418,7 +419,7 @@ What each module is, in the code's terms (what it does for players is in `README
 ## The table data workflow (`table-data.yml`)
 
 - Daily and by hand, compares wago.tools' latest `wowf` build with `tools/datagen/BUILD`.
-- When it's newer, regenerates, runs check.yml's syntax, ASCII, and offline test checks on the result, and opens a pull request from `data/build-<build>` (one per build; an older open one is closed as superseded).
+- When it's newer, regenerates, runs check.yml's syntax, ASCII, and offline test checks on the result, and opens a pull request from `data/build-<build>` (one per build; an older open one is closed as superseded, and a build whose pull request was closed gets no other until its branch is deleted).
 - It alone may write (`contents` and `pull-requests` on its job).
 - It needs "Allow GitHub Actions to create and approve pull requests" on (Settings > Actions > General), and Check doesn't run on its branch by itself.
 - An unreachable wago.tools is a warning.
@@ -431,12 +432,12 @@ What each module is, in the code's terms (what it does for players is in `README
 
 ## Tests
 
-- `tests/` holds the offline tests: a spec in `tests/spec/` for each area of pure-logic `Lib/` code (colors, text and time formatting, instances, map helpers, the minimap's shape, talent plans and tabs, quests, flight points, disenchanting, the saved variables, players seen, CVars put back, who a unit is, spell ranks, slash commands, modifier keys, the profiler's timing, realm time against the player's, profiles and their export text, presets and their `extends` chains and profiles based on them, the recipe rows' columns, recipe levels and their bar, gear durability and when it warns, the Sound choices, the QuestieDB reader against a made-up stub of its API, the DungeonJournal hand-off against a stub of it), Core's module lifecycle on stub frames and a stub clock (modules and parts turning on and off, `OnWhile`, dropdown parts, owned timers, `/fpp set`, presets and profiles based on one, switched live), the public API, and checks across the addon: no file writes a global the Lua rules don't allow (plainly or through `_G`), and every global it reads is Lua's or in `.luarc.json` (`globals`, from each file's bytecode), every `L.KEY` the code uses is defined in `Locales/enUS/` (`locales`), every file loads offline and every module's settings are well formed, with defaults that fit and `requires`, `slider`, and `conflicts` naming real options (`modules`), and the TOC's version, `Changelog.lua`, and `CHANGELOG.md` agree (`release`), and the rules here a machine can check exactly hold: each file's first line, no removed Classic globals, no `COMBAT_LOG_EVENT_UNFILTERED`, `WOW_PROJECT_ID` and `print` only where allowed, no tabs or trailing spaces (`rules`).
+- `tests/` holds the offline tests: a spec in `tests/spec/` for each area of pure-logic `Lib/` code, named for it (`store`, `talentplan`, `profileshare`, `questiedb` against a made-up stub of its API, `dungeonmaps` against a stub of DungeonJournal, and so on), Core's module lifecycle on stub frames and a stub clock (modules and parts turning on and off, `OnWhile`, dropdown parts, owned timers, `/fpp set`, presets and profiles based on one, switched live), the public API, and checks across the addon: no file writes a global the Lua rules don't allow (plainly or through `_G`), and every global it reads is Lua's or in `.luarc.json` (`globals`, from each file's bytecode), every `L.KEY` the code uses is defined in `Locales/enUS/` (`locales`), every file loads offline without making a frame, hook, timer, or event listener, and every module's settings are well formed, with defaults that fit and `requires`, `slider`, and `conflicts` naming real options (`modules`), every Lib file has a row in `AGENTS.md`'s Lib tables and a place here, and every click hint is written as Blizzard's are (`docs`), the TOC's version, `Changelog.lua`, and `CHANGELOG.md` agree (`release`), and the rules a machine can check exactly hold: each file's first line, no removed Classic globals, no `COMBAT_LOG_EVENT_UNFILTERED`, `WOW_PROJECT_ID`, `print`, and `IsInInstance` only where allowed, no tabs or trailing spaces (`rules`).
 - They need only Lua 5.1, no client: `lua5.1 tests/run.lua` from the repo root (CI runs it after the syntax check), or `lua5.1 tests/run.lua store` for the specs with that in their name.
 - Each spec gets a fresh copy of the addon with the real `Lib/` and `Locales/enUS/` files against stubbed WoW globals, so specs can't depend on each other.
 - A Lib file that caches a global at load needs that global stubbed before it loads (`tests/lib/env.lua`, or `T.load` after the stub).
 - `tests/README.md` says how to write one.
-- Add a check when you change or add Lib logic that has no frames in it, a spec when you add a Lib file, and a check in `core` when you change how Core turns modules on and off.
+- Add a check when you change or add Lib logic that has no frames in it, a spec when you add a Lib file, and a check in the `core_*` specs (each on a fresh real Core, `T.Core()`) when you change how Core turns modules on and off.
 - Don't test frame or UI code.
 - CI also runs wowlua-ls (`wowlua_ls check .`, release binaries on its GitHub page) for types and secret values.
 - `tests/wowlua.lua` compares its findings with `tests/wowlua-baseline.txt` and fails on a new one.

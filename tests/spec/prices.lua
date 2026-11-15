@@ -1,4 +1,5 @@
--- Prices: auction prices from a source, Auctionator, and prices as they're saved.
+-- Prices: auction prices from a source, Auctionator, prices as they're saved, and what a vendor
+-- pays.
 local T = ...
 local ns, eq, game = T.ns, T.eq, T.game
 

@@ -1,4 +1,4 @@
--- Disenchant: what an item gives and its average value.
+-- Disenchant: what an item gives, the game's brackets, what play teaches, and the average value.
 local T = ...
 local ns, eq = T.ns, T.eq
 

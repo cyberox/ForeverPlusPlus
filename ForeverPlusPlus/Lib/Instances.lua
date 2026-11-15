@@ -78,7 +78,7 @@ ns.Instances = {
 -- account (ns.GameData, "instances", by instance ID): a seed entry takes the learned levels in
 -- place, so modules holding it see them, and a dungeon the seed doesn't have gets an entry of its
 -- own under "lfg<ID>" (or "lfgd<finder ID>" without an instance ID). Probe: what the finder lists
--- on Forever is Unverified; see docs/forever-api.md.
+-- on Forever is unverified; see docs/forever-api.md.
 
 local seed = {} -- instance ID -> { low = n, high = n }, from the table above
 local byID = {} -- instance ID -> entry of `byKey`
@@ -125,7 +125,8 @@ local function range(minLevel, maxLevel, maxRecLevel)
     end
 end
 
--- Learns from the finder's list. False when it lists nothing yet (early in the session).
+-- Learns from the finder's list. False when it lists nothing yet (early in the session), true
+-- once read or when this client has no finder, so it isn't asked again.
 local function fromFinder()
     if not (GetLFDChoiceOrder and GetLFGDungeonInfo) then
         return true

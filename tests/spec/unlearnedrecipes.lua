@@ -1,6 +1,6 @@
--- Professions' recipes the player doesn't know: whether one can be learned now, the Filter menu's
--- filters for them, the search match, the junk the game still knows, and the categories they go
--- under in the recipe list.
+-- Professions' recipes the player doesn't know: whether one can be learned now, what a trainer
+-- taught, where one comes from, the Filter menu's filters for them, the search match, the junk
+-- the game still knows, and the categories they go under in the recipe list.
 local T = ...
 local ns, eq, ok = T.ns, T.eq, T.ok
 

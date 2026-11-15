@@ -71,8 +71,9 @@ end
 -- set for the shot), `isShown()` (the shot waits for it, and a scene that isn't on screen isn't
 -- pictured), and how long to `wait` to draw. A scene we set up has `open()` (returns why it
 -- can't, or nil) and `close()`; one the player opens has `binding`, the key binding that opens it,
--- and may have `closeFirst` (the name of what's in the way, or nil: the shot waits for it to
--- close) and `ready()` with `readyText` (a step inside the window the shot waits for). A
+-- and may have `closeFirst()` (the name of what's in the way, or nil: the shot waits for it to
+-- close) and `ready()` with `readyText` (a step inside the window the shot waits for). Any may
+-- have `unavailable()` (why this client can't show it, or nil: the scene is skipped). A
 -- module's own scene, `module.screenshot`, has the same fields; without `modules` it shows just
 -- that module. Module scenes go after these, before Settings.
 

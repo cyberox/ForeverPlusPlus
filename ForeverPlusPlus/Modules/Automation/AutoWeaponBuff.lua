@@ -340,6 +340,7 @@ local function onCast(_, unit, _, spellID)
     end
     local used = pending
     pending = nil
+    -- A use from over a minute ago isn't what this cast came from.
     if GetTime() - used.time > 60 then
         return
     end

@@ -238,7 +238,7 @@ local function updateProfile()
     profile.guess = guess
 end
 
----The profile in use: `{ key, template, weights, guess }`, for the weights page.
+---The profile in use, as internal.Profile gives it with `guess` added, for the weights page.
 ---@return table?
 function internal.CurrentProfile()
     return profile
@@ -814,7 +814,8 @@ function module:OnOptionChanged(key)
     refreshSoon()
 end
 
----Forgets every score, for the weights page after a weight changes.
+---Builds the profile again and forgets every score: after a weight, the tree choice, or the
+---level changes.
 function internal.WeightsChanged()
     if module.enabled then
         updateProfile()

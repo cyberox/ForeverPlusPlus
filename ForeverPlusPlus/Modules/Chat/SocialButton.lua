@@ -1,7 +1,7 @@
 -- Social Button: the social (Quick Join) button sits above the chat window on its own. This puts
--- it at the bottom of the column of small buttons beside the window, with the others, and gives
--- it back its place when the module turns off. The button is an ordinary frame; Blizzard moves it
--- from its own code now and then, so its SetPoint is hooked to put it back.
+-- it in the column of small buttons beside the window, under Blizzard's and first of ours, and
+-- gives it back its place when the module turns off. The button is an ordinary frame; Blizzard
+-- moves it from its own code now and then, so its SetPoint is hooked to put it back.
 local _, ns = ...
 
 local ipairs = ipairs

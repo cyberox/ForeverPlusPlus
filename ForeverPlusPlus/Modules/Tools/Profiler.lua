@@ -4,8 +4,9 @@
 -- frame, and how often they ran, beside the game's own numbers for Forever++ as a whole. A module
 -- with parts or named sources has the AddOn List's +/- and folds open to them (its parts, then
 -- what its time went to by source: an event, a hook, an update); the heaviest module with parts
--- starts open, once. A faint bar behind each module shows its share against the heaviest. Under the list, the
--- worst frames Forever++ took too long in (spikes) say when, how long, and whose call it was.
+-- starts open, once. A faint bar behind each module shows its share against the heaviest. Under
+-- the list, the worst frames Forever++ took too long in (spikes) say when, how long, and whose
+-- call it was.
 -- Copy gives it all as one line for a bug report. Memory can only be read for the whole addon,
 -- with how fast it grew while recording. Nothing is timed until Record, and nothing is built
 -- until the page is first shown; `/fpp profiler` opens it. While the module is off its page and
@@ -444,8 +445,7 @@ function module:OnDisable()
     stopTicker()
 end
 
--- /fpp profiler, not /fpp profile as it was up to 1.4.0: that one is the Profiles page's now, one
--- letter from /fpp profiles.
+-- /fpp profiler, not /fpp profile: that one opens the Profiles page, like /fpp profiles.
 ns.AddCommand("profiler", "", L.PROFILER_COMMAND, function()
     if not ns.OpenSettings(module.name) then
         ns.Print(L.PROFILER_NO_PAGE)

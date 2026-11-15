@@ -378,10 +378,11 @@ local function build()
 end
 
 -- Where things are -----------------------------------------------------------------------------------
--- Each thing on the bar is a target: { kind, title, note, art, point (followed across maps) or x, y
--- (on the player's zone map), unit (a group member, read each redraw), important }. The important
--- ones are what the player is heading for: the selected quest, the map pin, the corpse. They show
--- at any distance and wait at the bar's edge while behind.
+-- Each thing on the bar is a target: { kind, title, questID (whose objective its tooltip shows),
+-- art, point (followed across maps) or x, y (on the player's zone map), unit (a group member, read
+-- each redraw), important }. The important ones are what the player is heading for: the selected
+-- quest, the map pin, the corpse. They show at any distance and wait at the bar's edge while
+-- behind.
 
 local targets = {} -- looked up each LOOK_INTERVAL
 local lookedAt, dirty = 0, true

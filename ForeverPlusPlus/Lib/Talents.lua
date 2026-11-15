@@ -22,8 +22,8 @@ local function spentIn(configID, groupID)
     return ns.IsNumber(spent) and spent or 0
 end
 
----The player's talent tabs in order: `{ index, groupID, name, spent }` each, or nil while the
----client has no talent data yet (early at login, or a client without trait trees).
+---The player's talent tabs in order: `{ index, groupID, name, order, spent }` each, or nil
+---while the client has no talent data yet (early at login, or a client without trait trees).
 ---@return table[]?
 function Talents.Tabs()
     if not (C_ClassTalents and C_ClassTalents.GetActiveConfigID and C_Traits

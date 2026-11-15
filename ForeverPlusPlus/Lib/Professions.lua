@@ -1,6 +1,7 @@
 -- The player's profession skills by skill line, read once and again only after they change; the
--- herbs and veins in the world with the skill they take, and the chests and fishing pools; and
--- the professions window's recipe rows. Nothing is listened to until a module first asks.
+-- herbs and veins in the world with the skill they take, and the chests and fishing pools; a
+-- recipe's color levels and their bar, and the pure logic of Unlearned Recipes; and the
+-- professions window's recipe rows. Nothing is listened to until a module first asks.
 local _, ns = ...
 
 local _G, type, ipairs, pairs, select, setmetatable = _G, type, ipairs, pairs, select, setmetatable
@@ -749,7 +750,8 @@ local function byOrderThenName(a, b)
 end
 
 -- Blizzard's order for a category's recipes (SortCategoryData, Blizzard_ProfessionsTemplates):
--- the skill a recipe turns gray at, highest first, then item level, highest first, then name.
+-- the color now, orange first, then the skill a recipe turns gray at, highest first, then item
+-- level, highest first, then name.
 local NO_DIFFICULTY = 99
 
 local function byRecipe(a, b)
@@ -781,7 +783,7 @@ end
 ---of its own is left out, and what was under it stands at the top, as Blizzard's does. A recipe
 ---whose category `categoryOf` doesn't know is left out. Returns the top categories, each
 ---`{ info, categories, recipes }`, categories by `uiOrder` then name and recipes in Blizzard's order.
----@param recipes table[] recipe infos: `{ recipeID, categoryID, name, maxTrivialLevel?, itemLevel? }`
+---@param recipes table[] recipe infos: `{ recipeID, categoryID, name, difficulty?, maxTrivialLevel?, itemLevel? }`
 ---@param categoryOf fun(id: number): table|nil a category's info: `{ categoryID, parentCategoryID?, name, uiOrder? }`
 ---@param keepEmpty boolean
 ---@return table[] top
@@ -1037,8 +1039,9 @@ end
 -- What modules draw at the right end of a recipe row, each in a column of its own, so they line up
 -- down the list. A column takes its space only while its module uses it (its option is on and the
 -- list can have it), on every row then, whether a row has something in it or not; the columns left
--- of it sit further right while it doesn't. Orders in use, nearest the row's end first: 10 Appearance
--- Icons' mark, 20 the Professions module's Skill-Ups Left number, 30 its Crafting Costs profit.
+-- of it sit further right while it doesn't. Orders in use, nearest the row's end first: 10
+-- Appearance Icons' mark, 20 the Professions module's Skill-Ups Left number, 30 its Crafting Costs
+-- profit, 40 its Unlearned Recipes' learn skill.
 --
 -- Blizzard's Init gives the name the row's width less the lock, the craftable count, the skill-up
 -- arrow, and 10 pixels, cuts a longer name short with "...", and shows the whole name in a tooltip

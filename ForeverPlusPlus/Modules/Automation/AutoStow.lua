@@ -5,8 +5,9 @@
 -- combat). With a ranged weapon the Sheath key cycles away, melee, ranged, so from melee one
 -- toggle draws the ranged weapon: it toggles, waits for the state to change, and toggles again
 -- until everything is away, three toggles at most. A toggle that changes nothing within a couple
--- of seconds is tried once more, then it stops until the state changes some other way. The game also sheathes by itself
--- a few seconds after combat, often before the Delay is up (Cameron's log, 2026-10-22).
+-- of seconds is tried once more, then it stops until the state changes some other way. The game
+-- also sheathes by itself a few seconds after combat, often before the Delay is up (Cameron's
+-- log, 2026-10-22).
 local _, ns = ...
 
 -- The original ToggleSheath, from before the hook below, so our own stow doesn't look like the

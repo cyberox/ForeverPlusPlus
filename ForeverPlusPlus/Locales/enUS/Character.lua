@@ -18,7 +18,7 @@ L.CHARACTERWINDOW_SIDETABS_DESC = "Move the Equipment, Titles, and Pet tabs besi
 L.CHARACTERWINDOW_COLORTITLE = "Colored Title"
 L.CHARACTERWINDOW_COLORTITLE_DESC = "Show your level, in gold, before your name, in your class color, "
     .. "in the window's title, in place of the game's level line at the top of the window."
-L.CHARACTERWINDOW_TITLE_FORMAT = "%s %s"
+L.CHARACTERWINDOW_TITLE_FORMAT = "%s %s" -- level, name
 L.CHARACTERWINDOW_DURABILITY = "Durability Bars"
 L.CHARACTERWINDOW_DURABILITY_DESC = "A small bar beside each item with how worn it is, from green "
     .. "to red, and which items get one. Items without durability never do."
@@ -68,6 +68,7 @@ L.TALENTPLANNER_TOOLTIP_DESC = "Add the levels at which the plan takes a talent 
 L.TALENTPLANNER_REMINDER = "Level-Up Reminder"
 L.TALENTPLANNER_REMINDER_DESC = "When you gain a talent point, say in chat which talent the plan "
     .. "takes next."
+-- talent, the rank this point takes it to, its most ranks
 L.TALENTPLANNER_REMINDER_LINE = "Talent point ready. Next in your plan: %s (%d/%d)."
 L.TALENTPLANNER_PLAN = "Plan Talents"
 L.TALENTPLANNER_DONE = "Done Planning"
@@ -116,6 +117,7 @@ L.TALENTPLANNER_IMPORT_BAD = "That isn't a shared talent plan or a build link fr
     .. "talentsforever.com or wowforevertalents.com."
 L.TALENTPLANNER_IMPORT_CLASS = "That talent plan is for another class."
 L.TALENTPLANNER_IMPORT_INVALID = "That talent plan doesn't fit this talent tree."
+-- The %s in these three is the site the link is from, such as talentsforever.com.
 L.TALENTPLANNER_IMPORT_OLD = "That link is from an older version of %s. Open it there and copy "
     .. "the link again."
 L.TALENTPLANNER_IMPORT_NEW = "That link is from a newer version of %s than this Forever++ can read. "

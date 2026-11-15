@@ -4,9 +4,8 @@
 --   { lowest level, highest level, fish = skill, fishHigh = skill, herbs = { ... }, ores = { ... } }
 -- Cities have no levels. For a zone that has them, the game's own level range
 -- (C_Map.GetMapLevels) wins when it gives one. `fishHigh` is for zones whose coast needs more
--- than their inland water.
--- Herbs and ores are item IDs, from the lists below. Who holds each zone (`side`) and its
--- dungeons (`dungeons`) are added at the end.
+-- than their inland water. Herbs and ores are item IDs, from the lists below. Who holds each zone
+-- (`side`) and its dungeons (`dungeons`) are added at the end.
 local _, ns = ...
 
 local pairs, ipairs = pairs, ipairs

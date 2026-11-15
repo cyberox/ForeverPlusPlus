@@ -5,7 +5,6 @@ local eq = T.eq
 local c = T.Core()
 local core, fire, heard, count = c.ns, c.fire, c.heard, c.count
 
--- A plugin's module (Lib/Plugins.lua): another addon's, through a handle.
 local Plugins = core.Plugins
 local plugin = Plugins.Register("MyAddonThing", "Does a thing.", { size = 20, mode = "a", loud = true,
     seen = {} }, "MyAddon")

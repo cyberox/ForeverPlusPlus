@@ -1,5 +1,5 @@
--- Profiles: making, naming, deleting, the characters on each, and switching (with Core's part
--- stubbed; spec/core_profiles.lua switches with the real one).
+-- Profiles: making, naming, deleting, the characters on each, switching (with Core's part
+-- stubbed; spec/core_profiles.lua switches with the real one), and profiles based on a preset.
 local T = ...
 local ns, eq, ok = T.ns, T.eq, T.ok
 
@@ -149,7 +149,7 @@ eq(#Profiles.Characters(), 2, "profiles: this character can't be forgotten")
 Profiles.Forget("Player-1-B")
 eq(#Profiles.Characters(), 1, "profiles: another can")
 
--- Replacing what a profile holds, and /fpp profile.
+-- Replacing what a profile holds, and /fpp profiles.
 local made = Profiles.CreateFrom("Imported", { Win = { enabled = true, size = 7 } }, { Win = { positions = { A = { x = 9 } } } })
 eq(ns.db.profiles[made].settings.Win.size, 7, "profiles: one made from contents")
 swaps = 0

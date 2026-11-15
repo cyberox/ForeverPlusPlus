@@ -194,9 +194,9 @@ function WorldMap.CanWaypoint()
 end
 
 -- The pin's name. Blizzard's map pin has no label, so what a pin was set on (a node, a quest
--- giver, a dungeon, the note typed after /way) is kept here, with the spot it was set for. It's the pin's name only while the pin is still at that spot, so a pin
--- the player moves or sets by hand has none, and nothing needs clearing. Not saved: it lasts
--- until a /reload, as the note after /way always did.
+-- giver, a dungeon, the note typed after /way) is kept here, with the spot it was set for. It's
+-- the pin's name only while the pin is still at that spot, so a pin the player moves or sets by
+-- hand has none, and nothing needs clearing. Not saved: it lasts until a /reload.
 ---@type { mapID: number, x: number, y: number, text: string }?
 local note
 

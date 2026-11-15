@@ -68,7 +68,8 @@ local module = ns.NewModule("GatheringMap", L.GATHERINGMAP_DESC, {
     -- Data, not a setting.
     nodes = {},
     -- What this character doesn't show, from the Gathering Map page (and the world map's filter):
-    -- node name -> true, and kind ("herb", "ore") -> true. Data, saved for each character.
+    -- node name -> true, and kind ("herb", "ore", "treasure", "fish") -> true. Data, saved for
+    -- each character.
     hidden = {},
     hiddenKinds = {},
     -- And node name -> true for a node shown on one map but not the other.
@@ -435,6 +436,9 @@ function internal.OnChanged(fn)
     redraws[#redraws + 1] = fn
 end
 
+---Calls every OnChanged function: after a map's nodes changed, or with nil after anything that
+---changes every map.
+---@param mapID number?
 function internal.Changed(mapID)
     for i = 1, #redraws do
         redraws[i](mapID)
@@ -663,7 +667,7 @@ function internal.Shown(node, where)
         end
     end
     -- On the minimap only: the world map is where a player looks for veins before turning Find
-    -- Minerals on, and showed none.
+    -- Minerals on, and would show none.
     if where ~= "world" and db.onlyTracking and TRACKED[kind] and not tracking[kind] then
         return false
     end

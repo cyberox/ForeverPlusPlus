@@ -281,8 +281,9 @@ local function ruleSlots(invType)
     return { { slots[1] } }
 end
 
----Pure form of the rules, for tests and for a client without the comparison API: the alternatives
----an item type competes with as worn links, read through `worn(slot)`.
+---The rules alone, for tests and for a client without the comparison API: the alternatives an
+---item type competes with as worn links, read through `worn(slot)`. Hand items still ask the
+---client what the hands hold and whether the character can dual wield.
 ---@param invType string
 ---@param worn fun(slot: number): string?
 ---@return table alternatives lists of links

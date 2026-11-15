@@ -45,7 +45,7 @@ local MAX_TEXT = 2000 -- letters kept of a stack or the locals, so the saved fil
 local PER_SECOND = 10 -- errors caught a second at most; an error in OnUpdate repeats every frame
 local ANNOUNCE_EVERY = 10 -- seconds between chat messages and sounds about new errors
 
--- The Sound choices are ns.Sounds', shared with Durability Warning.
+-- The Sound choices are ns.Sounds', shared with every module's Sound dropdown.
 local function playSound()
     ns.Sounds.Play(module.db.sound)
 end
@@ -264,7 +264,8 @@ local function openMenus()
 end
 
 -- What was going on when an action was blocked, since it comes with no stack: combat, the kind
--- of instance, the frame under the mouse, the menus open, and whether the taint log was writing.
+-- of instance, the frame under the mouse, the menus open, whether the controller interface was
+-- on, and whether the taint log was writing.
 local gamepadUI = ns.Menus.GamepadUI
 
 local function blockedContext()

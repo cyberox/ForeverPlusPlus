@@ -253,8 +253,8 @@ local function fits(option, value)
     return finite(value) and value >= option.min and value <= option.max
 end
 
--- Profile data as plain values: tables of strings (no codes), finite numbers and booleans, so
--- far deep. Nil when nothing is left of it.
+-- Profile data as plain values: tables of strings (no codes), finite numbers and booleans, at
+-- most DATA_DEPTH tables deep. Nil when nothing is left of it.
 local function plain(value, depth, budget)
     local kind = type(value)
     if kind == "string" then

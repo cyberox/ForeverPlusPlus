@@ -190,9 +190,9 @@ function module:OnOptionChanged()
     catchUp()
 end
 
--- Debug: what the game says about the open profession's recipes, to see whether it gives the
--- skill each one turns gray at (maxTrivialLevel, undocumented), which a skill-up chance would
--- need. Probe: every call is Mainline's; whether Forever fills the field is Unverified.
+-- Debug: what the game says about the open profession's recipes, above all the skill each one
+-- turns gray at (maxTrivialLevel, undocumented). Probe: every call is Mainline's; Forever filled
+-- maxTrivialLevel for every known recipe (2026-11-09, see Gray levels above).
 
 local DUMP_ROWS = 10 -- recipes listed one per line; the count covers the rest
 

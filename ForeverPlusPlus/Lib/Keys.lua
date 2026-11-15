@@ -21,7 +21,7 @@ Keys.CHOICES = {
 
 local DOWN = { shift = IsShiftKeyDown, ctrl = IsControlKeyDown, alt = IsAltKeyDown }
 
----Whether `key` (a key of `Keys.CHOICES`) is held down. Never for "none".
+---Whether `key` (a key of `Keys.CHOICES`) is held down. Always false for "none" or a key not listed.
 ---@param key string
 ---@return boolean
 function Keys.IsDown(key)

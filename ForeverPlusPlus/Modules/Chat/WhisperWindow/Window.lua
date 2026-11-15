@@ -206,9 +206,9 @@ local function refreshList()
     summary()
 end
 
--- Opens a conversation on the right, read. `focus` puts the cursor in the reply box.
 local drafts = setmetatable({}, { __mode = "k" }) -- conversation -> what's typed in its reply box
 
+-- Opens a conversation on the right, read. `focus` puts the cursor in the reply box.
 local function pick(conversation, focus)
     local edit = window.edit
     if selected then
@@ -287,7 +287,7 @@ end
 -- CheckInteractDistance), which only Blizzard's own code may ask in combat, so the game blocks it
 -- (the CheckInteractDistance block reported on 1.4.0; the cause is read from Blizzard's source and
 -- Unverified in game). In combat the name gets this short menu of our own instead; out of combat
--- it's Blizzard's, as before. True when it showed one. Probe: Mainline's menus.
+-- it's Blizzard's. True when it showed one. Probe: Mainline's menus.
 local function playerMenu(owner, link)
     if not (ns.Menus.Available() and ns.IsText(link)) then
         return false

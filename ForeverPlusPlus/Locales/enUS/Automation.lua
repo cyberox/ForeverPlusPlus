@@ -34,7 +34,7 @@ L.AUTOREPAIR_REPAIRED_GUILD = "Repaired for %s from the guild bank." -- cost
 L.AUTOREPAIR_NO_MONEY = "Not enough money to repair (%s)." -- cost
 L.AUTOREPAIR_NO_GUILD_MONEY = "The guild bank can't pay for repairs (%s)." -- cost
 
--- AutoSellJunk
+-- AutoOpen
 L.AUTOOPEN_TITLE = "Auto Open Containers"
 L.AUTOOPEN_DESC = "Open the containers in your bags, such as clams, sacks, and lockboxes once "
     .. "they're unlocked, by themselves. It waits out combat, stealth, casting, and any loot, "
@@ -49,6 +49,7 @@ L.AUTOOPEN_SPECIAL_DESC = "Also open the few containers usually left for you to 
 L.AUTOOPEN_CHAT_DESC = "Say in chat what was opened."
 L.AUTOOPEN_OPENED = "Opened %s." -- one or more item links, each maybe with a count
 L.AUTOOPEN_COUNT = "%s x%d" -- item link, how many
+-- AutoSellJunk
 L.AUTOSELLJUNK_TITLE = "Auto Sell Junk"
 L.AUTOSELLJUNK_DESC = "Sell the gray items in your bags when you talk to a merchant, and say in "
     .. "chat what they sold for. Hold the Skip Key to skip it."

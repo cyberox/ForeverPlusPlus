@@ -422,7 +422,7 @@ end
 -- dirty on QUEST_WATCH_LIST_CHANGED and redraws on its own next frame, and since the blocks still
 -- exist then, it plays no "quest added" fanfare. Out of combat only, to keep well away from the
 -- quest item buttons.
--- Tracking a quest again put it at the top of the list on Forever, not the end as assumed (Lowest
+-- On Forever, tracking a quest again puts it at the top of the list, not the end (seen when Lowest
 -- First came out highest first), so the first sort checks which end it goes to and learns.
 
 local SORT_DELAY = 0.2 -- seconds; one sort after a burst of quest log events
@@ -571,7 +571,7 @@ local filteredZone -- the zone the watch list was last filtered for
 local zoneAfterCombat = false
 
 -- The quests Current Zone Only untracked on this character (saved per character), or nil when it
--- untracked none.
+-- untracked none, unless `create` asks for the table anyway.
 local function hiddenQuests(create)
     local hidden = module.db.hidden
     if next(hidden) == nil and not create then

@@ -166,7 +166,7 @@ local SNIPPET = [[
     end
 ]]
 
-local ring -- { frame, button, icons, names, angles, close, closePicked, glow, pointer, label, hint, wheel }
+local ring -- { frame, button, icons, names, angles, closePicked, glow, pointer, label, hint, wheel }
 
 -- What the line under the wheel says: only with Shift, which makes it a world marker (the ping
 -- wheel has no line, and each icon's own name is beside it).

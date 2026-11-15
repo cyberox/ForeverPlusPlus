@@ -2,8 +2,9 @@
 -- templates so they look like any other options page. Few entries, so the sidebar stays short:
 --   Forever++        the Modules page: every module (the only place modules turn on and off) in
 --                    a list on the left, with a checkbox each, under a label per
---                    `module.category` that folds its modules away when clicked. Clicking one shows it on the right: its title, category
---                    and description, its Enabled checkbox, its `notice` (a warning) while that
+--                    `module.category` that folds its modules away when clicked. Clicking one
+--                    shows it on the right: its title, category and description, its Enabled
+--                    checkbox, its `notice` (a warning) while that
 --                    applies, then its options (checkboxes, dropdowns and sliders) and buttons
 --                    (from `module.actions`), greyed out while it's off. An option can sit under
 --                    another (`requires`), and is greyed out while its `available()` is false. A
@@ -679,8 +680,8 @@ end
 
 -- The undo arrow at the end of an option's row (and the slider in it, `pair`), shown while either
 -- isn't what a reset gives (its base: the profile's preset's value, else its default), that puts
--- them back. Like the undo buttons on Blizzard's Talents and
--- Transmog windows. Probe: their atlases are Mainline's; without one, no arrow.
+-- them back. Like the undo buttons on Blizzard's Talents and Transmog windows. Probe: their
+-- atlases are Mainline's; without one, no arrow.
 local function addResetButton(view, row, module, option, pair, on)
     local keys = { option, pair }
     local button, icon = Kit.NewResetButton(row, RESET_SIZE, function()
@@ -871,11 +872,11 @@ local function goToOption(view, key)
 end
 
 -- Under an option, a gray row for each of its `conflicts` ({ key, when = fn(db), text }) while
--- `when` is true: it and the option `key` can't both work as set. A button goes
--- to that one, unless it's the row just above or below (`options` in the order they're drawn,
--- with this one at `index`), where the line alone is enough. With `module` (another module's
--- name), `key` is that module's option, `when(db, otherDB)` gets its settings too, the row shows
--- only while that module is on, and the button opens it there.
+-- `when` is true: it and the option `key` can't both work as set. A button goes to that one,
+-- unless it's the row just above or below (`options` in the order they're drawn, with this one at
+-- `index`), where the line alone is enough. With `module` (another module's name), `key` is that
+-- module's option, `when(db, otherDB)` gets its settings too, the row shows only while that
+-- module is on, and the button opens it there.
 local function addConflictRows(view, module, options, index)
     local option = options[index]
     for _, conflict in ipairs(option.conflicts or {}) do
@@ -1008,7 +1009,7 @@ local function addModuleRows(view, module)
         return
     end
     -- A button with a `section` sits at the top of that section, under its header, before its
-    -- options; the rest come after every option, as before.
+    -- options; the rest come after every option.
     local actionsIn, loose = {}, {}
     for i, action in ipairs(module.actions or {}) do
         local list = action.section and actionsIn[action.section] or nil
@@ -1246,7 +1247,6 @@ local function newListRow(name)
     bind(name, function()
         local font = module.db.enabled and not module.locked and GameFontHighlight or GameFontDisable
         text:SetFontObject(font)
-        -- Red while it says it can't work, on or off (a module may turn itself off then).
         -- The color is set either way, since a color set on the text outlasts a change of font
         -- object.
         if RED and module.Problem and module:Problem() then

@@ -2,7 +2,7 @@
 
 How Forever++ reads the [QuestieDB](https://github.com/Questie/questiedb) addon, which has quest, NPC, item, and world object data for Forever (about 4,244 quests, 10,119 NPCs, 14,889 items, and 6,645 objects, as its own docs count them). Players install it themselves; Forever++ only calls its public API at run time, through `Lib/QuestieDB.lua` (`ns.QuestieDB`). Modules never touch it directly.
 
-QuestieDB's licence is partly all rights reserved. **Never copy its data or code into this repository, and never commit any of its files.** Read it at run time only. A module that needs it is off by default and shows `ns.QuestieDB.Notices()` in its settings.
+QuestieDB's licence is partly all rights reserved. **Never copy its data or code into this repository, and never commit any of its files.** Read it at run time only. A module that needs it is off by default and calls `ns.QuestieDB.Require(module)`, which gives it QuestieDB's notices in its settings.
 
 Everything below comes from reading its source and its `docs/api.md` at commit **`d57637f490c9dfcdbbc967dab47a8b0d8fe1b3cc`** (2026-11-11, version 1.0.14, contract 4). It is **Unverified** in game: QuestieDB wasn't installed on the client when this was written. The Self Test steps at the end check it.
 
@@ -12,7 +12,7 @@ Everything below comes from reading its source and its `docs/api.md` at commit *
 - **Addon name `QuestieDB`.** The repository's `QuestieDB.toc` is its "source mode" TOC (Interface list includes 16001) that reads raw data files, with Forever's files chosen by `[ExcludeLoadGameType vanilla, tbc, wrath, cata, mists]`. Its releases are "baked": `QuestieDB_Forever.toc` and a byte-identical `QuestieDB_Camelot.toc` alias in the same folder, which the client prefers over the plain TOC. Its docs say Forever's acceptance of both is still pending on their side.
 - **Not load on demand.** No TOC has `LoadOnDemand`, and it has no SavedVariables. It loads with the other addons, before `PLAYER_LOGIN`, so it's there by the time our modules turn on. `ns.QuestieDB.OnReady` still handles a load-on-demand copy, in case a later packaging makes it one.
 - **Ready at load.** Its data can be read as soon as it has loaded: it applies its own Corrections and picks the client's locale during its own load, and then sets the global. There is no ready event or callback. A table field's first read decodes it (CBOR through `C_EncodingUtil.DeserializeCBOR` in baked mode); name indexes are built on first use.
-- Its docs ask consumers to declare `## Dependencies: QuestieDB`. We don't: it's optional for us, so we probe for the global instead. (`## OptionalDeps` isn't needed either, since it loads before `PLAYER_LOGIN` anyway.)
+- Its docs ask consumers to declare `## Dependencies: QuestieDB`. We don't: it's optional for us, so we probe for the global instead. Our TOC lists it in `## OptionalDeps`, so it has loaded before our files, and `ns.QuestieDB.Require` can read its status as a module's file loads.
 
 ## Versions
 
@@ -77,11 +77,12 @@ Not entity fields: whole tables through `LibQuestieDB.Support.Get(name)`, which 
 | `UiMapID(areaID)` | the uiMapID QuestieDB's ZoneDB maps an area to, or nil |
 | `DropRates(itemID)` | `{ [npcID] = percent }`: Wowhead's numbers, else CMaNGOS's, or nil |
 | `QuestDrops(questID)` | `{ { itemID, name, index, npcs = { [npcID] = true } } }`: each item objective a creature drops, from the item's `npcDrops`; nil for an unknown quest |
+| `Notices()` | the two gray rows for `module.notice`: needs QuestieDB (while missing or off), and the version doesn't fit (while `Problem()`) |
+| `Require(module)` | for a module that needs QuestieDB, called as its file loads: its notices, a red name while it's missing, off, or the wrong version, and locked while it's missing or off |
 
 A quest also has `flags` and `specialFlags` (QuestieDB's masks, 0 for none), `repeatable` (special flag 1, or the daily, weekly, or monthly quest flag), `raid` (quest flag 64), and `minRep` and `maxRep` (`{ id, value }`: a faction and the reputation it needs at least, or less than). Quest Pins compares those with `C_Reputation.GetFactionDataByID`'s `currentStanding`, which is unchecked on Forever.
 
 Quest Pins (`Modules/Quests/QuestPins/`) is the first module to read it. What it assumes that still needs checking in game: the client gives the Skyborne races the IDs 95 and 96 that QuestieDB's masks give bits 33 and 34 (every whole-side quest in its Forever data, 1862 Alliance and 1599 Horde, has its side's Skyborne bit, and none has all four Classic races without it; counted from the baked rows at build commit 4dbb8244, 2026-11-15), and the holiday categories are QuestieDB's sort IDs 21, 22, 41, 364, 366, 369, 370, 374, 375, 376, 378, 402, and 404, with 365 the Ahn'Qiraj war effort.
-| `Notices()` | the two gray rows for `module.notice`: needs QuestieDB (while missing or off), and the version doesn't fit (while `Problem()`) |
 
 `spawns` is a list of `{ uiMapID, x, y, areaID, phase }` with x and y 0-1 on that map, as `ns.WorldMap` uses; a spawn in an area ZoneDB maps to no map is left out. `instances` lists the area IDs of dungeons it's somewhere inside. A 0 from QuestieDB ("none") is nil in ours, and every list is there, empty when there's nothing. Each read is a new table, and nothing is cached but the zone and drop tables, which are read on first use (the drop table is large: call `DropRates` out of combat).
 
@@ -97,7 +98,7 @@ Quest Pins (`Modules/Quests/QuestPins/`) is the first module to read it. What it
 ## In game, after installing QuestieDB
 
 1. Install QuestieDB for Forever, `/reload`, and check that `/dump LibQuestieDB.contractVersion, LibQuestieDB.readMode` prints a number and `"baked"`.
-2. Run Modules > Debug > Self Test > Run (or `/fpp selftest`), then `/reload`, and read the `== questiedb` lines in `ForeverPlusPlusDB.selfTest` in the SavedVariables file: `questiedb.addon` (status, version, contract, mode), `questiedb.counts` (expect about the counts above), and `questiedb.quest` and `questiedb.npc` PASS, the NPC's map named and its x, y matching where it stands when you go there.
+2. With the Debug module on, run the Debug page's Self Test > Run (or `/fpp selftest`), then `/reload`, and read the `== questiedb` lines in `ForeverPlusPlusDB.selfTest` in the SavedVariables file: `questiedb.addon` (status, version, contract, mode), `questiedb.counts` (expect about the counts above), and `questiedb.quest` and `questiedb.npc` PASS, the NPC's map named and its x, y matching where it stands when you go there.
 3. `/run print(LibQuestieDB.Support.Get("ZoneDB") ~= nil, LibQuestieDB.Support.Get("QuestieClassicItemDrops") ~= nil)` should print `true true` (the zone and drop tables are there in baked mode too).
 4. `/run print(LibQuestieDB.Npc.IdsByName and #(LibQuestieDB.Npc.IdsByName(UnitName("target")) or {}))` with an NPC targeted should print 1 or more (names match the client's language).
 

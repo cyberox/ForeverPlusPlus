@@ -180,7 +180,7 @@ local deadline = 0 -- GetTime() until which to keep checking
 local WATCH = 12
 
 -- The Track choice just changed: turn the chosen spell on in place of ours that isn't chosen any
--- more, even with Reapply off, since the player just picked it.
+-- more, even with Turn Back On off, since the player just picked it.
 local switch = false
 
 local function chosen(spells, spellID)

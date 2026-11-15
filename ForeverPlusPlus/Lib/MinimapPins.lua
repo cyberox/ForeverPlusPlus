@@ -2,8 +2,9 @@
 -- player's spot, how far it sees, and how it's turned), and turning a spot on the map into a spot
 -- on the minimap and back. Exact through moving, turning, and zooming, since it's worked out from
 -- the player's own position rather than read from the minimap. And its shape: round, or square
--- while an addon says so, with word to whoever places buttons on its edge when that changes.
--- Nothing is listened to until a module first asks.
+-- while an addon says so, with word to whoever places buttons on its edge when that changes. Also
+-- the names of the dots under the mouse, the tracking menu's entries, and the gold ring around an
+-- icon. Nothing is listened to until a module first asks.
 local _, ns = ...
 
 local sin, cos, pairs, next, type = math.sin, math.cos, pairs, next, type
@@ -37,7 +38,7 @@ end
 
 local view = {}
 
----What the minimap shows right now: `mapID` (the player's zone map) and `x`, `y` (their spot on
+---What the minimap shows right now: `mapID` (the map the player is on) and `x`, `y` (their spot on
 ---it, 0 to 1), the map's `width` and `height` in yards, `half` (half the minimap's width), `scale`
 ---(minimap units per yard), and `angle` (what the minimap is turned by, 0 unless it rotates). Nil
 ---when any of it can't be read, as in an instance. With `mapID`, on that map (one the player is
@@ -73,7 +74,7 @@ function MinimapPins.View(mapID)
     return view
 end
 
----A spot on the view's zone map as minimap units right and up of the minimap's center.
+---A spot on the view's map as minimap units right and up of the minimap's center.
 ---@param v table a view
 ---@param x number
 ---@param y number
@@ -86,7 +87,7 @@ function MinimapPins.ToMinimap(v, x, y)
     return east * c + north * s, north * c - east * s
 end
 
----Minimap units right and up of the minimap's center as a spot on the view's zone map.
+---Minimap units right and up of the minimap's center as a spot on the view's map.
 ---@param v table a view
 ---@param right number
 ---@param up number
@@ -184,7 +185,7 @@ end
 -- (C_TooltipInfo.GetMinimapMouseover).
 
 -- The names in the mouseover's first line, one a row (overlapping dots each add one), as plain
--- text, or nil.
+-- text; empty when every row is blank.
 local function hoverNames(text)
     local names = {}
     for row in text:gmatch("[^\n]+") do

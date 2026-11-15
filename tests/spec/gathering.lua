@@ -1,4 +1,5 @@
--- Gathering: remembering nodes, merged by yards with their spots averaged.
+-- Gathering: remembering nodes gathered and seen, merged by yards with their spots averaged, the
+-- skill a node's error asks for, and nodes shared as text and merged back in.
 local T = ...
 local ns, eq, near = T.ns, T.eq, T.near
 

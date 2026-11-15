@@ -5,8 +5,10 @@
 --
 -- A tree is { nodes = { [nodeID] = node }, order = { nodeID, ... } }, where a node is
 -- { max = ranks, tab = groupID, req = points needed in that tab, prereqs = { { id, required } } }
--- and `order` lists the nodes top row first. A prerequisite with `required` must be maxed;
--- of the ones without it, any one maxed is enough (C_Traits' Required and Sufficient edges).
+-- (and its place on the tree, `x` and `y`, for RowGates and links), and `order` lists the nodes
+-- top row first. Reading a link also needs `tabList` (see Grid). A prerequisite with `required`
+-- must be maxed; of the ones without it, any one maxed is enough (C_Traits' Required and
+-- Sufficient edges).
 local _, ns = ...
 
 local ipairs, max, min, remove, concat = ipairs, math.max, math.min, table.remove, table.concat

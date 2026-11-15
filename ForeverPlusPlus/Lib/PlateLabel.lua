@@ -307,8 +307,8 @@ local function createLabel(frame)
     -- Empty frames to center on: the bar's row (see placeRow), and the cast bar's (placeSubtitle).
     label.row = CreateFrame("Frame", nil, label)
     label.castRow = CreateFrame("Frame", nil, label)
-    -- Debug (Show Player or NPC Plate Center): a thin line down the middle of the row, on a frame of its own so
-    -- it shows with or without the bar.
+    -- Debug (Show Player or NPC Plate Center): a thin line down the middle of the row, on a frame
+    -- of its own so it shows with or without the bar.
     label.debugFrame = CreateFrame("Frame", nil, frame)
     label.debugFrame:SetAllPoints(frame)
     label.centerLine = label.debugFrame:CreateTexture(nil, "OVERLAY")
@@ -436,7 +436,7 @@ local function matchLevelFont(label, levelFrame, scale)
     if base and (label.levelSize ~= size or label.levelBase ~= base) then
         label.levelSize, label.levelBase = size, base
         setFont(text, base, size)
-        -- The font object brings its own color; the level stays gold, as it always was here.
+        -- The font object brings its own color; the level stays gold.
         local color = _G.NORMAL_FONT_COLOR
         if color then
             text:SetTextColor(color:GetRGB())

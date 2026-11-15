@@ -1,4 +1,5 @@
--- TalentPlan: adding and removing points under Classic's rules, sharing plans, and levels.
+-- TalentPlan: adding and removing points under Classic's rules, sharing plans, levels, each row's
+-- gate, and builds read from the talent websites' links.
 local T = ...
 local ns, eq = T.ns, T.eq
 

@@ -1,8 +1,8 @@
 -- Druid Mana Bar: a druid's mana under the energy or rage bar on the player frame while in a form
 -- that doesn't use mana (Cat, Bear), in the spot Blizzard's own third bar takes. Mainline's player
 -- frame has that bar (AlternatePowerBar, loaded on Forever), but it only shows mana for Balance's
--- Lunar Power, which Forever's druids don't have (Blizzard_UnitFrame/Mainline/AlternatePowerBar.lua,
--- Gethe `forever` branch, checked 2026-11-05).
+-- Lunar Power, which Forever's druids don't have
+-- (Blizzard_UnitFrame/Mainline/AlternatePowerBar.lua, Gethe `forever` branch, checked 2026-11-05).
 --
 -- It looks like Blizzard's: the taller frame art with a slot for the third bar
 -- (`...-PortraitOn-ClassResource`, Forever's `-c60` sheet has one), a mana fill and mask from the

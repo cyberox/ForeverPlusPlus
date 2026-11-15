@@ -1,9 +1,8 @@
 -- Auction prices for any module: Item Tooltips' Auction Prices scans the auction house and gives
 -- its prices here while it's on, and other modules (Waylaid Crates, Professions' Crafting Costs)
 -- read them without reaching into it. With no source, there are no prices. With its Use
--- Auctionator's Prices option on and
--- Auctionator loaded, the prices come from Auctionator instead, so every module that reads them
--- here switches together.
+-- Auctionator's Prices option on and Auctionator loaded, the prices come from Auctionator
+-- instead, so every module that reads them here switches together.
 local _, ns = ...
 
 local C_Item = C_Item
@@ -154,7 +153,7 @@ function Prices.Available()
 end
 
 ---Whether prices come from Auctionator: the player chose it and it's loaded. Otherwise they're
----the source's own (our scans), as they were.
+---the source's own (our scans).
 ---@return boolean
 function Prices.UsingAuctionator()
     return source ~= nil and source.auctionator ~= nil and source.auctionator() and Prices.AuctionatorLoaded()

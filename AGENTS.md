@@ -109,7 +109,7 @@ One line here says what each file is for. [docs/architecture.md](docs/architectu
 
 | File | `ns` | For |
 | --- | --- | --- |
-| `Secret.lua` | `IsReadable`, `IsText`, `IsNumber`, `IsTrue`, `IsTrueOrSecret`, `AurasReadable`, `EachAura` | Guards for values that may be secret. |
+| `Secret.lua` | `IsReadable`, `IsText`, `IsNumber`, `IsTrue`, `IsTrueOrSecret`, `AurasReadable`, `EachAura`, `HealthStepCurve` | Guards for values that may be secret, and a curve that turns secret health into a widget value. |
 | `Colors.lua` | `Colors` | Shared colors: color codes, class, level range, faction, and one per stat. |
 | `Text.lua` | `Text` | Numbers, durations ("3 Seconds", "12m ago"), yards, version compare, and stripping escape codes. |
 | `Money.lua` | `Money`, `MoneyShort` | Copper as coin text. |
@@ -128,7 +128,7 @@ One line here says what each file is for. [docs/architecture.md](docs/architectu
 | --- | --- | --- |
 | `Frames.lua` | `Frames` | Atlas and template checks, Blizzard's panel button, saved anchors, our portrait windows, Escape to close, `Coalesce`, `Timer`, `Throttled`. |
 | `Menus.lua` | `Menus` | A context menu at the cursor (`Open`): Blizzard's, or a list of our own while the controller interface is on (`GamepadUI`), where Blizzard's opened by an addon breaks the controller's focus. A dropdown's menu goes through `SetupDropdown`. Never `MenuUtil.CreateContextMenu` or a dropdown's `SetupMenu` directly. |
-| `Confirm.lua` | `Confirm`, `Prompt`, `PromptName` | Yes/no and text popups: Blizzard's, or a frame of our own while the controller interface is on. Never `StaticPopup_Show` directly. |
+| `Confirm.lua` | `Confirm`, `ConfirmChoice`, `ConfirmButtons`, `Prompt`, `PromptName` | Yes/no popups, ones with two or three choices, and text popups: Blizzard's, or a frame of our own while the controller interface is on. Never `StaticPopup_Show` directly. |
 | `EditMode.lua` | `EditMode` | Our own frames in Blizzard's Edit Mode, looking and working like Blizzard's (`RegisterModule`). |
 | `SettingsKit.lua` | `SettingsKit` | What a drawn Settings page is made of, for the Settings pages and a tool's `BuildPage`. |
 | `Chat.lua` | `Chat` | The chat windows, rewriting and filtering their lines, and the column of buttons beside them (`NewButton`, `SetBadge`). |
@@ -185,52 +185,32 @@ One line here says what each file is for. [docs/architecture.md](docs/architectu
 
 - The module list, and what each does for players, is the table in `README.md`. What each is in the code's terms is in [docs/architecture.md](docs/architecture.md).
 - A module is in `Modules/<Category>/`: `Automation`, `Character`, `Chat`, `Interface`, `Items`, `Map`, `Quests`, `System`, `Units`, or `Tools`. A small module is one file. A bigger one gets a folder of files that share `module.internal`.
-- A module made of parts (World Map, Item Tooltips, Professions, Waylaid Crates, Character Window) has a file per part in its folder.
-- A few module names differ from their titles: `DungeonNameplates` (Simplified Dungeon Nameplates), `HideErrors` (Hide Error Messages), `ProfessionTooltips` (Gathering Skill Tooltips), `PersistentChat` (Keep Chat Visible), `Commands` (Slash Commands), `Profiler` (CPU Profiler).
+- A module made of parts (World Map, Item Tooltips, Professions, Waylaid Crates, Macros) has a file per part in its folder.
+- A few module names differ from their titles: `AutoOpen` (Auto Open Containers), `DungeonNameplates` (Simplified Dungeon Nameplates), `HideErrors` (Hide Error Messages), `ProfessionTooltips` (Gathering Skill Tooltips), `PersistentChat` (Keep Chat Visible), `Commands` (Slash Commands), `Profiler` (CPU Profiler).
 - Self Test, Gear Probe, and Screenshots have no toggle: each is a button on the Debug page and a `/fpp` command while Debug is on. A module adds its own screenshot scene with `module.screenshot`.
 
 ### The public API
 
-`API.lua` sets the global `ForeverPlusPlusAPI.v1`, documented in `docs/api.md`.
+`API.lua` sets the global `ForeverPlusPlusAPI.v1`, documented in `docs/api.md`: thin wrappers over `Lib/` and `ns.Providers`, and callbacks. [docs/architecture.md](docs/architecture.md#apilua) has what it covers.
 
-- It is thin, read-only wrappers over `Lib/` and over what modules offer through `ns.Providers`, plus callbacks fired through `ns.API.Fire`.
-- It reads modules and options but never changes them: they're the player's.
-- The one thing a caller adds is a module of its own (`RegisterModule`, `GetPluginKit`, through `Lib/Plugins.lua`). It is marked experimental in `docs/api.md` since 1.6.0, so it may still change; once that mark is gone, what a plugin may set and what the kit holds is part of `v1`'s promise.
+- It reads modules and options but never changes them: they're the player's. The one thing a caller adds is a module of its own (`RegisterModule`, `GetPluginKit`, through `Lib/Plugins.lua`), experimental since 1.6.0.
 - Every call is wrapped, so an error of ours returns nil instead of breaking the caller. It returns copies, never our tables.
 - `v1` only grows: never rename, remove, or change what a function or return value means. A breaking change is a `v2` beside it.
 - Add a function when `Lib/` gains data another addon could want, and add it to `docs/api.md` and the offline tests too.
 
 ### Releases
 
-`check.yml` runs on every push: Lua 5.1 syntax, `tests/run.lua`, ASCII, the TOC against the files, and wowlua-ls against `tests/wowlua-baseline.txt`. Then it uploads the addon folder as a zip artifact.
+`check.yml` checks every push (Lua 5.1 syntax, `tests/run.lua`, ASCII, the TOC against the files, and wowlua-ls against `tests/wowlua-baseline.txt`) and uploads the addon folder as a zip artifact. Pushing a `v*` tag also makes a GitHub release and a CurseForge upload, and Wago imports the GitHub release by itself. [docs/architecture.md](docs/architecture.md#ci-and-releases-checkyml) has the jobs, their secrets, and pre-releases.
 
-Pushing a `v*` tag also releases:
-
-1. First bump `## Version` in the TOC to match, and add the release's notes to `CHANGELOG.md` and `Changelog.lua`. The release stops if any of those is missing.
-2. One job makes the GitHub release with the zip. A tag with a suffix (`v1.2.0-beta.1`) is a pre-release.
-3. A separate job uploads to CurseForge (secret `CF_API_KEY`, variables `CF_PROJECT_ID` and `CF_GAME_VERSION_IDS`); a suffixed tag is a beta there.
-4. Wago ([addons.wago.io/addons/foreverplusplus](https://addons.wago.io/addons/foreverplusplus)) imports each GitHub release by itself, through a webhook on the repo.
-
-Re-running the release job replaces the zip and notes. Re-run the CurseForge job only when it failed, or CurseForge gets a second file.
+- Before tagging, bump `## Version` in the TOC to match, and add the release's notes to `CHANGELOG.md` and `Changelog.lua`. The release stops if any of those is missing.
+- Re-running the release job replaces the zip and notes. Re-run the CurseForge job only when it failed, or CurseForge gets a second file.
 
 ### Generated data
 
-`lua5.1 tools/datagen/generate.lua [build]` downloads the tables it needs for a `wowf` build from wago.tools (the latest build when none is given; `--latest` only prints it), caches them in `cache/` (ignored by git), and writes every generated file:
-
-| File | From |
-| --- | --- |
-| Unexplored Areas' `Data.lua` | The map overlay and map art tables. |
-| Professions' `Data.lua` | Each recipe's yellow and gray levels, skill line, spell, and teaching item. |
-| `Lib/InstanceLevels.lua` | Each instance's dungeon finder level. |
-| `Lib/DisenchantBrackets.lua` | The disenchant loot table. |
-| `Lib/LockboxSkills.lua` | Each lockbox's Lockpicking. |
-| `Lib/TaxiRoutes.lua` | Each direct flight's length. |
-| `Reference.txt` | What the tables say about data kept by hand, so a new build's diff shows what to check. |
+`lua5.1 tools/datagen/generate.lua [build]` downloads the tables a `wowf` build needs from wago.tools and writes every generated file: Unexplored Areas' and Professions' `Data.lua`, the four generated Lib files, and `Reference.txt` (what the tables say about data kept by hand, so a new build's diff shows what to check). [docs/architecture.md](docs/architecture.md#generated-data-toolsdatagen) has what each comes from, `summary.lua` and `survey.lua`, and the `table-data.yml` workflow that regenerates for a new build and opens a pull request.
 
 - **Never edit a generated file by hand.** Change the generator (one module per file, listed in `generators.lua`) and run it again.
 - `BUILD` is the build they came from. Output is sorted, so the same build gives the same bytes.
-- `summary.lua` counts what changed between two copies. `survey.lua [build]` prints what the tables hold for data kept by hand.
-- `table-data.yml` runs daily and by hand. When wago.tools has a newer build than `BUILD`, it regenerates, runs the syntax, ASCII, and offline checks, and opens a pull request from `data/build-<build>`. It needs "Allow GitHub Actions to create and approve pull requests" on, and Check doesn't run on its branch by itself.
 
 ## The client
 
@@ -406,8 +386,8 @@ An option is `{ key, name, description }` in `module.options`, with its default 
 | `requires = key` | Nests it under a checkbox option (or a dropdown, on while it isn't `"off"`). |
 | `slider = key` | Puts a checkbox's slider in its row. |
 | `shown = fn(db)` | Shows its row only while true. |
-| `available = fn` | Greyed out while `fn()` is false (another addon or module it needs isn't there). Always give it `needs`. |
-| `needs = text` | What an `available` option needs, shown in red in its tooltip while it's greyed out (`L.SETTINGS_NEEDS_ADDON`, `L.SETTINGS_NEEDS_MODULE`). |
+| `available = fn` | Greyed out while `fn()` is false (another addon, module, or client API it needs isn't there). Always give it `needs`. |
+| `needs = text` | What an `available` option needs, shown in red in its tooltip while it's greyed out (`L.SETTINGS_NEEDS_ADDON`, `L.SETTINGS_NEEDS_MODULE`, `L.SETTINGS_NEEDS_CLIENT`). |
 | `section` | The header it sits under (see Sections). |
 | `added`, `changed` | The version it first shipped or last changed in; marks it NEW. Options of a new module aren't marked. |
 | `cvar = "name"` | A checkbox that is one of Blizzard's own settings: it reads and sets that CVar and saves nothing of ours. Say so in its description. |

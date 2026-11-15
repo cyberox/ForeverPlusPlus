@@ -1,9 +1,10 @@
 -- Auto Open: opens the containers in your bags (clams, sacks, lockboxes once unlocked) by
 -- themselves, one at a time, and says in chat what it opened. A container is whatever the game
 -- says has loot (the bag item's `hasLoot`), so a new one needs no list; a short list says which to
--- leave for the player. It waits whenever opening would get in the way: in combat, while a loot,
--- merchant, mail, bank, trade, auction, quest, or gossip window is open, while stealthed (opening
--- breaks stealth) or casting, with something on the cursor, and while the bags are nearly full.
+-- leave for the player. It waits whenever opening would get in the way: in combat or dead, while a
+-- loot, merchant, mail, bank, trade, auction, quest, gossip, or trainer window is open, while
+-- stealthed (opening breaks stealth) or casting, with something on the cursor, and while the bags
+-- are nearly full.
 --
 -- Probe: C_Container.UseContainerItem opens a container from a timer on Forever, with no click.
 -- [addon] Open Sesame (github.com/Gogo1951/Open-Sesame, MIT, its Camelot TOC for interface 16001,

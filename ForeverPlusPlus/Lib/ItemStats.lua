@@ -482,10 +482,10 @@ local function round(value)
 end
 
 ---The attribute weights that follow from a set of weights and the player's rates: Strength from
----attack power and block value, Agility from attack power, crit, dodge, and armor, Stamina from health, and
----Intellect from spell crit and mana. Spirit isn't derived: its regen counts only outside the
----five-second rule, which is a judgment, not a conversion. Only the attributes whose rates are
----all there are returned.
+---attack power and block value, Agility from attack power, crit, dodge, and armor, Stamina from
+---health, and Intellect from spell crit and mana. Spirit isn't derived: its regen counts only
+---outside the five-second rule, which is a judgment, not a conversion. Only the attributes whose
+---rates are all there are returned.
 ---@param weights table our key -> weight (the roots: AP, RAP, CRIT, DODGE, ARMOR, BLOCKVALUE, HEALTH, SPELLCRIT, MANA)
 ---@param rates table from ItemStats.PlayerRates
 ---@return table derived STR, AGI, STA, INT -> weight, for those that could be

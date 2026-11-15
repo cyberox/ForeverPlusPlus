@@ -1,9 +1,10 @@
 -- Macros: macros Forever++ writes and keeps up to date, one part each (SmartBuff.lua for now). A
 -- part's macro is a general macro shared by your characters: made when its checkbox turns on, and
 -- deleted for all of them when it turns off. Each character rewrites it for its own class when it
--- logs in or anything changes. The game doesn't let addons make or change macros in combat, so a change waits until
--- combat ends, and a mark of ours over each action button holding the macro says when it has
--- nothing to cast (a red X) or is out of date until combat ends (a warning triangle).
+-- logs in or anything changes. The game doesn't let addons make or change macros in combat, so a
+-- change waits until combat ends, and a mark of ours over each action button holding the macro
+-- says when it has nothing to cast (a red X) or is out of date until combat ends (a warning
+-- triangle).
 local _, ns = ...
 
 local ipairs, pcall, format = ipairs, pcall, string.format

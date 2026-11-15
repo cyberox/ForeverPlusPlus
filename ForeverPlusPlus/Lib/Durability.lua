@@ -50,7 +50,8 @@ end
 local RANK = { ok = 0, low = 1, broken = 2 }
 
 ---The warning level of the most worn item: "broken" at 0 (when `broken` is true; otherwise it is
----only "low"), "low" below `threshold`, and "ok" above it or when nothing worn has durability.
+---only "low"), "low" below `threshold`, and "ok" at or above it or when nothing worn has
+---durability.
 ---@param lowest number? the most worn item's fraction, from Durability.Lowest
 ---@param threshold number a fraction from 0 to 1
 ---@param broken boolean? whether a broken item is a level of its own

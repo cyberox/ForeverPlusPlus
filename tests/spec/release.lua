@@ -1,6 +1,7 @@
 -- Release: what the release jobs and the Changelog page rely on agreeing. The TOC's version is the
 -- newest release in Changelog.lua, CHANGELOG.md has the same releases in the same order with the
--- same dates, and every file the TOC loads is there.
+-- same dates, every file the TOC loads is there (Init.lua last), every .lua file in the folder
+-- is in the TOC, and the TOC names the saved variables.
 local T = ...
 local eq = T.eq
 

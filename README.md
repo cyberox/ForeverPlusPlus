@@ -81,7 +81,7 @@ Everything is on by default except where noted. Each module can be turned off, a
 | **Quests** | |
 | Best Quest Reward | Puts a gold coin on the quest reward that sells to a vendor for the most. It never picks for you. |
 | Quest Tracker | Restyles Blizzard's quest tracker without replacing it: font, a dark box behind it, fading in combat, sorting by level, and showing only the current zone's quests. |
-| Forever Quest Icons | Marks quests that are new to Forever with a Forever icon after their name, in the quest log, the tracker, and quest givers' lists. |
+| Forever Quest Icons | Marks quests that are new to Forever with a Forever icon after their name, in the quest log, the tracker, quest givers' lists, and the quest's details and turn-in windows. |
 | Quest Levels | Shows a quest's level before its name ([12], with a + for group quests) in a quest giver's list and the quest's details. Can color it by difficulty. |
 | Quest Pins | Needs the [QuestieDB](https://github.com/Questie/questiedb) addon. Puts a ! on the world map where each quest you can still take starts, colored by kind, and lists an NPC's quests in its tooltip. Options pick which kinds and levels show. Off by default. |
 | Quest Item Sparkles | Keeps the sparkle on quest items you can pick up in the world, even after a graphics preset turns it off. Off by default. |
@@ -115,7 +115,7 @@ Open Game Menu > Options > AddOns > Forever++, or type `/fpp`. The pages:
 
 - **Modules**: every module with a checkbox, grouped by category. The search box narrows the list, and New shows only what's marked NEW. Click a module for what it does and its options.
 - **Profiles**: sets of settings for different characters. Everyone starts on Default. A profile holds which modules are on, their settings, where you put frames and windows, and the Minimap Button's quick toggles, but not collected data such as auction prices and gathering nodes. Pick the profile this character and new characters use, and Export or Import one as a line of text. Switching is live and waits for combat to end.
-- **Console Variables**, **Profiler**, and **Debug**: pages of their own, each while its module is on.
+- **Console Variables**, **CPU Profiler**, **Debug**, **Gathering Map**, and Upgrade Arrows' **Stat Weights**: pages of their own, each while its module is on.
 - **Changelog**: what changed in each release (also in [CHANGELOG.md](CHANGELOG.md)).
 - **About**: the version, links, and commands.
 
@@ -151,7 +151,7 @@ For developers, while Debug is on (each is also a button on the Debug page):
 | `/fpp gearprobe` | Saves what the client says about your gear, talent tabs, and stats, for the Upgrade Arrows work (`ForeverPlusPlusDB.data.GearProbe` after `/reload`). Open your bags first. |
 | `/fpp shots [scene \| wait seconds]` | Takes gallery screenshots of Forever++ in the game's own windows, one scene after another, or only the scene named. Saved as JPG in the game's `Screenshots` folder. |
 
-Settings are saved per account in `ForeverPlusPlusDB`, with every profile. Players seen (for Chat Levels and Whisper Window) are in `ForeverPlusPlusPlayersDB`, and what belongs to one character (its profile, talent plans, learned flight points) in `ForeverPlusPlusCharDB`.
+Settings are saved per account in `ForeverPlusPlusDB`, with every profile. Players seen (for Chat Levels, Whisper Window, and Class Colors' Offline Friends) are in `ForeverPlusPlusPlayersDB`, and what belongs to one character (its profile, talent plans, chat history, whisper conversations, learned flight points, and the nodes and quests it hides) in `ForeverPlusPlusCharDB`.
 
 ## For addon authors
 

@@ -1,8 +1,8 @@
 -- What a module offers outside itself while it's on, by name, for the public API (API.lua) to
--- read: a table of functions the module sets in OnEnable and takes away in OnDisable, as Auction
--- Prices gives Lib/Prices.lua its source. So nothing outside a module reaches into it, and
--- nothing is offered while it's off. A module also says when what it offers changed, and
--- listeners (the API's callbacks) hear it.
+-- read: a table of functions the module sets in OnEnable and takes away in OnDisable, much as
+-- Auction Prices gives Lib/Prices.lua its source (Prices.SetSource). So nothing outside a module
+-- reaches into it, and nothing is offered while it's off. A module also says when what it offers
+-- changed, and listeners (the API's callbacks) hear it.
 local _, ns = ...
 
 local ipairs = ipairs

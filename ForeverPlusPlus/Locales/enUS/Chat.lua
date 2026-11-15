@@ -33,7 +33,7 @@ L.CHATLEVELS_TEST = "Test Chat"
 L.CHATLEVELS_TEST_BUTTON = "Show"
 L.CHATLEVELS_TEST_DESC = "Add a few made-up trade chat lines from made-up players, with their "
     .. "levels and class colors, to your first chat window. Nobody else sees them."
-L.CHATLEVELS_TEST_LINE = "[2. T] %s: %s" -- the channel, then the player's name link and what they said
+L.CHATLEVELS_TEST_LINE = "[2. T] %s: %s" -- after a short trade channel, the name link and the line
 L.CHATLEVELS_TEST_1 = "LF healer for Scarlet Monastery, then we go"
 L.CHATLEVELS_TEST_2 = "WTB Mageweave Cloth, paying well"
 L.CHATLEVELS_TEST_3 = "anyone know where the Defias are?"

@@ -6,9 +6,9 @@
 -- may not use, but never one that would replace one of yours. A buff they already have, from
 -- anyone, is skipped unless it's about to run out or is someone else's lower rank, and so is one
 -- whose stronger version they have (a Greater Blessing, Prayer of Fortitude, Arcane Brilliance,
--- Gift of the Wild). A Blessing is skipped when they have one of yours already,
--- since each Paladin's Blessings replace each other. When they can't get anything from you, it
--- buffs you instead; with nothing left for either, its buttons show a red X over your class's buff.
+-- Gift of the Wild). A Blessing is skipped when they have one of yours already, since each
+-- Paladin's Blessings replace each other. When they can't get anything from you, it buffs you
+-- instead; with nothing left for either, its buttons show a red X over your class's buff.
 --
 -- The macro is rewritten out of combat whenever the target, an aura, a rank, or the talents
 -- change. In combat it can't be, and auras can't be read either: a new target there gets what the
@@ -268,7 +268,9 @@ end
 
 -- What the unit should get from you: the macro text that casts it, or nil when there's nothing
 -- left to give. With `auras`, buffs they have are skipped; the second result is when the soonest
--- of those runs low (seconds from now), to look again then.
+-- of those runs low (seconds from now), to look again then, and the third the name of the first
+-- buff that suits them they already have. `trace` (for /fpp buffs) is filled with how each was
+-- judged.
 local function pick(unit, isSelf, auras, trace)
     local list = BUFFS[playerClass]
     if not list then

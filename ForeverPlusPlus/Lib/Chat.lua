@@ -546,8 +546,8 @@ end
 
 -- How low the column can reach, in screen pixels: the top of Blizzard's chat menu button (the
 -- speech bubble), which sits at the bottom of the button frame (FloatingChatFrame.xml), so a short
--- chat window put our buttons under it (issue #2). Nil when it isn't under the column: hidden, or
--- moved by another addon.
+-- chat window doesn't push our buttons under it (issue #2). Nil when it isn't under the column:
+-- hidden, or moved by another addon.
 local function lowest(above)
     local menu = _G.ChatFrameMenuButton
     if not (menu and menu:IsShown()) then

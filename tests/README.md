@@ -40,7 +40,7 @@ What `T` holds:
 - `T.ns`: the addon's `ns`, with the Lib files in `lib/env.lua`'s `LIBS` loaded.
 - `T.player` and `T.game`: tables the stubs read. The Lib files cache functions like `UnitLevel` at load, so change `T.player.level` rather than the function.
 - `T.load(path, into)`: loads one of the addon's files (`"Lib/Players"`, `"API"`) into `into` (`T.ns` by default), in this spec's environment. Use it for a file that needs stubs set first, or to load one again after changing a stub it caches.
-- `T.Whole(before)`: every file in the TOC but `Init.lua`, loaded into an `ns` of its own against a stand-in client; returns that `ns`, its globals, and a line for each file that didn't load. `before(env, stub)` sets the globals the spec's checks need first, since files keep them at load. Loading is all it does: no module is turned on. For a spec that needs the module files themselves, like a migration step.
+- `T.Whole(before, around)`: every file in the TOC but `Init.lua`, loaded into an `ns` of its own against a stand-in client; returns that `ns`, its globals, and a line for each file that didn't load. `before(env, stub)` sets the globals the spec's checks need first, since files keep them at load. `around(path, ns, loaded)`, if given, runs before each file (`loaded` nil) and after it (true or false). Loading is all it does: no module is turned on. For a spec that needs the module files themselves, like a migration step.
 - `T.Toc()`, `T.Read(path)`: the TOC's fields and file list, and a file's text.
 - Checks. Each takes a short name, prefixed with the area (`"taxi: no nodes"`). A failure prints the spec's file and line, the name, and what it got.
   - `eq(got, want, what)`: equal with `==`.
@@ -63,7 +63,6 @@ What `T` holds:
 | `core_profiles` | Switching profiles live, and `ns.switching`. |
 | `core_presets` | A profile based on a preset. |
 | `core_plugins` | Another addon's module through `Lib/Plugins.lua`. |
-| `menus` | A menu described as Blizzard's are, as our own entries, and telling when the controller interface is on. |
 | `core_pluginkit` | What a plugin shares with our modules: renamed settings, unit events, tooltip lines, the shared options, a map layer's filter entry, marks on items, and a frame in Edit Mode, against stand-ins for the libraries behind them. |
 
 ```lua
@@ -107,8 +106,9 @@ Test pure logic: anything in `Lib/` with no frames, and Core's module lifecycle 
 
 These specs check the whole addon:
 
+- `docs`: every Lib file has a row in AGENTS.md's Lib tables and a place in `docs/architecture.md`, and every click hint in the enUS strings is written as Blizzard's are.
 - `globals`: no file in the TOC writes a global AGENTS.md doesn't allow (a missing `local` leaks one), plainly or through `_G.Name =` and `_G[...] =` (a name worked out at run time is listed in `DYNAMIC`), and every global a file reads is Lua 5.1's own (as the game has it: no `io`, `os`, or `require`) or listed in `.luarc.json`, so a typo like `fromat` fails here. When it flags a real client global, add that to `.luarc.json`; when a new allowed global appears in AGENTS.md, add it to `WRITES` in `spec/globals.lua`.
-- `locales`: every `L.KEY` the code uses is defined, and none twice.
-- `modules`: every file in the TOC loads offline, against a stand-in for any WoW global it reads. Every module's settings are well formed: a title, a category, and options with a name, a description, and a default that fits them. A dropdown's default must be one of its choices, and a slider's must be in its range. Every `requires`, `slider`, and `conflicts` must name an option the module has, and `module.presets` only presets `Lib/Presets.lua` registers, with `enabled` a boolean and option values that fit their options. When a file fails to load here, it's usually a new global the stand-in can't fake (a color, a string, a function whose answer the file uses at load). Stub that one in `spec/modules.lua`.
-- `release`: the TOC's version and both changelogs agree, and every file the TOC loads is there.
-- `rules`: the AGENTS.md rules a machine can check exactly. Every file starts with its addon's `ns` line (after comments); none calls a Classic global the client doesn't have (docs/forever-api.md's list, kept out of `.luarc.json` too; `C_Item.GetItemInfo` is fine); none uses `COMBAT_LOG_EVENT_UNFILTERED`; only the files in `ONLY` read `WOW_PROJECT_ID` or `print`; and no line is indented with tabs or ends in spaces. A real exception goes in the spec's list, with why.
+- `locales`: every `L.KEY` the code uses is defined, and none twice; another language sets only keys enUS has, with the same placeholders.
+- `modules`: every file in the TOC loads offline, against a stand-in for any WoW global it reads, and makes no frame, hook, timer, or event listener as it loads (but for the few in its `ALLOWED`). No migration step is for a version past `Store.VERSION`. Every module's settings are well formed: a title, a category, and options with a name, a description, and a default that fits them. A dropdown's default must be one of its choices, and a slider's must be in its range. Every `requires`, `slider`, and `conflicts` must name an option the module has, and `module.presets` only presets `Lib/Presets.lua` registers, with `enabled` a boolean and option values that fit their options. When a file fails to load here, it's usually a new global the stand-in can't fake (a color, a string, a function whose answer the file uses at load). Stub that one in `spec/modules.lua`.
+- `release`: the TOC's version and both changelogs agree, every file the TOC loads is there (`Init.lua` last), and every `.lua` file in the addon folder is in the TOC.
+- `rules`: the AGENTS.md rules a machine can check exactly. Every file starts with its addon's `ns` line (after comments); none calls a Classic global the client doesn't have (docs/forever-api.md's list, kept out of `.luarc.json` too; `C_Item.GetItemInfo` is fine); none uses `COMBAT_LOG_EVENT_UNFILTERED`; only the files in `ONLY` read `WOW_PROJECT_ID`, `print`, or `IsInInstance`; and no line is indented with tabs or ends in spaces. A real exception goes in the spec's list, with why.

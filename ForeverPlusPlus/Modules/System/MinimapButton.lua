@@ -2,9 +2,9 @@
 -- opens a menu of quick module toggles and a right-click Forever++ settings (the other way round
 -- with Swap Clicks off); while Error Catcher is on, a click with a key held shows its errors,
 -- clears this session's, or clears them all (each key is an option), and the button shows how
--- many this session caught (through ns.Errors, never
--- Error Catcher itself). After a fresh install the button wears Blizzard's NEW label, and its
--- first click opens the About page instead, once; no popup at login.
+-- many this session caught (through ns.Errors, never Error Catcher itself). After a fresh install
+-- the button wears Blizzard's NEW label, and its first click opens the About page instead, once;
+-- no popup at login.
 local _, ns = ...
 
 local format, type, tremove, sort = string.format, type, table.remove, table.sort
@@ -406,7 +406,7 @@ local function menuButton()
 end
 
 -- Which mouse button the error keys go with: the settings click, or the left one with Error
--- Keys on Left-Click.
+-- Keys on Click.
 local function keyButton()
     local db = module.db
     return (db.swapClicks and not db.keysLeftClick) and "RightButton" or "LeftButton"

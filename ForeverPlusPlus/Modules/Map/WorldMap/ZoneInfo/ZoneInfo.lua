@@ -266,7 +266,7 @@ end
 local function skillsRow(zone, low, high)
     local db, parts = module.db, {}
     local rank, name, own = Professions.Rank(Professions.FISHING)
-    -- "known" needs the skill; "key" doesn't, as it didn't before Fishing had "known".
+    -- "known" needs the skill; "key" doesn't, unlike the gathering rows (see shows).
     if zone.fish and (visible(db.fishing) or (db.fishing == "known" and rank ~= nil)) then
         parts[#parts + 1] = icon(Professions.FISHING, own, NoBreak(format(L.ZONEINFO_SKILL,
             name or L.ZONEINFO_FISHING_NAME, range(rank, zone.fish, zone.fishHigh, true))))
@@ -419,7 +419,7 @@ end
 local panel, driver
 local shownHeld -- whether the detail key was held then
 local shown -- the zone the panel shows now, or false for none; nil to draw again
-local toggleFolded -- the minus and plus button's click, set once draw is
+local toggleFolded -- the minus and plus button's click, set after draw, which it calls
 
 -- Out to the side the button is on, away from the panel.
 local function foldTip(button)

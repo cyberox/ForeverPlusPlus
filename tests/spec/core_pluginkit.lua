@@ -1,12 +1,13 @@
 -- Lib/Plugins.lua: what a plugin's module shares with ours beyond the basics in core_plugins. Its
--- renamed settings, unit events, item tooltip lines, the options every module fills alike, a map
--- layer's filter menu entry, marks on items, and a frame in Edit Mode. The libraries behind them
+-- quick toggle group, renamed settings, unit events, item tooltip lines, the options every module
+-- fills alike, sounds and keys, a map layer's filter menu entry, marks on items, and a frame in
+-- Edit Mode. The libraries behind them
 -- draw on Blizzard's frames, so they're stand-ins here: what's checked is what a plugin may ask
 -- for, and that it stops with its module.
 local T = ...
 local eq = T.eq
 
--- Before Core loads: Lib/Plugins.lua and Lib/Keys.lua keep these at load.
+-- The bags' links the marks walk, and the keys, which Lib/Keys.lua keeps at load.
 local links = { [1] = "item:1", [2] = "item:2" }
 C_Container = { GetContainerItemLink = function(_, slot) return links[slot] end }
 local shiftDown = false

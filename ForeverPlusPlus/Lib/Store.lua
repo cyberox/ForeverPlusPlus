@@ -26,9 +26,10 @@
 -- A module's settings are its scalar defaults. What the player sets is saved, even when it's the
 -- default, so a later release changing that default doesn't change their choice; only a reset (the
 -- undo arrow, Defaults, `/fpp reset`) forgets it, by setting it to nil, and then a better default
--- reaches them, as it does everyone who never touched the setting. Its data is every default that is a table;
--- presets and Defaults never touch it. Keys listed in `module.perCharacter` keep their data in the
--- character's table instead of the account's, and keys in `module.perProfile` in the profile's.
+-- reaches them, as it does everyone who never touched the setting. Its data is every default that
+-- is a table; presets and Defaults never touch it. Keys listed in `module.perCharacter` keep their
+-- data in the character's table instead of the account's, and keys in `module.perProfile` in the
+-- profile's.
 --
 -- Profiles: the Default profile is the account's own `settings` and `data`, where they always were,
 -- so a player with one profile has the layout they had before profiles; another profile is a root

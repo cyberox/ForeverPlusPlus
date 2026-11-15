@@ -1,13 +1,14 @@
 -- wowlua-ls against its baseline: fails on a finding the baseline doesn't have, so only new
--- problems break the build. From the repo root, with `wowlua_ls check .` written to a file:
+-- problems break the build, and on one it has that's gone, so the baseline keeps up with fixes.
+-- From the repo root, with `wowlua_ls check .` written to a file:
 --
 --   lua tests/wowlua.lua out.txt            compare
 --   lua tests/wowlua.lua out.txt --update   write the baseline from it
 --
 -- A finding is its file, code, and message, without the line, so editing a file elsewhere doesn't
 -- move it. The baseline lists each with how many times it's there; fixing one shrinks it, and the
--- run says to drop it. Its comments say why the findings under them stay; an update keeps them,
--- and puts a new finding in a group of its own at the end. See tests/README.md.
+-- run fails saying to drop it. Its comments say why the findings under them stay; an update keeps
+-- them, and puts a new finding in a group of its own at the end. See tests/README.md.
 
 local BASELINE = "tests/wowlua-baseline.txt"
 

@@ -1,7 +1,7 @@
 -- Commands: short slash commands players expect from other games' addons, each its own checkbox.
 -- /rl reloads the UI; /clear empties a chat window. A command another addon already has is left
--- to that addon (Lib/Slash). /fpp is Core's and is always there, whatever this module does. /way
--- is the Waypoints module's.
+-- to that addon (Lib/Slash). /fpp is the addon's own (Commands.lua at the top) and is always
+-- there, whatever this module does. /way is the Waypoints module's.
 local _, ns = ...
 
 local ipairs = ipairs

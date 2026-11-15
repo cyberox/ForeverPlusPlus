@@ -1,5 +1,5 @@
 -- Square Minimap: makes Blizzard's minimap square. Its round mask becomes a square one, its round
--- frame fades out, and a border in Blizzard's tooltip or dialog art goes around it. While it's
+-- frame fades out, and a border of Blizzard's own frame art goes around it. While it's
 -- on, the global GetMinimapShape answers "SQUARE": the convention minimap button libraries
 -- (LibDBIcon) and Lib/MinimapPins.lua read, so buttons on the edge and our icons on the minimap
 -- follow the square. The map moves up to the header row the round frame kept it from, and the day
@@ -102,7 +102,7 @@ for _, style in ipairs(BORDERS) do
     end
 end
 CHOICES[#CHOICES + 1] = { "none", L.SQUAREMINIMAP_BORDER_NONE }
--- Gold, or Stone without it.
+-- Gold, or Stone without it, or none without either.
 module.defaults.border = STYLES.gold and "gold" or STYLES.dialog and "dialog" or "none"
 
 -- The keys that can drag the sun, and Off.
@@ -263,7 +263,7 @@ end
 
 -- The map's place -------------------------------------------------------------------------------
 -- Blizzard centers the minimap in a container the size of its round frame (Camelot Minimap.lua's
--- UpdateMinimapConfig), so with the frame faded a band of nothing sat between the map and the
+-- UpdateMinimapConfig), so with the frame faded a band of nothing sits between the map and the
 -- header row above it. The map moves to `gap` pixels from that row instead: below it, or above it
 -- with Edit Mode's Header Underneath. Read from where the row is, so Edit Mode's scale and header
 -- setting are already in it.
@@ -327,7 +327,8 @@ end
 -- spot on the round frame, which a square one's edge doesn't reach, so it goes by the top right
 -- corner instead. With its key held, it drags anywhere on or around the map, and stays there
 -- (`sun`, from the map's middle); a right-click puts it back by the corner. Turned off, it goes
--- back to Blizzard's spot. Blizzard places it again when Edit Mode's scale changes, so that's hooked.
+-- back to Blizzard's spot. Blizzard places it again when Edit Mode's scale changes, so that's
+-- hooked.
 
 -- Where Blizzard puts it: from its container's middle, times the container's scale (Diel.lua's
 -- DielFrameData and SetDielFrameTransform, wow-ui-source `forever` branch, checked 2026-11-09).
@@ -557,7 +558,8 @@ end
 
 function module:OnEnable()
     if MinimapCluster then
-        -- Each puts Blizzard's mask, the map, or the sun back in place (Camelot Minimap.lua, Diel.lua).
+        -- Each puts Blizzard's mask, the map, or the sun back in place (Camelot Minimap.lua,
+        -- Diel.lua).
         self:Hook(MinimapCluster, "UpdateMinimapConfig", refresh)
         self:Hook(MinimapCluster, "SetHeaderUnderneath", onHeaderMoved)
         self:Hook(MinimapCluster, "SetEditModeScale", refresh)

@@ -2,8 +2,9 @@
 -- which the game's recipe info gives as skillLineAbilityID: the skill it turns yellow and gray at
 -- (TrivialSkillLineRankLow and TrivialSkillLineRankHigh), its profession's skill line, its spell,
 -- and the item that teaches it with the skill that item needs, when there is one. SkillLine names
--- each profession, for the comments. Only rows with a gray level are written, and only those whose
--- yellow level isn't past it.
+-- each profession, for the comments. Only rows with a yellow and a gray level are written, and only
+-- those whose yellow level isn't past gray. The file also lists the retired recipe categories
+-- (see RETIRED_CATEGORY).
 --
 -- The teaching item is an ItemEffect with TriggerType 6 (learn) whose SpellID is the recipe's
 -- spell, joined to its item through ItemXItemEffect; the skill it needs is the item's

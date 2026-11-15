@@ -1,5 +1,7 @@
--- MinimapPins: the minimap's shape (round, or square while GetMinimapShape says so), spots on and
--- at its edge for each, and word to listeners and LibDBIcon when the shape changes.
+-- MinimapPins: zone-map spots as minimap spots and back, what the minimap shows, whether icons
+-- could have moved, the names under the mouse, the tracking menu's entries, the minimap's shape
+-- (round, or square while GetMinimapShape says so), spots on and at its edge for each, and word to
+-- listeners and LibDBIcon when the shape changes.
 local T = ...
 local ns, eq = T.ns, T.eq
 

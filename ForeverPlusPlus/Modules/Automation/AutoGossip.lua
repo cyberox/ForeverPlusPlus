@@ -53,9 +53,10 @@ module.options = {
 }
 
 -- The kind of NPC, from the option's gossip icon. The seed is the Classic GossipFrame icon file
--- IDs; Forever sends the same ones (turn on the Debug option to see them, and docs/forever-api.md
--- "Gossip" for what was seen). An icon is also learned from the window its option opens (see
--- "Learning icons" below), so a different one on Forever is known after the first pick. false:
+-- IDs; Forever sends the same ones (Print Gossip Options on the Debug page shows them, and
+-- docs/forever-api.md "Gossip" has what was seen). An icon is also learned from the window its
+-- option opens (see "Learning icons" below), so a different one on Forever is known after the
+-- first pick. false:
 -- icons seen opening two kinds.
 local SEED = {
     [132050] = "banker", -- BankerGossipIcon

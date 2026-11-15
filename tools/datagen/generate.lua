@@ -4,7 +4,7 @@
 --   lua5.1 tools/datagen/generate.lua [build]   every generated file, for build (default: latest)
 --   lua5.1 tools/datagen/generate.lua --latest  print the latest wowf build
 --   lua5.1 tools/datagen/generate.lua --paths   print the files it writes
---   lua5.1 tools/datagen/generate.lua --self-test
+--   lua5.1 tools/datagen/generate.lua --self-test  run the CSV reader's own checks
 --
 -- .github/workflows/table-data.yml runs it daily and opens a pull request for a new build.
 --

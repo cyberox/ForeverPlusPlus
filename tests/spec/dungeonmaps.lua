@@ -1,5 +1,5 @@
 -- DungeonMaps: whether DungeonJournal can show an instance's map, and asking it to, against a
--- made-up stub of what it leaves in reach.
+-- made-up stub of what it leaves in reach; then the client's own map art, and wings.
 local T = ...
 local ns, eq = T.ns, T.eq
 

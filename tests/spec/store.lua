@@ -1,4 +1,5 @@
--- Store: the saved variables' layout, the steps that bring it up to date, and module.db.
+-- Store: the saved variables' layout, the steps that bring it up to date (Professions' own among
+-- them), module.db, each profile's root, and a profile based on a preset.
 local T = ...
 local ns, eq, same = T.ns, T.eq, T.same
 
@@ -111,8 +112,9 @@ eq(type(view.seen.list), "table", "store: data after tidy is made again")
 view.banks.x = 1
 eq(oldDB.data.BagSlotCounter.banks.x, 1, "store: data made again is saved")
 
--- Profiles: Default is the account's own settings and data, so saved variables from before profiles read the
--- same; another profile is a root of its own, read through the same view once it's in use.
+-- Profiles: Default is the account's own settings and data, so saved variables from before
+-- profiles read the same; another profile is a root of its own, read through the same view once
+-- it's in use.
 local pdb = {
     version = 5,
     settings = { Win = { enabled = true, size = 3, gone = 1 } },

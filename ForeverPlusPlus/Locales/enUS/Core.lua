@@ -49,20 +49,21 @@ L.KEY_ALT = "Alt"
 L.KEY_NONE = "None"
 L.SKIP_KEY = "Skip Key" -- the option of every module that a held key skips
 
--- Lib/Sounds.lua: the alert sounds, in every Sound dropdown
+-- Lib/MapPins.lua: icons on the world map.
 -- Click hints are written as Blizzard's instruction lines are: in angle brackets, the keys and the
 -- click as separate words with no hyphen or plus ("Ctrl click"), no full stop. From the client's
 -- own strings, dumped in game (build 70888, 2026-11-13): "<Ctrl click directly on the map>",
 -- "<Right Click to show map>", "<Right click for Frame Settings>". One click to a line.
 L.MAPPINS_HINT_WAYPOINT = "<Ctrl click to set a map pin>"
--- The options of icons on the world map (Lib/MapPins.lua): their size, opacity, and whether
--- continent maps show them, the same in every module that has them.
+-- The options of icons on the world map: their size, opacity, and whether continent maps show
+-- them, the same in every module that has them.
 L.MAPPINS_SIZE = "Icon Size"
 L.MAPPINS_SIZE_DESC = "How big the icons are, compared with their normal size."
 L.MAPPINS_OPACITY = "Opacity"
 L.MAPPINS_OPACITY_DESC = "How solid the icons are. Lower lets the map show through."
 L.MAPPINS_CONTINENTS = "On Continent Maps"
 L.MAPPINS_CONTINENTS_DESC = "Also show them on the continent and world maps, not only on zone maps."
+-- Lib/Sounds.lua: the alert sounds, in every Sound dropdown
 L.SOUND_NAME = "Sound"
 L.SOUND_OFF = "Off"
 L.SOUND_BUZZ = "Error Buzz"
@@ -132,13 +133,14 @@ L.CATEGORY_OTHER = "Other"
 L.DEBUG = "Debug"
 L.SETTINGS_AFTER_COMBAT = "Settings open after combat."
 L.MODULES = "Modules" -- the page with every module's checkbox, the top Forever++ entry
-L.ABOUT = "About" -- the page with the version, links, commands, and presets
+L.ABOUT = "About" -- the page with the version, links, credits, and commands
 -- The selected module on the Modules page
 L.SETTINGS_ENABLED = "Enabled" -- the module's own on/off checkbox, under its description
--- The tooltip of the padlock in a locked module's checkbox's place
+-- What a greyed-out option needs (`needs`), in red in its tooltip: an addon's or module's name
 L.SETTINGS_NEEDS_ADDON = "Needs the %s addon."
 L.SETTINGS_NEEDS_MODULE = "Needs the %s module turned on."
 L.SETTINGS_NEEDS_CLIENT = "This version of the game doesn't have what it needs."
+-- The tooltip of the padlock in a locked module's checkbox's place
 L.SETTINGS_LOCKED ="Turned off and locked: the game broke what this module does. Its settings say more."
 L.SETTINGS_OPTIONS = "Options" -- the header over its options
 L.SETTINGS_NO_OPTIONS = "This module has no options."
@@ -174,7 +176,7 @@ L.SETTINGS_SEARCH = "Search modules" -- gray text in the Modules page's empty se
 L.SETTINGS_NO_MATCH = "No modules match \"%s\"." -- the search text
 L.SETTINGS_NEW_ONLY = "New" -- the checkbox beside the search box that lists only modules marked NEW
 L.SETTINGS_NOTHING_NEW = "Nothing new." -- the Modules list while that checkbox is on and nothing is new
--- The Debug module's section headers on the Modules page, in the order they show. Modules put
+-- The section headers on the Debug module's page, in the order they show. Modules put
 -- their debug options and buttons in one with `section`.
 L.DEBUG_SECTION_NEW = "What's New"
 L.DEBUG_SECTION_DIAGNOSTICS = "Diagnostics"
@@ -344,11 +346,12 @@ L.SETTINGS_EDIT_MODE_NOTE = "Where it sits and how it's laid out are in Edit Mod
 L.SETTINGS_EDIT_MODE_NOTE_DESC = "Its place, scale, and layout settings are in its Edit Mode dialog and "
     .. "its right-click menu there, beside the frame they change."
 
--- Gray rows on a module that reads the QuestieDB addon's data (Lib/QuestieDB.lua)
+-- The gray row on a module another addon adds (Lib/Plugins.lua)
 L.PLUGIN_NOTICE = "Added by another addon."
 L.PLUGIN_NOTICE_ADDON = "Added by the %s addon." -- the addon's folder name
 L.PLUGIN_NOTICE_DESC = "This module isn't part of Forever++: another addon adds it here. Tell "
     .. "that addon's author about problems with it."
+-- Gray rows on a module that reads the QuestieDB addon's data (Lib/QuestieDB.lua)
 L.QUESTIEDB_NEEDED = "Needs the QuestieDB addon."
 L.QUESTIEDB_NEEDED_DESC = "Its quest, creature, item, and object data come from QuestieDB, a "
     .. "separate addon. Download and install it, turn it on in the AddOns list, and reload. "

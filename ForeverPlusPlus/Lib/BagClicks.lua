@@ -116,6 +116,7 @@ function Set:Clear()
     end
 end
 
+---Lays one overlay, spare or new, over a bag button. Out of combat only.
 function Set:Place(button, bag, slot, value)
     local overlay = tremove(self.spare) or newOverlay(self)
     local data = info[overlay]

@@ -198,8 +198,7 @@ local function checkTaxi()
     local states = Enum.FlightPathState
     info("taxi.states", states and keys(states) or "Enum.FlightPathState missing")
     info("taxi.onTaxi", "UnitOnTaxi('player') " .. join(call("UnitOnTaxi", "player")))
-    -- A field for a flight's length would settle whether the game knows it.
-    -- Just after the flight map closes it gives -1 rather than nil.
+    -- Just after the flight map closes GetTaxiMapID gives -1 rather than nil.
     local mapID = get("GetTaxiMapID") and GetTaxiMapID()
     if type(mapID) ~= "number" or mapID <= 0 then
         skip("taxi.nodes", "no flight master open: talk to one and run this again")
@@ -210,6 +209,7 @@ local function checkTaxi()
         fail("taxi.nodes", "GetAllTaxiNodes gave none for map " .. text(mapID))
         return
     end
+    -- A field for a flight's length would settle whether the game knows it.
     info("taxi.node-fields", keys(nodes[1]))
     local byState = {}
     for _, node in ipairs(nodes) do

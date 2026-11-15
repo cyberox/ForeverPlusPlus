@@ -1,7 +1,8 @@
 -- Movable Windows: hold the move key and drag one of Blizzard's windows (character, spellbook,
--- professions, friends, bags, Settings, and the rest below) to put it somewhere else. It stays there until
--- it closes, for the session, or for good, as the player picks. Ideas from BlizzMove and Leatrix
--- Plus's frame dragging; none of their code.
+-- professions, friends, bags, Settings, and the rest below) to put it somewhere else. It stays
+-- there until it closes, for the session, or for good, as the player picks. With the scale key
+-- held, the mouse wheel resizes one. Ideas from BlizzMove and Leatrix Plus's frame dragging; none
+-- of their code.
 --
 -- Blizzard places these windows itself, so a moved one would jump back: the UI panel manager
 -- anchors the left, center, and right panels each time one opens or closes

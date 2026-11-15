@@ -224,10 +224,10 @@ local function optionInfo(module, option, key)
     }
 end
 
----A module in full: { name, title, description, category, enabled, options }, where options is a
----list of { key, name, kind ("checkbox", "dropdown", or "slider"), value, default, choices (a
----dropdown's values), min, max }, as the Modules page shows them. Nil for a module that isn't
----there.
+---A module in full: { name, title, description, category, enabled, locked, problem, options },
+---where options is a list of { key, name, kind ("checkbox", "dropdown", or "slider"), value,
+---default, choices (a dropdown's values), min, max }, as the Modules page shows them. Nil for a
+---module that isn't there.
 export("GetModuleInfo", function(name)
     local module = findModule(name)
     local moved
@@ -828,8 +828,8 @@ end)
 
 ---The nodes remembered on a zone map: a list of { name, kind ("herb", "ore", "treasure", "fish"),
 ---x, y (0 to 1 across the map), timesGathered (0 for one seen or tried but not gathered),
----lastGathered (time(), or nil) }. An empty list for a map without any; nil while Gathering Map is
----off.
+---lastGathered (time(), or nil), loot (what it has given in all, item ID -> count) }. An empty
+---list for a map without any; nil while Gathering Map is off.
 export("GetGatheringNodes", function(mapID)
     local nodes = ns.Providers.Get("gatheringNodes")
     if not (nodes and type(mapID) == "number") then

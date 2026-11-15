@@ -1,5 +1,5 @@
 -- Gathering Map's icons on the world map: a layer of Lib/MapPins.lua with an icon for each node on
--- the zone map shown, and on a continent map the nodes of its zones too while World Map Continents
+-- the zone map shown, and on a continent map the nodes of its zones too while On Continent Maps
 -- is on.
 local _, ns = ...
 

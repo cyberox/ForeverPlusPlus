@@ -1,7 +1,8 @@
--- The pieces our drawn Settings pages are made of: the Modules, Changelog and About pages, and a
--- tool page a module draws itself (`BuildPage`). Our own frames from Blizzard's templates and art
--- (the Settings panel's title, minimal checkboxes, sidebar highlight and search box), so a drawn
--- page looks like Blizzard's own and nothing of Blizzard's pooled Settings rows is touched.
+-- The pieces our drawn Settings pages are made of: the Modules, Profiles, Changelog and About
+-- pages, and a tool page a module draws itself (`BuildPage`). Our own frames from Blizzard's
+-- templates and art (the Settings panel's title, minimal checkboxes, sidebar highlight and search
+-- box), so a drawn page looks like Blizzard's own and nothing of Blizzard's pooled Settings rows is
+-- touched.
 local _, ns = ...
 
 local ipairs, max = ipairs, math.max
@@ -159,9 +160,9 @@ function Kit.NewCheckbox(parent, size, onClick)
     return box
 end
 
----A small checkbox with `text` after it, its right edge `anchor`'s left, at the top of a page:
----the Modules page's New and the Changelog's By Module. Clicking the word clicks the box, like
----Blizzard's checkboxes with a label.
+---A small checkbox with `text` after it, its right edge `anchor`'s left, at the top of a page,
+---such as the Modules page's New and the Changelog's By Module. Clicking the word clicks the box,
+---like Blizzard's checkboxes with a label.
 ---@param frame table the page
 ---@param anchor table what it sits left of
 ---@param text string
@@ -269,9 +270,9 @@ function Kit.Layout(stack)
 end
 
 -- Split pages ------------------------------------------------------------------------------------
--- The Modules and Changelog pages, and Console Variables: under the title, a narrow list on the
--- left with rows like the Settings sidebar's, a faint gold line, and a pane on the right for what's
--- selected, each side scrolling on its own.
+-- The Modules, Profiles and Changelog pages, and tool pages such as Console Variables and
+-- Gathering Map: under the title, a narrow list on the left with rows like the Settings sidebar's,
+-- a faint gold line, and a pane on the right for what's selected, each side scrolling on its own.
 
 ---A list `listWidth` wide and a pane right of it and its scroll bar, as `split.listScroll` and
 ---`split.list` (a stack), and `split.pane` and `split.paneContent` (`split.paneWidth` wide). With

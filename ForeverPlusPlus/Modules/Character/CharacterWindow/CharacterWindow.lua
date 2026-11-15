@@ -25,7 +25,8 @@ module.category = "character"
 module.internal = {}
 local internal = module.internal
 
--- Before 0.8.0, Durability Bars was a module of its own, with a Show dropdown.
+-- Before 0.8.0, Durability Bars was a module of its own, with a Show dropdown. CharacterFrame is
+-- this module's name at that layout; Core's layout version 3 renames it (RENAMED).
 ns.Migrate(1, function(db)
     local saved = db.modules or {}
     local old = saved.DurabilityBars

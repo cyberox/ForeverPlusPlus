@@ -95,7 +95,8 @@ jobs:
           lua5.1 tools/datagen/summary.lua "$RUNNER_TEMP/old" . > "$RUNNER_TEMP/summary.txt"
           cat "$RUNNER_TEMP/summary.txt"
 
-      # The same checks as check.yml's lua job, since it won't run on this branch by itself.
+      # check.yml's syntax, test, and ASCII checks (not its TOC or wowlua-ls ones), since it won't
+      # run on this branch by itself.
       - name: Syntax (Lua 5.1)
         if: steps.build.outputs.update == 'true'
         run: |

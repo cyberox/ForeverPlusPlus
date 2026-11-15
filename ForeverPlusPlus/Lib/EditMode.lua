@@ -4,8 +4,9 @@
 -- our other frames, and opens a small settings dialog and a right-click menu (scale, the frame's
 -- own settings, and reset position) like Blizzard's; while the dialog is up, the arrow keys nudge
 -- the frame a pixel (ten with Shift). A module's options marked `editMode = true` are those
--- settings (RegisterModule), shown here instead of on the Modules page. Edit Mode has no way for an addon to add a frame to its layouts (that needs its
--- protected system code), so the position is the module's, not part of an Edit Mode layout.
+-- settings (RegisterModule), shown here instead of on the Modules page. Edit Mode has no way for
+-- an addon to add a frame to its layouts (that needs its protected system code), so the position
+-- is the module's, not part of an Edit Mode layout.
 -- Nothing is hooked until a module registers a frame.
 local _, ns = ...
 
@@ -25,7 +26,8 @@ ns.EditMode = EditMode
 local SNAP = 10 -- how close, in pixels, before a frame snaps to a line
 local GOLD = { NORMAL_FONT_COLOR:GetRGB() }
 
-local registered = {} -- frame -> { label, onMove, onChange, scale, reset, selection }
+-- frame -> { label, onMove, onChange, scale, reset, settings, rows, selection, grab while dragged }
+local registered = {}
 -- Frames taken off (Unregister) -> their info, so registering one again reuses its selection box
 -- instead of making another each time its module turns on.
 local unregistered = setmetatable({}, { __mode = "k" })

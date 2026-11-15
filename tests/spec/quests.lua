@@ -1,4 +1,5 @@
--- Quests: quest levels from the log, and which quest a quest window shows.
+-- Quests: quest levels, titles, and elite tags, which quest a quest window shows, and the quest
+-- the map follows.
 local T = ...
 local ns, eq = T.ns, T.eq
 
