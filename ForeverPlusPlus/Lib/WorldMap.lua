@@ -6,6 +6,7 @@ local _, ns = ...
 local ipairs, pairs, tonumber, setmetatable = ipairs, pairs, tonumber, setmetatable
 local sqrt, atan2, pi = math.sqrt, math.atan2, math.pi
 local UnitFactionGroup, CreateFromMixins = UnitFactionGroup, CreateFromMixins
+local InCombatLockdown = InCombatLockdown
 local FACTION_ALLIANCE, FACTION_HORDE = FACTION_ALLIANCE, FACTION_HORDE
 
 local WorldMap = {}
@@ -18,6 +19,20 @@ local ADDON = "Blizzard_WorldMap"
 ---@return table?
 function WorldMap.Get()
     return ns.AddOns.IsLoaded(ADDON) and WorldMapFrame or nil
+end
+
+---Shows another map in the world map, as picking it in the map's own dropdown does. Not in
+---combat: SetMapID is Blizzard's own, run in our call, and the map it then lays out has pins the
+---game protects there. It's the only way to change the map, so out of combat it's called.
+---@param mapID number
+---@return boolean shown
+function WorldMap.Show(mapID)
+    local map = WorldMap.Get()
+    if not (map and map.SetMapID and mapID) or InCombatLockdown() then
+        return false
+    end
+    map:SetMapID(mapID)
+    return true
 end
 
 local waiting = {} -- fn -> the function waiting on the addon for it

@@ -26,7 +26,8 @@ local module = ns.modules.WorldMap:NewPart({
     raids = true,
     raidSize = 80,
     raidsWorld = true,
-    dungeonMaps = true, -- a click on a dungeon or raid opens its map in DungeonJournal
+    dungeonMaps = true, -- a click on a dungeon or raid shows its map
+    dungeonMapsFirst = "game", -- which map when both have one: the "game"'s art or the "journal"'s
     capitals = "ours", -- "ours" (and Blizzard's city icons hidden), "blizzard", or "off"
     capitalSize = 50,
     capitalsWorld = true,
@@ -78,10 +79,22 @@ chat.requires = "leyLines"
 for _, rows in ipairs({
     { section = INSTANCES, kind("dungeons", "dungeonSize", L.POI_DUNGEONS, L.POI_DUNGEONS_DESC) },
     { section = INSTANCES, kind("raids", "raidSize", L.POI_RAIDS, L.POI_RAIDS_DESC) },
-    -- The client has no dungeon maps, so a click hands the dungeon to the addon that draws them.
+    -- The client has no dungeon maps to open, so a click shows the dungeon's art in our own view,
+    -- or hands the dungeon to the addon that draws them.
     { section = INSTANCES, {
         key = "dungeonMaps", name = L.POI_DUNGEON_MAPS, description = L.POI_DUNGEON_MAPS_DESC,
-        added = "1.6.0", available = ns.DungeonMaps.Has,
+        added = "1.6.0", changed = "1.7.0", available = ns.DungeonMaps.Has,
+        needs = format(L.SETTINGS_NEEDS_ADDON, "DungeonJournal"),
+    }, {
+        -- Ours first unless the player would sooner have DungeonJournal's, which has bosses on
+        -- it. Either way the other is used for a dungeon the first has no map of.
+        key = "dungeonMapsFirst", name = L.POI_DUNGEON_MAPS_FIRST,
+        description = L.POI_DUNGEON_MAPS_FIRST_DESC, requires = "dungeonMaps", added = "1.7.0",
+        choices = {
+            { "game", L.POI_DUNGEON_MAPS_FIRST_GAME },
+            { "journal", L.POI_DUNGEON_MAPS_FIRST_JOURNAL },
+        },
+        available = ns.DungeonMaps.HasJournal,
         needs = format(L.SETTINGS_NEEDS_ADDON, "DungeonJournal"),
     } },
     -- Ours, Blizzard's, or none: ours hide Blizzard's city icons, so there's no checkbox.
@@ -242,8 +255,9 @@ local function instanceTooltip(kindName, key, dungeons, raids)
     return place(instance.name), rows, rows
 end
 
--- Dungeon Maps: the instances of a dungeon or raid icon that DungeonJournal can show a map of,
--- each { name (English), title (the player's language) }. A place lists its parts.
+-- Dungeon Maps: the instances of a dungeon or raid icon that a map can be shown of, each
+-- { name (English), id (the instance's), wing (of it, if it has them), title (the player's
+-- language, for a menu) }. A place lists its parts.
 local function mapsOf(key)
     local found = {}
     if not module.db.dungeonMaps then
@@ -254,9 +268,25 @@ local function mapsOf(key)
     for _, partKey in ipairs(instance.parts or { key }) do
         local part = internal.instances[partKey]
         local name = part[2]
-        if not seen[name] and ns.DungeonMaps.Can(name) then
+        if not seen[name] and ns.DungeonMaps.Can(name, part[1]) then
             seen[name] = true
-            found[#found + 1] = { name = name, title = ns.Instances.Name(part) }
+            local title = ns.Instances.Name(part)
+            local wings = ns.DungeonMaps.Wings(part[1])
+            if module.db.dungeonMapsFirst == "journal" and ns.DungeonMaps.InJournal(name) then
+                -- DungeonJournal's map of it, which has every wing in one.
+                found[#found + 1] = { name = name, id = part[1], wing = part.wing, title = title,
+                    journal = true }
+            elseif part.wing or not wings then
+                -- One map: the instance's, or the wing this entrance leads to (Dire Maul's
+                -- three have an icon each).
+                found[#found + 1] = { name = name, id = part[1], wing = part.wing, title = title }
+            else
+                -- One icon for every wing (Scarlet Monastery): a map each, to pick from.
+                for _, wing in ipairs(wings) do
+                    found[#found + 1] = { name = name, id = part[1], wing = wing.key,
+                        title = format(L.DUNGEONMAPS_WING, title, wing.name) }
+                end
+            end
         end
     end
     return found
@@ -265,14 +295,14 @@ end
 -- A click on a dungeon or raid icon: its map, or a menu of them for a place with several.
 local function openMaps(pin, maps, title)
     if #maps == 1 or not ns.Menus.Available() then
-        ns.DungeonMaps.Open(maps[1].name)
+        ns.DungeonMaps.Open(maps[1].name, maps[1].id, maps[1].wing, maps[1].journal)
         return
     end
     ns.Menus.Open(pin, function(_, root)
         root:CreateTitle(title)
         for _, map in ipairs(maps) do
             root:CreateButton(map.title, function()
-                ns.DungeonMaps.Open(map.name)
+                ns.DungeonMaps.Open(map.name, map.id, map.wing, map.journal)
             end)
         end
     end)
@@ -361,6 +391,16 @@ local function pinFor(point, mapID, world)
             place(point[5]))
         info.lines = linesOf(MapTooltip.Side(point[4]), MapTooltip.Detail(zoneName(point[6] or mapID)),
             point.via and MapTooltip.Note(format(L.POI_VIA, place(point.via))))
+        -- A click shows the map of its next stop: where it goes, or where it stops first on a
+        -- round of several (clicking on from there goes round them all). Not one that stays on
+        -- this map.
+        local nextMap = point.viaMap or point[6]
+        if nextMap and nextMap ~= mapID then
+            info.click = function()
+                ns.WorldMap.Show(nextMap)
+            end
+            info.clickHint = L.POI_TRAVEL_HINT
+        end
     else
         info.atlas = atlasOf(kindInfo)
         info.title = L.POI_SPIRIT_HEALER

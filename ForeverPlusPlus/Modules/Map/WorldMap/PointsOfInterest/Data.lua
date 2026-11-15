@@ -10,7 +10,7 @@
 --   { "dungeon" or "raid", x, y, instance key }
 --   { "flight", x, y, faction, place }
 --   { "ship" or "zeppelin", x, y, faction, destination place, destination map ID (or this map),
---     via = place it stops at first }
+--     via = place it stops at first, viaMap = that place's map ID }
 --   { "spirit", x, y }
 -- Factions are "A" (Alliance), "H" (Horde), and "N" (both). Places are English; a locale file can
 -- translate one with L["Booty Bay"] = "...". Dungeons the game's own entrance list has and this
@@ -26,9 +26,10 @@ local internal = ns.modules.WorldMap.internal.pointsOfInterest
 local Instances = ns.Instances.byKey
 
 -- One entrance of an instance with several, told apart by `name`. It reads the instance's entry,
--- so levels the dungeon finder corrects reach it.
-local function part(instance, name)
-    return setmetatable({ part = name }, { __index = instance })
+-- so levels the dungeon finder corrects reach it. `wing` is the wing of the instance the entrance
+-- leads to, as ns.DungeonMaps keys it, for its map.
+local function part(instance, name, wing)
+    return setmetatable({ part = name, wing = wing }, { __index = instance })
 end
 
 -- Dungeons and raids: the ones in Lib/Instances.lua, and the entrances and places only the map
@@ -37,9 +38,9 @@ end
 internal.instances = setmetatable({
     ahnqiraj = { name = "Ahn'Qiraj", parts = { "aq20", "aq40" } },
     blackrock = { name = "Blackrock Mountain", parts = { "brd", "brs", "mc", "bwl" }, raids = true },
-    diremaulEast = part(Instances.diremaul, L.POI_EAST),
-    diremaulNorth = part(Instances.diremaul, L.POI_NORTH),
-    diremaulWest = part(Instances.diremaul, L.POI_WEST),
+    diremaulEast = part(Instances.diremaul, L.POI_EAST, "east"),
+    diremaulNorth = part(Instances.diremaul, L.POI_NORTH, "north"),
+    diremaulWest = part(Instances.diremaul, L.POI_WEST, "west"),
     stratholmeMain = part(Instances.stratholme, L.POI_MAIN_GATE),
     stratholmeService = part(Instances.stratholme, L.POI_SERVICE_GATE),
 }, { __index = Instances })
@@ -201,7 +202,7 @@ internal.points = {
         { "flight", 9.5, 59.7, "A", "Menethil Harbor" },
         { "ship", 5.0, 63.5, "A", "Theramore Isle", 1445 },
         -- On Forever this boat sails one way round Menethil, Southshore, and Auberdine.
-        { "ship", 4.6, 57.1, "A", "Auberdine", 1439, via = "Southshore" },
+        { "ship", 4.6, 57.1, "A", "Auberdine", 1439, via = "Southshore", viaMap = 1424 },
         { "spirit", 11.0, 43.8 },
         { "spirit", 49.3, 41.8 },
     },

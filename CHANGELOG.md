@@ -4,6 +4,14 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 ## Unreleased
 
+### Added
+
+- **World Map**: clicking one of Points of Interest's boats or zeppelins shows the map of its next stop, out of combat. On a boat that goes round several stops, clicking on from each takes you round them all.
+
+### Changed
+
+- **World Map**: Points of Interest's Dungeon Maps shows a dungeon's or raid's map over the world map itself, drawn from the game's own map art, so it no longer needs the DungeonJournal addon. Previous and Next page through its floors, and right-click goes back. A dungeon the game has no art for still opens in DungeonJournal, if you have it, and with it Map From picks whose map comes first.
+
 ### Fixed
 
 - **Auto Weapon Buff** and **Comprehend Scrolls**: with a bag addon that keeps Blizzard's bags open but out of sight, an item no longer sits unseen where Blizzard's bag would be, showing its tooltip through other windows.

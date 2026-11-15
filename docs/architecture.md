@@ -171,7 +171,7 @@ Generated files (never edited by hand; see Generated data): `InstanceLevels.lua`
 
 ### `WorldMap.lua`
 
-- `ns.WorldMap`: the world map once its addon has loaded, map data providers, walking up the map tree (`Up`, `Root`), a map's name, a map's size in yards (`Size`), a zone by name (`FindMap`), Blizzard's map pin (`SetWaypoint`, `CanWaypoint`) and the name it was set with, since the game's pin has no label (`WaypointNote`: the icon Ctrl+clicked or the note after `/way`, while the pin stays at that spot), where the player stands, where a quest and the corpse are (`QuestPoint`, `CorpsePoint`), and how far and which way a spot is from the player, also in the next zone (`FromPlayer`), Blizzard's coordinates panel on it and the CVars behind it (`COORDS_CVARS`), and the player's side for map data.
+- `ns.WorldMap`: the world map once its addon has loaded, map data providers, walking up the map tree (`Up`, `Root`), a map's name, a map's size in yards (`Size`), a zone by name (`FindMap`), showing another map in it out of combat (`Show`), Blizzard's map pin (`SetWaypoint`, `CanWaypoint`) and the name it was set with, since the game's pin has no label (`WaypointNote`: the icon Ctrl+clicked or the note after `/way`, while the pin stays at that spot), where the player stands, where a quest and the corpse are (`QuestPoint`, `CorpsePoint`), and how far and which way a spot is from the player, also in the next zone (`FromPlayer`), Blizzard's coordinates panel on it and the CVars behind it (`COORDS_CVARS`), and the player's side for map data.
 - The filter menu (the funnel at the map's top right): `AddFilter(order, shown, build)` puts a module's entries under the one Forever++ title, after Blizzard's own, in `order` (World Map 1, Quest Pins 2, Gathering Map 3). `shown()` is asked each time the menu opens, since Blizzard's menus can't take an addition back. `FilterLayer(root, name, get, set, kinds)` is the entry for a layer of icons: a checkbox for the layer, with a checkbox per kind in a submenu that stays open while kinds are switched; a kind with `disabled` text is greyed out with that as its tooltip.
 
 ### `MapTooltip.lua`
@@ -189,7 +189,7 @@ Generated files (never edited by hand; see Generated data): `InstanceLevels.lua`
 
 ### `DungeonMaps.lua`
 
-- `ns.DungeonMaps`: the dungeon maps the DungeonJournal addon draws, since the client has none: whether it's there and has an instance's map (`Has`, `Can`) and asking it to show one (`Open`), through what it leaves in reach, read when called and every call protected, never in combat.
+- `ns.DungeonMaps`: an instance's map, since the client has none to open: whether one can be shown (`Has`, `Can`) and showing it (`Open`). An instance the client still has the old map art for (its texture names by instance ID, checked against the client once each) is drawn in a view of our own over the open world map, with Previous and Next for its floors and a right click to go back; Dire Maul and Scarlet Monastery are listed by wing (`Wings`). One without goes to the DungeonJournal addon when it's there, through what it leaves in reach, read when called and every call protected, never in combat.
 
 ### `Gathering.lua`
 
