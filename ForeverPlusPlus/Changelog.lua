@@ -54,6 +54,8 @@ ns.changelog = {
                     .. "at the top with General and Settings, not under Other." },
                 { L.FLIGHTTIMER_TITLE, "the flight map's tooltips show flight times again." },
                 { L.CHATARROWKEYS_TITLE, "Up and Down bring back what you sent again." },
+                { L.PROFTOOLTIPS_TITLE, "Solid Chest and Large Solid Chest no longer claim to "
+                    .. "need Lockpicking 1." },
                 { L.QUESTPINS_TITLE, "a Skyborne no longer sees quests meant for another race "
                     .. "of its side, such as a Dwarf's. Thanks to cyberox." },
             } },
