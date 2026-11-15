@@ -85,7 +85,7 @@ module:AddOptions({
     { key = "scanOnOpen", name = L.AUCTIONPRICES_SCAN_ON_OPEN, description = L.AUCTIONPRICES_SCAN_ON_OPEN_DESC },
     {
         key = "scanInterval", name = L.AUCTIONPRICES_SCAN_INTERVAL,
-        description = L.AUCTIONPRICES_SCAN_INTERVAL_DESC, requires = "scanOnOpen", added = "1.6.2",
+        description = L.AUCTIONPRICES_SCAN_INTERVAL_DESC, requires = "scanOnOpen", added = "1.7.0",
         min = 15, max = 120, step = 15, format = ns.Text.Minutes,
     },
     {

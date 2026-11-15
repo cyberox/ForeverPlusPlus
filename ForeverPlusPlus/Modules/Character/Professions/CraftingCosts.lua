@@ -40,7 +40,7 @@ module:AddOptions({
     },
     {
         key = "craftingSell", name = L.PROFESSIONS_CRAFTING_SELL, description = L.PROFESSIONS_CRAFTING_SELL_DESC,
-        added = "1.6.2",
+        added = "1.7.0",
         choices = {
             { "auction", L.PROFESSIONS_CRAFTING_SELL_AUCTION },
             { "vendor", L.PROFESSIONS_CRAFTING_SELL_VENDOR },
