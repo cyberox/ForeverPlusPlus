@@ -137,6 +137,7 @@
     "IsShiftKeyDown",
     "InRepairMode",
     "IsAltKeyDown",
+    "AutoCompleteBox",
     "IsControlKeyDown",
     "C_Timer",
     "C_CurrencyInfo",
