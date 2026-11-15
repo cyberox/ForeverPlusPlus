@@ -1,6 +1,6 @@
 -- Item Tooltips' Auction Prices, its scan: scans the auction house when it opens, keeping the
 -- lowest buyout of each item in the prices AuctionPrices.lua saves and gives out, with a spinner
--- in the auction house's title bar while it runs, and /fpp scan. Shares the part through
+-- in the auction house's title bar while it runs, a button there to scan now, and /fpp scan. Shares the part through
 -- `internal.auction` (see AuctionPrices.lua), which turns this on and off with it.
 --
 -- The scan is an empty browse search paged to the end, the same one Auctionator's default scan
@@ -20,7 +20,7 @@ local module = auction.part
 local house = auction.House
 local packPrice, unpackPrice = ns.Prices.Pack, ns.Prices.Unpack
 
-local SCAN_INTERVAL = 15 * 60 -- seconds between automatic scans, as Auctionator waits
+local SCAN_ATLAS = "UI-RefreshButton" -- the auction house's own refresh arrow
 
 -- Indicator ----------------------------------------------------------------------------------
 -- A spinner and a line of text in the auction house's title bar while a scan runs, then
@@ -28,6 +28,62 @@ local SCAN_INTERVAL = 15 * 60 -- seconds between automatic scans, as Auctionator
 
 local indicator
 local hideTimer = ns.Frames.Timer(module)
+
+-- Above the window's border and title art, which are child frames with fixed levels well above
+-- the window's. A level over the title bar, as Coordinates does on the map, not a strata, so it
+-- stays with the window instead of floating over others.
+local function titleLevel(parent)
+    local title = parent.TitleContainer
+    return (title or parent):GetFrameLevel() + (title and 1 or 500)
+end
+
+-- The scan button: a small refresh arrow at the right of the title bar that scans now, whenever
+-- the last scan was. Probe: without the arrow's atlas there's no button, and /fpp scan remains.
+local scanButton
+local startScan
+
+local function onButtonEnter(self)
+    local GameTooltip = _G.GameTooltip
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    GameTooltip:SetText(L.AUCTIONPRICES_SCAN_BUTTON)
+    local scannedAt = house().scannedAt
+    local text = scannedAt > 0 and format(L.AUCTIONPRICES_AGE, floor((time() - scannedAt) / 60))
+        or L.AUCTIONPRICES_SCAN_BUTTON_NEVER
+    GameTooltip:AddLine(text, 1, 1, 1)
+    GameTooltip:Show()
+end
+
+local function onButtonLeave()
+    _G.GameTooltip:Hide()
+end
+
+local function getScanButton()
+    local parent = _G.AuctionHouseFrame
+    if not scanButton and parent and ns.Frames.HasAtlas(SCAN_ATLAS) then
+        scanButton = CreateFrame("Button", nil, parent)
+        scanButton:SetSize(16, 16)
+        scanButton:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -30, -3)
+        scanButton:SetFrameLevel(titleLevel(parent))
+        scanButton:SetNormalAtlas(SCAN_ATLAS)
+        scanButton:SetHighlightAtlas(SCAN_ATLAS, "ADD")
+        scanButton:SetScript("OnClick", function()
+            startScan()
+        end)
+        scanButton:SetScript("OnEnter", onButtonEnter)
+        scanButton:SetScript("OnLeave", onButtonLeave)
+    end
+    return scanButton
+end
+
+-- Shown while the prices are ours to scan. DisableScan hides it with the part.
+local function updateScanButton()
+    local button = not ns.Prices.UsingAuctionator() and getScanButton()
+    if button then
+        button:Show()
+    elseif scanButton then
+        scanButton:Hide()
+    end
+end
 
 local function getIndicator()
     local parent = _G.AuctionHouseFrame
@@ -37,12 +93,9 @@ local function getIndicator()
     if not indicator then
         indicator = CreateFrame("Frame", nil, parent)
         indicator:SetSize(1, 20)
-        indicator:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -30, -1)
-        -- Above the window's border and title art, which are child frames with fixed levels well
-        -- above the window's. A level over the title bar, as Coordinates does on the map, not a
-        -- strata, so it stays with the window instead of floating over others.
-        local title = parent.TitleContainer
-        indicator:SetFrameLevel((title or parent):GetFrameLevel() + (title and 1 or 500))
+        -- Left of the scan button, when there is one.
+        indicator:SetPoint("TOPRIGHT", parent, "TOPRIGHT", getScanButton() and -50 or -30, -1)
+        indicator:SetFrameLevel(titleLevel(parent))
         indicator.text = indicator:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
         indicator.text:SetPoint("RIGHT")
         -- Probe: LoadingSpinnerTemplate is Mainline SharedXML; without it, only the text shows.
@@ -316,7 +369,7 @@ local QUERIES = {
 }
 
 -- With Auctionator's prices in use, ours aren't scanned; the saved ones stay for when it's off.
-local function startScan()
+function startScan()
     if scanning or not open or ns.Prices.UsingAuctionator() then
         return
     end
@@ -332,7 +385,7 @@ local function afterShow()
         return
     end
     local age = time() - house().scannedAt
-    if module.db.scanOnOpen and age >= SCAN_INTERVAL then
+    if module.db.scanOnOpen and age >= module.db.scanInterval * 60 then
         startScan()
     elseif house().scannedAt > 0 then
         showIndicator(format(L.AUCTIONPRICES_AGE, floor(age / 60)), false)
@@ -342,6 +395,7 @@ end
 local showTimer = ns.Frames.Timer(module)
 local function onShow()
     open = true
+    updateScanButton()
     showTimer:Start(0.5, afterShow)
 end
 
@@ -390,16 +444,22 @@ function auction.EnableScan()
     -- Turned on with the auction house already open, its show event has passed.
     local frame = _G.AuctionHouseFrame
     open = frame and frame:IsShown() and true or false
+    updateScanButton()
 end
 
----Stops a scan that's running, keeping the prices it saw, and hides its indicator.
+---Stops a scan that's running, keeping the prices it saw, and hides its indicator. The scan
+---button goes too while the prices aren't ours to scan.
 function auction.StopScan()
     stopScan()
     hideIndicator()
+    updateScanButton()
 end
 
 ---Stops everything, from the part's OnDisable.
 function auction.DisableScan()
     auction.StopScan()
     open = false
+    if scanButton then
+        scanButton:Hide()
+    end
 end

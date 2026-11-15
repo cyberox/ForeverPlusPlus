@@ -10,6 +10,19 @@ local L = ns.L
 
 ns.changelog = {
     {
+        version = L.CHANGELOG_UNRELEASED,
+        sections = {
+            { L.CHANGELOG_ADDED, {
+                { L.ITEMTOOLTIPS_TITLE, "Auction Prices has a button in the auction house's title "
+                    .. "bar that scans now, and Scan Every sets how long Scan When Opened waits "
+                    .. "between scans, from 15 minutes to 2 hours." },
+                { L.PROFESSIONS_TITLE, "Crafting Costs shows Vendor Value under an auction value, "
+                    .. "and Sell At picks where Estimated Profit counts the item as sold: the "
+                    .. "auction house, a vendor, or whichever pays more." },
+            } },
+        },
+    },
+    {
         version = "1.6.1", date = "2026-11-14",
         sections = {
             { L.CHANGELOG_ADDED, {

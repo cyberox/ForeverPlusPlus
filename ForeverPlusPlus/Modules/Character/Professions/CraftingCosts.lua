@@ -25,6 +25,9 @@ local module = professions:NewPart({
     section = L.PROFESSIONS_CRAFTING,
 }, {
     craftingRows = true, -- each recipe's profit on its row of the recipe list
+    -- Where the crafted item is sold: "auction" (a merchant only when it has no auction price),
+    -- "vendor", or "best" (whichever pays more after the auction house's cut).
+    craftingSell = "auction",
     -- Data, not settings: what merchants charge for one of an item, { [itemID] = copper },
     -- learned at each visit.
     vendor = {},
@@ -34,6 +37,15 @@ module:AddOptions({
     {
         key = "craftingRows", name = L.PROFESSIONS_CRAFTING_ROWS, description = L.PROFESSIONS_CRAFTING_ROWS_DESC,
         added = "1.5.0",
+    },
+    {
+        key = "craftingSell", name = L.PROFESSIONS_CRAFTING_SELL, description = L.PROFESSIONS_CRAFTING_SELL_DESC,
+        added = "1.6.2",
+        choices = {
+            { "auction", L.PROFESSIONS_CRAFTING_SELL_AUCTION },
+            { "vendor", L.PROFESSIONS_CRAFTING_SELL_VENDOR },
+            { "best", L.PROFESSIONS_CRAFTING_SELL_BEST },
+        },
     },
 })
 
@@ -92,17 +104,26 @@ local function reagentCost(itemID)
     return vendor
 end
 
--- What one crafted item is worth: its auction price, or else what a merchant pays (and true).
--- Then when the auction price was seen.
+local AUCTION_CUT = 0.05 -- the auction house's cut of a sale
+
+-- What one crafted item is worth where Sell At says it's sold: its auction price, or what a
+-- merchant pays (and true). An item with no auction price is a merchant's whatever was picked.
+-- Then when the auction price was seen, and what a merchant pays when the auction's is the one
+-- used.
 local function craftedValue(itemID)
-    local price, seenAt = auctionPrice(itemID)
-    if price then
-        return price, false, seenAt
-    end
     local sell = ns.Prices.Vendor(itemID)
-    if sell and sell > 0 then
+    if not (sell and sell > 0) then
+        sell = nil
+    end
+    local mode = module.db.craftingSell
+    if mode == "vendor" then
         return sell, true
     end
+    local price, seenAt = auctionPrice(itemID)
+    if price and not (mode == "best" and sell and sell >= price * (1 - AUCTION_CUT)) then
+        return price, false, seenAt, sell
+    end
+    return sell, true
 end
 
 -- A reagent slot every craft uses (not an optional or finishing one): its item and how many, or
@@ -135,8 +156,6 @@ end
 
 local GRAY, WHITE = GRAY_FONT_COLOR, HIGHLIGHT_FONT_COLOR
 local GREEN, RED = GREEN_FONT_COLOR, RED_FONT_COLOR
-
-local AUCTION_CUT = 0.05 -- the auction house's cut of a sale
 
 -- Copper as coins, with a minus sign when it's negative.
 local function coins(amount)
@@ -184,13 +203,15 @@ local function craftSums(recipeID)
         sums.output = output
         local low, high = schematic.quantityMin or 1, schematic.quantityMax or 1
         sums.low, sums.high = low, high
-        local unit, fromVendor, seenAt = craftedValue(output)
+        local unit, fromVendor, seenAt, sell = craftedValue(output)
         if seenAt and (not oldest or seenAt < oldest) then
             oldest = seenAt
         end
         if unit then
-            local value = unit * (low + high) / 2 -- some recipes make a random number: count the middle
+            local count = (low + high) / 2 -- some recipes make a random number: count the middle
+            local value = unit * count
             sums.value, sums.fromVendor = value, fromVendor
+            sums.vendor = sell and sell * count -- beside an auction value, to compare
             if not missing then
                 -- Selling at auction loses the house's cut; a merchant pays in full.
                 sums.profit = (fromVendor and value or value * (1 - AUCTION_CUT)) - cost
@@ -354,6 +375,13 @@ local function refreshCrafting(recipeInfo)
         i = i + 1
         setRow(i, y, label, valueText)
         y = y - ROW_HEIGHT
+
+        -- Under an auction value, what a merchant would pay for the same items.
+        if sums.vendor then
+            i = i + 1
+            setRow(i, y, L.PROFESSIONS_CRAFT_VENDOR_VALUE, GRAY:WrapTextInColorCode(coins(sums.vendor)))
+            y = y - ROW_HEIGHT
+        end
 
         local profit = sums.profit
         local profitText = noPrice()
@@ -522,5 +550,9 @@ function module:OnOptionChanged(key)
         wipe(waiting)
         hookRows()
         redrawRows() -- hides every row's profit when they're off
+    elseif key == "craftingSell" then
+        wipe(profits)
+        refreshCrafting()
+        redrawRows()
     end
 end

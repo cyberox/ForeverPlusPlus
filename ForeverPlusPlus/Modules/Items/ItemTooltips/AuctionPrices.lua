@@ -25,6 +25,7 @@ local module = itemTooltips:NewPart({
     scanAgeColor = "age", -- "age" (green when fresh to red when old), "gray", "white", or "gold"
     scanAgeRedHours = 12, -- hours old at which "age" is fully red
     scanOnOpen = true,
+    scanInterval = 15, -- minutes between automatic scans (15 is what Auctionator waits)
     auctionator = false, -- Auctionator's prices instead of our scans, while it's loaded
     chat = true,
     -- Data, not settings: it isn't in the options.
@@ -82,6 +83,11 @@ module:AddOptions({
         min = 1, max = 48, step = 1, format = ns.Text.Hours,
     },
     { key = "scanOnOpen", name = L.AUCTIONPRICES_SCAN_ON_OPEN, description = L.AUCTIONPRICES_SCAN_ON_OPEN_DESC },
+    {
+        key = "scanInterval", name = L.AUCTIONPRICES_SCAN_INTERVAL,
+        description = L.AUCTIONPRICES_SCAN_INTERVAL_DESC, requires = "scanOnOpen", added = "1.6.2",
+        min = 15, max = 120, step = 15, format = ns.Text.Minutes,
+    },
     {
         key = "auctionator", name = L.AUCTIONPRICES_AUCTIONATOR, description = L.AUCTIONPRICES_AUCTIONATOR_DESC,
         available = ns.Prices.AuctionatorLoaded, added = "1.0.0-beta.1",
@@ -287,9 +293,8 @@ end
 function module:OnOptionChanged(key)
     if key == "auctionator" then
         ns.Prices.Changed() -- every price now comes from the other source
-        -- A scan running when Auctionator's prices take over stops, keeping what it saw.
-        if ns.Prices.UsingAuctionator() then
-            auction.StopScan()
-        end
+        -- A scan running when Auctionator's prices take over stops, keeping what it saw. Either
+        -- way the scan button follows whose prices they are (StopScan does nothing with no scan).
+        auction.StopScan()
     end
 end
