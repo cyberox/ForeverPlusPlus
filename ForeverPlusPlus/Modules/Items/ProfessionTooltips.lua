@@ -99,7 +99,7 @@ local NODES = setmetatable({ -- object name -> { skill line, skill }
 })
 
 -- Locked boxes: item ID -> the Lockpicking skill to open them. The seed is every lockbox in the
--- client's tables (Lib/LockboxSkills.lua, generated); the skill in Blizzard's "Requires
+-- client's tables (Lib/Generated/LockboxSkills.lua); the skill in Blizzard's "Requires
 -- Lockpicking (25)" line on a box's tooltip is learned over it, and a box the seed lacks is
 -- learned from that line too.
 local LOCKBOXES = ns.GameData.New("lockboxes", ns.TableData and ns.TableData.lockboxSkills or {},

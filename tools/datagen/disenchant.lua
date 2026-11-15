@@ -1,4 +1,4 @@
--- Lib/DisenchantBrackets.lua: which items can be disenchanted, from ItemDisenchantLoot: a
+-- Lib/Generated/DisenchantBrackets.lua: which items can be disenchanted, from ItemDisenchantLoot: a
 -- bracket per quality, item class (2 weapon, 4 armor), and item level range. The table says
 -- nothing of what a bracket gives (that's server data); Lib/Disenchant.lua keeps that by hand and
 -- learns the rest in play. Rows for one subclass or expansion only would need more than this
@@ -6,7 +6,7 @@
 local CSV = require("csv")
 
 local M = {
-    path = "ForeverPlusPlus/Lib/DisenchantBrackets.lua",
+    path = "ForeverPlusPlus/Lib/Generated/DisenchantBrackets.lua",
     tables = { "ItemDisenchantLoot" },
 }
 

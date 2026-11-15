@@ -496,7 +496,7 @@ end)
 
 ---Estimated seconds of the direct flight from one flight point to another, from the game's own
 ---flight paths, flown or not, or nil when no direct path joins them. The paths ship with the
----addon (Lib/TaxiRoutes.lua), so this answers whether or not Flight Timer is on.
+---addon (Lib/Generated/TaxiRoutes.lua), so this answers whether or not Flight Timer is on.
 export("GetFlightEstimate", function(fromNodeID, toNodeID)
     if type(fromNodeID) ~= "number" or type(toNodeID) ~= "number" then
         return nil

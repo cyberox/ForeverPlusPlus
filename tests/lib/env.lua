@@ -14,9 +14,9 @@ Env.ROOT = "ForeverPlusPlus/"
 -- specs that test them, after their stubs.
 Env.LOCALES = { "Core", "Map" }
 Env.LIBS = {
-    "Secret", "Colors", "Text", "GameData", "WorldMap", "InstanceLevels", "Instances", "Chat", "TalentPlan", "Errors",
-    "Prices", "Providers", "DisenchantBrackets", "Disenchant", "Presets", "Store", "Keys", "Professions", "ItemStats", "Equipment",
-    "Talents", "Quests", "Taxi", "TaxiRoutes", "ItemButtons", "Gathering",
+    "Secret", "Colors", "Text", "GameData", "WorldMap", "Generated/InstanceLevels", "Instances", "Chat", "TalentPlan", "Errors",
+    "Prices", "Providers", "Generated/DisenchantBrackets", "Disenchant", "Presets", "Store", "Keys", "Professions", "ItemStats", "Equipment",
+    "Talents", "Quests", "Taxi", "Generated/TaxiRoutes", "ItemButtons", "Gathering",
 }
 
 -- The stubbed WoW globals every spec starts with. `player` and `game` are tables the stubs read,

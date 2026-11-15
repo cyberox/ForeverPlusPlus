@@ -11,11 +11,11 @@ local Taxi = {}
 ns.Taxi = Taxi
 
 -- Yards a second a flight covers. Every direct flight the developer timed on build 70888 took its
--- path's length (Lib/TaxiRoutes.lua) / 29.7 to 30.0 seconds (docs/forever-api.md, Flight times).
+-- path's length (Lib/Generated/TaxiRoutes.lua) / 29.7 to 30.0 seconds (docs/forever-api.md, Flight times).
 -- A patch that changes flight speed is this one number.
 Taxi.SPEED = 30
 
--- Filled by the generated Lib/TaxiRoutes.lua, which loads after this file.
+-- Filled by the generated Lib/Generated/TaxiRoutes.lua, which loads after this file.
 Taxi.ROUTES = {}
 Taxi.SHORTCUTS = {}
 

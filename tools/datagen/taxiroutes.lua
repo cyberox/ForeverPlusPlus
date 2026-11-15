@@ -1,4 +1,4 @@
--- Lib/TaxiRoutes.lua: the length in yards of every direct flight, from TaxiPath (which node each
+-- Lib/Generated/TaxiRoutes.lua: the length in yards of every direct flight, from TaxiPath (which node each
 -- path flies from and to) and TaxiPathNode (its points), for Flight Timer's estimates before a
 -- flight is timed. A path's length is the sum of the distances between its points in order, on
 -- one continent. Only paths between two flight points of TaxiNodes with a length are written; the
@@ -8,7 +8,7 @@ local CSV = require("csv")
 local Lua = require("luaout")
 
 local M = {
-    path = "ForeverPlusPlus/Lib/TaxiRoutes.lua",
+    path = "ForeverPlusPlus/Lib/Generated/TaxiRoutes.lua",
     tables = { "TaxiNodes", "TaxiPath", "TaxiPathNode" },
 }
 

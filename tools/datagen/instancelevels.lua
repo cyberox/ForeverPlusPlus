@@ -1,4 +1,4 @@
--- Lib/InstanceLevels.lua: each dungeon's and raid's lowest level as the dungeon finder has it, by
+-- Lib/Generated/InstanceLevels.lua: each dungeon's and raid's lowest level as the dungeon finder has it, by
 -- instance ID, for Lib/Instances.lua. The finder's entries (LFGDungeons, TypeID 0) carry no
 -- instance ID on this client (MapID is 0), so each Map instance (InstanceType 1 or 2) is matched
 -- to one: by the finder entry's name, else by its area's ContentTuning (AreaTable.ContentTuningID,
@@ -8,7 +8,7 @@ local CSV = require("csv")
 local Lua = require("luaout")
 
 local M = {
-    path = "ForeverPlusPlus/Lib/InstanceLevels.lua",
+    path = "ForeverPlusPlus/Lib/Generated/InstanceLevels.lua",
     tables = { "Map", "LFGDungeons", "ContentTuning", "AreaTable" },
 }
 

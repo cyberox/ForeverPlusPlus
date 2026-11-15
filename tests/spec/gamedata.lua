@@ -165,7 +165,7 @@ eq(itemSkill(2835), Professions.MINING .. ":1", "items: a stone")
 eq(itemSkill(2589), "nil", "items: not gathered")
 
 -- Lockboxes' Lockpicking, generated from the client's Lock table (Gathering Skill Tooltips' seed).
-T.load("Lib/LockboxSkills")
+T.load("Lib/Generated/LockboxSkills")
 local boxes = ns.TableData.lockboxSkills
 eq(boxes[4632], 1, "lockboxes: Ornate Bronze Lockbox")
 eq(boxes[16885], 250, "lockboxes: Heavy Junkbox, 250 in the tables")

@@ -1,4 +1,4 @@
--- Lib/LockboxSkills.lua: the Lockpicking each lockbox item needs, from ItemSparse.LockID -> Lock:
+-- Lib/Generated/LockboxSkills.lua: the Lockpicking each lockbox item needs, from ItemSparse.LockID -> Lock:
 -- the lock's slot whose Type is 2 (a lock type) and whose index is LockType 1 ("Pick Lock") holds
 -- the skill. World chests are server objects and in no client table, so they aren't here. Test
 -- items ("[DNT] ...", "Deprecated ...") are left out.
@@ -6,7 +6,7 @@ local CSV = require("csv")
 local Lua = require("luaout")
 
 local M = {
-    path = "ForeverPlusPlus/Lib/LockboxSkills.lua",
+    path = "ForeverPlusPlus/Lib/Generated/LockboxSkills.lua",
     tables = { "ItemSparse", "Lock" },
 }
 

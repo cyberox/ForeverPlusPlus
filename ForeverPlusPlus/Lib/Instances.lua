@@ -10,7 +10,7 @@ local GetRealZoneText, GetTime, format = GetRealZoneText, GetTime, string.format
 
 local L = ns.L
 
--- A nil lowest level is the dungeon finder's from the client's tables (Lib/InstanceLevels.lua,
+-- A nil lowest level is the dungeon finder's from the client's tables (Lib/Generated/InstanceLevels.lua,
 -- generated). A number is kept by hand: the tables lack the instance, or play showed otherwise
 -- (said beside it). The highest levels are guides', since no table has one.
 local Instances = {

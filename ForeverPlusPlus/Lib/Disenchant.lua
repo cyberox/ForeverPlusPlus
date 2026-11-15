@@ -3,7 +3,7 @@
 -- frames, so tests/run.lua checks them.
 --
 -- Which items can be disenchanted is the game's own: its brackets by quality, weapon or armor, and
--- item level, generated from the client's tables (Lib/DisenchantBrackets.lua). What a bracket
+-- item level, generated from the client's tables (Lib/Generated/DisenchantBrackets.lua). What a bracket
 -- gives isn't in the client. The rows below are Classic Era 1.x's, written from general game
 -- knowledge, UNVERIFIED on Forever, and kept only for brackets whose edges the tables confirm.
 -- Every other bracket (and one whose row turns out wrong) gives what disenchanting showed in play,

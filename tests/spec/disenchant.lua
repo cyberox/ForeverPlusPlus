@@ -35,7 +35,7 @@ do
     eq(describe(Disenchant.Outcomes(4, 58, true)), "20725 1 1-1", "disenchant: epic 56-60")
     eq(Disenchant.Outcomes(4, 39, false), nil, "disenchant: epic below level 40")
 
-    -- The game's brackets (Lib/DisenchantBrackets.lua, from ItemDisenchantLoot): every one the
+    -- The game's brackets (Lib/Generated/DisenchantBrackets.lua, from ItemDisenchantLoot): every one the
     -- survey found, and none past them.
     local function bracket(quality, level, isWeapon)
         local b = Disenchant.Bracket(quality, level, isWeapon)
