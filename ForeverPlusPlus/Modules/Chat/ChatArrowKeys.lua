@@ -30,10 +30,18 @@ local function apply(frame)
     if not (box and box.SetAltArrowKeyMode and box.GetAltArrowKeyMode) then
         return
     end
-    if module.enabled and modes[box] == nil then
-        modes[box] = box:GetAltArrowKeyMode() and true or false
+    if module.enabled then
+        if modes[box] == nil then
+            modes[box] = box:GetAltArrowKeyMode() and true or false
+            -- An autocomplete list (Blizzard's, or another addon's) puts back the mode it found
+            -- when it closes, which can be the one from before ours. So set it again each time
+            -- the box is typed in.
+            module:HookScript(box, "OnEditFocusGained", function(self)
+                self:SetAltArrowKeyMode(false)
+            end)
+        end
         box:SetAltArrowKeyMode(false)
-    elseif not module.enabled and modes[box] ~= nil then
+    elseif modes[box] ~= nil then
         box:SetAltArrowKeyMode(modes[box])
         modes[box] = nil
     end
