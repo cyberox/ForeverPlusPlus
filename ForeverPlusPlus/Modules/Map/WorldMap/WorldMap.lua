@@ -63,5 +63,5 @@ ns.Migrate(1, function(db)
     end
 end)
 
--- Each part's own shared table, by its checkbox's key, for its Data.lua and its other files.
+-- Each part's own shared table, by its checkbox's key, for its files to share.
 module.internal = {}

@@ -1,5 +1,5 @@
 -- Points of Interest's flight points: which this character has learned, and where the ones a
--- flight master shows are, saved and merged into Data.lua's.
+-- flight master shows are, saved and merged into the data's (Data/PointsOfInterest.lua).
 local _, ns = ...
 
 local ipairs, pairs, format, abs, type = ipairs, pairs, string.format, math.abs, type
@@ -52,7 +52,7 @@ function internal.rememberLearned()
     end
 end
 
--- The game's flight point for one of Data.lua's, by place: the closest on the map. The node
+-- The game's flight point for one of the data's, by place: the closest on the map. The node
 -- carries the ID.
 local function nodeOf(point)
     local best, bestDistance
@@ -87,14 +87,14 @@ function internal.learned(point)
 end
 
 -- Flight points a flight master showed --------------------------------------------------------
--- Data.lua's flight points are the seed (build 70009). A flight master's map lists every flight
+-- The data's flight points are the seed (build 70009). A flight master's map lists every flight
 -- point of the continent with its place, so each one seen is saved for the account by node ID:
--- { map, x, y, faction, name }, x and y in percent on `map`. One on the spot of Data.lua's takes
--- its place, and one Data.lua lacks (a patch's new flight point) is added.
+-- { map, x, y, faction, name }, x and y in percent on `map`. One on the spot of the data's takes
+-- its place, and one the data lacks (a patch's new flight point) is added.
 local FLIGHTS = ns.GameData.New("flightPoints", {}, { label = "Flight points" })
 
 -- How close (in percent of the flight master's map, a continent) a flight point the game lists is
--- to one of Data.lua's for the two to be the same.
+-- to one of the data's for the two to be the same.
 local SAME_NODE = 0.6
 
 -- Mainline's Enum.FlightPathFaction (Neutral 0, Horde 1, Alliance 2) as our letters. Probe:
@@ -119,7 +119,7 @@ local function sameSide(a, b)
     return not a or not b or a == b or a == "N" or b == "N"
 end
 
--- Data.lua's flight point nearest a spot on the flight master's map: its map and point.
+-- The data's flight point nearest a spot on the flight master's map: its map and point.
 local function seedFlightNear(taxiMap, x, y, faction)
     local bestMap, best, bestDistance
     for fromMap, points in pairs(internal.points) do
@@ -137,7 +137,7 @@ local function seedFlightNear(taxiMap, x, y, faction)
     return bestMap, best
 end
 
--- At a flight master, saves where each flight point on its map is: on the map of Data.lua's flight
+-- At a flight master, saves where each flight point on its map is: on the map of the data's flight
 -- point on the same spot, or else on the zone the game says the spot is in.
 function internal.learnFlights()
     local nodes, taxiMap = ns.Taxi.Nodes()
@@ -169,7 +169,7 @@ function internal.learnFlights()
     end
 end
 
--- Each map's points: Data.lua's, with the saved flight points in. Made again once something new
+-- Each map's points: the data's, with the saved flight points in. Made again once something new
 -- is saved.
 local merged, mergedCount = {}, -1
 
@@ -205,7 +205,7 @@ local function mergeFlights()
         end
         merged[mapID] = list
     end
-    -- The ones left are flight points Data.lua doesn't have.
+    -- The ones left are flight points the data doesn't have.
     for mapID, nodes in pairs(learnedOn) do
         for nodeID, node in pairs(nodes) do
             local list = merged[mapID] or {}

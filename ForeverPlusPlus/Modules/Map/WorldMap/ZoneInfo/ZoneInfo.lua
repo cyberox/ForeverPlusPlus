@@ -2,10 +2,11 @@
 -- shows, or on a continent map the zone under the cursor: its level range colored against yours,
 -- the Fishing skill its waters need, and the herbs, ore, and skinning it has for the gathering
 -- professions you have. Ideas from Leatrix Maps' zone levels; none of its code. The zones are in
--- Data.lua.
+-- Data/ZoneInfo.lua.
 local _, ns = ...
 
 local pairs, ipairs, tostring, format, concat = pairs, ipairs, tostring, string.format, table.concat
+local sort = table.sort
 local MAP_AREA_LABEL_TYPE = MAP_AREA_LABEL_TYPE
 local min, max, GetLocale = math.min, math.max, GetLocale
 local unpack, ceil, type = unpack, math.ceil, type
@@ -148,9 +149,55 @@ module:AddOptions({
     },
 })
 
--- Shared with Data.lua: `zones` (by map ID), `herbs` and `ores` (by item ID).
-local internal = {}
+-- From Data/ZoneInfo.lua: `zones` (by map ID), and the short names of `herbs` and `ores` (by item
+-- ID).
+local internal = { zones = ns.Data.zones, herbs = ns.Data.zoneHerbs, ores = ns.Data.zoneOres }
 ns.modules.WorldMap.internal.zoneInfo = internal
+
+-- So Self Test lists a zone's map ID the client no longer has.
+ns.GameData.New("zoneInfoZones", internal.zones, { kind = "map", label = "Zone Info zones" })
+
+-- Each zone's dungeons and raids (`zone.dungeons`, entries of Lib/Instances.lua): the ones whose
+-- entrance Data/PointsOfInterest.lua places on the zone's map, a place of several (Blackrock
+-- Mountain) as each of them and an instance of several entrances once, then the ones the data
+-- names for the zone. Lowest level first.
+do
+    local byKey, places = ns.Instances.byKey, ns.Data.poiPlaces
+    local function add(list, seen, key)
+        local place = places[key]
+        if place and place.parts then
+            for _, part in ipairs(place.parts) do
+                add(list, seen, part)
+            end
+            return
+        end
+        local instance = byKey[place and place.instance or key]
+        if instance and not seen[instance] then
+            seen[instance] = #list + 1
+            list[#list + 1] = instance
+        end
+    end
+    for mapID, zone in pairs(internal.zones) do
+        local list, seen = {}, {}
+        for _, point in ipairs(ns.Data.poiPoints[mapID] or {}) do
+            if point[1] == "dungeon" or point[1] == "raid" then
+                add(list, seen, point[4])
+            end
+        end
+        for _, key in ipairs(ns.Data.zoneDungeons[mapID] or {}) do
+            add(list, seen, key)
+        end
+        if #list > 0 then
+            sort(list, function(a, b)
+                if a[3] ~= b[3] then
+                    return a[3] < b[3]
+                end
+                return seen[a] < seen[b]
+            end)
+            zone.dungeons = list
+        end
+    end
+end
 
 local MAX_WIDTH = 300 -- the widest the text gets; longer lines wrap
 local PADDING = 8
@@ -189,8 +236,8 @@ local function levelText(low, high)
     return color and colored(color, text) or text
 end
 
--- A zone's level range: the game's (C_Map.GetMapLevels), else Data.lua's. Cities and Moonglade
--- have none in Data.lua and get none. Probe: whether Forever fills it for its zones is
+-- A zone's level range: the game's (C_Map.GetMapLevels), else the data's. Cities and Moonglade
+-- have none in the data and get none. Probe: whether Forever fills it for its zones is
 -- Unverified, so anything but a range from 1 to 60 counts as none.
 local function levelsOf(mapID, zone)
     if not zone[1] then
@@ -282,7 +329,7 @@ local function skillsRow(zone, low, high)
     end
 end
 
--- An item's name: the short English one from Data.lua in English, else the game's own (which
+-- An item's name: the short English one from the data in English, else the game's own (which
 -- keeps "Ore"), or the English until the game has loaded it.
 local english = GetLocale() == "enUS"
 local function itemName(id, name)
@@ -305,9 +352,10 @@ local function gatherRow(key, line, ids, items)
     end
     local names = {}
     for i, id in ipairs(ids) do
-        local item = items[id]
-        local name = itemName(id, item[2])
-        names[i] = NoBreak(rank and colored(Professions.Difficulty(rank, item[1]), name) or name)
+        local name = itemName(id, items[id])
+        -- The skill it takes is the lowest node's that gives it (Lib/Professions.lua).
+        local _, skill = Professions.ItemSkill(id)
+        names[i] = NoBreak(rank and skill and colored(Professions.Difficulty(rank, skill), name) or name)
     end
     -- At most PER_ROW names to a row, split evenly (six are 3 and 3, not 4 and 2), so a long list
     -- is a few short rows instead of one that wraps and leaves a name alone.
@@ -385,7 +433,7 @@ end
 
 -- Which zone ----------------------------------------------------------------------------------
 
--- The zone in Data.lua a map is, or is inside (a cave or a town's own map), or nil.
+-- The zone in the data a map is, or is inside (a cave or a town's own map), or nil.
 local function zoneOf(mapID)
     for each in ns.WorldMap.Up(mapID) do
         if internal.zones[each] then
@@ -720,7 +768,7 @@ local function attach(map)
 end
 
 -- What Zone Info offers outside itself while it's on (ns.Providers), for the public API: a zone
--- as a new table each time, never Data.lua's own.
+-- as a new table each time, never the data's own.
 local function copyList(list)
     local copy = {}
     for i, id in ipairs(list or {}) do

@@ -147,7 +147,7 @@ local function source(path)
 end
 local professions = source("ForeverPlusPlus/Data/Professions.lua")
 local instances = source("ForeverPlusPlus/Data/Instances.lua")
-local zoneInfo = source("ForeverPlusPlus/Modules/Map/WorldMap/ZoneInfo/Data.lua")
+local zoneInfo = source("ForeverPlusPlus/Data/ZoneInfo.lua")
 
 -- 1 and 8. Locks: lockboxes, and the skills herbs, veins, and pools take ---------------------------
 section("Locks (Lock, LockType, ItemSparse.LockID, GameObjects)")

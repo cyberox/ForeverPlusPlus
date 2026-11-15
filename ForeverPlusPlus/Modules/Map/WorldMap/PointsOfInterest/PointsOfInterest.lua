@@ -3,8 +3,9 @@
 -- lines, each with a tooltip saying what and where it is. Every kind has its own checkbox (a
 -- dropdown for capital cities and ley lines), icon size, and whether it also shows on the
 -- continent and world maps, not just zone maps. Travel points of the other faction are off unless
--- asked for. Where the points are is in Data.lua, except ley lines, saved as they're found, and
--- flight points a flight master shows, which take the place of Data.lua's. This file has the
+-- asked for. Where the points are is in Data/PointsOfInterest.lua, except ley lines, saved as
+-- they're found, and flight points a flight master shows, which take the place of the data's.
+-- This file has the
 -- part, its options, and drawing the points; Flights.lua the flight points flight masters show,
 -- LeyLines.lua the ley lines, and BlizzardIcons.lua hiding the game's own icons where ours show.
 local _, ns = ...
@@ -60,10 +61,32 @@ local module = ns.modules.WorldMap:NewPart({
 })
 ns.modules.WorldMap.perCharacter = { learnedNodes = true }
 
--- Shared with Data.lua: `points` (by map ID), `instances` (by key), and `cities` (by map ID). And
--- with this part's other files: the part as `module`, and the helpers they call each other's.
-local internal = { module = module }
+-- Shared with this part's other files: `points` (by map ID), `instances` (by key), and `cities`
+-- (by map ID), from Data/PointsOfInterest.lua; the part as `module`; and the helpers they call
+-- each other's.
+local internal = { module = module, points = ns.Data.poiPoints, cities = ns.Data.poiCities }
 ns.modules.WorldMap.internal.pointsOfInterest = internal
+
+-- Dungeons and raids by key: the ones in Lib/Instances.lua, and the places only the map has. An
+-- entrance of an instance with several reads the instance's entry, so levels the dungeon finder
+-- corrects reach it.
+do
+    local byKey = ns.Instances.byKey
+    local instances = {}
+    for key, place in pairs(ns.Data.poiPlaces) do
+        if place.instance then
+            instances[key] = setmetatable({ part = place.part, wing = place.wing },
+                { __index = byKey[place.instance] })
+        else
+            instances[key] = place
+        end
+    end
+    internal.instances = setmetatable(instances, { __index = byKey })
+end
+
+-- So Self Test lists a map ID the client no longer has.
+ns.GameData.New("poiPoints", internal.points, { kind = "map", label = "Points of Interest maps" })
+ns.GameData.New("poiCities", internal.cities, { kind = "map", label = "Points of Interest cities" })
 
 -- A checkbox for a kind with the slider for its size in the same row, and under it whether it
 -- shows on continents.
@@ -214,7 +237,7 @@ local function atlasOf(kindInfo)
 end
 internal.atlasOf = atlasOf
 
--- A place name from Data.lua, in the player's language when a locale file translates it
+-- A place name from the data, in the player's language when a locale file translates it
 -- (L["Booty Bay"] = ...). Place names aren't in Locales/enUS/: the English is the name itself.
 local function place(name)
     return rawget(L, name) or name
@@ -330,7 +353,7 @@ local function forPlayer(faction)
     return faction == "N" or faction == ns.WorldMap.PlayerSide() or module.db.otherFaction
 end
 
--- How close (in percent of the map) a point the game knows is to one in Data.lua for the two to
+-- How close (in percent of the map) a point the game knows is to one in the data for the two to
 -- be the same.
 local NEAR = 3
 internal.NEAR = NEAR
@@ -343,7 +366,7 @@ local function shows(kindInfo, world)
 end
 internal.shows = shows
 
--- The pin for one point of Data.lua on the map `mapID` it's listed for, or nil when its settings
+-- The pin for one point of the data on the map `mapID` it's listed for, or nil when its settings
 -- hide it. `world` when it's being drawn on a continent map.
 local function pinFor(point, mapID, world)
     local kindName = point[1]
@@ -445,7 +468,7 @@ local function isInstance(point)
     return point[1] == "dungeon" or point[1] == "raid"
 end
 
--- The instances Data.lua places somewhere, by their entry in Lib/Instances.lua, once asked. The
+-- The instances the data places somewhere, by their entry in Lib/Instances.lua, once asked. The
 -- rest (Forever dungeons whose entrance isn't known) are left to the game's own icons.
 local placed
 
@@ -472,7 +495,7 @@ end
 internal.placedByUs = placedByUs
 
 -- Dungeon and raid entrances the game itself has for the map (Blizzard's own entrance list, which
--- its map hides behind a CVar), for ones Data.lua doesn't place, such as Forever's new dungeons.
+-- its map hides behind a CVar), for ones the data doesn't place, such as Forever's new dungeons.
 -- Probe: which entrances Forever lists there is Unverified.
 local function gameEntrances(mapID, listed, add)
     if not (C_EncounterJournal and C_EncounterJournal.GetDungeonEntrancesForMap) then
@@ -483,7 +506,7 @@ local function gameEntrances(mapID, listed, add)
         local x, y = entrance.position:GetXY()
         local raid = (entrance.atlasName or ""):lower():find("raid") ~= nil
         local kindInfo = KINDS[raid and "raid" or "dungeon"]
-        -- Not one Data.lua has, by place or by name: the Ruins of Lordaeron's entrance is listed
+        -- Not one the data has, by place or by name: the Ruins of Lordaeron's entrance is listed
         -- on the Undercity's map, so the game's, on Tirisfal Glades, would be a second icon.
         local ours, instance = placedByUs(entrance.name)
         if db[kindInfo.show] and not listedNear(listed, x * 100, y * 100) and not ours then
@@ -504,7 +527,7 @@ local function gameEntrances(mapID, listed, add)
 end
 
 -- A point on one map (0 to 1) as a point on another that shows it: a city on its zone, or a zone
--- or city on a continent. For a city the game can't place, the place Data.lua gives it on its
+-- or city on a continent. For a city the game can't place, the place the data gives it on its
 -- zone.
 local function translate(fromMap, toMap, x, y)
     local tx, ty = ns.MapPins.Translate(fromMap, toMap, x, y)
@@ -581,7 +604,7 @@ end
 -- A zone map: its own points, and the capitals in it with their dungeons.
 local function fillZone(mapID, add)
     internal.readTaxiNodes(mapID)
-    local listed = {} -- this map's dungeons and raids in Data.lua, shown or not
+    local listed = {} -- this map's dungeons and raids in the data, shown or not
     for _, point in ipairs(internal.pointsOf(mapID)) do
         if isInstance(point) then
             listed[#listed + 1] = point
@@ -661,7 +684,7 @@ local function listenForLeyLines(self)
     end
 end
 
--- Debug's Find New Dungeons: every dungeon or raid the game knows that Data.lua doesn't place, so
+-- Debug's Find New Dungeons: every dungeon or raid the game knows that the data doesn't place, so
 -- Forever's new ones can be added. In chat: each entrance the game puts on a zone's map, with its
 -- spot, then each one the dungeon finder lists with no entrance anywhere.
 local function findDungeons()

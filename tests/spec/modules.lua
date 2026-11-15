@@ -337,3 +337,30 @@ eq(#Kit.CATEGORIES, 10, "modules: every category has a place")
 eq(Kit.CategoryOf({ category = "units" }), "units", "modules: a module's own category")
 eq(Kit.CategoryOf({ category = "nonsense" }), "other", "modules: an unknown category is Other")
 eq(Kit.CategoryOf({}), "other", "modules: no category is Other")
+
+-- Zone Info lists a zone's dungeons from where Data/PointsOfInterest.lua places their entrances:
+-- a place of several as each, an instance of several entrances once, the ones only
+-- Data/ZoneInfo.lua names too, and the lowest level first.
+do
+    local zones, I = ns.modules.WorldMap.internal.zoneInfo.zones, ns.Instances.byKey
+    local function keys(mapID)
+        local names = {}
+        for i, instance in ipairs(zones[mapID].dungeons or {}) do
+            for key, entry in pairs(I) do
+                if entry == instance then
+                    names[i] = key
+                end
+            end
+        end
+        return table.concat(names, " ")
+    end
+    eq(keys(1436), "deadmines", "zone dungeons: Westfall")
+    eq(keys(1427), "brd brs mc bwl", "zone dungeons: Searing Gorge has Blackrock Mountain's four")
+    eq(keys(1423), "stratholme naxxramas", "zone dungeons: Stratholme's two gates are one dungeon")
+    eq(keys(1444), "diremaul", "zone dungeons: Dire Maul's three wings are one dungeon")
+    eq(keys(1434), "drownedCity zulgurub", "zone dungeons: Stranglethorn, lowest level first")
+    eq(keys(1445), "alcazPrison onyxia", "zone dungeons: one the map data doesn't place is added")
+    eq(keys(2548), "kroldok", "zone dungeons: Riverglades")
+    eq(keys(1451), "aq20 aq40", "zone dungeons: Silithus")
+    eq(keys(1429), "", "zone dungeons: Elwynn Forest has none")
+end

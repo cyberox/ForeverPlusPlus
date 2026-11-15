@@ -2,7 +2,7 @@
 -- build's diff shows what to look at. Not shipped and not read by the addon.
 --   Instances: the Map table's dungeons and raids, marked when Data/Instances.lua lacks one.
 --   Flight points: TaxiNodes placed on their zone with UiMapAssignment, in /way percent, as
---   Points of Interest's Data.lua has them.
+--   Data/PointsOfInterest.lua has them.
 --   Transport stops: the stops (a Delay) of TaxiPathNode's paths, placed the same way.
 local CSV = require("csv")
 local Lua = require("luaout")

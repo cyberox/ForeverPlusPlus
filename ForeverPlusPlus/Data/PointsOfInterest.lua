@@ -1,13 +1,15 @@
--- Where Points of Interest puts its icons, by zone map ID. Coordinates are percent across and
+-- Hand-kept data: where Points of Interest puts its icons, by zone map ID (Zone Info reads the
+-- dungeons in each zone from it too). A fix is made here. Coordinates are percent across and
 -- down the zone map, as the game's /way coordinates. Leatrix Maps' point list was the reference
 -- for them; Forever's flight masters, boats, and zeppelins are worked out from the client's own
 -- tables for build 70009 (TaxiNodes, and the stops of TaxiPathNode's transport paths, placed with
 -- UiMapAssignment), which agree with the Classic ones here to 0.5%. Kept by hand:
 -- tools/datagen/Reference.txt lists those tables' points for a newer build to check these against
--- (still the same in 70888). The flight points are a seed: where a flight master's map puts one
--- wins, and ones it lists that aren't here are added (see learnFlights in Flights.lua). Each
--- point is one of:
---   { "dungeon" or "raid", x, y, instance key }
+-- (still the same in 70888). The tables have no spirit healers, and their dungeon entrances are
+-- where a ghost appears, not the door (docs/table-survey.md). The flight points are a seed: where
+-- a flight master's map puts one wins, and ones it lists that aren't here are added (see
+-- learnFlights in Points of Interest's Flights.lua). Each point is one of:
+--   { "dungeon" or "raid", x, y, instance key (Data/Instances.lua's, or one of poiPlaces) }
 --   { "flight", x, y, faction, place }
 --   { "ship", "zeppelin", or "tram", x, y, faction, destination place, destination map ID (or
 --     this map), via = place it stops at first, viaMap = that place's map ID }
@@ -17,40 +19,30 @@
 -- list doesn't place (Forever's later ones) are added from the game; see gameEntrances.
 local _, ns = ...
 
-local setmetatable = setmetatable
-
 local L = ns.L
 
-local internal = ns.modules.WorldMap.internal.pointsOfInterest
+ns.Data = ns.Data or {}
 
-local Instances = ns.Instances.byKey
-
--- One entrance of an instance with several, told apart by `name`. It reads the instance's entry,
--- so levels the dungeon finder corrects reach it. `wing` is the wing of the instance the entrance
--- leads to, as ns.DungeonMaps keys it, for its map.
-local function part(instance, name, wing)
-    return setmetatable({ part = name, wing = wing }, { __index = instance })
-end
-
--- Dungeons and raids: the ones in Lib/Instances.lua, and the entrances and places only the map
--- needs. `part` tells apart entrances of one instance. A place with several instances lists them
--- in `parts`, and `raids` when some are raids.
-internal.instances = setmetatable({
+-- The entrances and places only the map needs, beside the instances of Data/Instances.lua.
+--   A place with several instances lists them in `parts`, and `raids` when some are raids.
+--   One entrance of an instance with several names its `instance`, with `part` to tell the
+--   entrances apart and `wing` for the wing it leads to, as Data/Instances.lua's dungeonArt keys it.
+ns.Data.poiPlaces = {
     ahnqiraj = { name = "Ahn'Qiraj", parts = { "aq20", "aq40" } },
     blackrock = { name = "Blackrock Mountain", parts = { "brd", "brs", "mc", "bwl" }, raids = true },
-    diremaulEast = part(Instances.diremaul, L.POI_EAST, "east"),
-    diremaulNorth = part(Instances.diremaul, L.POI_NORTH, "north"),
-    diremaulWest = part(Instances.diremaul, L.POI_WEST, "west"),
-    stratholmeMain = part(Instances.stratholme, L.POI_MAIN_GATE),
-    stratholmeService = part(Instances.stratholme, L.POI_SERVICE_GATE),
-}, { __index = Instances })
+    diremaulEast = { instance = "diremaul", part = L.POI_EAST, wing = "east" },
+    diremaulNorth = { instance = "diremaul", part = L.POI_NORTH, wing = "north" },
+    diremaulWest = { instance = "diremaul", part = L.POI_WEST, wing = "west" },
+    stratholmeMain = { instance = "stratholme", part = L.POI_MAIN_GATE },
+    stratholmeService = { instance = "stratholme", part = L.POI_SERVICE_GATE },
+}
 
 -- The capital cities, by city map ID: the zone around each (where its icon and its dungeons also
 -- show, placed by where the game says the city sits on the zone's map) and its faction. A city
 -- can give that place as `rect` (left, right, top, bottom, 0 to 1) for when the game doesn't: the
 -- Undercity's is worked out from the two maps' spirit healer and their crossings to each other,
 -- which agree to 0.3%.
-internal.cities = {
+ns.Data.poiCities = {
     [1453] = { zone = 1429, faction = "A" }, -- Stormwind City, in Elwynn Forest
     [1455] = { zone = 1426, faction = "A" }, -- Ironforge, in Dun Morogh
     [1457] = { zone = 1438, faction = "A" }, -- Darnassus, in Teldrassil
@@ -59,7 +51,7 @@ internal.cities = {
     [1458] = { zone = 1420, faction = "H", rect = { 0.4789, 0.6912, 0.6402, 0.8527 } }, -- Undercity
 }
 
-internal.points = {
+ns.Data.poiPoints = {
     -- Eastern Kingdoms -------------------------------------------------------------------------
     [1416] = { -- Alterac Mountains
         -- At the back of Dalaran, by the Violet Citadel's dome: a guide's /way 19.4 85.6, which

@@ -26,6 +26,8 @@ Data\Professions.lua
 Data\Spells.lua
 Data\Items.lua
 Data\Buffs.lua
+Data\PointsOfInterest.lua
+Data\ZoneInfo.lua
 Lib\Presets.lua
 Lib\Store.lua
 Lib\Profiles.lua
@@ -203,11 +205,9 @@ Modules\Units\TargetMarkers.lua
 Modules\Map\WorldMap\WorldMap.lua
 Modules\Map\WorldMap\Coordinates.lua
 Modules\Map\WorldMap\ZoneInfo\ZoneInfo.lua
-Modules\Map\WorldMap\ZoneInfo\Data.lua
 Modules\Map\WorldMap\UnexploredAreas\UnexploredAreas.lua
 Modules\Map\WorldMap\UnexploredAreas\Data.lua
 Modules\Map\WorldMap\PointsOfInterest\PointsOfInterest.lua
-Modules\Map\WorldMap\PointsOfInterest\Data.lua
 Modules\Map\WorldMap\PointsOfInterest\Flights.lua
 Modules\Map\WorldMap\PointsOfInterest\LeyLines.lua
 Modules\Map\WorldMap\PointsOfInterest\BlizzardIcons.lua

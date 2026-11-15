@@ -66,7 +66,7 @@ Load order is the TOC's: `Core.lua`, `Commands.lua`, `Locales/`, `Data/`, `Lib/`
 | `Core.lua` | The shared `ns`: events, modules and parts, saved settings, hooks, timers, migrations, printing, and the locale table `ns.L`. |
 | `Commands.lua` | `/fpp` and its subcommands, `/fpp set` and `toggle`, and the Defaults popup's resets (`ns.ApplyPreset`, `ns.UsePreset`). |
 | `Locales/<language>/*.lua` | Player-facing text, a file per category. `enUS/` has every key and is the fallback; another language sets only what it translates. |
-| `Data/*.lua` | Game data kept by hand, in one place so a patch's change is one edit: plain tables on `ns.Data`, with where each came from. `Instances.lua` (the dungeons and raids, and their map art), `Professions.lua` (herbs, veins, chests, pools, tools, skeleton keys), `Spells.lua` (spell IDs more than one file uses, through `ns.Data.Spell`), `Items.lua` (the containers Auto Open Containers leaves), `Buffs.lua` (Smart Buff's). No logic. |
+| `Data/*.lua` | Game data kept by hand, in one place so a patch's change is one edit: plain tables on `ns.Data`, with where each came from. `Instances.lua` (the dungeons and raids, and their map art), `Professions.lua` (herbs, veins, chests, pools, tools, skeleton keys), `Spells.lua` (spell IDs more than one file uses, through `ns.Data.Spell`), `Items.lua` (the containers Auto Open Containers leaves), `Buffs.lua` (Smart Buff's), `PointsOfInterest.lua` (where dungeon entrances, flight masters, boats, and spirit healers are on each zone's map), `ZoneInfo.lua` (each zone's levels, fishing skill, herbs, and ores). No logic. |
 | `Lib/*.lua` | Shared services any module can use. They cost nothing until a module uses them. |
 | `Modules/<Category>/` | One change each. |
 | `API.lua` | The public API, `ForeverPlusPlusAPI.v1`. |
@@ -268,8 +268,6 @@ When unsure whether an API exists, check it in game (`/dump C_Foo`, `/api`) or f
 - A seed kept by hand is a table in `Data/` (`ns.Data.<name>`), not in the Lib file or module that uses it. That file makes the `ns.GameData` set from it. Never keep the same list or ID in two places.
 - A lone ID gets `ns.GameData.Spell(id, "Name")` (or `Item`, `Map`), which Self Test checks. One that a second file needs goes in `Data/Spells.lua` and is read with `ns.Data.Spell("KEY")`.
 - Say where a seed came from (build and source) in a comment, beside the data.
-- The two big map lists are still in their module: World Map's `PointsOfInterest/Data.lua` and `ZoneInfo/Data.lua`.
-
 **Migrations.** When a release renames or merges a module or setting the player chose, or one holding data they built up, migrate it.
 
 - `ns.Migrate(version, fn)`, in the module that now owns it, moves the old saved values at login, before the core clears them.

@@ -105,7 +105,7 @@ Tables: `AreaTable` (1,404 rows), `UiMap` (60), `UiMapAssignment` (61), `Map` (8
 
 **Subzones: USABLE.** `AreaTable.ParentAreaID` gives each zone's subzones, for example Elwynn Forest (12): 18 Crystal Lake, 9 Northshire Valley. 189 areas have no parent. A zone map's area is `UiMapAssignment` (`UiMapID` -> `AreaID`).
 
-**Zone level ranges: absent.** `UiMap.ContentTuningID` is 0 on all 60 maps, and `AreaTable.ContentTuningID` is set on only 28 areas, all dungeons. What exists is `AreaTable.ExplorationLevel` on 706 subzones (0 on the zones themselves). Against Zone Info's `Data.lua` ranges, the range of a zone's subzone levels:
+**Zone level ranges: absent.** `UiMap.ContentTuningID` is 0 on all 60 maps, and `AreaTable.ContentTuningID` is set on only 28 areas, all dungeons. What exists is `AreaTable.ExplorationLevel` on 706 subzones (0 on the zones themselves). Against Zone Info's data (`Data/ZoneInfo.lua`) ranges, the range of a zone's subzone levels:
 
 | Zone (map) | Zone Info | Subzones' range | Median |
 | --- | --- | --- | --- |

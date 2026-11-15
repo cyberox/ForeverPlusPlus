@@ -1,61 +1,63 @@
--- What Zone Info knows about each zone, by zone map ID. From Classic: Leatrix Maps' zone table was
--- the reference for level ranges and fishing, and the herbs and ores are where Classic has them
--- (a few rare spawns left out). Forever may move things; fix them here. Each zone is:
+-- Hand-kept data for Zone Info: what it knows about each zone, by zone map ID. From Classic:
+-- Leatrix Maps' zone table was the reference for level ranges and fishing, and the herbs and ores
+-- are where Classic has them (a few rare spawns left out). Forever may move things; fix them
+-- here. No client table has any of it (docs/table-survey.md, 5). Each zone is:
 --   { lowest level, highest level, fish = skill, fishHigh = skill, herbs = { ... }, ores = { ... } }
 -- Cities have no levels. For a zone that has them, the game's own level range
 -- (C_Map.GetMapLevels) wins when it gives one. `fishHigh` is for zones whose coast needs more
 -- than their inland water. Herbs and ores are item IDs, from the lists below. Who holds each zone
--- (`side`) and its dungeons (`dungeons`) are added at the end.
+-- (`side`) is added at the end. A zone's dungeons aren't here: Zone Info takes them from where
+-- Data/PointsOfInterest.lua places their entrances.
 local _, ns = ...
 
 local pairs, ipairs = pairs, ipairs
 
-local internal = ns.modules.WorldMap.internal.zoneInfo
+ns.Data = ns.Data or {}
 
--- Herbs and ores: item ID -> { skill needed to gather, short English name }. Other languages
--- use the game's item name. The skills match Lib/Professions.lua's herbs and veins.
-internal.herbs = {
-    [2447] = { 1, "Peacebloom" },
-    [765] = { 1, "Silverleaf" },
-    [2449] = { 15, "Earthroot" },
-    [785] = { 50, "Mageroyal" },
-    [2450] = { 70, "Briarthorn" },
-    [3820] = { 85, "Stranglekelp" },
-    [2453] = { 100, "Bruiseweed" },
-    [3355] = { 115, "Wild Steelbloom" },
-    [3369] = { 120, "Grave Moss" },
-    [3356] = { 125, "Kingsblood" },
-    [3357] = { 150, "Liferoot" },
-    [3818] = { 160, "Fadeleaf" },
-    [3821] = { 170, "Goldthorn" },
-    [3358] = { 185, "Khadgar's Whisker" },
-    [3819] = { 195, "Wintersbite" },
-    [4625] = { 205, "Firebloom" },
-    [8831] = { 210, "Purple Lotus" },
-    [8836] = { 220, "Arthas' Tears" },
-    [8838] = { 230, "Sungrass" },
-    [8839] = { 235, "Blindweed" },
-    [8846] = { 250, "Gromsblood" },
-    [13464] = { 260, "Golden Sansam" },
-    [13463] = { 270, "Dreamfoil" },
-    [13465] = { 280, "Mountain Silversage" },
-    [13466] = { 285, "Plaguebloom" },
-    [13467] = { 290, "Icecap" },
-    [13468] = { 300, "Black Lotus" },
+-- Herbs and ores a zone can list: item ID -> short English name. Other languages use the game's
+-- item name. The skill each takes is Data/Professions.lua's, through Professions.ItemSkill.
+ns.Data.zoneHerbs = {
+    [2447] = "Peacebloom",
+    [765] = "Silverleaf",
+    [2449] = "Earthroot",
+    [785] = "Mageroyal",
+    [2450] = "Briarthorn",
+    [3820] = "Stranglekelp",
+    [2453] = "Bruiseweed",
+    [3355] = "Wild Steelbloom",
+    [3369] = "Grave Moss",
+    [3356] = "Kingsblood",
+    [3357] = "Liferoot",
+    [3818] = "Fadeleaf",
+    [3821] = "Goldthorn",
+    [3358] = "Khadgar's Whisker",
+    [3819] = "Wintersbite",
+    [4625] = "Firebloom",
+    [8831] = "Purple Lotus",
+    [8836] = "Arthas' Tears",
+    [8838] = "Sungrass",
+    [8839] = "Blindweed",
+    [8846] = "Gromsblood",
+    [13464] = "Golden Sansam",
+    [13463] = "Dreamfoil",
+    [13465] = "Mountain Silversage",
+    [13466] = "Plaguebloom",
+    [13467] = "Icecap",
+    [13468] = "Black Lotus",
 }
 
-internal.ores = {
-    [2770] = { 1, "Copper" },
-    [2771] = { 65, "Tin" },
-    [3340] = { 65, "Incendicite" },
-    [2775] = { 75, "Silver" },
-    [4278] = { 75, "Lesser Bloodstone" },
-    [2772] = { 125, "Iron" },
-    [2776] = { 155, "Gold" },
-    [3858] = { 175, "Mithril" },
-    [7911] = { 230, "Truesilver" },
-    [11370] = { 230, "Dark Iron" },
-    [10620] = { 245, "Thorium" },
+ns.Data.zoneOres = {
+    [2770] = "Copper",
+    [2771] = "Tin",
+    [3340] = "Incendicite",
+    [2775] = "Silver",
+    [4278] = "Lesser Bloodstone",
+    [2772] = "Iron",
+    [2776] = "Gold",
+    [3858] = "Mithril",
+    [7911] = "Truesilver",
+    [11370] = "Dark Iron",
+    [10620] = "Thorium",
 }
 
 -- Herbs
@@ -73,7 +75,7 @@ local STARTER_HERBS = { PEACEBLOOM, SILVERLEAF, EARTHROOT }
 local LOW_HERBS = { PEACEBLOOM, SILVERLEAF, EARTHROOT, MAGEROYAL, BRIARTHORN }
 local LOW_ORES = { COPPER, TIN, SILVER }
 
-internal.zones = {
+ns.Data.zones = {
     -- Eastern Kingdoms -----------------------------------------------------------------------
     [1429] = { 1, 10, fish = 1, herbs = STARTER_HERBS, ores = { COPPER } }, -- Elwynn Forest
     [1426] = { 1, 10, fish = 1, herbs = STARTER_HERBS, ores = { COPPER } }, -- Dun Morogh
@@ -200,46 +202,13 @@ local SIDES = {
 }
 for side, maps in pairs(SIDES) do
     for _, mapID in ipairs(maps) do
-        internal.zones[mapID].side = side
+        ns.Data.zones[mapID].side = side
     end
 end
 
--- The dungeons and raids whose entrance is in each zone, from Lib/Instances.lua. Blackrock
--- Mountain sits between Searing Gorge and Burning Steppes, so both list it.
-local I = ns.Instances.byKey
-local BLACKROCK = { I.brd, I.brs, I.mc, I.bwl }
-local DUNGEONS = {
-    [1436] = { I.deadmines }, -- Westfall
-    [1453] = { I.stockade }, -- Stormwind City
-    [1421] = { I.shadowfang }, -- Silverpine Forest
-    [1426] = { I.gnomeregan }, -- Dun Morogh
-    [1455] = { I.hallOfThanes }, -- Ironforge
-    [1458] = { I.ruinsOfLordaeron }, -- Undercity
-    [1420] = { I.scarlet }, -- Tirisfal Glades
-    [1437] = { I.excavationSite }, -- Wetlands
-    [1416] = { I.dalaran }, -- Alterac Mountains
-    [1418] = { I.uldaman }, -- Badlands
-    [1435] = { I.sunkenTemple }, -- Swamp of Sorrows
-    [1427] = BLACKROCK, -- Searing Gorge
-    [1428] = BLACKROCK, -- Burning Steppes
-    [1434] = { I.drownedCity, I.zulgurub }, -- Stranglethorn Vale
-    [2548] = { I.kroldok }, -- Riverglades
-    [1447] = { I.blackmawHold }, -- Azshara
-    [1449] = { I.shapersTerrace }, -- Un'Goro Crater
-    [1422] = { I.scholomance }, -- Western Plaguelands
-    [1423] = { I.stratholme, I.naxxramas }, -- Eastern Plaguelands
-    [1454] = { I.ragefire }, -- Orgrimmar
-    [1413] = { I.wailing, I.razorfenKraul, I.razorfenDowns }, -- The Barrens
-    [1440] = { I.blackfathom }, -- Ashenvale
-    [1443] = { I.maraudon }, -- Desolace
-    [1446] = { I.zulfarrak }, -- Tanaris
-    [1444] = { I.diremaul }, -- Feralas
-    [1445] = { I.alcazPrison, I.onyxia }, -- Dustwallow Marsh
-    [1451] = { I.aq20, I.aq40 }, -- Silithus
+-- Dungeons in a zone whose entrance Data/PointsOfInterest.lua doesn't place (the game's own
+-- entrance list puts them on the map), by zone map ID: instance keys of Data/Instances.lua.
+ns.Data.zoneDungeons = {
+    [2548] = { "kroldok" }, -- Riverglades
+    [1445] = { "alcazPrison" }, -- Dustwallow Marsh
 }
-for mapID, dungeons in pairs(DUNGEONS) do
-    internal.zones[mapID].dungeons = dungeons
-end
-
--- So Self Test lists a zone's map ID the client no longer has.
-ns.GameData.New("zoneInfoZones", internal.zones, { kind = "map", label = "Zone Info zones" })
