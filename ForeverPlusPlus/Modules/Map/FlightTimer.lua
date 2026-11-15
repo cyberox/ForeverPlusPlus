@@ -22,6 +22,7 @@ local module = ns.NewModule("FlightTimer", L.FLIGHTTIMER_DESC, {
     estimates = true,
     landingSound = false,
     landingSoundKind = "readycheck", -- a key of ns.Sounds.CHOICES
+    barColor = "gold", -- a key of BAR_COLORS, or "class" for the character's class color
     scale = 100, -- percent
     x = 0, -- the bar's offset from the center of the screen
     y = 250,
@@ -57,6 +58,30 @@ module.options = {
     },
     ns.Sounds.Option("landingSoundKind", L.FLIGHTTIMER_LANDING_SOUND_KIND_DESC,
         { requires = "landingSound", added = "1.6.0" }),
+    -- In Edit Mode, where the bar is on screen to see the color on.
+    {
+        key = "barColor", name = L.FLIGHTTIMER_COLOR, description = L.FLIGHTTIMER_COLOR_DESC,
+        editMode = true, added = "1.7.0",
+        choices = {
+            { "gold", L.FLIGHTTIMER_COLOR_GOLD },
+            { "class", L.FLIGHTTIMER_COLOR_CLASS },
+            { "blue", L.FLIGHTTIMER_COLOR_BLUE },
+            { "green", L.FLIGHTTIMER_COLOR_GREEN },
+            { "red", L.FLIGHTTIMER_COLOR_RED },
+            { "purple", L.FLIGHTTIMER_COLOR_PURPLE },
+            { "gray", L.FLIGHTTIMER_COLOR_GRAY },
+        },
+    },
+}
+
+-- The bar's colors: gold is the cast bar's, the others near Blizzard's own bars (mana, health).
+local BAR_COLORS = {
+    gold = { 1, 0.7, 0 },
+    blue = { 0.2, 0.5, 1 },
+    green = { 0.1, 0.75, 0.1 },
+    red = { 0.85, 0.15, 0.15 },
+    purple = { 0.64, 0.3, 0.9 },
+    gray = { 0.6, 0.6, 0.6 },
 }
 
 local WIDTH, HEIGHT = 208, 16 -- about Blizzard's cast bar
@@ -171,7 +196,6 @@ local function newBar()
     fill:SetPoint("TOPLEFT", 4, -4)
     fill:SetPoint("BOTTOMRIGHT", -4, 4)
     fill:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
-    fill:SetStatusBarColor(1, 0.7, 0) -- the cast bar's gold
     fill:SetMinMaxValues(0, 1)
     frame.fill = fill
     frame.name = fill:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
@@ -191,9 +215,20 @@ local function newBar()
     return frame
 end
 
+local function paint()
+    local color = BAR_COLORS[module.db.barColor]
+    if module.db.barColor == "class" then
+        local class = ns.Colors.Class("player")
+        color = class and { class.r, class.g, class.b }
+    end
+    color = color or BAR_COLORS.gold
+    bar.fill:SetStatusBarColor(color[1], color[2], color[3])
+end
+
 local function place()
     bar:SetScale(module.db.scale / 100)
     ns.EditMode.Place(bar, module.db.x, module.db.y)
+    paint()
 end
 
 local function fillTo(fraction)
@@ -533,6 +568,9 @@ end
 function module:OnOptionChanged(option)
     if option == "landingSoundKind" then
         playLanding() -- hear the one picked
+    end
+    if option == "barColor" and bar then
+        paint()
     end
     if option == "bar" and bar and not ns.EditMode.IsActive() then
         -- Turned on mid-flight, the bar shows for the rest of it.

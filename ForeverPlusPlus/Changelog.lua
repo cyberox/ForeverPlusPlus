@@ -19,6 +19,8 @@ ns.changelog = {
                     .. "the tram, shows the map of its next stop, out of combat. On a boat that goes round "
                     .. "several stops, clicking on from each takes you round them all. Click for "
                     .. "Next Stop turns it off." },
+                { L.FLIGHTTIMER_TITLE, "Bar Color, in the bar's Edit Mode settings, picks the "
+                    .. "bar's color: gold as before, your class color, or one of five others." },
             } },
             { L.CHANGELOG_CHANGED, {
                 { L.WORLDMAP_TITLE, "Points of Interest's Dungeon Maps shows a dungeon's or raid's "

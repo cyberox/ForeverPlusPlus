@@ -8,6 +8,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 - **World Map**: Points of Interest shows the Deeprun Tram's stations in Stormwind and Ironforge, with a checkbox of their own.
 - **World Map**: clicking one of Points of Interest's boats or zeppelins, or the tram, shows the map of its next stop, out of combat. On a boat that goes round several stops, clicking on from each takes you round them all. Click for Next Stop turns it off.
+- **Flight Timer**: Bar Color, in the bar's Edit Mode settings, picks the bar's color: gold as before, your class color, or one of five others.
 
 ### Changed
 
