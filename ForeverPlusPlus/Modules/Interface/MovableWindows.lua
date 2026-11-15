@@ -18,6 +18,9 @@ local _, ns = ...
 local ipairs, pairs, type, setmetatable = ipairs, pairs, type, setmetatable
 local InCombatLockdown, UIParent, GetMouseFoci = InCombatLockdown, UIParent, GetMouseFoci
 local GetCursorPosition, CreateFrame = GetCursorPosition, CreateFrame
+local GetPhysicalScreenSize, GameTooltip = GetPhysicalScreenSize, GameTooltip
+local TooltipDataProcessor, C_Timer, IsShiftKeyDown = TooltipDataProcessor, C_Timer, IsShiftKeyDown
+local tostring = tostring
 local _G = _G
 
 local L = ns.L
@@ -551,7 +554,131 @@ module.actions = {
     },
 }
 
+-- Steady tooltips ---------------------------------------------------------------------------------
+-- The game wraps a tooltip's wrapped lines at the width of its widest line that doesn't wrap (an
+-- item's name). When a wrapped line's first line is exactly that wide, rounding in where the
+-- tooltip sits decides whether its last word fits, and at some places on screen the answer flips
+-- each time the tooltip is redrawn (five times a second for a bag item), so the word hops between
+-- two lines. Blizzard's own place for the bags happens not to be one of those places; a moved bag
+-- can be, and so can any other moved window (a Waylaid Crate's "Use:" line, with only Blizzard's
+-- lines on the tooltip; docs/forever-api.md has the numbers). Nowhere to put a window avoids it:
+-- whole pixels and a whole number of pixels from Blizzard's place were both tried.
+-- So the tie is broken instead: a tooltip gets a minimum width half a screen pixel over its own,
+-- which gives a word that only just fits half a pixel to spare, more than rounding moves it.
+-- Its own width is only known a frame after it's first drawn (read in the post call, it's still
+-- the last tooltip's, which made every tooltip as wide as the one before), so it's read then,
+-- kept for as long as the tooltip shows the same thing, and used on every redraw of it.
+local pinned = setmetatable({}, weak) -- tooltip -> the minimum width we gave it
+local seen = setmetatable({}, weak) -- tooltip -> what it's showing, as identity() names it
+local natural = setmetatable({}, weak) -- tooltip -> that content's own width, once laid out
+
+-- A minimum width is the width of what's inside the tooltip: the game adds the tooltip's edges
+-- on top (given its own width, a tooltip came out some 30 pixels wider). How much it adds isn't
+-- ours to know, so it's measured once, on the first tooltip we give a minimum: nil until then.
+local border
+
+-- What a tooltip shows, the same for every redraw of it, or nil when the game hides it. Shift
+-- changes our price lines, and with them the width.
+local function identity(data)
+    local kind, id, guid = data.type, data.id, data.guid
+    if not (ns.IsReadable(kind) and ns.IsReadable(id) and ns.IsReadable(guid)) then
+        return nil
+    end
+    return tostring(kind) .. ":" .. tostring(id) .. ":" .. tostring(guid) .. (IsShiftKeyDown() and ":s" or "")
+end
+
+-- Gives the tooltip its minimum width, and says whether that changed anything.
+local function pin(tooltip)
+    local width, scale, minimum = natural[tooltip], tooltip:GetEffectiveScale(), tooltip:GetMinimumWidth()
+    local _, height = GetPhysicalScreenSize()
+    if not (width and ns.IsNumber(scale) and scale > 0 and ns.IsNumber(minimum)
+        and ns.IsNumber(height) and height > 0) then
+        return false
+    end
+    local wanted = width - (border or 0) + 768 / height / scale / 2
+    if wanted <= minimum then
+        return false -- Blizzard gave it more already
+    end
+    tooltip:SetMinimumWidth(wanted)
+    pinned[tooltip] = tooltip:GetMinimumWidth() -- as the game keeps it
+    return true
+end
+
+-- Ours never outlives the draw it was for: taken off when the tooltip is cleared for the next
+-- one, which may be plain text (a button's name) that gets no post call to set its own.
+local function unpin(tooltip)
+    local ours = pinned[tooltip]
+    if ours then
+        pinned[tooltip] = nil
+        local minimum = tooltip:GetMinimumWidth()
+        if ns.IsNumber(minimum) and minimum == ours then
+            tooltip:SetMinimumWidth(0)
+        end
+    end
+end
+
+local function forget(tooltip)
+    unpin(tooltip)
+    seen[tooltip], natural[tooltip] = nil, nil
+end
+
+local function steady(tooltip, data)
+    if tooltip ~= GameTooltip then
+        return
+    end
+    local id = type(data) == "table" and identity(data)
+    if not id then
+        seen[tooltip], natural[tooltip] = nil, nil
+        return
+    end
+    if seen[tooltip] == id then
+        pin(tooltip) -- a redraw of the same thing
+        return
+    end
+    seen[tooltip], natural[tooltip] = id, nil
+    unpin(tooltip) -- the last thing's, if it's somehow still on
+    -- Next frame it's laid out: its width is its own, and it's drawn again with room to spare.
+    C_Timer.After(0, function()
+        if seen[tooltip] ~= id or pinned[tooltip] or not module.enabled then
+            return
+        end
+        local width = tooltip:GetWidth()
+        if ns.IsTrue(tooltip:IsShown()) and ns.IsNumber(width) and width > 0 then
+            natural[tooltip] = width
+            if not pin(tooltip) then
+                return
+            end
+            tooltip:Show()
+            if border then
+                return
+            end
+            -- The first time: a frame on, how much wider than asked it came out is the edges.
+            local asked = pinned[tooltip]
+            C_Timer.After(0, function()
+                if border or seen[tooltip] ~= id or pinned[tooltip] ~= asked then
+                    return
+                end
+                local now = tooltip:GetWidth()
+                if ns.IsNumber(now) then
+                    border = now > asked and now - asked or 0
+                    unpin(tooltip)
+                    if pin(tooltip) then
+                        tooltip:Show()
+                    end
+                end
+            end)
+        end
+    end)
+end
+
 function module:OnEnable()
+    if TooltipDataProcessor and TooltipDataProcessor.AllTypes then
+        self:TooltipPostCall(TooltipDataProcessor.AllTypes, steady)
+        self:HookScript(GameTooltip, "OnHide", forget)
+        self:HookScript(GameTooltip, "OnTooltipCleared", unpin)
+        -- Every use of the tooltip starts here, whether or not it's told it was cleared.
+        self:Hook(GameTooltip, "SetOwner", unpin)
+    end
     hookAll()
     self:On("ADDON_LOADED", hookAll)
     self:On("GLOBAL_MOUSE_DOWN", onGlobalMouseDown)
@@ -570,6 +697,7 @@ function module:OnDisable()
         catcher:Hide()
     end
     hovered = nil
+    forget(GameTooltip)
     putAllBack()
     for frame, movable in pairs(wasMovable) do
         if canMove(frame) then

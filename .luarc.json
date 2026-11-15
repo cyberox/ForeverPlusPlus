@@ -341,6 +341,7 @@
     "InputUtil",
     "GetAppropriateTopLevelParent",
     "GetCursorPosition",
+    "GetPhysicalScreenSize",
     "SetCursor",
     "ResetCursor",
     "MinimalSliderWithSteppersMixin",

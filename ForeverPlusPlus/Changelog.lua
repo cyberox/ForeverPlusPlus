@@ -16,6 +16,9 @@ ns.changelog = {
                 "Auto Weapon Buff and Comprehend Scrolls: with a bag addon that keeps Blizzard's "
                     .. "bags open but out of sight, an item no longer sits unseen where Blizzard's "
                     .. "bag would be, showing its tooltip through other windows.",
+                { L.MOVABLEWINDOWS_TITLE, "the last word of a wrapped tooltip line, such as a Waylaid "
+                    .. "Crate's \"Use:\" line in a moved bag, no longer hops between two lines "
+                    .. "while you hover." },
                 { L.GATHERINGTRACKING_TITLE, "Mute Swap Sound no longer cuts every other sound for "
                     .. "a moment at each swap." },
             } },
