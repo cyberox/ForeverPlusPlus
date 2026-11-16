@@ -134,6 +134,7 @@ One line here says what each file is for. [docs/architecture.md](docs/architectu
 | `SettingsKit.lua` | `SettingsKit` | What a drawn Settings page is made of, for the Settings pages and a tool's `BuildPage`. |
 | `Chat.lua` | `Chat` | The chat windows, rewriting and filtering their lines, and the column of buttons beside them (`NewButton`, `SetBadge`). |
 | `ActionButtons.lua` | `ActionButtons` | Blizzard's action buttons, what each slot holds, and our marks over them. |
+| `StatusBars.lua` | `StatusBars` | Blizzard's experience and reputation bars: the Solid Bar option that takes the divider lines off one. |
 
 **Items**
 

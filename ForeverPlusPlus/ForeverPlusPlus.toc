@@ -82,6 +82,7 @@ Lib\Equipment.lua
 Lib\Durability.lua
 Lib\Talents.lua
 Lib\ActionButtons.lua
+Lib\StatusBars.lua
 Lib\Spellbook.lua
 Lib\Quests.lua
 Lib\QuestieDB.lua

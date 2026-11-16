@@ -27,6 +27,7 @@ local module = ns.NewModule("XPBarText", L.XPBARTEXT_DESC, {
     rate = false,
     questBar = true,
     tooltip = true,
+    solid = false, -- no divider lines over the bar
 })
 module.title = L.XPBARTEXT_TITLE
 module.category = "character"
@@ -71,7 +72,9 @@ module.options = {
         key = "tooltip", name = L.XPBARTEXT_TOOLTIP, description = L.XPBARTEXT_TOOLTIP_DESC,
         added = "0.9.0", section = L.XPBARTEXT_SECTION_BAR,
     },
+    ns.StatusBars.SolidOption({ section = L.XPBARTEXT_SECTION_BAR, added = "1.7.1" }),
 }
+ns.StatusBars.Solid(module, "Experience")
 
 local ADDON = "Blizzard_StatusTrackingBar"
 -- The reputation bar's green, a fill made for this bar.
@@ -367,6 +370,7 @@ local function setUp()
         module:Hook(bar.ExhaustionTick, "ExhaustionToolTipText", addTooltip)
     end
     refreshQuests()
+    ns.StatusBars.Refresh()
 end
 
 function module:OnEnable()
@@ -391,11 +395,14 @@ function module:OnDisable()
         fills[bar]:Hide()
         bar.OverlayFrame:Show()
     end
+    ns.StatusBars.Refresh()
 end
 
 function module:OnOptionChanged(key)
     if key == "rate" then
         tickRate()
+    elseif key == "solid" then
+        ns.StatusBars.Refresh()
     end
     refreshQuests()
 end

@@ -24,6 +24,7 @@ local module = ns.NewModule("RepBarText", L.REPBARTEXT_DESC, {
     rate = false,
     tooltip = true,
     autoWatch = false,
+    solid = false, -- no divider lines over the bar
 })
 module.title = L.REPBARTEXT_TITLE
 module.category = "character"
@@ -36,8 +37,10 @@ module.options = {
     { key = "standing", name = L.REPBARTEXT_STANDING, description = L.REPBARTEXT_STANDING_DESC },
     { key = "rate", name = L.REPBARTEXT_RATE, description = L.REPBARTEXT_RATE_DESC },
     { key = "tooltip", name = L.REPBARTEXT_TOOLTIP, description = L.REPBARTEXT_TOOLTIP_DESC },
+    ns.StatusBars.SolidOption(),
     { key = "autoWatch", name = L.REPBARTEXT_AUTO_WATCH, description = L.REPBARTEXT_AUTO_WATCH_DESC },
 }
+ns.StatusBars.Solid(module, "Reputation")
 
 local ADDON = "Blizzard_StatusTrackingBar"
 local EXALTED = 8 -- the last standing (Blizzard's MAX_REPUTATION_REACTION)
@@ -313,6 +316,7 @@ local function setUp()
         module:HookScript(bar, "OnLeave", hideTooltip)
     end
     updateAll()
+    ns.StatusBars.Refresh()
 end
 
 function module:OnEnable()
@@ -331,6 +335,7 @@ function module:OnDisable()
         texts[bar]:Hide()
         bar.OverlayFrame:Show()
     end
+    ns.StatusBars.Refresh()
 end
 
 function module:OnOptionChanged(key)
@@ -340,6 +345,8 @@ function module:OnOptionChanged(key)
         -- Start from where each faction stands now, not from an old look.
         wipe(known)
         gainedWith()
+    elseif key == "solid" then
+        ns.StatusBars.Refresh()
     end
     updateAll()
 end

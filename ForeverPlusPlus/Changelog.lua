@@ -22,6 +22,8 @@ ns.changelog = {
                     .. "the reputation bar all the time, with the percent and your standing, and "
                     .. "gives the bar a tooltip. Watch Faction You Gain With (off by default) moves "
                     .. "the bar to the faction you last gained reputation with." },
+                { L.XPBARTEXT_TITLE, "Solid Bar (off by default) takes the divider lines off the "
+                    .. "bar. Reputation Bar Text has it too." },
                 { L.TOOLTIPS_TITLE, "Scale makes tooltips bigger or smaller, from 50% to 200%, and "
                     .. "Hide Chat Tab Tooltips (off by default) shows no tooltip over a chat tab." },
                 { L.QUESTTRACKER_TITLE, "Collapse at Login (off by default) starts the tracker "

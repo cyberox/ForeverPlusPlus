@@ -149,6 +149,9 @@ L.SETTINGS_CONTROLLER_LIMITED = "Limited with the controller interface"
 L.SETTINGS_CONTROLLER_LIMITED_DESC = "Some or all of this needs a mouse click, a drag, a held key, "
     .. "or a window the controller's cursor can't reach, and does nothing while the controller "
     .. "interface is on."
+-- An option XP Bar Text and Reputation Bar Text share (Lib/StatusBars.lua)
+L.STATUSBARS_SOLID = "Solid Bar"
+L.STATUSBARS_SOLID_DESC = "Take the divider lines off the bar, so it's one solid bar."
 -- The tooltip of the padlock in a locked module's checkbox's place
 L.SETTINGS_LOCKED ="Turned off and locked: the game broke what this module does. Its settings say more."
 L.SETTINGS_OPTIONS = "Options" -- the header over its options
