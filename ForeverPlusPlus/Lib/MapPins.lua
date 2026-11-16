@@ -551,7 +551,8 @@ local function padLook(_, elapsed)
 end
 
 local function padWatch(map)
-    if padWatcher or not map then
+    -- Not made at all without the controller interface, which takes a reload to turn on.
+    if padWatcher or not map or not ns.Menus.GamepadUI() then
         return
     end
     padWatcher = CreateFrame("Frame", nil, map)

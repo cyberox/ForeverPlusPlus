@@ -81,7 +81,10 @@ local watching = false
 ---@param fn fun()
 function ActionButtons.Watch(module, fn)
     watchers[module] = fn
-    if watching or not (EventRegistry and EventRegistry.RegisterCallback) then
+    -- Only with the controller interface on, so nothing is heard without it: turning it on or
+    -- off takes a reload (the swap needs one "to achieve proper input handling", Blizzard's own
+    -- note in Blizzard_Kiosk's ColdSwap.lua), and modules ask again as they turn on after it.
+    if watching or not ns.Menus.GamepadUI() or not (EventRegistry and EventRegistry.RegisterCallback) then
         return
     end
     watching = true
