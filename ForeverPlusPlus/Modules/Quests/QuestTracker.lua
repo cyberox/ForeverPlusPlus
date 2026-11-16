@@ -6,6 +6,7 @@
 -- It never calls the tracker's update or layout itself: that would run Blizzard's layout as
 -- addon code and could taint the quest item buttons. A font change the tracker has already laid
 -- out settles at its next update (any quest progress, or collapsing and expanding it).
+-- The one exception is Collapse at Login, off by default, which has no other way (see it below).
 local _, ns = ...
 
 local pairs, ipairs, next, type, min, max = pairs, ipairs, next, type, math.min, math.max
@@ -29,6 +30,7 @@ local module = ns.NewModule("QuestTracker", L.QUESTTRACKER_DESC, {
     fadeOpacity = 30, -- percent: the tracker's alpha in combat with Fade in Combat
     sort = "off", -- or "low" / "high": which level comes first
     zone = false,
+    collapse = false, -- collapse the tracker once at login and after a reload
     hidden = {}, -- [questID] = true: quests Current Zone Only untracked on this character
 })
 module.title = L.QUESTTRACKER_TITLE
@@ -67,6 +69,13 @@ module.options = {
         description = L.QUESTTRACKER_ZONE_DESC,
         section = QUESTS,
         added = "0.9.0",
+    },
+    {
+        key = "collapse",
+        name = L.QUESTTRACKER_COLLAPSE,
+        description = L.QUESTTRACKER_COLLAPSE_DESC,
+        section = QUESTS,
+        added = "1.7.1",
     },
     {
         key = "font",
@@ -760,6 +769,27 @@ local function setZoneFilter(on)
         restoreHidden()
     end
 end
+
+-- Collapse at login -------------------------------------------------------------------------------
+-- The tracker starts every session expanded and keeps no setting for it, so the only way to start
+-- collapsed is its own SetCollapsed, as its header button calls and as other addons do (Quest Log
+-- Collapse, MinimizeAllObjectives). That runs one tracker update as addon code, the thing the rest
+-- of this file avoids, so it's off by default, runs only at login and after a reload (not on
+-- other loading screens), and waits out combat. Idea from afrayedknot1337 on CurseForge.
+local function collapseAtLogin(_, isLogin, isReload)
+    if not (isLogin or isReload) then
+        return
+    end
+    ns.AfterCombat(function()
+        local frame = tracker()
+        if module.enabled and module.db.collapse and frame.SetCollapsed and frame.IsCollapsed
+            and not frame:IsCollapsed() then
+            frame:SetCollapsed(true)
+        end
+    end)
+end
+
+module:OnWhile("collapse", { PLAYER_ENTERING_WORLD = collapseAtLogin })
 
 -- Module ------------------------------------------------------------------------------------------
 

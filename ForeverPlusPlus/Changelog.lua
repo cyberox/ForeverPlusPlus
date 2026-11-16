@@ -19,6 +19,8 @@ ns.changelog = {
                 { L.HIDEMENUBARS_TITLE, "a new module, off by default, that hides the bag bar and "
                     .. "the micro menu until the mouse is over them, or always." },
                 { L.TOOLTIPS_TITLE, "Scale makes tooltips bigger or smaller, from 50% to 200%." },
+                { L.QUESTTRACKER_TITLE, "Collapse at Login (off by default) starts the tracker "
+                    .. "collapsed each time you log in or reload." },
             } },
         },
     },
