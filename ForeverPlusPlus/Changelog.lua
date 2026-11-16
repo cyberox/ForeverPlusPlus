@@ -10,7 +10,7 @@ local L = ns.L
 
 ns.changelog = {
     {
-        version = L.CHANGELOG_UNRELEASED,
+        version = "1.7.0", date = "2026-11-15",
         sections = {
             { L.CHANGELOG_ADDED, {
                 { L.ITEMTOOLTIPS_TITLE, "Auction Prices' Scan Button (off by default) puts a button "
