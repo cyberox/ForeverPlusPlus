@@ -18,6 +18,13 @@ local HOLIDAY = ns.GameData.New("questPinsHolidaySorts", { [404] = true, [402] =
     [376] = true, [375] = true, [374] = true, [370] = true, [369] = true, [366] = true, [364] = true,
     [41] = true, [22] = true, [21] = true }, { label = "Quest Pins: holiday quest categories" })
 local WAR_EFFORT = 365
+-- Player-versus-player quests: QuestieDB's Battlegrounds sort (25), a quest listed under a
+-- battleground itself (its areas: Alterac Valley, Warsong Gulch, Arathi Basin; same enum folder,
+-- zones.lua, read 2026-11-15 at QuestieDB 1.1.1), or one the client tags PvP (41, Classic's tag).
+local BATTLEGROUNDS = 25
+local PVP_AREAS = ns.GameData.New("questPinsPvpAreas", { [2597] = true, [3277] = true, [3358] = true },
+    { label = "Quest Pins: battleground areas" })
+local PVP_TAG = 41
 
 -- QuestieDB's race mask: the race ID's own bit for Classic's eight, and bits 33 and 34 for
 -- Forever's two Skyborne races, 95 (Alliance) and 96 (Horde), as its raceMaskById has them
@@ -32,7 +39,7 @@ local NEW_RACE_BITS = { [95] = 33, [96] = 34 }
 -- The client's quest tags for a dungeon or a raid (Classic's: Dungeon, Raid, Heroic, Raid 10 and
 -- 25, Scenario).
 local INSTANCE_TAGS = { [81] = true, [62] = true, [85] = true, [88] = true, [89] = true, [98] = true }
-local tagged = {} -- quest ID -> true or false, once the client has answered
+local tagged = {} -- quest ID -> its tag's ID, once the client has answered
 
 -- Whether a mask of races or classes has the bit of an ID (1, 2, 3, ... from the lowest bit).
 local function inMask(mask, id)
@@ -49,23 +56,33 @@ local function raceInMask(mask, race)
     return not bit or inMask(mask, bit)
 end
 
-local function isInstance(id, info)
+-- The client's tag for a quest, or nil while it hasn't said.
+local function tagOf(id)
     local known = tagged[id]
     if known == nil and C_QuestLog and C_QuestLog.GetQuestTagInfo then
         local tag = C_QuestLog.GetQuestTagInfo(id)
         if type(tag) == "table" and tag.tagID then
-            known = INSTANCE_TAGS[tag.tagID] == true
+            known = tag.tagID
             tagged[id] = known
         end
     end
-    if known ~= nil then
-        return known
+    return known
+end
+
+local function isInstance(id, info)
+    local tag = tagOf(id)
+    if tag ~= nil then
+        return INSTANCE_TAGS[tag] == true
     end
     return info.raid
 end
 
+local function isPvp(id, info)
+    return info.sort == BATTLEGROUNDS or (info.area and PVP_AREAS:Get(info.area)) or tagOf(id) == PVP_TAG
+end
+
 ---What a quest is for its pin's color and its kind's checkbox: "holiday", "instance", "class",
----"profession", "repeatable", "war", or "normal".
+---"profession", "repeatable", "war", "pvp", or "normal".
 ---@param id number
 ---@return string
 function internal.Category(id)
@@ -75,6 +92,8 @@ function internal.Category(id)
     end
     if info.sort and HOLIDAY:Get(info.sort) then
         return "holiday"
+    elseif isPvp(id, info) then
+        return "pvp" -- before repeatable: a battleground's turn-ins go with its other quests
     elseif isInstance(id, info) then
         return "instance"
     elseif info.classes then
@@ -243,7 +262,7 @@ function internal.Check(id)
     local kind = internal.Category(id)
     if kind == "holiday" and not db.holiday or kind == "instance" and not db.dungeon or kind == "class" and not db.class
         or kind == "profession" and not db.profession or kind == "normal" and not db.normal
-        or kind == "repeatable" and not db.repeatable then
+        or kind == "repeatable" and not db.repeatable or kind == "pvp" and not db.pvp then
         return false, "kind"
     elseif kind == "war" and not (db.warEffort and (db.warEffortAlways or warEffortSeen())) then
         return false, "war effort"

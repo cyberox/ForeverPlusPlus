@@ -10,6 +10,16 @@ local L = ns.L
 
 ns.changelog = {
     {
+        version = L.CHANGELOG_UNRELEASED,
+        sections = {
+            { L.CHANGELOG_ADDED, {
+                { L.QUESTPINS_TITLE, "PvP Quests, a kind of its own for battleground and other "
+                    .. "player-versus-player quests, in Settings and the map's filter menu. Untick it "
+                    .. "to hide their pins." },
+            } },
+        },
+    },
+    {
         version = "1.7.0", date = "2026-11-15",
         sections = {
             { L.CHANGELOG_ADDED, {

@@ -34,6 +34,7 @@ local KIND_NAME = {
     holiday = L.QUESTPINS_KIND_HOLIDAY,
     instance = L.QUESTPINS_KIND_INSTANCE, class = L.QUESTPINS_KIND_CLASS,
     profession = L.QUESTPINS_KIND_PROFESSION, repeatable = L.QUESTPINS_KIND_REPEATABLE,
+    pvp = L.QUESTPINS_KIND_PVP, -- named, but no tint of its own
 }
 
 -- Clusters ----------------------------------------------------------------------------------------
@@ -123,7 +124,7 @@ end
 
 -- The color and the kind of a pin from its quests: the first kind every quest is of, else a plain
 -- pin. Pin Colors can color it by how hard its first quest is instead, or not at all.
-local ORDER = { "holiday", "instance", "class", "profession", "repeatable" }
+local ORDER = { "holiday", "pvp", "instance", "class", "profession", "repeatable" }
 
 local function kindOf(quests)
     for _, kind in ipairs(ORDER) do
@@ -374,6 +375,7 @@ local MENU_KINDS = {
     { key = "class", name = L.QUESTPINS_CLASS },
     { key = "profession", name = L.QUESTPINS_PROFESSION },
     { key = "dungeon", name = L.QUESTPINS_DUNGEON },
+    { key = "pvp", name = L.QUESTPINS_PVP },
     { key = "holiday", name = L.QUESTPINS_HOLIDAY },
     { key = "warEffort", name = L.QUESTPINS_WAR_EFFORT },
 }

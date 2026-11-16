@@ -82,7 +82,7 @@ local function indexQuest(questID)
         skill = q.requiredSkill and q.requiredSkill.id, skillValue = q.requiredSkill and q.requiredSkill.value,
         all = nonEmpty(q.prerequisites.all), any = nonEmpty(q.prerequisites.any),
         exclusive = nonEmpty(q.exclusiveTo), breadcrumbFor = q.breadcrumbFor,
-        repeatable = q.repeatable, raid = q.raid, sort = q.sortID,
+        repeatable = q.repeatable, raid = q.raid, sort = q.sortID, area = q.areaID,
         minRep = q.minRep, maxRep = q.maxRep,
         npcGiver = #q.starters.npcs > 0,
     }

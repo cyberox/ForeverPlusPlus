@@ -2,6 +2,12 @@
 
 What changed in each release of Forever++. The same notes show in game under Settings > AddOns > Forever++ > Changelog, from [`ForeverPlusPlus/Changelog.lua`](ForeverPlusPlus/Changelog.lua); change both together.
 
+## Unreleased
+
+### Added
+
+- **Quest Pins**: PvP Quests, a kind of its own for battleground and other player-versus-player quests, in Settings and the map's filter menu. Untick it to hide their pins.
+
 ## 1.7.0 (2026-11-15)
 
 ### Added

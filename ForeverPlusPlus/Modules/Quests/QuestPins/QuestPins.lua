@@ -36,6 +36,7 @@ local module = ns.NewModule("QuestPins", L.QUESTPINS_DESC, {
     class = true,
     profession = true,
     dungeon = false,
+    pvp = true,
     warEffort = false,
     warEffortAlways = false,
     low = "hide", -- quests lowGap or more levels below the player: "hide", "fade", or "off" (shown)
@@ -52,7 +53,7 @@ local module = ns.NewModule("QuestPins", L.QUESTPINS_DESC, {
 module.perCharacter = { hidden = true }
 module.title = L.QUESTPINS_TITLE
 module.category = "quests"
-module.presets = { developer = { enabled = true } }
+module.presets = { developer = { enabled = true, options = { pvp = false } } }
 module.added = "1.6.0"
 module.internal = {}
 local internal = module.internal
@@ -93,6 +94,8 @@ module.options = {
         requires = "pins", section = KINDS },
     { key = "dungeon", name = L.QUESTPINS_DUNGEON, description = L.QUESTPINS_DUNGEON_DESC,
         requires = "pins", section = KINDS },
+    { key = "pvp", name = L.QUESTPINS_PVP, description = L.QUESTPINS_PVP_DESC, requires = "pins",
+        section = KINDS, added = "1.7.1" },
     { key = "holiday", name = L.QUESTPINS_HOLIDAY, description = L.QUESTPINS_HOLIDAY_DESC,
         requires = "pins", section = KINDS },
     { key = "warEffort", name = L.QUESTPINS_WAR_EFFORT, description = L.QUESTPINS_WAR_EFFORT_DESC,
