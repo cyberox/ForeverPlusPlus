@@ -21,6 +21,8 @@ ns.changelog = {
                 { L.TOOLTIPS_TITLE, "Scale makes tooltips bigger or smaller, from 50% to 200%." },
                 { L.QUESTTRACKER_TITLE, "Collapse at Login (off by default) starts the tracker "
                     .. "collapsed each time you log in or reload." },
+                { L.CURRENCYBAR_TITLE, "Show on Mouseover (off by default) hides the box until the "
+                    .. "mouse is over it." },
                 "Controller interface: Spell Ranks, Macros, and Auto Weapon Buff work on its action "
                     .. "bars, Loot Rolls' seconds and roll counts and the item marks show on its "
                     .. "roll list, map icons show their tooltip under its map cursor, and "

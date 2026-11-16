@@ -200,6 +200,9 @@ L.CURRENCYBAR_CURRENCIES_DESC = "Show the currencies you have ticked Show on Bac
     .. "Currency tab."
 L.CURRENCYBAR_VERTICAL = "Vertical"
 L.CURRENCYBAR_VERTICAL_DESC = "Stack the gold and currencies in a column instead of a row."
+L.CURRENCYBAR_MOUSEOVER = "Show on Mouseover"
+L.CURRENCYBAR_MOUSEOVER_DESC = "Hide the box until the mouse is over where it sits. It still shows "
+    .. "in Edit Mode."
 
 -- LocalTime
 L.LOCALTIME_TITLE = "Local Time"

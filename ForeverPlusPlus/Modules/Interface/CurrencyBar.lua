@@ -20,6 +20,7 @@ local module = ns.NewModule("CurrencyBar", L.CURRENCYBAR_DESC, {
     session = true,
     perHour = true, -- this session's gold per hour, in the tooltip
     vertical = false,
+    mouseover = false, -- out of sight until the mouse is over it
     scale = 120, -- percent
     x = 977, -- the box's offset from the center of the screen (kept on screen on smaller ones)
     y = -462,
@@ -34,6 +35,8 @@ module.options = {
     { key = "currencies", name = L.CURRENCYBAR_CURRENCIES, description = L.CURRENCYBAR_CURRENCIES_DESC },
     { key = "vertical", name = L.CURRENCYBAR_VERTICAL, description = L.CURRENCYBAR_VERTICAL_DESC,
         editMode = true },
+    { key = "mouseover", name = L.CURRENCYBAR_MOUSEOVER, description = L.CURRENCYBAR_MOUSEOVER_DESC,
+        added = "1.7.1" },
     { key = "tooltip", name = L.CURRENCYBAR_TOOLTIP, description = L.CURRENCYBAR_TOOLTIP_DESC },
     {
         key = "session", requires = "tooltip",
@@ -207,6 +210,18 @@ end
 
 -- The frame ---------------------------------------------------------------------------------------
 
+-- Show on Mouseover: the box is faded out, not hidden, so it still takes the mouse where it sits
+-- and shows while the mouse is over it. It always shows in Edit Mode, where it's moved, and with
+-- the controller interface on, where there's no mouse to bring it back.
+local function fade()
+    if not frame then
+        return
+    end
+    local hide = module.db.mouseover and not frame:IsMouseOver() and not ns.EditMode.IsActive()
+        and not ns.Menus.GamepadUI()
+    frame:SetAlpha(hide and 0 or 1)
+end
+
 local function newFrame()
     -- The same box Blizzard draws tooltips in.
     local box = ns.Frames.TooltipBox(UIParent)
@@ -222,11 +237,15 @@ local function newFrame()
     box:SetClampedToScreen(true)
     box:EnableMouse(true)
     box:SetScript("OnEnter", function(self)
+        fade()
         if module.db.tooltip then
             showTooltip(self)
         end
     end)
-    box:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    box:SetScript("OnLeave", function()
+        GameTooltip:Hide()
+        fade()
+    end)
     box:Hide()
     return box
 end
@@ -257,6 +276,12 @@ function module:OnEnable()
     self:On("CURRENCY_DISPLAY_UPDATE", onCurrencies)
     self:On("PLAYER_ENTERING_WORLD", onCurrencies)
     ns.EditMode.RegisterModule(self, frame, L.CURRENCYBAR_TITLE, layout)
+    -- Probe: Edit Mode is Mainline's. The box shows while it's open.
+    if EditModeManagerFrame then
+        self:HookScript(EditModeManagerFrame, "OnShow", fade)
+        self:HookScript(EditModeManagerFrame, "OnHide", fade)
+    end
+    fade()
 end
 
 function module:OnDisable()
@@ -268,4 +293,5 @@ end
 
 function module:OnOptionChanged()
     update()
+    fade()
 end

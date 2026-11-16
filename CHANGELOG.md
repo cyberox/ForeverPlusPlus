@@ -10,6 +10,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Hide Bag and Menu Bars**: a new module, off by default, that hides the bag bar and the micro menu until the mouse is over them, or always.
 - **Tooltips**: Scale makes tooltips bigger or smaller, from 50% to 200%.
 - **Quest Tracker**: Collapse at Login (off by default) starts the tracker collapsed each time you log in or reload.
+- **Currency Bar**: Show on Mouseover (off by default) hides the box until the mouse is over it.
 - Controller interface: Spell Ranks, Macros, and Auto Weapon Buff work on its action bars, Loot Rolls' seconds and roll counts and the item marks show on its roll list, map icons show their tooltip under its map cursor, and Tooltips' Scale covers its buff tooltip. World Map's Coordinates and Zone Info follow its map cursor, and a module that needs a mouse or a held key says so in Settings while it's on. A held trigger counts as a module's Skip Key, and tooltip lines shown only with Shift always show.
 
 ## 1.7.0 (2026-11-15)
