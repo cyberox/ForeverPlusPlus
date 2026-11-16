@@ -302,6 +302,7 @@ function module:OnEnable()
     self:On("UPDATE_BONUS_ACTIONBAR", queue)
     self:On("UPDATE_SHAPESHIFT_FORM", queue)
     self:On("PLAYER_REGEN_ENABLED", queue) -- buttons created late, when we were in combat
+    ActionButtons.Watch(self, queue) -- the controller interface's bars changing page
     self:On("SPELL_DATA_LOAD_RESULT", onLoaded)
     self:TooltipPostCall(Enum.TooltipDataType and Enum.TooltipDataType.Spell, onTooltip)
     known, rankOf = nil, {}

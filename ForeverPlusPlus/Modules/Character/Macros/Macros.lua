@@ -223,6 +223,7 @@ function module:OnEnable()
     self:On("ACTIONBAR_PAGE_CHANGED", queueMarks)
     self:On("UPDATE_BONUS_ACTIONBAR", queueMarks)
     self:On("UPDATE_MACROS", queueMarks)
+    ActionButtons.Watch(self, queueMarks) -- the controller interface's bars changing page
     self:On("PLAYER_REGEN_ENABLED", queueMarks) -- marks wanted in combat, on buttons without one yet
     queueMarks()
 end

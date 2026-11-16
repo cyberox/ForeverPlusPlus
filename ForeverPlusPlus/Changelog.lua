@@ -21,6 +21,8 @@ ns.changelog = {
                 { L.TOOLTIPS_TITLE, "Scale makes tooltips bigger or smaller, from 50% to 200%." },
                 { L.QUESTTRACKER_TITLE, "Collapse at Login (off by default) starts the tracker "
                     .. "collapsed each time you log in or reload." },
+                "Spell Ranks, Macros, and Auto Weapon Buff now work on the controller interface's "
+                    .. "action bars.",
             } },
         },
     },

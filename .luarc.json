@@ -359,6 +359,7 @@
     "FRAMERATE_LABEL",
     "MicroMenu",
     "BagsBar",
+    "GamepadMainActionBarFrame",
     "MicroMenuContainer",
     "TaxiFrame",
     "FlightMapFrame",

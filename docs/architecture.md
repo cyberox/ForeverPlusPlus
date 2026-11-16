@@ -254,7 +254,7 @@ Generated files, in `Lib/Generated/` (never edited by hand; see Generated data):
 
 ### `ActionButtons.lua`
 
-- `ns.ActionButtons`: Blizzard's action buttons, what each slot holds, and our own marks over them.
+- `ns.ActionButtons`: Blizzard's action buttons, what each slot holds, and our own marks over them. `Each` walks the bars in use: the controller interface's own while it's on, the usual ones otherwise (`all` for both). `Watch(module, fn)` tells a module when a button's slot changes without an action bar event, as the controller bars' pages do.
 
 ### `Spellbook.lua`
 

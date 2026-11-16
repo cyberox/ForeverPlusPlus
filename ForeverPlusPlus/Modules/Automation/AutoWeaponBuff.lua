@@ -350,8 +350,9 @@ local function updateButton(button)
     setTarget(button, module.enabled and actionTarget(button) or nil)
 end
 
+-- Both sets of bars, the controller interface's too: a button out of use just holds nothing.
 local updateBars = ns.Frames.Coalesce(function()
-    ns.ActionButtons.Each(updateButton)
+    ns.ActionButtons.Each(updateButton, true)
 end, nil, module)
 
 -- Takes our attribute off every button. Only out of combat: at PLAYER_REGEN_DISABLED lockdown may
@@ -395,7 +396,8 @@ function module:OnEnable()
     if GetActionInfo then
         ns.ActionButtons.Each(function(button)
             self:HookScript(button, "PreClick", onActionPreClick)
-        end)
+        end, true)
+        ns.ActionButtons.Watch(self, updateBars) -- the controller interface's bars changing page
         for _, event in pairs(BAR_EVENTS) do
             if ns.HasEvent(event) then
                 self:On(event, updateBars)

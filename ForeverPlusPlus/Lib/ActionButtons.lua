@@ -6,7 +6,7 @@ local _, ns = ...
 
 local _G, ipairs, pairs, setmetatable = _G, ipairs, pairs, setmetatable
 local CreateFrame, GetActionInfo, InCombatLockdown = CreateFrame, GetActionInfo, InCombatLockdown
-local C_ActionBar, GetActionText = C_ActionBar, GetActionText
+local C_ActionBar, GetActionText, EventRegistry = C_ActionBar, GetActionText, EventRegistry
 
 local ActionButtons = {}
 ns.ActionButtons = ActionButtons
@@ -24,17 +24,74 @@ local BUTTONS = 12
 -- on it, so a mark is never drawn under them.
 local LEVELS_ABOVE = 20
 
----Calls `fn(button, bar, index)` for every Blizzard action button this client has.
----@param fn fun(button: table, bar: number, index: number)
-function ActionButtons.Each(fn)
-    for bar, prefix in ipairs(BARS) do
-        for index = 1, BUTTONS do
-            local button = _G[prefix .. index]
-            if button then
+-- The controller interface's bars, which stand in for every bar above while it's on (Blizzard
+-- hides those): four bars of eight buttons, and the stance's own slots. They're real action
+-- buttons with slots of their own, kept in `GamepadMainActionBarFrame.PageUnit.actionBars[key]
+-- .actionButtons` (Blizzard_GamepadActionBars' PageUnit.lua and ActionBar.lua, build 70938; read,
+-- not seen in game). The targeting and shortcut bars, and the top bar's Interact, Inspect, Back,
+-- and Jump, hold no action: their slot is 0, which Content gives nil for.
+local PAD_BARS = { "topBar", "leftBar", "rightBar", "bottomBar", "stanceBar" }
+
+local function eachPadButton(fn)
+    local frame = GamepadMainActionBarFrame
+    local unit = frame and frame.PageUnit
+    local bars = unit and unit.actionBars
+    if not bars then
+        return
+    end
+    for bar, key in ipairs(PAD_BARS) do
+        local buttons = bars[key] and bars[key].actionButtons
+        if buttons then
+            for index, button in ipairs(buttons) do
                 fn(button, bar, index)
             end
         end
     end
+end
+
+---Calls `fn(button, bar, index)` for every Blizzard action button in use: the controller
+---interface's while it's on, the usual bars' otherwise. With `all`, both sets, for hooking every
+---button once (bar numbers then repeat between the two).
+---@param fn fun(button: table, bar: number, index: number)
+---@param all boolean?
+function ActionButtons.Each(fn, all)
+    local pad = ns.Menus.GamepadUI()
+    if all or not pad then
+        for bar, prefix in ipairs(BARS) do
+            for index = 1, BUTTONS do
+                local button = _G[prefix .. index]
+                if button then
+                    fn(button, bar, index)
+                end
+            end
+        end
+    end
+    if all or pad then
+        eachPadButton(fn)
+    end
+end
+
+local watchers = {} -- module -> fn
+local watching = false
+
+---Calls `fn()` while `module` is on, each time a button's slot changes without one of the action
+---bar events: the controller interface's bars change page by giving each button another slot,
+---and say so only through EventRegistry's "ActionButton.OnActionChanged". Coalesce what it does.
+---@param module table
+---@param fn fun()
+function ActionButtons.Watch(module, fn)
+    watchers[module] = fn
+    if watching or not (EventRegistry and EventRegistry.RegisterCallback) then
+        return
+    end
+    watching = true
+    EventRegistry:RegisterCallback("ActionButton.OnActionChanged", function()
+        for watcher, changed in pairs(watchers) do
+            if watcher.enabled then
+                changed()
+            end
+        end
+    end, ActionButtons)
 end
 
 ---What the button's slot holds: its kind ("spell", "macro", "item") and ID, or nil for an empty
@@ -47,7 +104,7 @@ end
 ---@return string? subType
 function ActionButtons.Content(button)
     local action = button.action
-    if not (action and readable(action)) then
+    if not (action and readable(action)) or action == 0 then
         return nil
     end
     local kind, id, subType = GetActionInfo(action)
