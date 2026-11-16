@@ -31,21 +31,39 @@ local function solid(container)
     return false
 end
 
----Fades each container's divider lines out or back in, for what it shows now. A module calls it
----when it turns on or off and when its Solid Bar option changes.
-function StatusBars.Refresh()
+local apply
+
+-- At login the lines came back after ours were faded, with nothing of the above run again
+-- (in game, 2026-11-16: 19 lines at alpha 1 beside a shown bar with Solid Bar on). So every
+-- change is also looked at a frame later and once more when the bar's fade-in is over.
+local nextFrame = ns.Frames.Coalesce(function() apply() end)
+local settled = ns.Frames.Coalesce(function() apply() end, 1)
+local function onChange()
+    apply()
+    nextFrame()
+    settled()
+end
+
+local listening
+
+function apply()
     local manager = StatusTrackingBarManager
     if not (manager and manager.barContainers) then
         return
+    end
+    if not listening then
+        listening = true
+        -- Blizzard picks and shows the bars here, after the modules have turned on.
+        ns.On("PLAYER_ENTERING_WORLD", onChange)
     end
     for _, container in ipairs(manager.barContainers) do
         if not hooked[container] then
             hooked[container] = true
             -- Blizzard lays the lines out again when the bar's width changes.
-            hooksecurefunc(container, "UpdateDividers", StatusBars.Refresh)
+            hooksecurefunc(container, "UpdateDividers", onChange)
             for _, bar in pairs(container.bars or {}) do
-                bar:HookScript("OnShow", StatusBars.Refresh)
-                bar:HookScript("OnHide", StatusBars.Refresh)
+                bar:HookScript("OnShow", onChange)
+                bar:HookScript("OnHide", onChange)
             end
         end
         -- Made by UpdateDividers the first time it runs, not in the container's XML.
@@ -57,6 +75,12 @@ function StatusBars.Refresh()
             end
         end
     end
+end
+
+---Fades each container's divider lines out or back in, for what it shows now. A module calls it
+---when it turns on or off and when its Solid Bar option changes.
+function StatusBars.Refresh()
+    onChange()
 end
 
 ---Gives a module's bar its Solid Bar option: the bar's divider lines are off while the module is
