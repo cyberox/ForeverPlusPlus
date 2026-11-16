@@ -561,6 +561,19 @@ local function padWatch(map)
         self:SetScript("OnUpdate", ns.Menus.GamepadUI() and _G.SoftCursor and padLook or nil)
     end)
     padWatcher:SetScript("OnHide", padLeave)
+    -- The A button: the map clicks its own pins under the cursor (ClickHoveredPins), then goes
+    -- into the zone there (WorldMapMixin:GamepadMapClick, build 70938). Ours aren't among its
+    -- pins, so the one under the cursor gets its plain click here, between the two. Seen in game
+    -- 2026-11-16: the tooltips showed, but A did nothing on a dungeon's icon.
+    if map.ClickHoveredPins then
+        hooksecurefunc(map, "ClickHoveredPins", function()
+            local pin = padPin
+            local info = pin and pin.info
+            if info and info.click then
+                info.click(pin, "LeftButton")
+            end
+        end)
+    end
     if map:IsVisible() then
         padWatcher:GetScript("OnShow")(padWatcher)
     end
