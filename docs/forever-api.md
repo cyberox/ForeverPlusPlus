@@ -268,6 +268,7 @@ Forever inherits Midnight's addon restrictions. `AGENTS.md` has the rules for wr
 ## Experience bar
 
 - The experience bar comes from `Blizzard_StatusTrackingBar` (`Shared/ExpBar.lua` with `Mainline/ExpBarOverrides.lua` on Forever). `StatusTrackingBarManager.barContainers` holds Edit Mode's two bar containers, and each has its own experience bar at `container.bars[StatusTrackingBarInfo.BarsEnum.Experience]`. Its text is `bar.OverlayFrame.Text` (`TextStatusBarText`, centered 1 up), set by `UpdateCurrentText` on every XP update and shown by `UpdateTextVisibility` while the mouse is over it or CVar `xpBarText` is on. **[web]** (Gethe `forever` branch, 1.60.1.70338, checked 2026-10-10) XP Bar Text hooks those two methods on each bar; that it works in game, and that `GetQuestLogRewardXP(questID)` gives quest XP on Forever, is **Unverified**.
+- The reputation bar is in the same containers, at `container.bars[StatusTrackingBarInfo.BarsEnum.Reputation]` (`Shared/ReputationBar.lua`). Its `Update` reads `C_Reputation.GetWatchedFactionData()` (`factionID`, `name`, `reaction`, `currentReactionThreshold`, `nextReactionThreshold`, `currentStanding`) and sets the text itself; `UpdateCurrentText` only runs on mouseover. Its `OnEnter` shows a tooltip only for a paragon reward. **[web]** (wow-ui-source, build 70938, read 2026-11-16) Reputation Bar Text hooks `Update` and the two text methods; that it works in game, and that `C_Reputation.SetWatchedFactionByID` moves the bar on Forever, is **Unverified**.
 
 ## Recent allies
 

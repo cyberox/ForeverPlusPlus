@@ -18,6 +18,10 @@ ns.changelog = {
                     .. "to hide their pins." },
                 { L.HIDEMENUBARS_TITLE, "a new module, off by default, that hides the bag bar and "
                     .. "the micro menu until the mouse is over them, or always." },
+                { L.REPBARTEXT_TITLE, "a new module, on by default, that shows your reputation on "
+                    .. "the reputation bar all the time, with the percent and your standing, and "
+                    .. "gives the bar a tooltip. Watch Faction You Gain With (off by default) moves "
+                    .. "the bar to the faction you last gained reputation with." },
                 { L.TOOLTIPS_TITLE, "Scale makes tooltips bigger or smaller, from 50% to 200%, and "
                     .. "Hide Chat Tab Tooltips (off by default) shows no tooltip over a chat tab." },
                 { L.QUESTTRACKER_TITLE, "Collapse at Login (off by default) starts the tracker "

@@ -362,6 +362,7 @@ What each module is, in the code's terms (what it does for players is in `README
 - **Movable Framerate**
 - **Local Time**: the calendar's and a few other realm times of day in the player's time while the clock's Use Local Time is on.
 - **XP Bar Text**
+- **Reputation Bar Text**: `RepBarText`: our text over each container's reputation bar as XP Bar Text does it, a tooltip of our own, and the watched faction moved to the one that last gained.
 - **AddOns List**
 - **Error Catcher**
 - **Minimap Button**: its menu of quick toggles, picked by the player with the Customize button in its settings.

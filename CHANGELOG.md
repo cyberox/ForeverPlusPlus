@@ -8,6 +8,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 - **Quest Pins**: PvP Quests, a kind of its own for battleground and other player-versus-player quests, in Settings and the map's filter menu. Untick it to hide their pins.
 - **Hide Bag and Menu Bars**: a new module, off by default, that hides the bag bar and the micro menu until the mouse is over them, or always.
+- **Reputation Bar Text**: a new module, on by default, that shows your reputation on the reputation bar all the time, with the percent and your standing, and gives the bar a tooltip. Watch Faction You Gain With (off by default) moves the bar to the faction you last gained reputation with.
 - **Tooltips**: Scale makes tooltips bigger or smaller, from 50% to 200%, and Hide Chat Tab Tooltips (off by default) shows no tooltip over a chat tab.
 - **Quest Tracker**: Collapse at Login (off by default) starts the tracker collapsed each time you log in or reload.
 - **Currency Bar**: Show on Mouseover (off by default) hides the box until the mouse is over it.

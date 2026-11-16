@@ -447,3 +447,35 @@ L.XPBARTEXT_AMOUNT = "%s (%d%%)" -- an amount of XP, as a percent of the level
 L.XPBARTEXT_RESTED_TEXT = "Rested: %s"
 L.XPBARTEXT_QUESTS_TEXT = "Quests: %s"
 L.XPBARTEXT_RATE_TEXT = "%s/hr (%s to level)" -- XP per hour, time to level as a clock
+
+-- RepBarText
+L.REPBARTEXT_TITLE = "Reputation Bar Text"
+L.REPBARTEXT_DESC = "Show your reputation on the reputation bar all the time, with the percent and "
+    .. "your standing. Its tooltip adds what's left to the next standing and what you've gained "
+    .. "since you logged in."
+L.REPBARTEXT_ALWAYS = "Always Show Text"
+L.REPBARTEXT_ALWAYS_DESC = "Show the text all the time. Turn it off to see it only while the "
+    .. "mouse is over the bar."
+L.REPBARTEXT_PERCENT = "Show Percent"
+L.REPBARTEXT_PERCENT_DESC = "Show how far through the standing you are."
+L.REPBARTEXT_STANDING = "Show Standing"
+L.REPBARTEXT_STANDING_DESC = "Show your standing, such as Friendly, after the faction's name."
+L.REPBARTEXT_RATE = "Show Reputation per Hour"
+L.REPBARTEXT_RATE_DESC = "Show your reputation per hour since you logged in and the time to the "
+    .. "next standing at that pace."
+L.REPBARTEXT_TOOLTIP = "Tooltip"
+L.REPBARTEXT_TOOLTIP_DESC = "Give the bar a tooltip with your standing, the reputation left to the "
+    .. "next one, and what you've gained since you logged in and at what pace."
+L.REPBARTEXT_AUTO_WATCH = "Watch Faction You Gain With"
+L.REPBARTEXT_AUTO_WATCH_DESC = "Move the bar to a faction when you gain reputation with it. A "
+    .. "faction under a collapsed header in the Reputation window isn't seen."
+L.REPBARTEXT_NAME_STANDING = "%s (%s)" -- the faction, your standing
+L.REPBARTEXT_REP = "%s: %s / %s" -- the faction (and standing), reputation into it, what it needs
+L.REPBARTEXT_WITH_PERCENT = "%s (%d%%)" -- the reputation text, its percent
+L.REPBARTEXT_AMOUNT = "%s (%d%%)" -- an amount of reputation, as a percent of the standing
+L.REPBARTEXT_RATE_TEXT = "%s/hr (%s to %s)" -- reputation per hour, time as a clock, the next standing
+L.REPBARTEXT_TIP_STANDING = "Standing:"
+L.REPBARTEXT_TIP_LEFT = "To %s:" -- the next standing
+L.REPBARTEXT_TIP_SESSION = "This Session:"
+L.REPBARTEXT_TIP_RATE = "Reputation per Hour:"
+L.REPBARTEXT_TIP_TIME = "Time to %s:" -- the next standing

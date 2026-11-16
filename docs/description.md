@@ -54,6 +54,7 @@ Everything is on by default except where noted. Each module can be turned off, a
 - **Spell Ranks**: Marks action bar spells that have a higher rank you already know, and names the best rank in the tooltip. `/fpp ranks` lists them, and Use Highest Rank (off by default) swaps them for the best rank when you learn a spell.
 - **Train All**: Adds a Train All button to the trainer window that learns everything you can learn and afford. Off by default.
 - **XP Bar Text**: Shows your experience on the bar all the time, with the percent, rested XP, and the XP of quests ready to turn in. Its tooltip adds XP per hour and time to level.
+- **Reputation Bar Text**: Shows your reputation on the bar all the time, with the percent and your standing, and gives the bar a tooltip. Optionally moves the bar to the faction you last gained reputation with.
 - **Character Window**: Moves the Equipment, Titles, and Pet tabs to the side, shows your name in class color as the title, and puts a durability bar beside each item. Can color the weapon skills you have equipped.
 - **Durability Warning**: Warns you once when worn gear drops below a durability you pick (25% by default), and again when it breaks: red text, and optionally a chat line and a sound.
 - **Talent Planner**: Plan your talents in the talent window: click talents in order into a saved plan, see the level each point comes at, and get the next one highlighted when you have a point to spend. Keeps several plans, shares them as text, and imports builds from talentsforever.com and wowforevertalents.com.
