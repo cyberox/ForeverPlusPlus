@@ -34,6 +34,7 @@ local module = ns.NewModule("AppearanceIcons", L.APPEARANCEICONS_DESC, {
 })
 module.title = L.APPEARANCEICONS_TITLE
 module.category = "items"
+module.presets = { developer = { options = { hideLine = true } } } -- Hide Tooltip Line
 module.added = "1.2.0"
 
 local ATLAS = "poi-transmogrifier" -- the transmogrifier on the map (29x36), drawn square

@@ -49,6 +49,8 @@ local module = ns.NewModule("Tooltips", L.TOOLTIPS_DESC, {
 })
 module.title = L.TOOLTIPS_TITLE
 module.category = "interface"
+-- Hide Right-Click Hints and Hide Chat Tab Tooltips
+module.presets = { developer = { options = { hideClickHint = true, hideTabTooltip = true } } }
 
 local UNIT_COLORS = {
     { "class", L.TOOLTIPS_COLOR_CLASS },

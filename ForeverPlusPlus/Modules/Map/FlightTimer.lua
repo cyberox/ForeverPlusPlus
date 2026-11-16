@@ -35,6 +35,7 @@ local module = ns.NewModule("FlightTimer", L.FLIGHTTIMER_DESC, {
 module.perCharacter = { resume = true }
 module.title = L.FLIGHTTIMER_TITLE
 module.category = "map"
+module.presets = { developer = { options = { landingSound = true } } } -- Sound on Landing
 
 module.options = {
     { key = "bar", name = L.FLIGHTTIMER_BAR, description = L.FLIGHTTIMER_BAR_DESC },
