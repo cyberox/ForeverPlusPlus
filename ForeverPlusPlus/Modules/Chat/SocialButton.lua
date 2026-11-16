@@ -64,6 +64,11 @@ end
 
 function module:OnEnable()
     local button = QuickJoinToastButton
+    -- With the controller interface on, Blizzard hides the frame the chat buttons sit in
+    -- (FloatingChatFrame.lua, build 70938), and the button would go with it: left where it is.
+    if ns.Menus.GamepadUI() then
+        return
+    end
     if not original then
         remember(button)
     end

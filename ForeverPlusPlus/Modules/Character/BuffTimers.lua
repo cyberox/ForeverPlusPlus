@@ -307,7 +307,9 @@ local function layout()
     local frames = BuffFrame and BuffFrame.auraFrames
     local container = BuffFrame and BuffFrame.AuraContainer
     local side = module.db.sort
-    local sorting, hiding = side ~= "off", module.db.hideTracking
+    -- Not with the controller interface on: its cursor still lands on a buff at no alpha, and its
+    -- cancel button would take the unseen buff off (Blizzard_BuffFrame's gamepad branch).
+    local sorting, hiding = side ~= "off", module.db.hideTracking and not ns.Menus.GamepadUI()
     if not (frames and container) or not (sorting or hiding) then
         unsort()
         return

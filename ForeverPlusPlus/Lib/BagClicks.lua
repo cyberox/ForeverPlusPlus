@@ -138,6 +138,12 @@ function Set:Update()
     if not self.module.enabled or (self.wanted and not self.wanted()) then
         return
     end
+    -- With the controller interface on, the cursor presses Blizzard's own item button
+    -- (SmartNavigation's MouseDown and MouseUp), never an overlay over it, which would only sit
+    -- in the mouse's way.
+    if ns.Menus.GamepadUI() then
+        return
+    end
     local match = self.match
     for _, frame in pairs(ns.ItemButtons.Frames()) do
         -- On screen, not only shown: a bag addon keeps Blizzard's bags shown under a hidden parent

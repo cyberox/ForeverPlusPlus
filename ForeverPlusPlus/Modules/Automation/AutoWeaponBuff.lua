@@ -43,7 +43,11 @@ module.category = "automation"
 module.presets = { developer = { enabled = true } }
 module.added = "0.8.0"
 -- The game's rule, not ours, so say it where the player turns it on; a notice with no button.
-module.notice = { text = L.AUTOWEAPONBUFF_NOTICE, description = L.AUTOWEAPONBUFF_NOTICE_DESC }
+module.notice = {
+    { text = L.AUTOWEAPONBUFF_NOTICE, description = L.AUTOWEAPONBUFF_NOTICE_DESC },
+    -- From the bags it's a right click of ours (Lib/BagClicks.lua); from an action bar it works.
+    ns.Menus.PadLimitedNotice(),
+}
 
 module.options = {
     {

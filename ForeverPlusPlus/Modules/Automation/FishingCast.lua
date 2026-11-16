@@ -24,6 +24,7 @@ local module = ns.NewModule("FishingCast", L.FISHINGCAST_DESC, {
 })
 module.title = L.FISHINGCAST_TITLE
 module.category = "automation"
+module.notice = ns.Menus.PadLimitedNotice() -- the cast is a double right click
 module.quickToggle = "gathering"
 module.presets = { developer = { enabled = true } }
 -- A /reload, logout, or disconnect mid-cast leaves the changed volumes behind: put them back at

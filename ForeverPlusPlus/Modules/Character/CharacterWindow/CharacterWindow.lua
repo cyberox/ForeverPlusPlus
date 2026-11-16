@@ -142,6 +142,14 @@ end
 
 -- Header ---------------------------------------------------------------------------------------
 
+-- Whether Side Tabs applies. Not with the controller interface on: its bumpers step through
+-- Blizzard's own tab row, and only the tabs still showing (Camelot/CharacterFrame.lua and
+-- Blizzard_GamepadSharedUtility's TabIndicators.lua, build 70938), so hiding the row would leave
+-- Titles, the Equipment Manager, and the pet with no way in.
+local function sideTabsOn()
+    return module.db.sideTabs and not ns.Menus.GamepadUI()
+end
+
 local function collapsed()
     return _G.CharacterFrame:IsRightPaneCollapsed()
 end
@@ -149,7 +157,7 @@ end
 -- The tab row goes. The level lines stay where they are, on the strip over the model, and
 -- Blizzard swaps the player's for the pet's itself.
 local function updateHeader()
-    if module.db.sideTabs then
+    if sideTabsOn() then
         _G.PaperDollSidebarTabs:Hide()
     end
 end
@@ -183,7 +191,7 @@ local function showHeader()
 end
 
 local function applyHeader()
-    if module.db.sideTabs then
+    if sideTabsOn() then
         anchorPanes(true)
         updateHeader()
     else
@@ -231,7 +239,7 @@ end
 
 local function refreshTabs()
     local frame = _G.CharacterFrame
-    local show = module.db.sideTabs and frame:IsShown()
+    local show = sideTabsOn() and frame:IsShown()
     local onPaperDoll = _G.PaperDollFrame:IsShown() and not collapsed()
 
     local last
@@ -297,7 +305,7 @@ local function toggle(index)
 end
 
 local function onModeTabClicked(_, tab)
-    if module.db.sideTabs and tab.frameName == "PaperDollFrame" then
+    if sideTabsOn() and tab.frameName == "PaperDollFrame" then
         _G.PaperDollFrame_SetSidebar(_G.PaperDollSidebarTabs, STATS)
     end
 end

@@ -24,7 +24,9 @@ ns.changelog = {
                 "Controller interface: Spell Ranks, Macros, and Auto Weapon Buff work on its action "
                     .. "bars, Loot Rolls' seconds and roll counts and the item marks show on its "
                     .. "roll list, map icons show their tooltip under its map cursor, and "
-                    .. "Tooltips' Scale covers its buff tooltip.",
+                    .. "Tooltips' Scale covers its buff tooltip. World Map's Coordinates and Zone "
+                    .. "Info follow its map cursor, and a module that needs a mouse or a held key "
+                    .. "says so in Settings while it's on.",
             } },
         },
     },

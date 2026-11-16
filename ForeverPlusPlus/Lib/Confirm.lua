@@ -157,6 +157,31 @@ local function show(key, text, build, data, textArg)
     StaticPopup_Show(which, textArg, nil, data)
 end
 
+---Closes one of Blizzard's own popups for the player (`which` a StaticPopup name, or a frame shown
+---with StaticPopupSpecial_Show), and says whether it did. With the controller interface on it's
+---left up: closing a popup from addon code runs the controller's popup teardown inside our call
+---(StaticPopupGamepad.lua's OnPopupClosed, build 70938), which taints its focus manager and is
+---refused in combat. Never StaticPopup_Hide directly.
+---@param which string|table
+---@return boolean closed
+function ns.ClosePopup(which)
+    if gamepad() then
+        return false
+    end
+    if type(which) == "table" then
+        if not _G.StaticPopupSpecial_Hide then
+            return false
+        end
+        _G.StaticPopupSpecial_Hide(which)
+    else
+        if not _G.StaticPopup_Hide then
+            return false
+        end
+        _G.StaticPopup_Hide(which)
+    end
+    return true
+end
+
 ---Asks the player to confirm, then calls `onAccept`. The same `key` always asks the same question:
 ---the popup is made the first time it's used. `textArg` fills a %s in `text`, such as a name.
 ---@param key string a name for this question, such as "AUCTIONPRICES_RESET"

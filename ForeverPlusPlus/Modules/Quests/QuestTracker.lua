@@ -777,7 +777,9 @@ end
 -- of this file avoids, so it's off by default, runs only at login and after a reload (not on
 -- other loading screens), and waits out combat. Idea from afrayedknot1337 on CurseForge.
 local function collapseAtLogin(_, isLogin, isReload)
-    if not (isLogin or isReload) then
+    -- Not with the controller interface on: the tracker's update also steers the controller's
+    -- cursor then (Blizzard_ObjectiveTracker.lua), which refuses a call from addon code.
+    if not (isLogin or isReload) or ns.Menus.GamepadUI() then
         return
     end
     ns.AfterCombat(function()

@@ -22,6 +22,7 @@ local module = ns.NewModule("HideChatButtons", L.HIDECHATBUTTONS_DESC, {
 module.title = L.HIDECHATBUTTONS_TITLE
 module.category = "chat"
 module.added = "1.7.0"
+module.notice = ns.Menus.PadHidesNotice() -- Blizzard hides the chat buttons itself then
 
 -- Seconds to fade in and out, as Blizzard's tabs do (CHAT_FRAME_FADE_TIME, CHAT_FRAME_FADE_OUT_TIME).
 local FADE_IN, FADE_OUT = 0.15, 2

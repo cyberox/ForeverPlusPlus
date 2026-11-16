@@ -50,6 +50,17 @@ function Menus.PadHidesNotice()
     }
 end
 
+---A `module.notice` entry for a module that needs a mouse click, a drag, a held key, or a window
+---the controller's cursor can't reach, so some or all of it does nothing with the controller
+---interface on. Shown only while it's on.
+---@return table notice
+function Menus.PadLimitedNotice()
+    return {
+        text = ns.L.SETTINGS_CONTROLLER_LIMITED, description = ns.L.SETTINGS_CONTROLLER_LIMITED_DESC,
+        shown = Menus.GamepadUI,
+    }
+end
+
 -- The description ---------------------------------------------------------------------------------
 
 -- What Blizzard's descriptions offer that ours has no use for: called, it does nothing.

@@ -583,7 +583,8 @@ end
 -- Anchor to Cursor: after Blizzard places a tooltip at its default spot (bottom right), move it
 -- to the mouse instead.
 local function onDefaultAnchor(tooltip, parent)
-    if module.db.anchorCursor then
+    -- Not with the controller interface on: there's no mouse, only wherever it was left.
+    if module.db.anchorCursor and not ns.Menus.GamepadUI() then
         tooltip:SetOwner(parent, "ANCHOR_CURSOR")
     end
 end

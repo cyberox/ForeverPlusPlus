@@ -104,7 +104,10 @@ resetKeyOption.conflicts = {
 -- The Reset Click choices, as OnMouseDown names the buttons.
 local RESET_BUTTONS = { right = "RightButton", middle = "MiddleButton", left = "LeftButton" }
 
-module.notice = { text = L.MOVABLEWINDOWS_NOTICE, description = L.MOVABLEWINDOWS_NOTICE_DESC }
+module.notice = {
+    { text = L.MOVABLEWINDOWS_NOTICE, description = L.MOVABLEWINDOWS_NOTICE_DESC },
+    ns.Menus.PadLimitedNotice(), -- a drag, a held key, and the mouse wheel
+}
 
 -- The windows, by global name. Most load with Blizzard's load-on-demand addons, so they're looked
 -- for again as addons load; ones this client doesn't have are skipped. Retail names, checked

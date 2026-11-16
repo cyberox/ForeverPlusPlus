@@ -509,9 +509,11 @@ function Chat.HiddenNotice(key, text, description, shown)
         {
             text = text, description = description,
             shown = function()
-                return (not shown or shown()) and Chat.ButtonsHidden()
+                return (not shown or shown()) and Chat.ButtonsHidden() and not ns.Menus.GamepadUI()
             end,
         },
+        -- With the controller interface on it's Blizzard that hides them (FloatingChatFrame.lua).
+        ns.Menus.PadHidesNotice(),
         {
             text = ns.L.CHAT_BUTTON_FOLDED, description = ns.L.CHAT_BUTTON_FOLDED_DESC,
             shown = function()

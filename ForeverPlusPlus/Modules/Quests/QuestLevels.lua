@@ -140,7 +140,9 @@ end
 
 -- Fills an open list again, with or without the tags, and tags or untags open details.
 local function refresh()
-    if GossipFrame and GossipFrame.Update and GossipFrame:IsShown() then
+    -- Not with the controller interface on: GossipFrame:Update moves the controller's cursor
+    -- (SmartNavigation), which refuses a call from addon code. The list is tagged when next opened.
+    if GossipFrame and GossipFrame.Update and GossipFrame:IsShown() and not ns.Menus.GamepadUI() then
         GossipFrame:Update()
     end
     if QuestFrameGreetingPanel and QuestFrameGreetingPanel_OnShow and QuestFrameGreetingPanel:IsShown() then

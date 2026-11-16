@@ -4,7 +4,7 @@
 local _, ns = ...
 
 local format = string.format
-local CancelDuel, DeclineGroup, StaticPopup_Hide = CancelDuel, DeclineGroup, StaticPopup_Hide
+local CancelDuel, DeclineGroup = CancelDuel, DeclineGroup
 
 local L = ns.L
 local Units = ns.Units
@@ -60,9 +60,7 @@ local function onDuel(_, name)
         return
     end
     CancelDuel()
-    if StaticPopup_Hide then
-        StaticPopup_Hide("DUEL_REQUESTED")
-    end
+    ns.ClosePopup("DUEL_REQUESTED")
     module:Print(format(L.AUTODECLINE_DECLINED, who(name)))
 end
 
@@ -74,11 +72,9 @@ local function onInvite(_, name, _, _, _, _, _, guid)
         return
     end
     DeclineGroup()
-    if StaticPopup_Hide then
-        StaticPopup_Hide("PARTY_INVITE")
-    end
-    if StaticPopupSpecial_Hide and LFGInvitePopup then
-        StaticPopupSpecial_Hide(LFGInvitePopup)
+    ns.ClosePopup("PARTY_INVITE")
+    if LFGInvitePopup then
+        ns.ClosePopup(LFGInvitePopup)
     end
     module:Print(format(L.AUTODECLINE_DECLINED_INVITE, who(name)))
 end
@@ -91,11 +87,9 @@ local function onGuildInvite(_, name)
         return
     end
     DeclineGuild()
-    if StaticPopup_Hide then
-        StaticPopup_Hide("GUILD_INVITE")
-    end
-    if StaticPopupSpecial_Hide and GuildInviteFrame then
-        StaticPopupSpecial_Hide(GuildInviteFrame)
+    ns.ClosePopup("GUILD_INVITE")
+    if GuildInviteFrame then
+        ns.ClosePopup(GuildInviteFrame)
     end
     module:Print(format(L.AUTODECLINE_DECLINED_GUILD_INVITE, who(name)))
 end

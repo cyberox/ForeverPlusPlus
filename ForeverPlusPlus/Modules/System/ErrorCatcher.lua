@@ -968,13 +968,15 @@ end
 -- that has the error handler (module.notice says so), like Blizzard's error window.
 local function onPopup(which)
     if which == "ADDON_ACTION_FORBIDDEN" and not otherHandler() then
-        StaticPopup_Hide(which)
+        ns.ClosePopup(which)
     end
 end
 
--- Blizzard's error window, which still opens for Lua warnings.
+-- Blizzard's error window, which still opens for Lua warnings. With the controller interface on
+-- it's left up: it tells the controller's focus manager as it shows (Blizzard_ScriptErrorsFrame),
+-- and hidden from here that would be left believing it's still open.
 local function onErrorWindow(frame)
-    if not otherHandler() then
+    if not otherHandler() and not gamepadUI() then
         frame:Hide()
     end
 end

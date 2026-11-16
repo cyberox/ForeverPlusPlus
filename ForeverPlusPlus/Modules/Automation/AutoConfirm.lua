@@ -9,7 +9,7 @@
 -- takes that call from an event with no click of the player's behind it.
 local _, ns = ...
 
-local C_Item, StaticPopup_Hide, pcall = C_Item, StaticPopup_Hide, pcall
+local C_Item, pcall = C_Item, pcall
 
 local L = ns.L
 
@@ -20,6 +20,7 @@ local module = ns.NewModule("AutoConfirm", L.AUTOCONFIRM_DESC, {
 })
 module.title = L.AUTOCONFIRM_TITLE
 module.category = "automation"
+module.notice = ns.Menus.PadLimitedNotice() -- the popup can't be closed for the player then (accept)
 module.added = "1.7.0"
 
 module.options = {
@@ -29,10 +30,12 @@ module.options = {
 
 -- Says yes with the C_Item call the popup's own Yes makes, then closes the popup. A call the
 -- client refuses leaves the popup up for the player to answer.
+-- With the controller interface on the popup can't be closed from here (ns.ClosePopup), and a Yes
+-- pressed on one already answered would answer twice, so it's left to the player whole.
 local function accept(call, popup)
     local fn = C_Item and C_Item[call]
-    if fn and pcall(fn) and StaticPopup_Hide then
-        StaticPopup_Hide(popup)
+    if fn and not ns.Menus.GamepadUI() and pcall(fn) then
+        ns.ClosePopup(popup)
     end
 end
 

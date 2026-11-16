@@ -228,7 +228,10 @@ local function onEnter(pin)
 end
 
 local function onLeave(pin)
-    GameTooltip:Hide()
+    -- Only its own: the controller's cursor can be on one of Blizzard's pins by now, with its tooltip.
+    if GameTooltip:IsOwned(pin) then
+        GameTooltip:Hide()
+    end
     pin.highlight:Hide()
     pin:SetScript("OnUpdate", nil)
     pin.shiftWas = nil
@@ -330,7 +333,9 @@ function Layer:Release()
             GameTooltip:Hide()
         end
         if pin == padPin then
-            padPin = nil -- the controller's cursor was on it
+            -- The controller's cursor was on it, and a hidden pin gets no leave of its own.
+            padPin = nil
+            onLeave(pin)
         end
         pin:Hide()
         pin.info = nil
@@ -512,7 +517,11 @@ local function padLook(_, elapsed)
     padElapsed = 0
     local cursor = _G.SoftCursor
     local cx, cy
-    if cursor and cursor:IsShown() then
+    -- Only while the map has the controller's focus: the cursor stays shown after focus moves to
+    -- the quest list beside it.
+    local map = padWatcher:GetParent()
+    local focused = not map.IsCanvasGamepadFocus or map:IsCanvasGamepadFocus()
+    if focused and cursor and cursor:IsShown() then
         cx, cy = screenCenter(cursor)
     end
     local best, bestDistance

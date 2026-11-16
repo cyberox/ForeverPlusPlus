@@ -455,7 +455,13 @@ local function target(map)
     if not (module.db.hover and map.IsCanvasMouseFocus and map:IsCanvasMouseFocus()) then
         return nil
     end
-    local x, y = map:GetNormalizedCursorPosition()
+    -- With the controller interface on, the zone under its map cursor, not under the mouse.
+    local x, y
+    if ns.Menus.GamepadUI() and map.GetNormalizedGamepadCursorPosition then
+        x, y = map:GetNormalizedGamepadCursorPosition()
+    else
+        x, y = map:GetNormalizedCursorPosition()
+    end
     local under = x and C_Map.GetMapInfoAtPosition and C_Map.GetMapInfoAtPosition(mapID, x, y)
     if under and under.mapID ~= mapID then
         return zoneOf(under.mapID), true

@@ -104,7 +104,10 @@ local function update()
     local half = (bar:GetWidth() - titleWidth) / 2 - GAP - INSET
     local button = WorldMapFrame.BorderFrame.MaximizeMinimizeFrame
     copy(bar.player, coords.PlayerCoords, half)
-    copy(bar.cursor, coords.CursorCoords, half - (button and button:GetWidth() or 0))
+    -- With the controller interface on, Blizzard's cursor row is its crosshair's (CrosshairCoords,
+    -- WorldMapTemplates, build 70938; read, not seen in game), and the mouse's is wherever it was left.
+    local cursor = ns.Menus.GamepadUI() and coords.CrosshairCoords or coords.CursorCoords
+    copy(bar.cursor, cursor, half - (button and button:GetWidth() or 0))
 end
 
 local onUpdate = ns.Frames.Throttled(THROTTLE, ns.Profiler.Wrap(module, update))
