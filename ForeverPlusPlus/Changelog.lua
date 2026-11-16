@@ -18,7 +18,8 @@ ns.changelog = {
                     .. "to hide their pins." },
                 { L.HIDEMENUBARS_TITLE, "a new module, off by default, that hides the bag bar and "
                     .. "the micro menu until the mouse is over them, or always." },
-                { L.TOOLTIPS_TITLE, "Scale makes tooltips bigger or smaller, from 50% to 200%." },
+                { L.TOOLTIPS_TITLE, "Scale makes tooltips bigger or smaller, from 50% to 200%, and "
+                    .. "Hide Chat Tab Tooltips (off by default) shows no tooltip over a chat tab." },
                 { L.QUESTTRACKER_TITLE, "Collapse at Login (off by default) starts the tracker "
                     .. "collapsed each time you log in or reload." },
                 { L.CURRENCYBAR_TITLE, "Show on Mouseover (off by default) hides the box until the "

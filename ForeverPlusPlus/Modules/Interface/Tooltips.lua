@@ -42,6 +42,7 @@ local module = ns.NewModule("Tooltips", L.TOOLTIPS_DESC, {
     anchorCursor = false, -- tooltips at the mouse instead of the bottom right
     hideFishing = false, -- hide the bobber's tooltip while fishing
     hideClickHint = false, -- leave "<Right click for frame settings>" off unit frames' tooltips
+    hideTabTooltip = false, -- hide the tooltip of a chat window's tab
     hideHealthBar = false, -- hide the health bar under unit tooltips
     questLines = "show", -- "show", "units" (hidden on unit tooltips), "all" (and on objects)
     scale = 100, -- percent
@@ -94,6 +95,8 @@ module.options = {
         section = L.TOOLTIPS_SECTION_BEHAVIOR, added = "1.6.0" },
     { key = "hideClickHint", name = L.TOOLTIPS_HIDE_CLICK_HINT, description = L.TOOLTIPS_HIDE_CLICK_HINT_DESC,
         section = L.TOOLTIPS_SECTION_BEHAVIOR, added = "1.6.0" },
+    { key = "hideTabTooltip", name = L.TOOLTIPS_HIDE_TAB_TOOLTIP,
+        description = L.TOOLTIPS_HIDE_TAB_TOOLTIP_DESC, section = L.TOOLTIPS_SECTION_BEHAVIOR, added = "1.7.1" },
     { key = "hideHealthBar", name = L.TOOLTIPS_HIDE_HEALTH_BAR,
         description = L.TOOLTIPS_HIDE_HEALTH_BAR_DESC, section = L.TOOLTIPS_SECTION_BEHAVIOR, added = "0.9.0" },
     {
@@ -421,7 +424,17 @@ end
 -- run, the tooltip is set again to its first line alone. A tab's name is never secret here: the
 -- tab of a whisper window whose name is, shows no tooltip of ours to change.
 local function dropTabHint(tab)
-    if not module.db.hideClickHint or not GameTooltip:IsOwned(tab) then
+    if not GameTooltip:IsOwned(tab) then
+        return
+    end
+    -- Hide Chat Tab Tooltips: the whole tooltip, which only repeats the tab's name. Faded, as
+    -- Hide in Combat fades one; the next tooltip or its hiding brings it back.
+    if module.db.hideTabTooltip then
+        faded = true
+        GameTooltip:SetAlpha(0)
+        return
+    end
+    if not module.db.hideClickHint then
         return
     end
     local line = leftLine(GameTooltip, 1)
