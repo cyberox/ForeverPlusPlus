@@ -22,6 +22,8 @@ local module = ns.NewModule("BagSlotCounter", L.BAGSLOTCOUNTER_DESC, {
 })
 module.title = L.BAGSLOTCOUNTER_TITLE
 module.category = "items"
+-- Its own bag buttons, in the bag window, show each bag's free slots themselves.
+module.notice = ns.Menus.PadHidesNotice()
 
 module.options = {
     {

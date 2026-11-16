@@ -412,7 +412,53 @@ local function roll(frame, fn)
     fn(icon, rollID and _G.GetLootRollItemLink and _G.GetLootRollItemLink(rollID))
 end
 
+-- With the controller interface on, rolls show in a list of their own instead
+-- (GamepadGroupLootRollFrame): a scroll box of cards from the same base template, each with its
+-- rollID, IconFrame, Timer, and Need, Greed, and Pass buttons, filled again by DoFullRefresh each
+-- time a roll comes or goes (Blizzard_UIPanels_Game/Mainline/GroupLootFrame.lua and .xml, build
+-- 70938; read, not seen in game).
+
+local padRefreshHooks = weak() -- fn -> its hook on the list's DoFullRefresh
+
+---Calls `fn(card)` for each roll the controller interface's roll list shows.
+---@param fn fun(card: table)
+function ItemButtons.EachPadRoll(fn)
+    local list = _G.GamepadGroupLootRollFrame
+    local box = list and list:IsShown() and list.ScrollBox
+    if box and box.ForEachFrame then
+        box:ForEachFrame(function(card)
+            fn(card)
+        end)
+    end
+end
+
+---Calls `fn()` a frame after the controller interface's roll list fills its cards again, through
+---`module` (so it stops when the module turns off). A frame later, since the scroll box may not
+---have laid its cards out yet.
+---@param module table
+---@param fn fun()
+function ItemButtons.HookPadRolls(module, fn)
+    local list = _G.GamepadGroupLootRollFrame
+    if not (list and list.DoFullRefresh) then
+        return
+    end
+    -- One hook per `fn`, however often its module turns on: module:Hook hooks once per function.
+    local hook = padRefreshHooks[fn]
+    if not hook then
+        hook = function()
+            C_Timer.After(0, function()
+                if module.enabled then
+                    fn()
+                end
+            end)
+        end
+        padRefreshHooks[fn] = hook
+    end
+    module:Hook(list, "DoFullRefresh", hook)
+end
+
 local rollHooks = weak() -- fn -> its OnShow handler
+local padHooks = weak() -- fn -> what marks the controller's roll list with it
 local rollOwners = {} -- fn -> the module that hooked it, for example rolls (MarkExampleRoll)
 
 ---Calls `fn(icon, link)` for a loot roll as its frame shows, before the player picks Need,
@@ -431,6 +477,14 @@ function ItemButtons.HookRolls(module, fn)
     for i = 1, ROLL_FRAMES do
         module:HookScript(_G["GroupLootFrame" .. i], "OnShow", onShow)
     end
+    local onPad = padHooks[fn]
+    if not onPad then
+        onPad = function()
+            ItemButtons.EachPadRoll(onShow)
+        end
+        padHooks[fn] = onPad
+    end
+    ItemButtons.HookPadRolls(module, onPad)
 end
 
 ---Marks an example loot roll of our own (Loot Rolls' Edit Mode preview) as every module marking
@@ -454,6 +508,9 @@ function ItemButtons.EachRoll(fn)
             roll(frame, fn)
         end
     end
+    ItemButtons.EachPadRoll(function(card)
+        roll(card, fn)
+    end)
 end
 
 -- Quest rewards ---------------------------------------------------------------------------------

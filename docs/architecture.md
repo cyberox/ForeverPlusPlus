@@ -109,6 +109,7 @@ Generated files, in `Lib/Generated/` (never edited by hand; see Generated data):
 ### `Menus.lua`
 
 - `ns.Menus`: every context menu we open goes through `Open(owner, generator, anchor)`. `generator(owner, root)` describes it as Blizzard's menus are described (`CreateTitle`, `CreateDivider`, `CreateButton`, `CreateCheckbox`, `CreateRadio`, a button's own entries as its submenu, `SetTooltip`, `SetEnabled`).
+- `PadHidesNotice()` is the `module.notice` for a module whose Blizzard frame the controller interface hides (the usual action bars, stance bar, bag bar, micro menu).
 - With the controller interface off it's `MenuUtil.CreateContextMenu`. With it on (`GamepadUI`) it's a plain list of our own frames, since Blizzard's menu opened from addon code taints the controller's focus manager for the session (`docs/forever-api.md`). Ours takes the mouse, and the controller's D-pad, A, and B while it's open.
 - `SetupDropdown(dropdown, generator)` takes the place of a Blizzard dropdown button's `SetupMenu`: the button, its text, and the wheel stay Blizzard's, and only what drops down is ours with the controller interface on (`OpenMenu` replaced on our own frame).
 - `Describe` gives the description as plain entries, with `IsEnabled` and `IsSelected` for one. Blizzard's own menus we add entries to (the world map's filter menu) are still Blizzard's, opened by Blizzard.
@@ -162,6 +163,7 @@ Generated files, in `Lib/Generated/` (never edited by hand; see Generated data):
 ### `ItemButtons.lua`
 
 - `Walk(module, mark, opts)`: one walk over bags, bank, merchant, auction house, loot, and loot rolls for a module that marks items. `mark(icon, link, place, a, b)` is all the module writes: the walk hooks each window (`walk:Hook`), reads each slot's link, clears a place whose Show On checkbox (`module.db[place]`) is off, and marks again on `walk:Refresh`. Already Known, Appearance Icons, Unusable Items Tint, Upgrade Arrows, and a plugin's marks (`Lib/Plugins.lua`) all use it; a module's own places (mail, quest rewards, recipe rows) and its item-data events stay in the module.
+- Loot rolls cover the controller interface's roll list too (`GamepadGroupLootRollFrame`, cards laid out as the four roll frames are): `EachPadRoll(fn)` walks its cards and `HookPadRolls(module, fn)` runs after it fills them again.
 - `ns.ItemButtons`: the item buttons in bags, at a merchant, in the auction house's browse list, the loot window, and loot rolls, the bank's shown tab (`EachBankButton`, `HookBank`), quest reward choices (`EachRewardChoice`, `RewardIcon`), hooks that redraw with them (`HookLoot` listens for LOOT_OPENED itself), and our own textures over their icons (`Overlays`, `Tint`, and `PlaceMark` to size and place one from the module's Size, Corner, and Padding), with the options every mark on an item or action button icon shares, built by `CornerOption`, `SizeOption`, `PaddingOption`, and `PlaceOption` (style, then Corner, a size in px, step 2, up to 32, then Padding 0 to 10, 1 by default; then a Show On section of places, bags, bank, merchant, auction, loot, then the module's own), and `PlaceInCorner` and `MarkSize` to put the mark there at its size, in proportion to the icon it's on (the size option is a bag icon's).
 
 ### `BagClicks.lua`
@@ -200,6 +202,7 @@ Generated files, in `Lib/Generated/` (never edited by hand; see Generated data):
 ### `MapPins.lua`
 
 - `ns.MapPins`: layers of our own icons on the world map, through a map data provider, their art (`SetArt`: an atlas or item icon, round, tinted, ringed, or a hollow ring), and what a click on an icon does, set on its `info` (`waypoint = true` or `ctrlClick` for Ctrl+click, the game's own gesture for the map pin; `shiftClick` with Shift held; `click` for a plain left click the icon takes itself); an icon takes a click only when it has something for it, so plain clicks still reach the map; and the click hints at the bottom of an icon's tooltip, written here for every layer and shown only while Shift is held (the Ctrl+click line, and a module's `clickHint` and `shiftHint` for its own actions).
+- With the controller interface on, a frame on the map finds the icon of ours under Blizzard's map cursor (`SoftCursor`) and shows its tooltip as the mouse would, since Blizzard's cursor only enters pins from the map's own pools.
 - The options every module with icons on the world map shares, each `(key, section, extra)` with `extra` adding or replacing fields as `ItemButtons`' builders do: `SizeOption` (50 to 200 percent, step 10), `OpacityOption` (10 to 100 percent, step 5), and `ContinentOption` (the On Continent Maps checkbox). The module keeps its own key and default.
 
 ### `DungeonMaps.lua`

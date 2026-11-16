@@ -23,6 +23,7 @@ local module = ns.NewModule("HideStanceBar", L.HIDESTANCEBAR_DESC, {
 module.title = L.HIDESTANCEBAR_TITLE
 module.category = "interface"
 module.added = "1.6.0"
+module.notice = ns.Menus.PadHidesNotice()
 
 module.options = {
     { key = "mouseover", name = L.HIDESTANCEBAR_MOUSEOVER, description = L.HIDESTANCEBAR_MOUSEOVER_DESC },

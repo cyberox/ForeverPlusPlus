@@ -40,6 +40,16 @@ function Menus.GamepadUI()
     return ns.IsTrue(C.GetCurrentStyle() == types.Gamepad)
 end
 
+---A `module.notice` entry for a module whose Blizzard frame the controller interface hides (the
+---usual action bars, stance bar, bag bar, and micro menu), shown only while it's on.
+---@return table notice
+function Menus.PadHidesNotice()
+    return {
+        text = ns.L.SETTINGS_CONTROLLER_HIDDEN, description = ns.L.SETTINGS_CONTROLLER_HIDDEN_DESC,
+        shown = Menus.GamepadUI,
+    }
+end
+
 -- The description ---------------------------------------------------------------------------------
 
 -- What Blizzard's descriptions offer that ours has no use for: called, it does nothing.

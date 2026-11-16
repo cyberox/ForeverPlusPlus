@@ -320,12 +320,17 @@ end
 local Layer = {}
 Layer.__index = Layer
 
+local padPin -- the pin the controller's cursor is on (see The controller's cursor)
+
 -- Hides every pin and keeps it for the next map.
 function Layer:Release()
     for i = 1, self.count do
         local pin = self.pins[i]
         if GameTooltip:IsOwned(pin) then
             GameTooltip:Hide()
+        end
+        if pin == padPin then
+            padPin = nil -- the controller's cursor was on it
         end
         pin:Hide()
         pin.info = nil
@@ -465,8 +470,95 @@ local function newProvider(layer)
     })
 end
 
+-- The controller's cursor ---------------------------------------------------------------------
+-- With the controller interface on there's no mouse over the map: Blizzard moves a cursor of its
+-- own (SoftCursor) and "enters" the pin it's on by itself, but only pins from the map's own pools
+-- (MapCanvasMixin:UpdateGamepadCursor, Blizzard_MapCanvas.lua, build 70938). So while that cursor
+-- shows, a frame on the map looks for the icon of ours under it and shows its tooltip as the
+-- mouse would. Nothing runs without the controller interface, or while the map is closed.
+-- **Unverified** in game: read from the source, and whether Forever has SoftCursor at all.
+
+local layers = {} -- every layer made, to find the pin under the cursor
+local PAD_INTERVAL = 0.05 -- seconds between looks
+local PAD_REACH = 6 -- screen pixels past a pin's edge that still count as on it
+local padWatcher, padElapsed = nil, 0
+
+-- A frame's center in screen pixels, whatever its scale.
+local function screenCenter(frame)
+    local x, y = frame:GetCenter()
+    if not x then
+        return nil
+    end
+    local scale = frame:GetEffectiveScale()
+    return x * scale, y * scale
+end
+
+local function padLeave()
+    if padPin then
+        local pin = padPin
+        padPin = nil
+        pin:SetScript("OnUpdate", nil)
+        if pin.info then
+            onLeave(pin)
+        end
+    end
+end
+
+local function padLook(_, elapsed)
+    padElapsed = padElapsed + elapsed
+    if padElapsed < PAD_INTERVAL then
+        return
+    end
+    padElapsed = 0
+    local cursor = _G.SoftCursor
+    local cx, cy
+    if cursor and cursor:IsShown() then
+        cx, cy = screenCenter(cursor)
+    end
+    local best, bestDistance
+    if cx then
+        for _, layer in ipairs(layers) do
+            for i = 1, layer.count do
+                local pin = layer.pins[i]
+                local px, py = screenCenter(pin)
+                if px and pin:IsVisible() then
+                    local dx, dy = px - cx, py - cy
+                    local distance = dx * dx + dy * dy
+                    local reach = pin:GetWidth() * pin:GetEffectiveScale() / 2 + PAD_REACH
+                    if distance <= reach * reach and (not bestDistance or distance < bestDistance) then
+                        best, bestDistance = pin, distance
+                    end
+                end
+            end
+        end
+    end
+    if best ~= padPin then
+        padLeave()
+        if best then
+            padPin = best
+            onEnter(best)
+        end
+    end
+end
+
+local function padWatch(map)
+    if padWatcher or not map then
+        return
+    end
+    padWatcher = CreateFrame("Frame", nil, map)
+    padWatcher:SetScript("OnShow", function(self)
+        padElapsed = 0
+        self:SetScript("OnUpdate", ns.Menus.GamepadUI() and _G.SoftCursor and padLook or nil)
+    end)
+    padWatcher:SetScript("OnHide", padLeave)
+    if map:IsVisible() then
+        padWatcher:GetScript("OnShow")(padWatcher)
+    end
+end
+
 -- Adds the layer to the world map, once it has loaded.
 function Layer:Attach(map)
+    padWatch(map)
     self.provider = self.provider or newProvider(self)
     if not self.attached then
         self.attached = true
@@ -523,5 +615,7 @@ end
 ---@param fill fun(mapID: number, add: fun(x: number, y: number, info: table))
 ---@return table layer
 function MapPins.New(fill)
-    return setmetatable({ fill = fill, pins = {}, count = 0 }, Layer)
+    local layer = setmetatable({ fill = fill, pins = {}, count = 0 }, Layer)
+    layers[#layers + 1] = layer
+    return layer
 end

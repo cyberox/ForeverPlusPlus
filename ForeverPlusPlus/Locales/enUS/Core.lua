@@ -140,6 +140,10 @@ L.SETTINGS_ENABLED = "Enabled" -- the module's own on/off checkbox, under its de
 L.SETTINGS_NEEDS_ADDON = "Needs the %s addon."
 L.SETTINGS_NEEDS_MODULE = "Needs the %s module turned on."
 L.SETTINGS_NEEDS_CLIENT = "This version of the game doesn't have what it needs."
+-- A notice on a module whose Blizzard frame the controller interface hides (ns.Menus.PadHidesNotice).
+L.SETTINGS_CONTROLLER_HIDDEN = "Does nothing with the controller interface"
+L.SETTINGS_CONTROLLER_HIDDEN_DESC = "The controller interface hides what this changes and shows "
+    .. "its own in its place, so this does nothing while it's on."
 -- The tooltip of the padlock in a locked module's checkbox's place
 L.SETTINGS_LOCKED ="Turned off and locked: the game broke what this module does. Its settings say more."
 L.SETTINGS_OPTIONS = "Options" -- the header over its options

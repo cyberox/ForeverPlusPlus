@@ -218,16 +218,29 @@ local function tally(drop)
     return need, greed, pass
 end
 
--- The roll showing this item, matched by its link.
-local function rollFor(link)
+-- Calls `fn(frame)` for each roll showing: Blizzard's four, and with the controller interface on,
+-- the cards of its own roll list, which are laid out as the four are (Lib/ItemButtons.lua).
+local function eachRoll(fn)
     for i = 1, ROLLS do
         local frame = rollFrame(i)
-        local rollID = frame and frame:IsShown() and frame.rollID
-        local own = rollID and GetLootRollItemLink and GetLootRollItemLink(rollID)
-        if readable(own) and own == link then
-            return frame
+        if frame and frame:IsShown() then
+            fn(frame)
         end
     end
+    ItemButtons.EachPadRoll(fn)
+end
+
+-- The roll showing this item, matched by its link.
+local function rollFor(link)
+    local found
+    eachRoll(function(frame)
+        local rollID = frame.rollID
+        local own = not found and rollID and GetLootRollItemLink and GetLootRollItemLink(rollID)
+        if readable(own) and own == link then
+            found = frame
+        end
+    end)
+    return found
 end
 
 local function countDrop(drop)
@@ -263,6 +276,21 @@ end
 
 local function onRollShow(frame)
     countFromHistory(frame)
+end
+
+-- The controller interface's roll list filled its cards again: each is a roll that just showed,
+-- and a card not seen before gets the seconds left as Blizzard's four do. The list is Blizzard's
+-- to place (it's dragged), so only what's on the rolls applies there.
+local padCards = setmetatable({}, weak) -- card -> true once its OnUpdate is hooked
+
+local function onPadRolls()
+    ItemButtons.EachPadRoll(function(card)
+        if not padCards[card] then
+            padCards[card] = true
+            module:HookScript(card, "OnUpdate", onRollUpdate)
+        end
+        onRollShow(card)
+    end)
 end
 
 -- Preview --------------------------------------------------------------------------------------------
@@ -412,12 +440,7 @@ end
 
 -- What's on the rolls showing now, after an option changed.
 local function refreshRolls()
-    for i = 1, ROLLS do
-        local frame = rollFrame(i)
-        if frame and frame:IsShown() then
-            onRollShow(frame)
-        end
-    end
+    eachRoll(onRollShow)
     for bar, text in pairs(timers) do
         if not (module.enabled and module.db.timer) then
             text:Hide()
@@ -442,6 +465,8 @@ function module:OnEnable()
         self:HookScript(rollFrame(i), "OnShow", onRollShow)
         self:HookScript(rollFrame(i), "OnUpdate", onRollUpdate)
     end
+    ItemButtons.HookPadRolls(self, onPadRolls)
+    onPadRolls()
     apply()
     refreshRolls()
 end

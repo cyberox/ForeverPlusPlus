@@ -600,9 +600,11 @@ local function fadeHealthBar(hide)
 end
 
 -- Scale: the tooltips the game shows by themselves, each scaled alone since none is the child of
--- another: the main one, the one a clicked item link opens, and the two that compare gear. A
--- tooltip's scale is nobody else's, so at 100% they're left alone until we've changed one.
-local SCALED = { "GameTooltip", "ItemRefTooltip", "ShoppingTooltip1", "ShoppingTooltip2" }
+-- another: the main one, the one a clicked item link opens, the two that compare gear, and the
+-- one the controller interface shows a buff in by itself (BuffFrameTooltip). A tooltip's scale is
+-- nobody else's, so at 100% they're left alone until we've changed one.
+local SCALED = { "GameTooltip", "ItemRefTooltip", "ShoppingTooltip1", "ShoppingTooltip2",
+    "BuffFrameTooltip" }
 local scaled = false
 
 local function applyScale()
