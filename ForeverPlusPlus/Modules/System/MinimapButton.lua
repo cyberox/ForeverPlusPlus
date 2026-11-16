@@ -34,6 +34,7 @@ local module = ns.NewModule("MinimapButton", L.MINIMAPBUTTON_DESC, {
     menuSide = "auto", -- the quick toggles at the cursor as Blizzard opens them, or left or right
     menuOrder = "groups", -- the quick toggles by what you're doing, by category, or A to Z
     menuCustomize = true, -- Customize... at the bottom of the quick toggles
+    menuProfiles = true, -- the Profile submenu, once there is more than one profile
     -- Keys held with a click, while Error Catcher is on.
     errorsKey = "shift", -- shows the errors
     clearModifier = "ctrl", -- clears this session's errors
@@ -296,7 +297,7 @@ end
 -- A Profile submenu to switch this character's profile, only once there is more than one.
 local function addProfiles(root)
     local Profiles = ns.Profiles
-    if Profiles.Count() < 2 then
+    if not module.db.menuProfiles or Profiles.Count() < 2 then
         return
     end
     root:CreateDivider()
@@ -743,6 +744,12 @@ module.options = {
         description = L.MINIMAPBUTTON_MENU_CUSTOMIZE_DESC,
         added = "1.5.0",
     },
+    {
+        key = "menuProfiles",
+        name = L.MINIMAPBUTTON_MENU_PROFILES,
+        description = L.MINIMAPBUTTON_MENU_PROFILES_DESC,
+        added = "1.7.0",
+    },
     Keys.Option("errorsKey", L.MINIMAPBUTTON_ERRORS_KEY, L.MINIMAPBUTTON_ERRORS_KEY_DESC),
     -- Changed: a click instead of a right-click, and Shift is a choice.
     Keys.Option("clearModifier", L.MINIMAPBUTTON_CLEAR_KEY, L.MINIMAPBUTTON_CLEAR_KEY_DESC, nil,
@@ -771,7 +778,7 @@ local SECTIONS = {
     -- Nested under Click Opens Quick Toggles, so it stays beside it.
     keysLeftClick = L.MINIMAPBUTTON_SECTION_BUTTON,
     menuSide = L.MINIMAPBUTTON_SECTION_TOGGLES, menuOrder = L.MINIMAPBUTTON_SECTION_TOGGLES,
-    menuCustomize = L.MINIMAPBUTTON_SECTION_TOGGLES,
+    menuCustomize = L.MINIMAPBUTTON_SECTION_TOGGLES, menuProfiles = L.MINIMAPBUTTON_SECTION_TOGGLES,
     errorsKey = L.MINIMAPBUTTON_SECTION_ERRORS, clearModifier = L.MINIMAPBUTTON_SECTION_ERRORS,
     clearAllKey = L.MINIMAPBUTTON_SECTION_ERRORS,
 }

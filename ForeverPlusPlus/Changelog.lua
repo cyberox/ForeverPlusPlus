@@ -33,6 +33,8 @@ ns.changelog = {
                     .. "know on your action bars in place of lower ones when you learn a spell." },
                 { L.GATHERINGTRACKING_TITLE, "a Dwarf gets a Find Treasure checkbox, which keeps it "
                     .. "on and lets it take turns with Find Minerals and Find Herbs." },
+                { L.MINIMAPBUTTON_TITLE, "Profiles in Menu (on by default) takes the Profile submenu "
+                    .. "off the quick toggles when turned off." },
                 { L.GATHERINGMAP_TITLE, "Tooltips Without a Dot (on by default). Turn it off and a "
                     .. "herb or vein on the minimap shows a tooltip only while the game has a dot for it." },
             } },
