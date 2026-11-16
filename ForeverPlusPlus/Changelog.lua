@@ -26,7 +26,8 @@ ns.changelog = {
                     .. "roll list, map icons show their tooltip under its map cursor, and "
                     .. "Tooltips' Scale covers its buff tooltip. World Map's Coordinates and Zone "
                     .. "Info follow its map cursor, and a module that needs a mouse or a held key "
-                    .. "says so in Settings while it's on.",
+                    .. "says so in Settings while it's on. A held trigger counts as a module's "
+                    .. "Skip Key, and tooltip lines shown only with Shift always show.",
             } },
         },
     },

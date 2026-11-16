@@ -86,7 +86,7 @@ Generated files, in `Lib/Generated/` (never edited by hand; see Generated data):
 
 ### `Keys.lua`
 
-- `ns.Keys`: the Skip Key dropdown and whether its key is held.
+- `ns.Keys`: the Skip Key dropdown and whether its key is held (`IsDown`). With the controller interface on, a held trigger stands in for the key (`PadHeld`), and `Detail()` says whether what shows only with Shift shows now: Shift, or always with the controller interface on.
 
 ### `Sounds.lua`
 

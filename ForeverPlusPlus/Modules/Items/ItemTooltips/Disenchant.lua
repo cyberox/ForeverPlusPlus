@@ -8,7 +8,7 @@ local _, ns = ...
 local ipairs, format, floor, type = ipairs, string.format, math.floor, type
 local C_Item, C_Timer = C_Item, C_Timer
 local GRAY_FONT_COLOR = GRAY_FONT_COLOR
-local IsShiftKeyDown, GetTime = IsShiftKeyDown, GetTime
+local GetTime = GetTime
 local GetLootSourceInfo, GetNumLootItems = GetLootSourceInfo, GetNumLootItems
 local GetLootSlotLink, GetLootSlotInfo = GetLootSlotLink, GetLootSlotInfo
 
@@ -83,7 +83,7 @@ local function addDisenchant(tooltip, data)
         -- No prices for every outcome: what it most likely gives instead.
         ItemTooltip.AddInfo(tooltip, L.DISENCHANT_LINE, amountText(outcomes[1]), db.align, "white")
     end
-    if IsShiftKeyDown() then
+    if ns.Keys.Detail() then
         local r, g, b = GRAY_FONT_COLOR:GetRGB()
         for _, each in ipairs(outcomes) do
             tooltip:AddLine(format(L.DISENCHANT_OUTCOME, chanceText(each.chance), amountText(each)),

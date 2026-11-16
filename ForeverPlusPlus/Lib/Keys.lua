@@ -21,12 +21,38 @@ Keys.CHOICES = {
 
 local DOWN = { shift = IsShiftKeyDown, ctrl = IsControlKeyDown, alt = IsAltKeyDown }
 
----Whether `key` (a key of `Keys.CHOICES`) is held down. Always false for "none" or a key not listed.
+---Whether a trigger is held with the controller interface on: the controller's own modifiers,
+---which swap its action bars or start targeting while held. Both are plain reads of Blizzard's
+---state (GamepadMode.IsHUDBindingModifierDown and IsTargetingModifierDown, Blizzard_Gamepad's
+---HoldBindings.lua, build 70938; read, not seen in game).
+---@return boolean
+function Keys.PadHeld()
+    local mode = ns.Menus.GamepadUI() and _G.GamepadMode
+    if not mode then
+        return false
+    end
+    local hud, targeting = mode.IsHUDBindingModifierDown, mode.IsTargetingModifierDown
+    return ns.IsTrue(hud and hud()) or ns.IsTrue(targeting and targeting())
+end
+
+---Whether `key` (a key of `Keys.CHOICES`) is held down. Always false for "none" or a key not
+---listed. With the controller interface on there's no keyboard, so a held trigger stands in for
+---whichever key is set.
 ---@param key string
 ---@return boolean
 function Keys.IsDown(key)
     local down = DOWN[key]
-    return down ~= nil and down() and true or false
+    if down == nil then
+        return false
+    end
+    return down() and true or Keys.PadHeld()
+end
+
+---Whether lines and details shown only while Shift is held show now: Shift, or always with the
+---controller interface on, where nothing can be held over a tooltip.
+---@return boolean
+function Keys.Detail()
+    return IsShiftKeyDown() and true or ns.Menus.GamepadUI()
 end
 
 ---A dropdown option for the key setting `key` (such as "skipKey"); its default, such as "shift",

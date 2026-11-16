@@ -710,7 +710,7 @@ provider.Icon = itemIcon
 -- Whether a tooltip line set to `key` ("always", "shift", or "never") shows now.
 local function wants(key)
     local when = module.db[key]
-    return when == "always" or (when == "shift" and IsShiftKeyDown())
+    return when == "always" or (when == "shift" and ns.Keys.Detail())
 end
 
 ---A node's name as its tooltip's title: gold, as the minimap's own tooltip names a node.

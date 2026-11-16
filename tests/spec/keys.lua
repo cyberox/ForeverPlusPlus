@@ -8,6 +8,14 @@ local held = {}
 IsShiftKeyDown = function() return held.shift end
 IsControlKeyDown = function() return held.ctrl end
 IsAltKeyDown = function() return held.alt end
+-- The controller interface, and which of its triggers are held.
+local pad = { on = false }
+ns.Menus = { GamepadUI = function() return pad.on end }
+ns.IsTrue = function(value) return value == true end
+GamepadMode = {
+    IsHUDBindingModifierDown = function() return pad.hud end,
+    IsTargetingModifierDown = function() return pad.targeting end,
+}
 T.load("Locales/enUS/Automation")
 T.load("Lib/Keys") -- it caches the three
 local Keys = ns.Keys
@@ -20,6 +28,24 @@ held.shift, held.alt = nil, 1
 eq(Keys.IsDown("alt"), true, "keys: any true answer is held")
 eq(Keys.IsDown("none"), false, "keys: None is never held")
 eq(Keys.IsDown("nonsense"), false, "keys: an unknown key isn't held")
+
+-- With the controller interface on, a held trigger stands in for the key.
+held.alt = nil
+pad.hud = true
+eq(Keys.IsDown("shift"), false, "keys: a trigger means nothing without the controller interface")
+eq(Keys.Detail(), false, "keys: nor are Shift's details shown")
+pad.on = true
+eq(Keys.IsDown("shift"), true, "keys: a held trigger is the key with the controller interface on")
+eq(Keys.IsDown("none"), false, "keys: None still is never held")
+pad.hud, pad.targeting = false, true
+eq(Keys.IsDown("ctrl"), true, "keys: the targeting trigger counts too")
+pad.targeting = false
+eq(Keys.IsDown("ctrl"), false, "keys: no trigger, no key")
+eq(Keys.Detail(), true, "keys: Shift's details always show with the controller interface on")
+pad.on = false
+held.shift = true
+eq(Keys.Detail(), true, "keys: and with Shift held without it")
+held.shift = nil
 
 local option = Keys.Option("skipKey", "Skip Key", "Hold it to skip.", "General", "1.0.0")
 eq(option.key == "skipKey" and option.section == "General" and option.changed, "1.0.0",

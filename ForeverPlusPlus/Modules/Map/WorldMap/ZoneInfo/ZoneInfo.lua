@@ -284,7 +284,8 @@ end
 
 -- Whether the detail key is held.
 local function detailHeld()
-    return Keys.IsDown(module.db.detailKey)
+    -- Always with the controller interface on, where no key can be held over the map.
+    return Keys.IsDown(module.db.detailKey) or ns.Menus.GamepadUI()
 end
 
 -- Whether a gathering row shows: its setting is "always", "known" and the player has the
