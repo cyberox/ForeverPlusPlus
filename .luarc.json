@@ -358,6 +358,7 @@
     "FramerateFrame",
     "FRAMERATE_LABEL",
     "MicroMenu",
+    "BagsBar",
     "MicroMenuContainer",
     "TaxiFrame",
     "FlightMapFrame",

@@ -44,6 +44,7 @@ local module = ns.NewModule("Tooltips", L.TOOLTIPS_DESC, {
     hideClickHint = false, -- leave "<Right click for frame settings>" off unit frames' tooltips
     hideHealthBar = false, -- hide the health bar under unit tooltips
     questLines = "show", -- "show", "units" (hidden on unit tooltips), "all" (and on objects)
+    scale = 100, -- percent
 })
 module.title = L.TOOLTIPS_TITLE
 module.category = "interface"
@@ -82,6 +83,9 @@ module.options = {
         section = L.TOOLTIPS_SECTION_LINES },
     { key = "target", name = L.TOOLTIPS_TARGET, description = L.TOOLTIPS_TARGET_DESC,
         section = L.TOOLTIPS_SECTION_LINES },
+    { key = "scale", name = L.TOOLTIPS_SCALE, description = L.TOOLTIPS_SCALE_DESC,
+        section = L.TOOLTIPS_SECTION_BEHAVIOR, added = "1.7.1",
+        min = 50, max = 200, step = 10, format = "%d%%" },
     { key = "anchorCursor", name = L.TOOLTIPS_ANCHOR_CURSOR, description = L.TOOLTIPS_ANCHOR_CURSOR_DESC,
         section = L.TOOLTIPS_SECTION_BEHAVIOR },
     { key = "hideInCombat", name = L.TOOLTIPS_HIDE_IN_COMBAT, description = L.TOOLTIPS_HIDE_IN_COMBAT_DESC,
@@ -595,6 +599,26 @@ local function fadeHealthBar(hide)
     end
 end
 
+-- Scale: the tooltips the game shows by themselves, each scaled alone since none is the child of
+-- another: the main one, the one a clicked item link opens, and the two that compare gear. A
+-- tooltip's scale is nobody else's, so at 100% they're left alone until we've changed one.
+local SCALED = { "GameTooltip", "ItemRefTooltip", "ShoppingTooltip1", "ShoppingTooltip2" }
+local scaled = false
+
+local function applyScale()
+    local scale = module.enabled and module.db.scale or 100
+    if scale == 100 and not scaled then
+        return
+    end
+    scaled = scale ~= 100
+    for _, name in ipairs(SCALED) do
+        local tooltip = _G[name]
+        if tooltip and tooltip.SetScale then
+            tooltip:SetScale(scale / 100)
+        end
+    end
+end
+
 -- Quest Lines: true leaves a quest line (its title, an objective, or whose they are in a group) out
 -- of a unit's tooltip, or an object's too, as the tooltip is built. Idea from NoQuestTooltips and
 -- cyberox's Hide Quest Tooltips. Only the tooltip skips them: the data keeps them, so what reads
@@ -631,15 +655,19 @@ function module:OnEnable()
     self:HookScript(GameTooltip, "OnTooltipCleared", unfade)
     self:HookScript(GameTooltip, "OnHide", unfade)
     fadeHealthBar(self.db.hideHealthBar)
+    applyScale()
 end
 
 function module:OnDisable()
     fadeHealthBar(false)
     unfade()
+    applyScale()
 end
 
 function module:OnOptionChanged(key)
     if key == "hideHealthBar" and self.enabled then
         fadeHealthBar(self.db.hideHealthBar)
+    elseif key == "scale" then
+        applyScale()
     end
 end

@@ -7,6 +7,8 @@ What changed in each release of Forever++. The same notes show in game under Set
 ### Added
 
 - **Quest Pins**: PvP Quests, a kind of its own for battleground and other player-versus-player quests, in Settings and the map's filter menu. Untick it to hide their pins.
+- **Hide Bag and Menu Bars**: a new module, off by default, that hides the bag bar and the micro menu until the mouse is over them, or always.
+- **Tooltips**: Scale makes tooltips bigger or smaller, from 50% to 200%.
 
 ## 1.7.0 (2026-11-15)
 

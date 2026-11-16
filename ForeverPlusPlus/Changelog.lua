@@ -16,6 +16,9 @@ ns.changelog = {
                 { L.QUESTPINS_TITLE, "PvP Quests, a kind of its own for battleground and other "
                     .. "player-versus-player quests, in Settings and the map's filter menu. Untick it "
                     .. "to hide their pins." },
+                { L.HIDEMENUBARS_TITLE, "a new module, off by default, that hides the bag bar and "
+                    .. "the micro menu until the mouse is over them, or always." },
+                { L.TOOLTIPS_TITLE, "Scale makes tooltips bigger or smaller, from 50% to 200%." },
             } },
         },
     },

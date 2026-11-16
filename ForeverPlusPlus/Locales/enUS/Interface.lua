@@ -47,6 +47,9 @@ L.TOOLTIPS_TARGET_DESC = "Add a line with who the unit is targeting, colored by 
 L.TOOLTIPS_TARGET_LINE = "Target:"
 L.TOOLTIPS_TARGET_YOU = "You"
 L.TOOLTIPS_SECTION_BEHAVIOR = "Behavior"
+L.TOOLTIPS_SCALE = "Scale"
+L.TOOLTIPS_SCALE_DESC = "How big tooltips are, with the item links you click and the tooltips that "
+    .. "compare gear."
 L.TOOLTIPS_ANCHOR_CURSOR = "Anchor to Cursor"
 L.TOOLTIPS_ANCHOR_CURSOR_DESC = "Show tooltips at your mouse instead of their usual spot in the "
     .. "corner."
@@ -80,6 +83,18 @@ L.HIDESTANCEBAR_DESC = "Hide the stance bar: your stances, forms, auras, or stea
 L.HIDESTANCEBAR_MOUSEOVER = "Show on Mouseover"
 L.HIDESTANCEBAR_MOUSEOVER_DESC = "Show the stance bar while the mouse is over it, where you can "
     .. "click it as usual."
+
+-- HideMenuBars
+L.HIDEMENUBARS_TITLE = "Hide Bag and Menu Bars"
+L.HIDEMENUBARS_DESC = "Hide the bag bar and the micro menu until the mouse is over them. Their keys "
+    .. "in Key Bindings still work, and both show in Edit Mode."
+L.HIDEMENUBARS_BAGS = "Bag Bar"
+L.HIDEMENUBARS_BAGS_DESC = "Hide the bag bar."
+L.HIDEMENUBARS_MICRO = "Micro Menu"
+L.HIDEMENUBARS_MICRO_DESC = "Hide the micro menu: Character, Spellbook, Talents, and the rest."
+L.HIDEMENUBARS_MOUSEOVER = "Show on Mouseover"
+L.HIDEMENUBARS_MOUSEOVER_DESC = "Show a hidden bar while the mouse is over it, where you can click it "
+    .. "as usual. Off, it stays hidden."
 
 -- HideErrors
 L.HIDEERRORS_TITLE = "Hide Error Messages"
