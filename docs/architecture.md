@@ -282,7 +282,7 @@ Generated files, in `Lib/Generated/` (never edited by hand; see Generated data):
 
 ### `QuestieDB.lua`
 
-- `ns.QuestieDB`: the one place we read the separate QuestieDB addon's quest, NPC, item, and object data, at run time through its `LibQuestieDB` API and never copied into this repo (`docs/questiedb.md`): whether it's there and fits (`Status`, `IsReady`, `Problem`, `OnReady`), records as our own copies with spawns 0-1 on a uiMapID (`Quest`, `Npc`, `Item`, `Object`, `Ids`, `IdsByName`, `UiMapID`, `DropRates`, and `QuestDrops` for the creatures that drop a quest's items), every call protected, and `Notices` for a module that needs it, with `Require` to lock one off while it's missing.
+- `ns.QuestieDB`: the one place we read the separate QuestieDB addon's quest, NPC, item, and object data, at run time through its `LibQuestieDB` API and never copied into this repo (`docs/questiedb.md`): whether it's there and fits (`Status`, `IsReady`, `Problem`, `OnReady`), records as our own copies with spawns 0-1 on a uiMapID (`Quest`, `Npc`, `Item`, `Object`, `Ids`, `IdsByName`, `UiMapID`, `DropRates`, `QuestDrops` for the creatures that drop a quest's items, and `QuestsUnlockedBy` and `QuestsLeadingTo` for a quest's links the other way, indexed once), every call protected, and `Notices` for a module that needs it, with `Require` to lock one off while it's missing.
 
 ### `Plugins.lua`
 

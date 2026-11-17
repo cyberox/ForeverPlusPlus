@@ -1360,7 +1360,8 @@ function Plugins.Kit()
         }),
         -- The QuestieDB addon's data, in our shapes
         QuestieDB = pick("QuestieDB", { "Status", "IsAvailable", "IsReady", "OnReady", "Cancel", "Ids",
-            "IdsByName", "Quest", "Npc", "Item", "Object", "UiMapID" }, "the kit's QuestieDB", {
+            "IdsByName", "Quest", "QuestsUnlockedBy", "QuestsLeadingTo", "Npc", "Item", "Object", "UiMapID" },
+            "the kit's QuestieDB", {
             OnReady = function(fn)
                 if type(fn) ~= "function" then
                     fail("QuestieDB.OnReady(fn)", 2)

@@ -37,7 +37,7 @@ local FIELDS = {
         "objectives", "objectivesText", "preQuestGroup", "preQuestSingle", "nextQuestInChain",
         "exclusiveTo", "zoneOrSort", "requiredRaces", "requiredClasses", "sourceItemId",
         "requiredSkill", "breadcrumbForQuestId", "questFlags", "specialFlags",
-        "requiredMinRep", "requiredMaxRep" },
+        "requiredMinRep", "requiredMaxRep", "childQuests", "parentQuest" },
     Npc = { "name", "subName", "minLevel", "maxLevel", "rank", "spawns", "zoneID", "questStarts",
         "questEnds", "friendlyToFaction", "npcFlags" },
     Item = { "name", "npcDrops", "objectDrops", "itemDrops", "vendors", "questRewards", "startQuest",
@@ -488,8 +488,10 @@ end
 ---
 ---`{ id, name, level, requiredLevel, maxLevel, races, classes, areaID, uiMapID, sortID,
 ---starters = { npcs, objects, items }, finishers = { npcs, objects }, objectives, objectivesText,
----prerequisites = { all, any }, next, exclusiveTo, breadcrumbFor, sourceItemID, requiredSkill,
----flags, specialFlags, repeatable, raid, minRep, maxRep }`. `minRep` and `maxRep` are
+---prerequisites = { all, any }, next, children, parent, exclusiveTo, breadcrumbFor, sourceItemID,
+---requiredSkill, flags, specialFlags, repeatable, raid, minRep, maxRep }`. `children` are the quests
+---this one unlocks, and `parent` the quest that must be in the log for this one to be offered
+---(QuestieDB's `childQuests` and `parentQuest`). `minRep` and `maxRep` are
 ---`{ id, value }`: a faction and the reputation with it the quest needs at least, or less than.
 ---`objectives` is a list of `{ kind, id, text }` (`kind` is `"npc"`, `"object"`, `"item"`,
 ---`"reputation"` with `value`, `"killCredit"` with `ids`, or `"spell"` with `itemID`). Every
@@ -527,6 +529,8 @@ function QuestieDB.Quest(questID)
         objectivesText = strings(f.objectivesText),
         prerequisites = { all = ids(f.preQuestGroup), any = ids(f.preQuestSingle) },
         next = id(f.nextQuestInChain),
+        children = ids(f.childQuests),
+        parent = id(f.parentQuest),
         exclusiveTo = ids(f.exclusiveTo),
         breadcrumbFor = id(f.breadcrumbForQuestId),
         sourceItemID = id(f.sourceItemId),
@@ -733,6 +737,79 @@ function QuestieDB.QuestDrops(questID)
     return out
 end
 
+-- Quest links, the other way ------------------------------------------------------------------
+
+-- Quest ID -> the quests that name it, built once from every quest's links: `unlocks` (those that
+-- list it as a prerequisite) and `leadsTo` (those whose next quest in the chain it is).
+local links
+
+local function loadLinks()
+    links = { unlocks = {}, leadsTo = {} }
+    local found = api()
+    if not found then
+        return
+    end
+    local entity = found.Quest
+    local fields = { "preQuestGroup", "preQuestSingle", "nextQuestInChain" }
+    local function add(index, key, questID)
+        local list = index[key]
+        if not list then
+            list = {}
+            index[key] = list
+        end
+        if list[#list] ~= questID then -- in both of a quest's prerequisite lists
+            list[#list + 1] = questID
+        end
+    end
+    for _, questID in ipairs(ids(try(entity.GetAllIds))) do
+        local values = try(entity.GetAll, questID, fields)
+        if type(values) == "table" then
+            for _, before in ipairs(ids(values[1])) do
+                add(links.unlocks, before, questID)
+            end
+            for _, before in ipairs(ids(values[2])) do
+                add(links.unlocks, before, questID)
+            end
+            local after = id(values[3])
+            if after then
+                add(links.leadsTo, after, questID)
+            end
+        end
+    end
+end
+
+-- A copy of one list of the index, empty for none.
+local function linked(index, questID)
+    if not api() or type(questID) ~= "number" then
+        return {}
+    end
+    if not links then
+        loadLinks()
+    end
+    local out = {}
+    for i, value in ipairs(links[index][questID] or {}) do
+        out[i] = value
+    end
+    return out
+end
+
+---The quests that need this one done first (it's in their `prerequisites`), ascending, as our own
+---list; empty for none. The first call reads every quest's links (a few thousand reads), so call it
+---out of combat, not first on a hover.
+---@param questID number
+---@return number[]
+function QuestieDB.QuestsUnlockedBy(questID)
+    return linked("unlocks", questID)
+end
+
+---The quests whose `next` quest in the chain is this one, ascending, as our own list; empty for
+---none. Built with `QuestsUnlockedBy`, from the same one read of every quest.
+---@param questID number
+---@return number[]
+function QuestieDB.QuestsLeadingTo(questID)
+    return linked("leadsTo", questID)
+end
+
 -- Settings ------------------------------------------------------------------------------------
 
 ---The gray rows a module that needs QuestieDB puts in `module.notice`: that it needs the addon,
@@ -778,6 +855,6 @@ end
 
 ---Forgets what was read and checked, for the tests (a new stub of LibQuestieDB).
 function QuestieDB.Reset()
-    lib, status, zones, drops = nil, nil, nil, nil
+    lib, status, zones, drops, links = nil, nil, nil, nil, nil
     waiting, listening = {}, false
 end

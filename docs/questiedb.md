@@ -69,7 +69,8 @@ Not entity fields: whole tables through `LibQuestieDB.Support.Get(name)`, which 
 | `IsAvailable()`, `IsReady()`, `Problem()` | ready or waiting; readable now; installed but not the contract or shape we read |
 | `OnReady(fn)`, `Cancel(fn)` | call `fn` once it's readable (now, or after loading an on-demand copy out of combat) |
 | `Info()` | `{ status, version, contract, minContract, readMode }` for Self Test |
-| `Quest(id)` | `{ id, name, level, requiredLevel, maxLevel, races, classes, areaID, uiMapID, sortID, starters = { npcs, objects, items }, finishers = { npcs, objects }, objectives, objectivesText, prerequisites = { all, any }, next, exclusiveTo, breadcrumbFor, sourceItemID, requiredSkill = { id, value } }`; objectives as `{ kind, id, text }` with `kind` `npc`, `object`, `item`, `reputation` (`value`), `killCredit` (`ids`), or `spell` (`itemID`) |
+| `Quest(id)` | `{ id, name, level, requiredLevel, maxLevel, races, classes, areaID, uiMapID, sortID, starters = { npcs, objects, items }, finishers = { npcs, objects }, objectives, objectivesText, prerequisites = { all, any }, next, children, parent, exclusiveTo, breadcrumbFor, sourceItemID, requiredSkill = { id, value } }`; objectives as `{ kind, id, text }` with `kind` `npc`, `object`, `item`, `reputation` (`value`), `killCredit` (`ids`), or `spell` (`itemID`); `children` (the quests it unlocks) and `parent` (the quest that must be in the log first) are its `childQuests` and `parentQuest` |
+| `QuestsUnlockedBy(id)`, `QuestsLeadingTo(id)` | the other way round: the quests that list it in their `prerequisites`, and the quests whose `next` it is, ascending. The first call reads three fields of every quest once (call it out of combat) |
 | `Npc(id)` | `{ id, name, subName, minLevel, maxLevel, rank, flags, friendlyTo, areaID, uiMapID, spawns, instances, questStarts, questEnds }` |
 | `Item(id)` | `{ id, name, level, requiredLevel, class, subClass, npcDrops, objectDrops, containers, vendors, questRewards, startsQuest, relatedQuests, teachesSpell }` |
 | `Object(id)` | `{ id, name, areaID, uiMapID, spawns, instances, questStarts, questEnds }` |
@@ -93,6 +94,7 @@ Quest Pins (`Modules/Quests/QuestPins/`) is the first module to read it. What it
 - **No vendor inventories.** An item lists the NPCs that sell it (`vendors`), but not the price, the stock, or a limited supply, and there's no list of what an NPC sells (we'd have to invert every item's `vendors`). `npcFlags` says which NPCs are vendors.
 - **No dungeon loot tables.** An item's `npcDrops` include bosses, and a boss's `{ -1, -1 }` spawn says which instance it's in, so dungeon loot can be worked out, but there's no table of it.
 - **Drop rates aren't entity data.** They're only in the support drop tables, which aren't part of its documented contract, are Classic's numbers from Wowhead and CMaNGOS (not measured on Forever), and are corrected by Questie's own logic we don't run.
+- **No quest tags.** Questie's corrected `GetQuestTagInfo` (dungeon, raid, PvP, group) and its tag corrections are in the Questie addon, not QuestieDB (checked in 1.1.2). A quest's `raid` comes from its quest flags; for the rest, `C_QuestLog.GetQuestTagInfo` answers once the client has the quest cached.
 - No NPC health (placeholders), no item prices or stats, no quest rewards beyond `questRewards` on the item side (no reward choices or money), no quest XP per quest except through `QuestXP`.
 
 ## In game, after installing QuestieDB

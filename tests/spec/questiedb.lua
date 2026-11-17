@@ -79,11 +79,12 @@ local DATA = {
             sourceItemId = 0, requiredSkill = { 186, 50 }, breadcrumbForQuestId = 0,
             questFlags = 64 + 4096, specialFlags = 0,
             requiredMinRep = { 55, 3000 }, requiredMaxRep = 0,
+            childQuests = { 900002, 0 }, parentQuest = 0,
         },
         [900002] = {
             name = "Sorted Errand", questLevel = 15, requiredLevel = 10, requiredMaxLevel = 20,
             startedBy = {}, finishedBy = {}, objectives = {}, zoneOrSort = -61,
-            preQuestSingle = { 900001, 0 },
+            preQuestGroup = { 900001 }, preQuestSingle = { 900001, 0 }, parentQuest = 900001,
         },
     },
     Npc = {
@@ -193,6 +194,7 @@ eq(Q.Quest(900001), nil, "questiedb: no quest without it")
 same(Q.Ids("Quest"), {}, "questiedb: no IDs without it")
 eq(Q.UiMapID(10), nil, "questiedb: no zones without it")
 eq(Q.DropRates(700001), nil, "questiedb: no drops without it")
+same(Q.QuestsUnlockedBy(900000), {}, "questiedb: no quest links without it")
 local needs = {}
 Q.Require(needs)
 eq(needs.locked == true and needs.lockedText ~= nil and needs:Problem() == true and #needs.notice == 2, true,
@@ -295,13 +297,23 @@ same(quest, {
     },
     objectivesText = { "Bring the bits." },
     prerequisites = { all = { 900000 }, any = {} },
-    next = 900002, exclusiveTo = {}, requiredSkill = { id = 186, value = 50 },
+    next = 900002, children = { 900002 }, exclusiveTo = {}, requiredSkill = { id = 186, value = 50 },
     flags = 4160, specialFlags = 0, repeatable = true, raid = true,
     minRep = { id = 55, value = 3000 },
 }, "questiedb: a quest in our shape")
 local sorted = Q.Quest(900002)
 eq(sorted.sortID == 61 and sorted.areaID == nil and sorted.maxLevel == 20, true, "questiedb: a quest under a category")
 same(sorted.prerequisites.any, { 900001 }, "questiedb: any one prerequisite, without 0")
+eq(sorted.parent == 900001 and #sorted.children == 0, true, "questiedb: a quest's parent, and no children")
+
+same(Q.QuestsUnlockedBy(900001), { 900002 }, "questiedb: the quests a quest unlocks, once though in both lists")
+same(Q.QuestsUnlockedBy(900000), { 900001 }, "questiedb: a quest that only others name")
+same(Q.QuestsLeadingTo(900002), { 900001 }, "questiedb: the quests that lead to one")
+same(Q.QuestsLeadingTo(900001), {}, "questiedb: none lead to it")
+same(Q.QuestsUnlockedBy("900001"), {}, "questiedb: links of a quest ID that isn't a number")
+local unlocked = Q.QuestsUnlockedBy(900001)
+unlocked[1] = 1
+same(Q.QuestsUnlockedBy(900001), { 900002 }, "questiedb: links are our own copies")
 eq(Q.Quest(1), nil, "questiedb: an unknown quest")
 eq(Q.Quest("900001"), nil, "questiedb: a quest ID that isn't a number")
 
