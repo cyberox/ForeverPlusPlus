@@ -21,7 +21,7 @@ local module = ns.NewModule("HideZoneText", L.HIDEZONETEXT_DESC, {
 })
 module.title = L.HIDEZONETEXT_TITLE
 module.category = "interface"
-module.added = "1.7.1"
+module.added = "1.8.0"
 
 module.options = {
     { key = "zone", name = L.HIDEZONETEXT_ZONE, description = L.HIDEZONETEXT_ZONE_DESC },

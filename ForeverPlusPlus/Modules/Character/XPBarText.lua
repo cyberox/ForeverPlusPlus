@@ -72,7 +72,7 @@ module.options = {
         key = "tooltip", name = L.XPBARTEXT_TOOLTIP, description = L.XPBARTEXT_TOOLTIP_DESC,
         added = "0.9.0", section = L.XPBARTEXT_SECTION_BAR,
     },
-    ns.StatusBars.SolidOption({ section = L.XPBARTEXT_SECTION_BAR, added = "1.7.1" }),
+    ns.StatusBars.SolidOption({ section = L.XPBARTEXT_SECTION_BAR, added = "1.8.0" }),
 }
 ns.StatusBars.Solid(module, "Experience")
 

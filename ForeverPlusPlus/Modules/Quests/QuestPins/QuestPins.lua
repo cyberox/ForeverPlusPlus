@@ -95,7 +95,7 @@ module.options = {
     { key = "dungeon", name = L.QUESTPINS_DUNGEON, description = L.QUESTPINS_DUNGEON_DESC,
         requires = "pins", section = KINDS },
     { key = "pvp", name = L.QUESTPINS_PVP, description = L.QUESTPINS_PVP_DESC, requires = "pins",
-        section = KINDS, added = "1.7.1" },
+        section = KINDS, added = "1.8.0" },
     { key = "holiday", name = L.QUESTPINS_HOLIDAY, description = L.QUESTPINS_HOLIDAY_DESC,
         requires = "pins", section = KINDS },
     { key = "warEffort", name = L.QUESTPINS_WAR_EFFORT, description = L.QUESTPINS_WAR_EFFORT_DESC,

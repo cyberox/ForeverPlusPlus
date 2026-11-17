@@ -26,7 +26,7 @@ local module = ns.NewModule("HideMenuBars", L.HIDEMENUBARS_DESC, {
 })
 module.title = L.HIDEMENUBARS_TITLE
 module.category = "interface"
-module.added = "1.7.1"
+module.added = "1.8.0"
 module.notice = ns.Menus.PadHidesNotice()
 
 module.options = {

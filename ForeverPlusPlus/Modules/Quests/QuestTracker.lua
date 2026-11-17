@@ -75,7 +75,7 @@ module.options = {
         name = L.QUESTTRACKER_COLLAPSE,
         description = L.QUESTTRACKER_COLLAPSE_DESC,
         section = QUESTS,
-        added = "1.7.1",
+        added = "1.8.0",
     },
     {
         key = "font",

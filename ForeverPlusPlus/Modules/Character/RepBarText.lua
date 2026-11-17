@@ -29,7 +29,7 @@ local module = ns.NewModule("RepBarText", L.REPBARTEXT_DESC, {
 module.title = L.REPBARTEXT_TITLE
 module.category = "character"
 module.presets = { developer = { options = { rate = true } } } -- Show Reputation per Hour
-module.added = "1.7.1"
+module.added = "1.8.0"
 
 module.options = {
     { key = "always", name = L.REPBARTEXT_ALWAYS, description = L.REPBARTEXT_ALWAYS_DESC },

@@ -87,7 +87,7 @@ module.options = {
     { key = "target", name = L.TOOLTIPS_TARGET, description = L.TOOLTIPS_TARGET_DESC,
         section = L.TOOLTIPS_SECTION_LINES },
     { key = "scale", name = L.TOOLTIPS_SCALE, description = L.TOOLTIPS_SCALE_DESC,
-        section = L.TOOLTIPS_SECTION_BEHAVIOR, added = "1.7.1",
+        section = L.TOOLTIPS_SECTION_BEHAVIOR, added = "1.8.0",
         min = 50, max = 200, step = 10, format = "%d%%" },
     { key = "anchorCursor", name = L.TOOLTIPS_ANCHOR_CURSOR, description = L.TOOLTIPS_ANCHOR_CURSOR_DESC,
         section = L.TOOLTIPS_SECTION_BEHAVIOR },
@@ -98,7 +98,7 @@ module.options = {
     { key = "hideClickHint", name = L.TOOLTIPS_HIDE_CLICK_HINT, description = L.TOOLTIPS_HIDE_CLICK_HINT_DESC,
         section = L.TOOLTIPS_SECTION_BEHAVIOR, added = "1.6.0" },
     { key = "hideTabTooltip", name = L.TOOLTIPS_HIDE_TAB_TOOLTIP,
-        description = L.TOOLTIPS_HIDE_TAB_TOOLTIP_DESC, section = L.TOOLTIPS_SECTION_BEHAVIOR, added = "1.7.1" },
+        description = L.TOOLTIPS_HIDE_TAB_TOOLTIP_DESC, section = L.TOOLTIPS_SECTION_BEHAVIOR, added = "1.8.0" },
     { key = "hideHealthBar", name = L.TOOLTIPS_HIDE_HEALTH_BAR,
         description = L.TOOLTIPS_HIDE_HEALTH_BAR_DESC, section = L.TOOLTIPS_SECTION_BEHAVIOR, added = "0.9.0" },
     {

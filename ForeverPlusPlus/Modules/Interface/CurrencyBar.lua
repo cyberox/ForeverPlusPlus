@@ -36,7 +36,7 @@ module.options = {
     { key = "vertical", name = L.CURRENCYBAR_VERTICAL, description = L.CURRENCYBAR_VERTICAL_DESC,
         editMode = true },
     { key = "mouseover", name = L.CURRENCYBAR_MOUSEOVER, description = L.CURRENCYBAR_MOUSEOVER_DESC,
-        added = "1.7.1" },
+        added = "1.8.0" },
     { key = "tooltip", name = L.CURRENCYBAR_TOOLTIP, description = L.CURRENCYBAR_TOOLTIP_DESC },
     {
         key = "session", requires = "tooltip",

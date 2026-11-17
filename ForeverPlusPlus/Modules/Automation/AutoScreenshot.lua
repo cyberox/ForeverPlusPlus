@@ -50,7 +50,7 @@ module.options = {
     { key = "hideOwn", name = L.AUTOSCREENSHOT_HIDE_OWN, description = L.AUTOSCREENSHOT_HIDE_OWN_DESC,
         section = GENERAL, requires = "hideUI", added = "0.8.0" },
     { key = "noHDR", name = L.AUTOSCREENSHOT_NO_HDR, description = L.AUTOSCREENSHOT_NO_HDR_DESC,
-        section = GENERAL, added = "1.7.1" },
+        section = GENERAL, added = "1.8.0" },
     ns.ChatOption(L.AUTOSCREENSHOT_CHAT_DESC, GENERAL),
     { key = "levelUp", name = L.AUTOSCREENSHOT_LEVEL_UP, description = L.AUTOSCREENSHOT_LEVEL_UP_DESC,
         section = EVENTS },
