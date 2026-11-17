@@ -24,12 +24,26 @@ end
 ---Shows another map in the world map, as picking it in the map's own dropdown does. Not in
 ---combat: SetMapID is Blizzard's own, run in our call, and the map it then lays out has pins the
 ---game protects there. It's the only way to change the map, so out of combat it's called.
+---
+---With the controller interface on that isn't good enough: a map changed from our code is left
+---tainted, and the controller's own code then refuses to close it ("action blocked", seen in
+---game 2026-11-16). There the game is asked to open the map on it instead (C_Map.OpenWorldMap,
+---which tells the map with an event, WORLD_MAP_OPEN, so the change is made by Blizzard's own
+---handler: Blizzard_WorldMap.lua, build 70938). Seen in game 2026-11-16: a travel click changed
+---the map and it closed after with no error.
 ---@param mapID number
 ---@return boolean shown
 function WorldMap.Show(mapID)
     local map = WorldMap.Get()
     if not (map and map.SetMapID and mapID) or InCombatLockdown() then
         return false
+    end
+    if ns.Menus.GamepadUI() then
+        if not (C_Map and C_Map.OpenWorldMap) then
+            return false
+        end
+        C_Map.OpenWorldMap(mapID)
+        return true
     end
     map:SetMapID(mapID)
     return true

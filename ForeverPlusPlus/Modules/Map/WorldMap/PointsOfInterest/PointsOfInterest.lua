@@ -441,10 +441,8 @@ local function pinFor(point, mapID, world)
         -- A click shows the map of its next stop: where it goes, or where it stops first on a
         -- round of several (clicking on from there goes round them all). Not one that stays on
         -- this map.
-        -- Not with the controller interface on: changing the map from our code there left it
-        -- tainted, and closing it was then blocked (seen in game 2026-11-16, Lib/DungeonMaps.lua).
         local nextMap = point.viaMap or point[6]
-        if module.db.travelClicks and nextMap and nextMap ~= mapID and not ns.Menus.GamepadUI() then
+        if module.db.travelClicks and nextMap and nextMap ~= mapID then
             info.click = function()
                 ns.WorldMap.Show(nextMap)
             end
