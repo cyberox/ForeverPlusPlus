@@ -154,6 +154,9 @@ end
 -- How long the flight from the flight master to a node takes: the player's own time once it has
 -- been flown, else the estimate from its route (Estimated Times). Also whether it's an estimate,
 -- and whether that estimate is the rougher kind, for a flight with stops.
+---@param from number the flight point flown from
+---@param to number the flight point flown to
+---@param slot? number its slot on the open flight map, when there is one
 local function flightTime(from, to, slot)
     local seconds = timed(from, to)
     if seconds then
