@@ -119,6 +119,11 @@ L.HIDECOMBATLOGTAB_TITLE = "Hide Combat Log Tab"
 L.HIDECOMBATLOGTAB_DESC = "Take the Combat Log's tab off the chat window, while the log is docked "
     .. "there. The log itself keeps working."
 
+-- MovableCombatLogTab
+L.MOVABLECOMBATLOGTAB_TITLE = "Movable Combat Log Tab"
+L.MOVABLECOMBATLOGTAB_DESC = "Let the Combat Log's tab be dragged anywhere among your chat tabs, "
+    .. "even after the ones you made, instead of staying right after General."
+
 -- HideChatButtons
 L.HIDECHATBUTTONS_TITLE = "Hide Chat Buttons"
 L.HIDECHATBUTTONS_DESC = "Hide the buttons beside the chat window until the mouse is over the "

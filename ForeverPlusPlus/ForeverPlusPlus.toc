@@ -201,6 +201,7 @@ Modules\Chat\ChatArrowKeys.lua
 Modules\Chat\SocialButton.lua
 Modules\Chat\HideChatButtons.lua
 Modules\Chat\HideCombatLogTab.lua
+Modules\Chat\MovableCombatLogTab.lua
 Modules\Chat\WhisperWindow\WhisperWindow.lua
 Modules\Chat\WhisperWindow\Window.lua
 Modules\Units\ClassColors.lua

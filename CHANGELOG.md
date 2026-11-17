@@ -9,6 +9,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Auto Open Containers**: Pick Locks on Right Click (off by default), for Rogues, casts Pick Lock on a locked lockbox you right click in your bags, then opens it.
 - For addon authors: the plugin kit's `QuestieDB.Quest` has a quest's `children`, `parent`, and the game's quest `tag`, and `QuestsUnlockedBy` and `QuestsLeadingTo` find the quests that come after or before one.
 - **Professions**: Cost to Craft on Recipes (on by default) shows what crafting a recipe costs on its Plans, Pattern, or Formula's tooltip, before you learn it.
+- **Movable Combat Log Tab**: a new module, off by default, that lets you drag the Combat Log's tab anywhere among your chat tabs, even after the ones you made.
 
 ### Changed
 
