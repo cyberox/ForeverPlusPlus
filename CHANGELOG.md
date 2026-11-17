@@ -13,7 +13,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Tooltips**: Scale makes tooltips bigger or smaller, from 50% to 200%, and Hide Chat Tab Tooltips (off by default) shows no tooltip over a chat tab.
 - **Quest Tracker**: Collapse at Login (off by default) starts the tracker collapsed each time you log in or reload.
 - **Currency Bar**: Show on Mouseover (off by default) hides the box until the mouse is over it.
-- Controller interface: Spell Ranks, Macros, and Auto Weapon Buff work on its action bars, Loot Rolls' seconds and roll counts and the item marks show on its roll list, map icons show their tooltip under its map cursor, and Tooltips' Scale covers its buff tooltip. World Map's Coordinates and Zone Info follow its map cursor, and a module that needs a mouse or a held key says so in Settings while it's on. A held trigger counts as a module's Skip Key, and tooltip lines shown only with Shift always show. A clicks the map icon under the map cursor, and in Talent Planner A adds a point and Y removes one.
+- Controller interface: Spell Ranks, Macros, and Auto Weapon Buff work on its action bars, Loot Rolls' seconds and roll counts and the item marks show on its roll list, map icons show their tooltip under its map cursor, and Tooltips' Scale covers its buff tooltip. World Map's Coordinates and Zone Info follow its map cursor, and a module that needs a mouse or a held key says so in Settings while it's on. A held trigger counts as a module's Skip Key, and tooltip lines shown only with Shift always show. A clicks the map icon under the map cursor and Y does its second action, such as forgetting a gathering node, and in Talent Planner A adds a point and Y removes one.
 
 ### Changed
 

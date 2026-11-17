@@ -16,6 +16,12 @@ GamepadMode = {
     IsHUDBindingModifierDown = function() return pad.hud end,
     IsTargetingModifierDown = function() return pad.targeting end,
 }
+-- The controller's own state: buttons by name, counted from 0, in a table counted from 1.
+local PAD_NAMES = { PAD4 = 3, PADLTRIGGER = 8, PADRTRIGGER = 9 }
+C_GamePad = {
+    ButtonBindingToIndex = function(name) return PAD_NAMES[name] end,
+    GetDeviceMappedState = function() return pad.state end,
+}
 T.load("Locales/enUS/Automation")
 T.load("Lib/Keys") -- it caches the three
 local Keys = ns.Keys
@@ -41,6 +47,17 @@ pad.hud, pad.targeting = false, true
 eq(Keys.IsDown("ctrl"), true, "keys: the targeting trigger counts too")
 pad.targeting = false
 eq(Keys.IsDown("ctrl"), false, "keys: no trigger, no key")
+-- The controller's buttons read themselves, for where Blizzard's modifiers say nothing.
+eq(Keys.PadDown("PAD4"), false, "keys: no controller state, no button")
+pad.state = { buttons = { false, false, false, true } }
+eq(Keys.PadDown("PAD4"), true, "keys: a button is found one past its 0-based index")
+eq(Keys.PadDown("PADNONSENSE"), false, "keys: an unknown button isn't down")
+eq(Keys.IsDown("shift"), false, "keys: Y isn't a trigger")
+pad.state = { buttons = { [10] = true } }
+eq(Keys.IsDown("shift"), true, "keys: a trigger read from the controller is the key")
+pad.on = false
+eq(Keys.PadDown("PADRTRIGGER"), false, "keys: nothing is read without the controller interface")
+pad.on, pad.state = true, nil
 eq(Keys.Detail(), true, "keys: Shift's details always show with the controller interface on")
 pad.on = false
 held.shift = true

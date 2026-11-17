@@ -21,10 +21,35 @@ Keys.CHOICES = {
 
 local DOWN = { shift = IsShiftKeyDown, ctrl = IsControlKeyDown, alt = IsAltKeyDown }
 
----Whether a trigger is held with the controller interface on: the controller's own modifiers,
----which swap its action bars or start targeting while held. Both are plain reads of Blizzard's
----state (GamepadMode.IsHUDBindingModifierDown and IsTargetingModifierDown, Blizzard_Gamepad's
----HoldBindings.lua, build 70938; read, not seen in game).
+local padIndex = {} -- a controller button's name -> its place in the state's buttons, or false
+
+---Whether a controller button is down right now, by its name ("PAD4" is Y, the top face button;
+---"PADLTRIGGER"), with the controller interface on. A plain read of the controller's state
+---(C_GamePad.GetDeviceMappedState), so it works where the game hands the button to nothing of
+---ours: Y over a talent of Talent Planner's (seen in game 2026-11-16). For a press, the caller
+---compares with the last look.
+---@param button string
+---@return boolean
+function Keys.PadDown(button)
+    local pad = ns.Menus.GamepadUI() and C_GamePad
+    if not (pad and pad.GetDeviceMappedState and pad.ButtonBindingToIndex) then
+        return false
+    end
+    local index = padIndex[button]
+    if index == nil then
+        index = pad.ButtonBindingToIndex(button)
+        index = index and index + 1 or false -- that index counts from 0, the state's table from 1
+        padIndex[button] = index
+    end
+    local state = index and pad.GetDeviceMappedState()
+    return state and state.buttons and state.buttons[index] and true or false
+end
+
+---Whether a trigger is held with the controller interface on. Blizzard's own modifiers (which swap
+---its action bars or start targeting while held: GamepadMode.IsHUDBindingModifierDown and
+---IsTargetingModifierDown, HoldBindings.lua, build 70938) say so only out in the world: with the
+---talent window open a held trigger wasn't reported (in game, 2026-11-16). So the triggers are
+---also read themselves.
 ---@return boolean
 function Keys.PadHeld()
     local mode = ns.Menus.GamepadUI() and _G.GamepadMode
@@ -33,6 +58,7 @@ function Keys.PadHeld()
     end
     local hud, targeting = mode.IsHUDBindingModifierDown, mode.IsTargetingModifierDown
     return ns.IsTrue(hud and hud()) or ns.IsTrue(targeting and targeting())
+        or Keys.PadDown("PADLTRIGGER") or Keys.PadDown("PADRTRIGGER")
 end
 
 ---Whether `key` (a key of `Keys.CHOICES`) is held down. Always false for "none" or a key not

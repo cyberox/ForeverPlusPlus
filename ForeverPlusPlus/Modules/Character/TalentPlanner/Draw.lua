@@ -139,21 +139,10 @@ end
 -- while the cursor is on a talent of ours it watches the Y button itself, a plain read of the
 -- controller's state, and a press takes a point out.
 
-local PAD_Y = "PAD4" -- the top face button (GAMEPAD_FACE_TOP, Blizzard's GamepadConstants.lua)
-local padY -- its place in the state's buttons, false when it can't be found
 local watched -- the talent of ours the cursor is on
 
 local function yDown()
-    local pad = C_GamePad
-    if not (pad and pad.GetDeviceMappedState and pad.ButtonBindingToIndex) then
-        return false
-    end
-    if padY == nil then
-        local index = pad.ButtonBindingToIndex(PAD_Y)
-        padY = index and index + 1 or false -- that index counts from 0, the table from 1
-    end
-    local state = padY and pad.GetDeviceMappedState()
-    return state and state.buttons and state.buttons[padY] and true or false
+    return ns.Keys.PadDown("PAD4") -- the top face button (GAMEPAD_FACE_TOP)
 end
 
 local function unwatchY(self)

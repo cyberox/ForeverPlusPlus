@@ -122,17 +122,29 @@ local IsShiftKeyDown, IsControlKeyDown = IsShiftKeyDown, IsControlKeyDown
 -- Shift is held, so a tooltip is the thing itself until the player asks. Written here from what
 -- the icon's `info` takes (see Clicks), for every layer alike: the Ctrl+click line is ours, and a
 -- module gives only the words for its own actions (`clickHint`, `shiftHint`).
+--
+-- With the controller interface on there are no clicks: A is the plain click and Y the Shift one
+-- (see The controller's cursor), so a hint names the button in the click's place, by its first
+-- " to " ("<Shift right click to forget this node>" becomes "<Y to forget this node>"; English,
+-- and left as written where that doesn't fit). The map pin there is Blizzard's own, on the left
+-- stick, in its footer.
+local function padHint(text, button)
+    local rest = text:match("^<.- to (.+)$")
+    return rest and ("<" .. button .. " to " .. rest) or text
+end
+
 local function hints(info)
     local Note = ns.MapTooltip.Hint
+    local pad = ns.Menus.GamepadUI()
     local list = {}
     if info.click and info.clickHint then
-        list[#list + 1] = Note(info.clickHint)
+        list[#list + 1] = Note(pad and padHint(info.clickHint, "A") or info.clickHint)
     end
-    if info.waypoint or info.ctrlClick then
+    if (info.waypoint or info.ctrlClick) and not pad then
         list[#list + 1] = Note(ns.L.MAPPINS_HINT_WAYPOINT)
     end
     if info.shiftClick and info.shiftHint then
-        list[#list + 1] = Note(info.shiftHint)
+        list[#list + 1] = Note(pad and padHint(info.shiftHint, "Y") or info.shiftHint)
     end
     return list
 end
@@ -143,7 +155,7 @@ local function showTooltip(pin)
     if type(lines) == "function" then
         lines = lines(info)
     end
-    if IsShiftKeyDown() then
+    if ns.Keys.Detail() then -- Shift, or always with the controller interface on
         -- A copy: the lines are the module's, and may be kept from one draw to the next.
         local all = {}
         for _, line in ipairs(lines or {}) do
@@ -509,7 +521,20 @@ local function padLeave()
     end
 end
 
+local padYWas = false -- Y was down at the last look
+
 local function padLook(_, elapsed)
+    -- Y, looked at every frame so a short press isn't missed: the icon under the cursor gets its
+    -- Shift click (a module's own action, such as forgetting a node), which no button of the
+    -- controller's reaches. Read from the controller itself (Keys.PadDown).
+    local y = ns.Keys.PadDown("PAD4")
+    if y and not padYWas then
+        local info = padPin and padPin.info
+        if info and info.shiftClick then
+            info.shiftClick(padPin, "RightButton")
+        end
+    end
+    padYWas = y
     padElapsed = padElapsed + elapsed
     if padElapsed < PAD_INTERVAL then
         return

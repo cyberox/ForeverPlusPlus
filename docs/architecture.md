@@ -86,7 +86,7 @@ Generated files, in `Lib/Generated/` (never edited by hand; see Generated data):
 
 ### `Keys.lua`
 
-- `ns.Keys`: the Skip Key dropdown and whether its key is held (`IsDown`). With the controller interface on, a held trigger stands in for the key (`PadHeld`), and `Detail()` says whether what shows only with Shift shows now: Shift, or always with the controller interface on.
+- `ns.Keys`: the Skip Key dropdown and whether its key is held (`IsDown`). With the controller interface on, a held trigger stands in for the key (`PadHeld`), `PadDown(button)` reads one of the controller's buttons itself (Y over a talent of Talent Planner's or a map icon, which the game hands to nothing of ours), and `Detail()` says whether what shows only with Shift shows now: Shift, or always with the controller interface on.
 
 ### `Sounds.lua`
 
