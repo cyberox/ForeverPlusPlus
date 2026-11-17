@@ -2,7 +2,7 @@
 
 What changed in each release of Forever++. The same notes show in game under Settings > AddOns > Forever++ > Changelog, from [`ForeverPlusPlus/Changelog.lua`](ForeverPlusPlus/Changelog.lua); change both together.
 
-## Unreleased
+## 1.8.0 (2026-11-16)
 
 ### Added
 
