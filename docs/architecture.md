@@ -228,7 +228,7 @@ Generated files, in `Lib/Generated/` (never edited by hand; see Generated data):
 
 ### `MinimapPins.lua`
 
-- `ns.MinimapPins`: the entries of the minimap's tracking menu (`EachTracking`), and what the minimap shows right now (`View`: the player's zone map and spot, its view radius, and its rotation) and turning zone-map spots into minimap spots and back (`ToMinimap`, `FromMinimap`), for our own icons on it, the names of the dots under the player's own mouse and where the mouse is (`MouseoverNames`, `CursorOffset`), and the minimap's gold ring around an icon (`NewRing`, `PlaceRing`), which world map pins use too, and its shape: whether an addon made it square (`Square`, from `GetMinimapShape`), and word when that changes (`ShapeChanged`, `OnShapeChanged`) to our buttons on its edge and LibDBIcon's.
+- `ns.MinimapPins`: the entries of the minimap's tracking menu (`EachTracking`), and what the minimap shows right now (`View`: the player's zone map and spot, its view radius, and its rotation) and turning zone-map spots into minimap spots and back (`ToMinimap`, `FromMinimap`), for our own icons on it, where the player's own mouse is (`CursorOffset`), and the minimap's gold ring around an icon (`NewRing`, `PlaceRing`), which world map pins use too, and its shape: whether an addon made it square (`Square`, from `GetMinimapShape`), and word when that changes (`ShapeChanged`, `OnShapeChanged`) to our buttons on its edge and LibDBIcon's.
 
 ### `EditMode.lua`
 

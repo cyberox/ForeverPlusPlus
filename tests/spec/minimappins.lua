@@ -1,5 +1,5 @@
 -- MinimapPins: zone-map spots as minimap spots and back, what the minimap shows, whether icons
--- could have moved, the names under the mouse, the tracking menu's entries, the minimap's shape
+-- could have moved, the tracking menu's entries, the minimap's shape
 -- (round, or square while GetMinimapShape says so), spots on and at its edge for each, and word to
 -- listeners and LibDBIcon when the shape changes.
 local T = ...
@@ -10,14 +10,12 @@ local ns, eq = T.ns, T.eq
 local game = T.game
 game.secret = "<secret>"
 local SECRET = game.secret
-local world = { rotate = false, facing = 0, speed = 0, radius = 100, hover = nil }
+local world = { rotate = false, facing = 0, speed = 0, radius = 100 }
 Minimap = { GetWidth = function() return 200 end }
 GetCVarBool = function() return world.rotate end
 GetPlayerFacing = function() return world.facing end
 GetUnitSpeed = function() return world.speed end
 C_Minimap = { GetViewRadius = function() return world.radius end }
-C_TooltipInfo = { GetMinimapMouseover = function() return world.hover end }
-strtrim = function(text) return (text:gsub("^%s+", ""):gsub("%s+$", "")) end
 local cvarChanged
 ns.On = function(event, fn)
     if event == "CVAR_UPDATE" then
@@ -106,18 +104,6 @@ do
     cvarChanged()
     world.facing = 3
     eq(moved(), false, "motion: turning doesn't move icons on a minimap that doesn't rotate")
-end
-
-do
-    -- The names of the dots under the mouse.
-    eq(Pins.MouseoverNames(), nil, "hover: nothing under the mouse")
-    world.hover = { lines = { { leftText = "Copper Vein\n|cffffffffPeacebloom|r\n \n" } } }
-    local names = Pins.MouseoverNames()
-    eq(names and table.concat(names, ","), "Copper Vein,Peacebloom", "hover: one name a row, codes and blanks gone")
-    world.hover = { lines = { { leftText = SECRET } } }
-    eq(Pins.MouseoverNames(), nil, "hover: a name the game hides is none")
-    world.hover = { lines = {} }
-    eq(Pins.MouseoverNames(), nil, "hover: no lines")
 end
 
 do

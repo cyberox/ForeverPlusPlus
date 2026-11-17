@@ -18,6 +18,13 @@ ns.changelog = {
                 "For addon authors: the plugin kit's QuestieDB.Quest has a quest's children, parent, "
                     .. "and the game's quest tag, and QuestsUnlockedBy and QuestsLeadingTo find the quests that come after or before one.",
             } },
+            { L.CHANGELOG_CHANGED, {
+                { L.PROFTOOLTIPS_TITLE, "The game's minimap dots no longer get the skill line: since "
+                    .. "the latest patch the game hides from addons which dot is under the mouse. Herbs "
+                    .. "and veins in the world still show it." },
+                { L.GATHERINGMAP_TITLE, "The same patch means minimap tooltips no longer add lines to "
+                    .. "the game's dots. They show for your own icons, as before." },
+            } },
             { L.CHANGELOG_FIXED, {
                 { L.QUESTPINS_TITLE, "A quest whose earlier quest QuestieDB marks with a minus sign gets its pin once that quest is done." },
                 { L.QUESTPINS_TITLE, "A quest that scales to your level, such as the warlock quest Devourer of Souls, "

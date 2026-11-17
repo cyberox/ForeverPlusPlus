@@ -367,6 +367,7 @@ From the Gear Probe tool (the Debug module's settings, `/fpp gearprobe`), run on
 
 - `GetProfessions()` and `GetProfessionInfo(index)` give the gathering skills, with the skill line as the seventh value (Herbalism 182, Mining 186, Skinning 393) and the gear bonus as the eighth. **[addon]** (GatherSkillTooltip `Skills.lua`, `Data.lua`)
 - Herbs and veins under the mouse come as `Enum.TooltipDataType.Object` tooltips and minimap pins as `MinimapMouseover`, with the object's name in `data.lines[1].leftText`. Overlapping pins put several names in that one line, separated by newlines. **[addon]** (GatherSkillTooltip `Events.lua`, `Tooltip.lua`)
+- **Since build 70959 the minimap's mouseover names are secret.** Over an Iron Deposit dot in Stranglethorn Vale, out of combat, `C_TooltipInfo.GetMinimapMouseover()` gave `type` 21 (`MinimapMouseover`) and one line whose `leftText` was a secret string, and reading it errored "attempt to index a secret string value (execution tainted by '*** ForceTaint_Strong ***')". In a hook on `GameTooltip:SetMinimapMouseover`, `GameTooltipTextLeft1:GetText()` couldn't be read either. The tooltip still shows the name, with no "Requires Mining" line under it. **[in-game]** (2026-11-17, build 70959) `Blizzard_Minimap` and the tooltip code didn't change from 70938 to 70959, so it's the client's own doing. **[web]** (Gethe `forever`, compare `bebcb6b...3d8abb1`) So no addon can tell which dot is under the mouse: Gathering Skill Tooltips stopped reading the minimap, and Gathering Map's minimap tooltips go by its own icons alone.
 - `UnitCreatureType(unit)` may give the creature type's ID (Beast 1, Dragonkin 2) as a second value. GatherSkillTooltip checks it and falls back to the name, and so does Gathering Skill Tooltips. **Unverified**
 - NPC Nameplates tells players' pets, minions, guardians, totems, and companions apart with `UnitPlayerControlled`, `UnitIsOtherPlayersPet` (probed), and the creature type IDs Totem 11 and Non-combat Pet 12 (`Units.SummonKind`). Whether totems and companions read as player controlled on Forever, and whether those IDs match, isn't checked yet. **Unverified**
 - Chests and fishing pools are **Unverified** on Forever:
@@ -590,7 +591,6 @@ Check these in the live client and move them up with a tag and date:
 - [x] `[AllowLoadGameType camelot]` loads on Forever and `standard` doesn't. (2026-09-25)
 - [ ] Does `ConsoleGetAllCommands()` list every CVar on Forever, or only some?
 - [ ] Is `ReloadUI()` blocked when called from an addon's own button? (From `/run` it works.)
-- [ ] What space does `Minimap:UpdateMouseoverAtPoint` take its point in (cursor pixels, UI units, or relative to the minimap), and does `C_TooltipInfo.GetMinimapMouseover()` then name the dot there?
 - [ ] Does `C_Minimap.SetTracking` from a timer swap Find Minerals and Find Herbs, mounted and not, without an error or a dismount?
 - [ ] Is a Dwarf's Find Treasure spell 2481, and is it in the tracking list? (Gathering Tracking's Find Treasure.)
 - [ ] Do `C_Item.ReplaceEnchant()` and `C_Item.BindEnchant()` work from the `REPLACE_ENCHANT` and `BIND_ENCHANT` events, with no click behind them? (Auto Confirm.)

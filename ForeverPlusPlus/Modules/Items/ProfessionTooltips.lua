@@ -12,7 +12,7 @@
 local _, ns = ...
 
 local type, ipairs, setmetatable = type, ipairs, setmetatable
-local gsub, gmatch, match, find, concat = string.gsub, string.gmatch, string.match, string.find, table.concat
+local match = string.match
 local format = string.format
 local TooltipDataProcessor, Enum = TooltipDataProcessor, Enum
 local UnitIsPlayer, UnitPlayerControlled, UnitCreatureType = UnitIsPlayer, UnitPlayerControlled, UnitCreatureType
@@ -190,7 +190,7 @@ end
 -- instead of adding ours. The pattern comes from its string, so it works in any language.
 local REQUIRES = "^" .. ns.Text.FormatPattern(ITEM_MIN_SKILL or L.PROFTOOLTIPS_REQUIRES, true) .. "$"
 
--- World objects and minimap pins -------------------------------------------------------------
+-- World objects ------------------------------------------------------------------------------
 
 -- An object's name without the color codes, icons, and spaces a tooltip may wrap it in.
 local function clean(text)
@@ -296,10 +296,9 @@ end
 
 local restyling = setmetatable({}, { __mode = "k" }) -- tooltip -> job for its post call
 
--- A herb or vein under the mouse, or a minimap pin. A world object's tooltip has its name alone
--- on the first line, and the skill line is added after it. A minimap pin's first line holds
--- everything on separate lines, overlapping pins and their quest objectives too, so the skill
--- line goes into that text under its node's name.
+-- A herb or vein under the mouse in the world: its name alone on the first line, and the skill
+-- line added after it. Not the minimap's dots: since build 70959 their names are secret (in game,
+-- 2026-11-17), so which node a dot is can't be known.
 local function addNodeLines(tooltip, data)
     if not (module.enabled and readable(data.lines) and type(data.lines) == "table") then
         return
@@ -309,91 +308,33 @@ local function addNodeLines(tooltip, data)
     if not ns.IsText(text) then
         return
     end
-    text = gsub(text, "|n", "\n")
-    if not find(text, "\n", 1, true) then
-        -- Blizzard's own requirement line names the profession and skill in the client's
-        -- language: what a herb or vein needs is learned from it, for every language and patch.
-        local skill, need = ns.GameData.TooltipRequires(data)
-        if skill then
-            Professions.LearnRequirement(clean(text), skill, need)
-        end
-        local node = NODES[clean(text)]
-        if not node then
-            return
-        end
-        -- Blizzard already says what it needs: recolor that once it's drawn, don't add another.
-        local index = findRequires(data)
-        if index then
-            restyling[tooltip] = { index, node[1], data.lines[index].leftText,
-                findNameLine(data, index, node[1]) }
-            return
-        end
-        -- The game's own "Mining" line under a vein: ours takes its place instead of repeating it.
-        for i = 2, #data.lines do
-            local other = data.lines[i] and data.lines[i].leftText
-            if ns.IsText(other) and isProfessionName(other, node[1]) then
-                restyling[tooltip] = { i, node[1], other, nil, node[2] }
-                return
-            end
-        end
-        local line, color = nodeLine(text)
-        if line then
-            addLine(tooltip, line, color)
-        end
+    -- Blizzard's own requirement line names the profession and skill in the client's language:
+    -- what a herb or vein needs is learned from it, for every language and patch.
+    local skill, need = ns.GameData.TooltipRequires(data)
+    if skill then
+        Professions.LearnRequirement(clean(text), skill, need)
+    end
+    local node = NODES[clean(text)]
+    if not node then
         return
     end
-    local raw, parts, changed = {}, {}, false
-    for part in gmatch(text .. "\n", "(.-)\n") do
-        raw[#raw + 1] = part
+    -- Blizzard already says what it needs: recolor that once it's drawn, don't add another.
+    local index = findRequires(data)
+    if index then
+        restyling[tooltip] = { index, node[1], data.lines[index].leftText, findNameLine(data, index, node[1]) }
+        return
     end
-    local i = 1
-    while i <= #raw do
-        local part = raw[i]
-        parts[#parts + 1] = part
-        local nextPart = raw[i + 1]
-        if nextPart then
-            local skill, need = ns.GameData.Requires(clean(nextPart))
-            if skill then
-                Professions.LearnRequirement(clean(part), skill, need)
-            end
+    -- The game's own "Mining" line under a vein: ours takes its place instead of repeating it.
+    for i = 2, #data.lines do
+        local other = data.lines[i] and data.lines[i].leftText
+        if ns.IsText(other) and isProfessionName(other, node[1]) then
+            restyling[tooltip] = { i, node[1], other, nil, node[2] }
+            return
         end
-        local node = NODES[clean(part)]
-        local color, plain, rank, skillName = nil, nil, nil, nil
-        if node and nextPart then
-            color, plain, rank, skillName = requiresColor(nextPart, node[1])
-        end
-        if node and nextPart and match(clean(nextPart), REQUIRES) then
-            -- Blizzard's own line follows the name: color it, and a bare name line after it
-            -- becomes the player's skill.
-            if color then
-                parts[#parts + 1] = Colors.Text(color, plain)
-                changed = true
-                local after = raw[i + 2]
-                local yours = after and isProfessionName(after, node[1]) and yourSkill(color, rank, skillName)
-                if yours then
-                    parts[#parts + 1] = yours
-                    i = i + 1
-                end
-            else
-                parts[#parts + 1] = nextPart
-            end
-            i = i + 1
-        else
-            local line, lineColor = nodeLine(part)
-            if line then
-                parts[#parts + 1] = Colors.Text(lineColor, line)
-                changed = true
-                -- The game's own bare name line after it is replaced, not repeated.
-                if node and nextPart and isProfessionName(nextPart, node[1]) then
-                    i = i + 1
-                end
-            end
-        end
-        i = i + 1
     end
-    local fontString = changed and leftLine(tooltip, 1)
-    if fontString then
-        fontString:SetText(concat(parts, "\n"))
+    local line, color = nodeLine(text)
+    if line then
+        addLine(tooltip, line, color)
     end
 end
 
@@ -597,9 +538,7 @@ local preHooked = false
 
 function module:OnEnable()
     local types = Enum.TooltipDataType
-    -- Probe: MinimapMouseover is Mainline's type for minimap pins.
     self:TooltipPostCall(types.Object, onObject)
-    self:TooltipPostCall(types.MinimapMouseover, onObject)
     self:TooltipPostCall(types.Unit, onUnit)
     ItemTooltip.OnInfo(onItem, module)
     ItemTooltip.ReplaceLine(onItemLine, module)
@@ -610,11 +549,7 @@ function module:OnEnable()
     end
     preHooked = true
     if TooltipDataProcessor.AddTooltipPreCall then
-        for _, key in ipairs({ "Object", "MinimapMouseover" }) do
-            if types[key] then
-                TooltipDataProcessor.AddTooltipPreCall(types[key], onObjectPre)
-            end
-        end
+        TooltipDataProcessor.AddTooltipPreCall(types.Object, onObjectPre)
         TooltipDataProcessor.AddTooltipPreCall(types.Unit, onUnitPre)
     end
     -- Probe: AllTypes (every line type) and line calls are Mainline's.

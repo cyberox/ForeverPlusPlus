@@ -45,7 +45,7 @@ local module = ns.NewModule("GatheringMap", L.GATHERINGMAP_DESC, {
     minimapAlpha = 100, -- percent
     minimapEdge = false, -- a node just past the minimap's edge sits on the edge
     minimapTooltips = true, -- an icon shows its node's tooltip
-    minimapEmptyTips = true, -- a herb's or vein's icon does too while the game has no dot for it
+    minimapEmptyTips = true, -- a herb's or vein's icon does too, not only a chest's or a pool's
     -- Each line of a node's tooltip: "always", "shift" (while Shift is held), or "never".
     tipSkill = "always",
     tipGathered = "always",
@@ -749,18 +749,16 @@ internal.Requires = requiresLine
 
 ---The lines under a node's name in its tooltip, as Blizzard's Sell Price line lays them out: a
 ---label and its value, each line shown always, with Shift held, or never as its option says.
----`yards` is how far the node is, where that's known (the minimap). With `onDot`, the lines added
----to Blizzard's own tooltip for the game's dot, which has its requirement already.
+---`yards` is how far the node is, where that's known (the minimap).
 ---@param node table
 ---@param yards? number
----@param onDot? boolean
 ---@return table lines
-function internal.TooltipLines(node, yards, onDot)
+function internal.TooltipLines(node, yards)
     local Tip = ns.MapTooltip
     local lines = {}
     -- Gathering Map's own line and option: it isn't Gathering Skill Tooltips' (modules don't read
-    -- each other), which colors the game's line on the dot and the node in the world.
-    if not onDot and wants("tipSkill") then
+    -- each other), which colors the game's line on the node in the world.
+    if wants("tipSkill") then
         lines[#lines + 1] = requiresLine(node)
     end
     if node.count == 0 then
@@ -796,41 +794,24 @@ end
 -- Our icons on the minimap take no mouse (Minimap.lua): the minimap's own tooltip and clicks cover
 -- them, so a node has one tooltip wherever the mouse is on it. Blizzard fills that tooltip every
 -- frame while the mouse is on the minimap (Minimap_OnUpdate: SetOwner to the cursor, then
--- SetMinimapMouseover); a hook on that call adds our lines under the game's for its dot, arrow
--- for another level and all. A general tooltip hook missed some of those frames (in game,
--- 2026-11-07).
-local DOT_REACH = 24 -- minimap units from the mouse that a dot it names can be
-local addedAt = setmetatable({}, { __mode = "k" }) -- tooltip -> its line count once ours were added
+-- SetMinimapMouseover); a hook on that call draws ours over one of our icons. A general tooltip
+-- hook missed some of those frames (in game, 2026-11-07).
+--
+-- Which of the game's dots is under the mouse can't be known: since build 70959 the minimap's
+-- mouseover names (C_TooltipInfo.GetMinimapMouseover, and the tooltip's drawn lines) are secret
+-- (in game, 2026-11-17). So our tooltip goes by our icon alone, and never adds to the game's.
 
--- The names the game gives for its dots under the mouse, one a row, or nil where there are none.
-local namesAtCursor = ns.MinimapPins.MouseoverNames
-
--- The remembered node under the mouse on the minimap, how far it is from the player, and its map:
--- with `names` (the game's dots there), the one of those names as far as a dot reaches; without,
--- the one whose icon is under the mouse.
-local function nodeAtCursor(names)
+-- The remembered node whose icon (or the gold ring around it, which reaches past the icon's edge)
+-- is under the mouse on the minimap, how far it is from the player, and its map.
+local function nodeAtCursor()
     local v = ns.MinimapPins.View(internal.ZoneMap())
     local list = v and module.db.nodes[v.mapID]
     if not list then
         return nil
     end
     local x, y = ns.MinimapPins.FromMinimap(v, ns.MinimapPins.CursorOffset())
-    local node
-    if names then
-        local reach = DOT_REACH / v.scale
-        for _, name in ipairs(names) do
-            node = Gathering.Nearest(list, x, y, v.width, v.height, reach, function(known)
-                return internal.Shown(known, "minimap") and Professions.SharesSpawn(known.name, name)
-            end)
-            if node then
-                break
-            end
-        end
-    else
-        -- Anywhere on the icon or the gold ring around it, which reaches past the icon's edge.
-        local reach = module.db.minimapSize / v.scale
-        node = Gathering.Nearest(list, x, y, v.width, v.height, reach, internal.ShownOnMinimap)
-    end
+    local reach = module.db.minimapSize / v.scale
+    local node = Gathering.Nearest(list, x, y, v.width, v.height, reach, internal.ShownOnMinimap)
     if node then
         return node, Gathering.Distance(node.x, node.y, v.x, v.y, v.width, v.height), v.mapID
     end
@@ -840,42 +821,23 @@ local function onMinimapTooltip(tooltip)
     if not (module.enabled and module.db.minimap and module.db.minimapTooltips and Minimap:IsMouseOver()) then
         return
     end
-    -- Ours are there already when the game kept its lines rather than filling them again.
-    if addedAt[tooltip] and tooltip:NumLines() == addedAt[tooltip] then
-        return
+    local node, yards = nodeAtCursor()
+    -- Without Tooltips Without a Dot, a herb or vein says nothing. A chest or a pool never has a
+    -- dot, and keeps its tooltip.
+    if node and not module.db.minimapEmptyTips and (node.kind == "herb" or node.kind == "ore") then
+        node = nil
     end
-    addedAt[tooltip] = nil
-    local names = namesAtCursor()
-    if not names then
-        -- No dot of the game's under the mouse: most frames over the minimap, and also one of our
-        -- icons whose node the game doesn't show (gone or just gathered, a chest, a fishing pool,
-        -- tracking off). Then the tooltip is all ours, as the world map's is: the game left it
-        -- empty this frame, and fills nothing over it.
-        local node, yards = nodeAtCursor(nil)
-        -- Without Tooltips Without a Dot, a herb or vein with no dot says nothing, so a tooltip
-        -- there means the node is up. A chest or a pool never has a dot, and keeps its tooltip.
-        if node and not module.db.minimapEmptyTips and (node.kind == "herb" or node.kind == "ore") then
-            node = nil
-        end
-        if node then
-            local title = internal.Title(node)
-            -- With nothing under the mouse the game's call leaves the tooltip without an owner,
-            -- and one without an owner never shows: owned again as Blizzard's own call owns it
-            -- (Minimap_OnUpdate), at the cursor.
-            tooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
-            tooltip:SetText(title[1], title[2].r, title[2].g, title[2].b)
-            ns.MapTooltip.AddLines(tooltip, internal.TooltipLines(node, yards))
-            tooltip:Show()
-        end
-        return
-    end
-    local node, yards = nodeAtCursor(names)
     if not node then
         return
     end
-    ns.MapTooltip.AddLines(tooltip, internal.TooltipLines(node, yards, true))
+    local title = internal.Title(node)
+    -- With nothing under the mouse the game's call leaves the tooltip without an owner, and one
+    -- without an owner never shows: owned again as Blizzard's own call owns it (Minimap_OnUpdate),
+    -- at the cursor.
+    tooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
+    tooltip:SetText(title[1], title[2].r, title[2].g, title[2].b)
+    ns.MapTooltip.AddLines(tooltip, internal.TooltipLines(node, yards))
     tooltip:Show()
-    addedAt[tooltip] = tooltip:NumLines()
 end
 
 -- Shift+right-click on the minimap forgets the remembered node there, up or gone. The game's dot
@@ -884,7 +846,7 @@ local function onMinimapClick(_, button)
     if button ~= "RightButton" or not IsShiftKeyDown() or not module.db.minimap then
         return
     end
-    local node, _, mapID = nodeAtCursor(namesAtCursor())
+    local node, _, mapID = nodeAtCursor()
     if node then
         internal.Forget(mapID, node)
     end

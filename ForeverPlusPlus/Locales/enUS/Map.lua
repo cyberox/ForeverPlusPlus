@@ -456,13 +456,10 @@ L.GATHERINGMAP_NEAR_YARDS_DESC = "How close counts as near you. Nodes farther ou
 L.GATHERINGMAP_EDGE = "Keep at the Edge"
 L.GATHERINGMAP_EDGE_DESC = "Keep a node just past the minimap's edge on the edge, pointing the way to it."
 L.GATHERINGMAP_TOOLTIPS = "Minimap Tooltips"
-L.GATHERINGMAP_TOOLTIPS_DESC = "Add a node's lines to the game's tooltip when you point at its dot on "
-    .. "the minimap, and show a tooltip for an icon the game has no dot for: a node that's gone or "
-    .. "just gathered, a chest, or a fishing pool."
+L.GATHERINGMAP_TOOLTIPS_DESC = "Show a node's tooltip when you point at its icon on the minimap."
 L.GATHERINGMAP_EMPTY_TIPS = "Tooltips Without a Dot"
-L.GATHERINGMAP_EMPTY_TIPS_DESC = "Show a tooltip for a herb or vein the game has no dot for: one that's gone, "
-    .. "just gathered, or not tracked now. Turn it off and a tooltip there means the node is up. Chests "
-    .. "and fishing pools always show theirs."
+L.GATHERINGMAP_EMPTY_TIPS_DESC = "Show the tooltip on herb and vein icons too, not only chests and "
+    .. "fishing pools. Turn it off to leave a herb or vein to the game's own tooltip."
 -- A node's tooltip: the lines, each a label and its value as Blizzard's Sell Price line
 L.GATHERINGMAP_REQUIRES = "Requires %s (%d)" -- profession, skill; Blizzard's ITEM_MIN_SKILL when it has one
 L.GATHERINGMAP_TIP_GATHERED = "Gathered:"

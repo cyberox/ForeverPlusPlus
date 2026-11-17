@@ -3,13 +3,15 @@
 -- on the minimap and back. Exact through moving, turning, and zooming, since it's worked out from
 -- the player's own position rather than read from the minimap. And its shape: round, or square
 -- while an addon says so, with word to whoever places buttons on its edge when that changes. Also
--- the names of the dots under the mouse, the tracking menu's entries, and the gold ring around an
--- icon. Nothing is listened to until a module first asks.
+-- the tracking menu's entries and the gold ring around an icon. Nothing is listened to until a
+-- module first asks.
+--
+-- The names of the game's dots under the mouse aren't readable: since build 70959 the minimap's
+-- mouseover (C_TooltipInfo.GetMinimapMouseover and the tooltip it fills) is secret.
 local _, ns = ...
 
 local sin, cos, pairs, next, type = math.sin, math.cos, pairs, next, type
 local abs, max, sqrt, _G = math.abs, math.max, math.sqrt, _G
-local C_TooltipInfo, strtrim = C_TooltipInfo, strtrim
 local Minimap, GetCVarBool, GetPlayerFacing, GetUnitSpeed = Minimap, GetCVarBool, GetPlayerFacing, GetUnitSpeed
 local C_Minimap, GetCursorPosition = C_Minimap, GetCursorPosition
 
@@ -180,33 +182,6 @@ function MinimapPins.ToEdge(right, up, inset)
     return right * radius / length, up * radius / length
 end
 
--- Hovering a dot -----------------------------------------------------------------------------------
--- What the player's own mouse points at on the minimap: the game names the dots under the mouse
--- (C_TooltipInfo.GetMinimapMouseover).
-
--- The names in the mouseover's first line, one a row (overlapping dots each add one), as plain
--- text; empty when every row is blank.
-local function hoverNames(text)
-    local names = {}
-    for row in text:gmatch("[^\n]+") do
-        local name = strtrim(ns.Text.Plain(row))
-        if name ~= "" then
-            names[#names + 1] = name
-        end
-    end
-    return names
-end
-
--- The first line of the game's minimap tooltip for what's under the mouse (its dots' names), or
--- nil.
-local function mouseoverText()
-    local data = C_TooltipInfo and C_TooltipInfo.GetMinimapMouseover and C_TooltipInfo.GetMinimapMouseover()
-    local lines = data and data.lines
-    local first = type(lines) == "table" and lines[1]
-    local text = type(first) == "table" and first.leftText
-    return ns.IsText(text, true) and text or nil
-end
-
 ---Calls `fn(info, index)` for each entry of the minimap's tracking menu (Find Herbs, a hunter's
 ---tracks, the town filters): `info.spellID`, `info.active`, `info.type`. Nothing on a client
 ---without the list. GetTrackingInfo has no secret values.
@@ -221,14 +196,6 @@ function MinimapPins.EachTracking(fn)
             fn(info, i)
         end
     end
-end
-
----The names the game gives for its dots under the mouse on the minimap, one a row (overlapping
----dots each add one), as plain text, or nil where there are none.
----@return string[]?
-function MinimapPins.MouseoverNames()
-    local text = mouseoverText()
-    return text and hoverNames(text) or nil
 end
 
 -- The ring ---------------------------------------------------------------------------------------

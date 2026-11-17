@@ -9,6 +9,11 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Auto Open Containers**: Pick Locks on Right Click (off by default), for Rogues, casts Pick Lock on a locked lockbox you right click in your bags, then opens it.
 - For addon authors: the plugin kit's `QuestieDB.Quest` has a quest's `children`, `parent`, and the game's quest `tag`, and `QuestsUnlockedBy` and `QuestsLeadingTo` find the quests that come after or before one.
 
+### Changed
+
+- **Gathering Skill Tooltips**: the game's minimap dots no longer get the skill line: since the latest patch the game hides from addons which dot is under the mouse. Herbs and veins in the world still show it.
+- **Gathering Map**: the same patch means minimap tooltips no longer add lines to the game's dots. They show for your own icons, as before.
+
 ### Fixed
 
 - **Quest Pins**: a quest whose earlier quest QuestieDB marks with a minus sign gets its pin once that quest is done.
