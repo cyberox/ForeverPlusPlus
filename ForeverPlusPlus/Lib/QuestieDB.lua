@@ -300,6 +300,20 @@ local function ids(list)
     return out
 end
 
+-- A prerequisite list as real quest IDs. A negative ID in QuestieDB's preQuestGroup still means
+-- that quest must be done; the sign only tells Questie an exclusive alternative doesn't count in
+-- its place (QuestieDB:IsPreQuestGroupFulfilled). Nothing of ours counts alternatives, so the
+-- sign is dropped. 1.1.2 has two such rows: quests 4964 and 4975.
+local function prerequisites(list)
+    local out = ids(list)
+    for i, value in ipairs(out) do
+        if value < 0 then
+            out[i] = -value
+        end
+    end
+    return out
+end
+
 -- A list of strings as our own list.
 local function strings(list)
     local out = {}
@@ -491,7 +505,8 @@ end
 ---prerequisites = { all, any }, next, children, parent, exclusiveTo, breadcrumbFor, sourceItemID,
 ---requiredSkill, flags, specialFlags, repeatable, raid, minRep, maxRep }`. `children` are the quests
 ---this one unlocks, and `parent` the quest that must be in the log for this one to be offered
----(QuestieDB's `childQuests` and `parentQuest`). `minRep` and `maxRep` are
+---(QuestieDB's `childQuests` and `parentQuest`). Prerequisite IDs are always real, positive quest
+---IDs. `minRep` and `maxRep` are
 ---`{ id, value }`: a faction and the reputation with it the quest needs at least, or less than.
 ---`objectives` is a list of `{ kind, id, text }` (`kind` is `"npc"`, `"object"`, `"item"`,
 ---`"reputation"` with `value`, `"killCredit"` with `ids`, or `"spell"` with `itemID`). Every
@@ -528,7 +543,7 @@ function QuestieDB.Quest(questID)
         finishers = { npcs = group(f.finishedBy, 1), objects = group(f.finishedBy, 2) },
         objectives = objectives(f.objectives),
         objectivesText = strings(f.objectivesText),
-        prerequisites = { all = ids(f.preQuestGroup), any = ids(f.preQuestSingle) },
+        prerequisites = { all = prerequisites(f.preQuestGroup), any = prerequisites(f.preQuestSingle) },
         next = id(f.nextQuestInChain),
         children = ids(f.childQuests),
         parent = id(f.parentQuest),
@@ -766,10 +781,10 @@ local function loadLinks()
     for _, questID in ipairs(ids(try(entity.GetAllIds))) do
         local values = try(entity.GetAll, questID, fields)
         if type(values) == "table" then
-            for _, before in ipairs(ids(values[1])) do
+            for _, before in ipairs(prerequisites(values[1])) do
                 add(links.unlocks, before, questID)
             end
-            for _, before in ipairs(ids(values[2])) do
+            for _, before in ipairs(prerequisites(values[2])) do
                 add(links.unlocks, before, questID)
             end
             local after = id(values[3])

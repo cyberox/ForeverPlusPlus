@@ -77,7 +77,8 @@ local DATA = {
                 { { 12345, "Cast it", 0 } },
             },
             objectivesText = { "Bring the bits." },
-            preQuestGroup = { 900000 }, preQuestSingle = nil, nextQuestInChain = 900002,
+            -- A negative prerequisite: QuestieDB's sign, dropped.
+            preQuestGroup = { -900000 }, preQuestSingle = nil, nextQuestInChain = 900002, nextQuestInChain = 900002,
             exclusiveTo = nil, zoneOrSort = 10, requiredRaces = 0, requiredClasses = 8,
             sourceItemId = 0, requiredSkill = { 186, 50 }, breadcrumbForQuestId = 0,
             questFlags = 64 + 4096, specialFlags = 0,

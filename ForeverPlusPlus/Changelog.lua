@@ -18,6 +18,9 @@ ns.changelog = {
                 "For addon authors: the plugin kit's QuestieDB.Quest has a quest's children, parent, "
                     .. "and the game's quest tag, and QuestsUnlockedBy and QuestsLeadingTo find the quests that come after or before one.",
             } },
+            { L.CHANGELOG_FIXED, {
+                { L.QUESTPINS_TITLE, "A quest whose earlier quest QuestieDB marks with a minus sign gets its pin once that quest is done." },
+            } },
         },
     },
     {
