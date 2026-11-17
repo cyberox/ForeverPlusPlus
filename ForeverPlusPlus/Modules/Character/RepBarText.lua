@@ -9,7 +9,7 @@
 local _, ns = ...
 
 local ipairs, floor, format, wipe = ipairs, math.floor, string.format, wipe
-local CreateFrame, GetTime, GameTooltip = CreateFrame, GetTime, GameTooltip
+local GetTime, GameTooltip = GetTime, GameTooltip
 local C_Reputation, C_GossipInfo = C_Reputation, C_GossipInfo
 
 local L = ns.L
@@ -46,8 +46,8 @@ local ADDON = "Blizzard_StatusTrackingBar"
 local EXALTED = 8 -- the last standing (Blizzard's MAX_REPUTATION_REACTION)
 local RATE_AFTER = 60 -- seconds of watching a faction before its pace shows
 
-local texts = setmetatable({}, { __mode = "k" }) -- Blizzard's reputation bar -> our font string
-local bars = {} -- the reputation bars, once found
+-- Blizzard's reputation bars, once found, and each one's font string of ours (StatusBars.Texts).
+local bars, texts = {}, {}
 
 -- "Friendly", in the player's gender where the language has two.
 local function standingName(reaction)
@@ -283,30 +283,11 @@ local function setUp()
     if not module.enabled then
         return
     end
-    local manager = StatusTrackingBarManager
-    local index = StatusTrackingBarInfo and StatusTrackingBarInfo.BarsEnum
-        and StatusTrackingBarInfo.BarsEnum.Reputation
-    if not (manager and manager.barContainers and index) then
+    local found, made = ns.StatusBars.Texts("Reputation")
+    if not found then
         return
     end
-    for _, container in ipairs(manager.barContainers) do
-        local bar = container.bars and container.bars[index]
-        if bar and bar.OverlayFrame and bar.OverlayFrame.Text and not texts[bar] then
-            -- Our own frame like Blizzard's OverlayFrame, so that one (holding only Blizzard's
-            -- text) can be hidden while ours shows, as XP Bar Text does.
-            local holder = CreateFrame("Frame", nil, bar)
-            holder:SetFrameStrata("MEDIUM")
-            holder:SetAllPoints(bar.OverlayFrame)
-            -- Above the bar's divider lines and border, as Blizzard's text is.
-            holder:SetFrameLevel(bar.OverlayFrame:GetFrameLevel() + 1)
-            local ours = holder:CreateFontString(nil, "ARTWORK", "TextStatusBarText")
-            ours:SetDrawLayer("ARTWORK", 5)
-            ours:SetPoint("CENTER", holder, "CENTER", 0, 0)
-            ours:Hide()
-            texts[bar] = ours
-            bars[#bars + 1] = bar
-        end
-    end
+    bars, texts = found, made
     for _, bar in ipairs(bars) do
         -- Blizzard sets its text in Update and on mouseover, and shows it on mouseover.
         module:Hook(bar, "Update", update)

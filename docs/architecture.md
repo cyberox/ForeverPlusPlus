@@ -129,6 +129,7 @@ Generated files, in `Lib/Generated/` (never edited by hand; see Generated data):
 ### `StatusBars.lua`
 
 - `ns.StatusBars`: the divider lines over Blizzard's status tracking bars, which belong to a bar's container. A module claims its bar's Solid Bar option (`Solid`, `SolidOption`), and `Refresh` fades each container's lines out while the bar it shows has it on.
+- `Texts(kind, needs, made)`: a font string of ours over each container's bar of a kind, in Blizzard's bar text's font and spot, made once a bar and handed back as the bars found and a bar -> font string table, for a module that hides Blizzard's bar text (`bar.OverlayFrame`) and shows its own (XP Bar Text, Reputation Bar Text).
 
 ### `AddOns.lua`
 
@@ -373,7 +374,7 @@ What each module is, in the code's terms (what it does for players is in `README
 - **Movable Framerate**
 - **Local Time**: the calendar's and a few other realm times of day in the player's time while the clock's Use Local Time is on.
 - **XP Bar Text**
-- **Reputation Bar Text**: `RepBarText`: our text over each container's reputation bar as XP Bar Text does it, a tooltip of our own, and the watched faction moved to the one that last gained.
+- **Reputation Bar Text**: `RepBarText`: our text over each container's reputation bar as XP Bar Text does it (`StatusBars.Texts`), a tooltip of our own, and the watched faction moved to the one that last gained.
 - **AddOns List**
 - **Error Catcher**
 - **Minimap Button**: its menu of quick toggles, picked by the player with the Customize button in its settings.
