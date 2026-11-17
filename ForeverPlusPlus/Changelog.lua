@@ -40,8 +40,8 @@ ns.changelog = {
                     .. "roll list, as do item marks." },
                 { L.WORLDMAP_TITLE, "our map icons show their tooltip under the map cursor. The "
                     .. "select button clicks one, and pressing the right stick does its second "
-                    .. "action, such as forgetting a gathering node. Coordinates and Zone Info "
-                    .. "follow the cursor." },
+                    .. "action, such as forgetting a gathering node. A boat or zeppelin icon opens "
+                    .. "its next stop, and Coordinates and Zone Info follow the cursor." },
                 "A dungeon's map goes back with the back button and turns floors with the right "
                     .. "stick.",
                 { L.TALENTPLANNER_TITLE, "one button adds a point and another removes one." },
@@ -53,6 +53,11 @@ ns.changelog = {
             { L.CHANGELOG_CHANGED, {
                 { L.TALENTPLANNER_TITLE, "a talent at its highest planned rank shows gold, "
                     .. "learned or not." },
+            } },
+            { L.CHANGELOG_FIXED, {
+                { L.LOOTROLLS_TITLE, "in Edit Mode, its preview no longer draws over the Edit "
+                    .. "Mode window." },
+                { L.WORLDMAP_TITLE, "the zone's area name no longer shows over a dungeon's map." },
             } },
         },
     },

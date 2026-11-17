@@ -20,7 +20,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 - Spell Ranks, Macros, and Auto Weapon Buff work on the controller's action bars.
 - **Loot Rolls**: the seconds left and roll counts show on the controller's roll list, as do item marks.
-- **World Map**: our map icons show their tooltip under the map cursor. The select button clicks one, and pressing the right stick does its second action, such as forgetting a gathering node. Coordinates and Zone Info follow the cursor.
+- **World Map**: our map icons show their tooltip under the map cursor. The select button clicks one, and pressing the right stick does its second action, such as forgetting a gathering node. A boat or zeppelin icon opens its next stop, and Coordinates and Zone Info follow the cursor.
 - A dungeon's map goes back with the back button and turns floors with the right stick.
 - **Talent Planner**: one button adds a point and another removes one.
 - A held trigger counts as a module's Skip Key, and tooltip lines shown only with Shift always show.
@@ -29,6 +29,11 @@ What changed in each release of Forever++. The same notes show in game under Set
 ### Changed
 
 - **Talent Planner**: a talent at its highest planned rank shows gold, learned or not.
+
+### Fixed
+
+- **Loot Rolls**: in Edit Mode, its preview no longer draws over the Edit Mode window.
+- **World Map**: the zone's area name no longer shows over a dungeon's map.
 
 ## 1.7.0 (2026-11-15)
 
