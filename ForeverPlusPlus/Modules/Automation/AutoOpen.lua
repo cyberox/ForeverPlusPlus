@@ -6,6 +6,11 @@
 -- stealthed (opening breaks stealth) or casting, with something on the cursor, and while the bags
 -- are nearly full.
 --
+-- Pick Locks on Right Click, for Rogues: a right click on a locked lockbox in Blizzard's bags casts
+-- Pick Lock on it through a secure overlay (Lib/BagClicks.lua, as Comprehend Scrolls), since a
+-- spell's item cursor can only be answered by a hardware click. Once it's unlocked, it's opened as
+-- any other container. A box that needs more skill is still tried, so the game says why.
+--
 -- Probe: C_Container.UseContainerItem opens a container from a timer on Forever, with no click.
 -- [addon] Open Sesame (github.com/Gogo1951/Open-Sesame, MIT, its Camelot TOC for interface 16001,
 -- read 2026-11-11) opens them that way and owns no secure frames. Unverified in game by us.
@@ -14,6 +19,7 @@ local _, ns = ...
 local format, pairs, ipairs, type, concat = string.format, pairs, ipairs, type, table.concat
 local C_Container = C_Container
 local InCombatLockdown, UnitIsDeadOrGhost, GetNumLootItems = InCombatLockdown, UnitIsDeadOrGhost, GetNumLootItems
+local UnitClass = UnitClass
 
 local L = ns.L
 
@@ -25,6 +31,7 @@ local module = ns.NewModule("AutoOpen", L.AUTOOPEN_DESC, {
     enabled = false,
     freeSlots = 4, -- open nothing while fewer bag slots than this are free
     special = false, -- also open the containers in KEPT
+    pickLocks = false, -- a Rogue's right click on a locked lockbox casts Pick Lock on it
     chat = true,
 })
 module.title = L.AUTOOPEN_TITLE
@@ -32,14 +39,37 @@ module.category = "automation"
 module.quickToggle = "loot"
 module.added = "1.5.0"
 
+local PICK_LOCK = ns.Data.Spell("PICK_LOCK")
+
+-- Only a Rogue picks locks. The class, not whether the game says Pick Lock is known, as Comprehend
+-- Scrolls does: a Rogue without it is told so by the game.
+local function rogue()
+    local _, class = UnitClass("player")
+    return class == "ROGUE"
+end
+
 module.options = {
     {
         key = "freeSlots", name = L.AUTOOPEN_FREE_SLOTS, description = L.AUTOOPEN_FREE_SLOTS_DESC,
         min = 1, max = 10, step = 1, format = "%d",
     },
     { key = "special", name = L.AUTOOPEN_SPECIAL, description = L.AUTOOPEN_SPECIAL_DESC },
+    {
+        key = "pickLocks", name = L.AUTOOPEN_PICK_LOCKS, description = L.AUTOOPEN_PICK_LOCKS_DESC,
+        shown = rogue, added = "1.9.0",
+    },
     ns.ChatOption(L.AUTOOPEN_CHAT_DESC),
 }
+
+-- The right click on a lockbox is a mouse click on an overlay, which the controller's cursor
+-- never presses (Lib/BagClicks.lua).
+do
+    local notice = ns.Gamepad.LimitedNotice()
+    notice.shown = function()
+        return ns.Gamepad.On() and module.db.pickLocks and rogue()
+    end
+    module.notice = notice
+end
 
 -- Containers left for the player to open, unless Open Special Containers is on: what's inside is
 -- rolled on or traded in a raid, is a holiday gift, or is a quest's or a recipe's one chance.
@@ -174,13 +204,46 @@ end
 
 local look = ns.Frames.Coalesce(step, SETTLE, module)
 
+-- Picking locks ----------------------------------------------------------------------------------
+
+-- A locked lockbox: it has loot and Blizzard's "Locked" line.
+local function lockbox(itemID, bag, slot)
+    local info = C_Container.GetContainerItemInfo(bag, slot)
+    return info and ns.IsTrue(info.hasLoot) and locked(bag, slot)
+end
+
+local function pick(overlay, _, bag, slot)
+    overlay:SetAttribute("type2", "spell")
+    overlay:SetAttribute("spell", PICK_LOCK)
+    overlay:SetAttribute("target-bag", bag)
+    overlay:SetAttribute("target-slot", slot)
+    return true
+end
+
+local overlays = ns.BagClicks.New(module, lockbox, pick, function()
+    return module.db.pickLocks and rogue() and ns.BagClicks.IsAvailable()
+end)
+
+-- A picked box: look again once its lock is off, for it to be opened and lose its overlay.
+local function onCast(_, _, _, spellID)
+    if ns.IsNumber(spellID) and spellID == PICK_LOCK then
+        look()
+        overlays:Refresh()
+    end
+end
+
 function module:OnEnable()
     self:On("BAG_UPDATE_DELAYED", look)
     self:On("PLAYER_REGEN_ENABLED", look)
+    if rogue() then
+        self:OnUnit("UNIT_SPELLCAST_SUCCEEDED", { "player" }, onCast)
+        overlays:Enable()
+    end
     look()
 end
 
 function module:OnDisable()
+    overlays:Disable()
     for key in pairs(tried) do
         tried[key] = nil
     end
@@ -192,9 +255,11 @@ function module:OnDisable()
     end
 end
 
--- Turning Open Special Containers on opens the ones already in the bags.
+-- Turning Open Special Containers on opens the ones already in the bags; Pick Locks on Right Click
+-- lays or takes away the lockboxes' overlays.
 function module:OnOptionChanged()
     if self.enabled then
         look()
+        overlays:Refresh()
     end
 end

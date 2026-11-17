@@ -46,7 +46,10 @@ L.AUTOOPEN_SPECIAL = "Open Special Containers"
 L.AUTOOPEN_SPECIAL_DESC = "Also open the few containers usually left for you to decide on: raid "
     .. "and world boss sacks of gems, holiday gifts, and trunks and crates that hold a quest item, "
     .. "a recipe, or a piece of gear."
-L.AUTOOPEN_CHAT_DESC = "Say in chat what was opened."
+L.AUTOOPEN_PICK_LOCKS = "Pick Locks on Right Click"
+L.AUTOOPEN_PICK_LOCKS_DESC = "Right click a locked lockbox in your bags to cast Pick Lock on it, "
+    .. "then it's opened."
+L.AUTOOPEN_CHAT_DESC ="Say in chat what was opened."
 L.AUTOOPEN_OPENED = "Opened %s." -- one or more item links, each maybe with a count
 L.AUTOOPEN_COUNT = "%s x%d" -- item link, how many
 -- AutoSellJunk

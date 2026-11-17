@@ -10,6 +10,15 @@ local L = ns.L
 
 ns.changelog = {
     {
+        version = L.CHANGELOG_UNRELEASED,
+        sections = {
+            { L.CHANGELOG_ADDED, {
+                { L.AUTOOPEN_TITLE, "Pick Locks on Right Click (off by default), for Rogues, casts "
+                    .. "Pick Lock on a locked lockbox you right click in your bags, then opens it." },
+            } },
+        },
+    },
+    {
         version = "1.8.0", date = "2026-11-16",
         sections = {
             { L.CHANGELOG_ADDED, {

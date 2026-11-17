@@ -324,7 +324,7 @@ What each module is, in the code's terms (what it does for players is in `README
 - **Fast Loot**
 - **Auto Repair**
 - **Auto Sell Junk**
-- **Auto Open Containers**: `AutoOpen`: opens the containers in the bags by themselves, when nothing is in the way.
+- **Auto Open Containers**: `AutoOpen`: opens the containers in the bags by themselves, when nothing is in the way, and for a Rogue, a right click on a locked lockbox casts Pick Lock on it (`ns.BagClicks`).
 - **Item Tooltips**: a folder: the module and its parts, Sell Price, Repair Cost, Item Count, Disenchant, Stat Colors, Compare Crafted Gear, and Auction Prices, with its auction house scan in `Scan.lua`.
 - **Waylaid Crates**: a folder: the module, Bundle Costs, and its auction house category.
 - **Already Known**
