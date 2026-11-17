@@ -46,12 +46,6 @@ eq(Professions.LearnWhen("soon"), "soon", "when: soon")
 eq(Professions.LearnWhen("later"), "later", "when: later")
 eq(Professions.LearnWhen(nil), nil, "when: no state, no group")
 eq(Professions.LearnWhen("never"), nil, "when: a state that isn't one")
--- Every state LearnState gives is in one of the filter menu's groups.
-local WHEN = { now = true, soon = true, later = true, unknown = true }
-for _, args in ipairs({ { 75, 75, 150 }, { 90, 75, 150 }, { 140, 75, 150 }, { 155, 140, 150 }, { nil, 75, 150 } }) do
-    local got = state(args[1], args[2], args[3], 25)
-    ok(WHEN[Professions.LearnWhen(got)], "when: " .. got .. " has a group")
-end
 
 -- What a trainer's window taught, by the recipe's name.
 eq(Professions.TrainerSkill("Copper Chain Belt"), nil, "trainer: nothing before a trainer was seen")

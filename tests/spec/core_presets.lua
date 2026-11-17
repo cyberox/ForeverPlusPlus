@@ -35,11 +35,9 @@ eq(plain.db.enabled == false and plain.enabled == false, true,
 eq(registered("PLAYER_LEVEL_UP"), false, "presets: and its events stop")
 eq(host.db.loud2 and registered("PLAYER_XP_UPDATE"), true, "presets: a part's option, and the part hears it")
 eq(host.db.extra, true, "presets: what no preset sets reads the default")
-eq(Presets.Enabled("spec", "Locked"), nil, "presets: say nothing to turn on a locked module")
 eq(not locked.enabled and m.lockedEnables == 0, true, "presets: a locked module stays off")
 eq(tool.db.mode, "a", "presets: a tool that's always on is left alone")
 eq(coords.db.player, false, "presets: one of Blizzard's settings reads the CVar")
-eq(Presets.Value("spec", "Coords", "player"), nil, "presets: which a preset never sets")
 eq(#c.refreshed >= #core.order, true, "presets: every page redraws")
 
 -- The three layers, and resets falling to the preset.

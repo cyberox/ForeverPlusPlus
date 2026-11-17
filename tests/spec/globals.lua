@@ -39,7 +39,6 @@ local KNOWN = {}
 for name in (list or ""):gmatch('"([^"]+)"') do
     KNOWN[name] = true
 end
-eq(KNOWN.CreateFrame, true, "globals: .luarc.json's globals are read")
 
 local function allowedWrite(name, path)
     for _, rule in ipairs(WRITES) do

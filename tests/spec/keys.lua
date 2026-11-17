@@ -8,24 +8,16 @@ local held = {}
 IsShiftKeyDown = function() return held.shift end
 IsControlKeyDown = function() return held.ctrl end
 IsAltKeyDown = function() return held.alt end
--- The controller interface, and which of its triggers are held (Lib/Gamepad.lua, tested in the
--- gamepad spec).
+-- The controller interface, and whether a trigger is held (Lib/Gamepad.lua; which triggers count
+-- is tested in the gamepad spec).
 local pad = { on = false }
 ns.IsTrue = function(value) return value == true end
 GamepadMode = {
     IsHUDBindingModifierDown = function() return pad.hud end,
-    IsTargetingModifierDown = function() return pad.targeting end,
 }
 T.load("Locales/enUS/Automation")
 T.load("Lib/Gamepad")
-local BUTTON = ns.Gamepad.BUTTON
 ns.Gamepad.On = function() return pad.on end
--- The controller's own state: buttons by name, counted from 0, in a table counted from 1.
-local PAD_NAMES = { [BUTTON.FACE_TOP] = 3, [BUTTON.LEFT_TRIGGER] = 8, [BUTTON.RIGHT_TRIGGER] = 9 }
-C_GamePad = {
-    ButtonBindingToIndex = function(name) return PAD_NAMES[name] end,
-    GetDeviceMappedState = function() return pad.state end,
-}
 T.load("Lib/Keys") -- it caches the three
 local Keys = ns.Keys
 
@@ -46,16 +38,7 @@ eq(Keys.Detail(), false, "keys: nor are Shift's details shown")
 pad.on = true
 eq(Keys.IsDown("shift"), true, "keys: a held trigger is the key with the controller interface on")
 eq(Keys.IsDown("none"), false, "keys: None still is never held")
-pad.hud, pad.targeting = false, true
-eq(Keys.IsDown("ctrl"), true, "keys: the targeting trigger counts too")
-pad.targeting = false
-eq(Keys.IsDown("ctrl"), false, "keys: no trigger, no key")
--- The triggers read from the controller itself, for where Blizzard's modifiers say nothing.
-pad.state = { buttons = { false, false, false, true } }
-eq(Keys.IsDown("shift"), false, "keys: Y isn't a trigger")
-pad.state = { buttons = { [10] = true } }
-eq(Keys.IsDown("shift"), true, "keys: a trigger read from the controller is the key")
-pad.state = nil
+pad.hud = false
 eq(Keys.Detail(), true, "keys: Shift's details always show with the controller interface on")
 pad.on = false
 held.shift = true

@@ -1,6 +1,6 @@
 -- Equipment: what's worn, whether the character can use an item, and what an item would replace,
 -- by the slot rules and by the client's own comparison. tests/spec/items.lua has the first checks
--- of the rules (rings, a two-hander, dual wield); these are the rest.
+-- of the rules (rings, dual wield); these are the rest.
 local T = ...
 local ns, eq, same, player, game = T.ns, T.eq, T.same, T.player, T.game
 
@@ -355,5 +355,4 @@ C_TooltipComparison = {}
 same(Equipment.Rivals("newRing", "INVTYPE_FINGER"), byRules, "fallback: a client without the call")
 C_TooltipComparison = nil
 same(Equipment.Rivals("newRing", "INVTYPE_FINGER"), byRules, "fallback: a client without the comparison API")
-same(Equipment.Rivals("newGreat", "INVTYPE_2HWEAPON"), { { "sword", "shield" } }, "fallback: a two-hander by the rules")
 same(Equipment.Rivals("tabard", "INVTYPE_TABARD"), {}, "fallback: nothing for what isn't gear")

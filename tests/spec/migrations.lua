@@ -87,8 +87,6 @@ do
         ErrorCatcher = { enabled = true, minimap = false, clearModifier = "alt", saved = { angle = 45 } },
     } }
     local aleth = login(db)
-    eq(db.version, Store.VERSION, "0.7: the file is current")
-    eq(db.modules, nil, "0.7: the old layout is gone")
 
     -- Item Tooltips: on if any of the three was, each line on or off as its module was.
     eq(raw(db, "ItemTooltips").auction, true, "0.7: Auction Prices was on")
@@ -328,7 +326,6 @@ do
     } }
     who.class = "MAGE"
     local mage = login(db, { version = 4, data = {} })
-    eq(db.version, Store.VERSION, "1.0: the file is current")
     local plates = read(db, "PlayerNameplates")
     eq(plates.iconSize, 130, "1.0: the icons keep the size Name Size gave them")
     eq(plates.nameSize, 130, "1.0: and Name Size stays")

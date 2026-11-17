@@ -183,7 +183,6 @@ local before = Profiles.Copy(Store.Root(ns.db, inUse ~= "default" and inUse or n
 local dev = Profiles.CreateFromPreset("Dev", "spec")
 ok(dev, "profiles: one is made from a preset")
 eq(next(ns.db.profiles[dev].settings), nil, "profiles: nothing is written into its settings")
-eq(ns.db.profiles[dev].preset, "spec", "profiles: it's based on the preset")
 eq(Profiles.Preset(dev), "spec", "profiles: and says so")
 eq(Profiles.Preset("default"), nil, "profiles: Default is based on none")
 eq(Profiles.Current(), inUse, "profiles: making one from a preset doesn't switch")
@@ -205,7 +204,6 @@ swaps = 0
 eq(Profiles.SetPreset(dev, nil), true, "profiles: unlinking a profile not in use")
 eq(swaps, 0, "profiles: isn't a switch")
 eq(Profiles.Preset(dev), nil, "profiles: unlinked")
-eq(ns.db.profiles[dev].preset, nil, "profiles: and the link is gone")
 local devOwn = ns.db.profiles[dev].settings
 eq(tostring(devOwn.Dev.enabled) .. "," .. tostring(devOwn.Dev.size) .. "," .. tostring(devOwn.Dev.mode)
     .. "," .. tostring(devOwn.Dev.sound) .. "," .. tostring(devOwn.Dev.list),

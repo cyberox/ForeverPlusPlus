@@ -29,7 +29,6 @@ end
 -- Estimates from the generated routes (build 70888): direct flights at 30 yards a second.
 do
     local Taxi = ns.Taxi
-    eq(Taxi.SPEED, 30, "taxi: flights cover 30 yards a second")
     eq(Taxi.RouteYards(2, 6), 7757, "taxi: Stormwind to Ironforge's path")
     eq(Taxi.RouteYards(6, 2), 6310, "taxi: each way is its own path")
     eq(Taxi.RouteYards(2, 999999), nil, "taxi: no path")

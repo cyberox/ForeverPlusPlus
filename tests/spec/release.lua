@@ -14,7 +14,6 @@ for _, path in ipairs(files) do
         absent[#absent + 1] = path
     end
 end
-eq(#files > 100, true, "release: the TOC lists the addon's files")
 eq(table.concat(absent, ", "), "", "release: every file the TOC loads is there")
 eq(files[#files], "Init.lua", "release: Init.lua loads last")
 

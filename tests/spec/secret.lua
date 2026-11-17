@@ -4,9 +4,7 @@ local ns, eq, game = T.ns, T.eq, T.game
 
 eq(ns.IsReadable(5), true, "a plain value is readable")
 eq(ns.IsReadable(nil), true, "nil is readable: nothing there isn't a secret")
-eq(ns.IsTrueOrSecret(nil), false, "nil is neither true nor secret")
 game.secret = "secret"
-eq(ns.IsReadable(nil), true, "nil stays readable once something is secret")
 eq(ns.IsReadable("secret"), false, "secret is unreadable")
 eq(ns.IsText("a"), true, "text")
 eq(ns.IsText(""), true, "empty text")

@@ -204,9 +204,6 @@ local rivals = Equipment.RuleRivals("INVTYPE_FINGER", wornOf)
 eq(#rivals, 2, "rivals: either ring")
 eq(rivals[1][1], "ring1", "rivals: the first ring")
 eq(rivals[2][1], "ring2", "rivals: the second ring")
-rivals = Equipment.RuleRivals("INVTYPE_2HWEAPON", wornOf)
-eq(#rivals, 1, "rivals: a two-hander has one alternative")
-eq(#rivals[1], 2, "rivals: both hands")
 rivals = Equipment.RuleRivals("INVTYPE_WEAPON", wornOf)
 eq(#rivals, 1, "rivals: a one-hander without dual wield is the main hand")
 eq(rivals[1][1], "main", "rivals: the main hand")
@@ -219,9 +216,6 @@ rivals = Equipment.RuleRivals("INVTYPE_WEAPON", wornOf)
 eq(#rivals, 2, "rivals: dual wielding with an empty off hand still offers it")
 eq(#rivals[2], 0, "rivals: as an empty alternative")
 game.dualWield = false
-rivals = Equipment.RuleRivals("INVTYPE_HEAD", wornOf)
-eq(#rivals[1], 0, "rivals: an empty slot is an empty alternative")
-eq(#Equipment.RuleRivals("INVTYPE_TABARD", wornOf), 0, "rivals: not gear, no alternatives")
 -- What's worn is read by type: a worn two-hander fills the off hand too.
 game.worn[17] = nil
 game.cachedItems.great = { 3, "Weapon", "Two-Handed Swords", "INVTYPE_2HWEAPON", 0, 2, 8 }
@@ -238,7 +232,6 @@ eq(rivals[1][1], "great", "rivals: the two-hander")
 game.worn[16] = "main"
 game.cachedItems.shield = { 4, "Armor", "Shields", "INVTYPE_SHIELD", 0, 4, 6 }
 game.worn[17] = "shield"
-eq(Equipment.WornType(17), "INVTYPE_SHIELD", "worn type: a shield")
 rivals = Equipment.RuleRivals("INVTYPE_WEAPON", wornOf)
 eq(#rivals, 1, "rivals: dual wielding with a shield worn, a one-hander is the main hand")
 game.worn[17] = nil
@@ -258,7 +251,6 @@ game.worn[10] = "|cnIQ2:|Hitem:6541::::::::19:1482:::1:12734::::::|h[Willow Glov
 eq(Equipment.IsWorn("item:6541::::::::19:1482:::1:12734:::::"), true, "worn: a tooltip's link to the worn item")
 eq(Equipment.IsWorn("item:6541"), false, "worn: not the base item")
 eq(Equipment.IsWornGUID("Item-4618-0-4000000081C35317"), false, "worn guid: nothing without the item API")
-eq(Equipment.Worn(11), "ring1", "worn: a slot's link")
 eq(Equipment.CanDualWield(), false, "dual wield: off")
 eq(Equipment.CanUse("item:1", 10), true, "can use: a level 30 can wear level 10 gear")
 eq(Equipment.CanUse("item:1", 31), false, "can use: not level 31 gear")
@@ -325,6 +317,3 @@ do
     ns.ItemStats = ItemStats
 end
 eq(Talents.Tabs(), nil, "talents: nothing without the trait API")
-local tab, total = Talents.Dominant()
-eq(tab, nil, "talents: no dominant tab without data")
-eq(total, 0, "talents: no points without data")

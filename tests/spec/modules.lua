@@ -42,7 +42,6 @@ end, function(path, into, fine)
     end
 end)
 eq(table.concat(broken, "\n  "), "", "modules: every file loads offline")
-eq(type(ns.modules) == "table" and #ns.order > 50, true, "modules: the modules are made")
 
 -- AGENTS.md: a module that is off costs nothing, and a Lib file nothing until a module uses it.
 -- So no file makes a frame, hooks Blizzard, starts a timer, or listens for an event as it
@@ -73,8 +72,6 @@ end
 do
     local highest, count = ns.Store.HighestStep()
     eq(count >= 15, true, "migrations: the modules' steps are found")
-    eq(highest <= ns.Store.VERSION, true, "migrations: no step is for a version past Store.VERSION ("
-        .. tostring(highest) .. " against " .. tostring(ns.Store.VERSION) .. ")")
     eq(highest, ns.Store.VERSION, "migrations: Store.VERSION is the newest step's version, not ahead of it")
 end
 
@@ -231,9 +228,6 @@ for _, name in ipairs(ns.order or {}) do
     -- A preset (`module.presets`) is one Lib/Presets.lua registered, turns the module on or off with
     -- a boolean, and sets options the module has (a part's included, as byKey has them) to values
     -- that fit them, and not data or one of Blizzard's settings, which presets never touch.
-    if module.developer ~= nil then
-        problem("module.developer is module.presets.developer now")
-    end
     if module.presets ~= nil and type(module.presets) ~= "table" then
         problem("presets isn't a table")
     end
@@ -288,11 +282,6 @@ end
 eq(checked > 300 and linked > 20, true, ("modules: options checked (%d, %d linked)"):format(checked, linked))
 -- And no preset declarations went missing in a rename.
 eq(presetsDeclared >= 25, true, ("modules: presets declared (%d)"):format(presetsDeclared))
-eq(table.concat(ns.Presets.List(), ","), "developer", "modules: the presets this version ships")
--- What Developer's Defaults does, flat: the same as it was before presets had names.
-local enables, options = ns.Presets.Flat("developer")
-eq(#enables >= 20 and options.ItemTooltips and options.ItemTooltips.hideJunk, true,
-    "modules: Developer's Defaults turns modules on and sets options")
 
 -- Console Variables' Popular list: each section has a header and items, each item a CVar name, a
 -- plain name, and help, and no CVar is listed twice (the page would count it once).

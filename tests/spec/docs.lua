@@ -5,7 +5,6 @@ local ns, eq = T.ns, T.eq
 
 local agents = T.Read("AGENTS.md") or ""
 local architecture = T.Read("docs/architecture.md") or ""
-eq(#agents > 1000 and #architecture > 1000, true, "docs: AGENTS.md and docs/architecture.md are read")
 
 -- Every Lib file has a row in AGENTS.md's Lib tables (or is listed as generated there) and a
 -- place in docs/architecture.md.

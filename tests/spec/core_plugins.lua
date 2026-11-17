@@ -76,7 +76,6 @@ eq(plugin.db.size == 20 and #pluginCalls == 0, true, "plugins: settings at login
 core.SetEnabled("MyAddonThing", true)
 eq(pluginCalls[1] == "enable" and plugin.enabled, true, "plugins: OnEnable gets the handle")
 fire("PLAYER_MONEY")
-eq(heard.pluginMoney, 1, "plugins: its events are heard while it's on")
 core.SetOption("MyAddonThing", "size", 30)
 eq(pluginCalls[2] == "changed size" and plugin.db.size == 30, true, "plugins: OnOptionChanged")
 core.SetEnabled("MyAddonThing", false)

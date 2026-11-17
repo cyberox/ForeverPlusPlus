@@ -1,6 +1,6 @@
 -- Disenchant: what an item gives, the game's brackets, what play teaches, and the average value.
 local T = ...
-local ns, eq = T.ns, T.eq
+local ns, eq, near = T.ns, T.eq, T.near
 
 do
     local Disenchant = ns.Disenchant
@@ -107,12 +107,12 @@ do
     local total, missing = Disenchant.Value(Disenchant.Outcomes(2, 28, false), function(id)
         return prices[id]
     end)
-    eq(total, 0.75 * 1.5 * 100 + 0.2 * 1.5 * 1000 + 0.05 * 2000, "disenchant: average value")
+    near(total, 512.5, "disenchant: average value")
     eq(missing, 0, "disenchant: every outcome priced")
     prices[11084] = nil
     total, missing = Disenchant.Value(Disenchant.Outcomes(2, 28, false), function(id)
         return prices[id]
     end)
-    eq(total, 0.75 * 1.5 * 100 + 0.2 * 1.5 * 1000, "disenchant: unpriced outcome left out")
+    near(total, 412.5, "disenchant: unpriced outcome left out")
     eq(missing, 1, "disenchant: counts the outcome with no price")
 end

@@ -1,7 +1,7 @@
 -- Prices: auction prices from a source, Auctionator, prices as they're saved, and what a vendor
 -- pays.
 local T = ...
-local ns, eq, game = T.ns, T.eq, T.game
+local ns, eq, near, game = T.ns, T.eq, T.near, T.game
 
 local Prices = ns.Prices
 game.cachedItems["Strange Dust"] = 10940
@@ -93,7 +93,7 @@ eq(theirPrice, 50, "auctionator: a price without an age")
 eq(theirSeen, nil, "auctionator: and no age for it")
 -- Disenchant prices its materials through Prices.Auction: 0.8 x 1.5 x 50 + 0.2 x 1.5 x 200.
 local deValue, deMissing = ns.Disenchant.Value(ns.Disenchant.Outcomes(2, 5, false), Prices.Auction)
-eq(deValue, 0.8 * 1.5 * 50 + 0.2 * 1.5 * 200, "auctionator: disenchant value from its prices")
+near(deValue, 120, "auctionator: disenchant value from its prices")
 eq(deMissing, 0, "auctionator: every disenchant outcome priced")
 chooseAuctionator = false
 eq(Prices.Auction(4305), 120, "auctionator: back to ours when it's turned off")

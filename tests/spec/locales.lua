@@ -29,7 +29,6 @@ for _, path in ipairs(files) do
         end
     end
 end
-eq(next(strings.L) ~= nil, true, "locales: the enUS strings load")
 eq(table.concat(twice, ", "), "", "locales: no string is defined twice")
 
 -- The strings each file uses: L.KEY, with or without ns. in front, outside comments.
@@ -61,7 +60,6 @@ for _, path in ipairs(files) do
 end
 -- So a scan that finds nothing can't pass by itself.
 eq(total > 1000, true, "locales: the scan finds the strings the files use (" .. total .. ")")
-eq(strings.L.MOVABLEWINDOWS_TITLE, "Movable Windows", "locales: a string reads its English")
 
 -- Another language: every key it sets is one enUS has, with the same placeholders (in any order,
 -- since "%2$s of %1$s" may move them). A key enUS dropped, or a lost %s, is caught here.

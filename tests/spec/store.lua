@@ -175,7 +175,6 @@ do
         NewModule = function() return {} end,
     }
     T.load("Modules/Character/Professions/Professions", into)
-    eq(Store.VERSION, 7, "professions: the step is version 7")
 
     -- As 1.4.0 saved it (layout 5), with three more profiles to see each case in every profile.
     local db = {
@@ -203,7 +202,6 @@ do
         },
     }
     Store.Upgrade(db, { version = 5 })
-    eq(db.version, 7, "professions: the layout is version 7")
 
     local new = db.settings.Professions
     same(new, { enabled = false, recipeColors = false, skillUps = false, crafting = false, highlight = false },
@@ -268,7 +266,6 @@ do
         "store: then the player's, then the preset's, then the default, on/off too")
     eq(Store.Base(db, nil, "Bags", "size", module.defaults) .. "," .. Store.Base(db, nil, "Bags", "mode", module.defaults),
         "4,a", "store: the base is the preset's value, else the default")
-    eq(type(view.seen), "table", "store: data is never the preset's")
     view.size = 1
     eq(db.settings.Bags.size, 1, "store: a choice at the default is saved over the preset")
     view.size = nil

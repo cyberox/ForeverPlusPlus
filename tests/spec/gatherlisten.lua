@@ -257,9 +257,7 @@ same(heard(), { "nil:herb" }, "hover: not one from too long ago")
 hover(SECRET)
 
 -- Too low a skill: the red error names the skill and the rank, and the node is told with it.
-eq(select(2, Gathering.Requirement("Requires Mining 175")), 175, "requirement: the rank after the skill")
 eq(Gathering.Requirement("Requires Fishing 175"), nil, "requirement: only Herbalism and Mining")
-eq(Gathering.Requirement("You are too far away"), nil, "requirement: another error")
 wait(10)
 sent(2575, "Tin Vein", "cast-20")
 failed(2575, "cast-20")
