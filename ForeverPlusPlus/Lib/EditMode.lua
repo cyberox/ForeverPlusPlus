@@ -695,11 +695,31 @@ function pick(frame)
     refreshDialog()
 end
 
+-- Blizzard's Edit Mode window is in the DIALOG strata and the frames it moves are under it, in
+-- MEDIUM. A frame of ours that lives in DIALOG or higher (Loot Rolls, Combat Alert) drew over the
+-- window (seen in game 2026-11-16), so while Edit Mode is open it's in MEDIUM, as Blizzard's are,
+-- and back in its own strata after.
+local OVER_WINDOW = { DIALOG = true, FULLSCREEN = true, FULLSCREEN_DIALOG = true, TOOLTIP = true }
+
+local function layer(frame, info, active)
+    if active then
+        local strata = frame:GetFrameStrata()
+        if OVER_WINDOW[strata] then
+            info.strata = strata
+            frame:SetFrameStrata("MEDIUM")
+        end
+    elseif info.strata then
+        frame:SetFrameStrata(info.strata)
+        info.strata = nil
+    end
+end
+
 local function setActive(active)
     if not active then
         deselect()
     end
-    for _, info in pairs(registered) do
+    for frame, info in pairs(registered) do
+        layer(frame, info, active)
         info.selection:SetShown(active)
         if info.onChange then
             call(info.onChange, active)
@@ -759,6 +779,7 @@ function EditMode.Register(frame, label, onMove, options)
     registered[frame] = info
     install()
     if EditMode.IsActive() then
+        layer(frame, info, true)
         info.selection:Show()
         if info.onChange then
             call(info.onChange, true)
@@ -835,6 +856,7 @@ function EditMode.Unregister(frame)
     end
     registered[frame] = nil
     unregistered[frame] = info
+    layer(frame, info, false)
     info.selection:Hide()
     if info.onChange then
         call(info.onChange, false)

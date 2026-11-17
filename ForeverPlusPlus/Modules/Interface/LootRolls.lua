@@ -323,7 +323,8 @@ local function newExample()
         frame = CreateFrame("Frame", nil, UIParent)
     end
     frame:SetSize(ROLL_WIDTH, ROLL_HEIGHT)
-    frame:SetFrameStrata("DIALOG")
+    -- Under Blizzard's Edit Mode window, as the frames it moves are: an example only shows there.
+    frame:SetFrameStrata("MEDIUM")
     frame:Hide()
     local background = frame:CreateTexture(nil, "BACKGROUND")
     background:SetTexture(LOOT_TOAST)
