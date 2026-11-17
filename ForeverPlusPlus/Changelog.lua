@@ -17,6 +17,8 @@ ns.changelog = {
                     .. "Pick Lock on a locked lockbox you right click in your bags, then opens it." },
                 "For addon authors: the plugin kit's QuestieDB.Quest has a quest's children, parent, "
                     .. "and the game's quest tag, and QuestsUnlockedBy and QuestsLeadingTo find the quests that come after or before one.",
+                { L.PROFESSIONS_TITLE, "Cost to Craft on Recipes (on by default) shows what crafting a "
+                    .. "recipe costs on its Plans, Pattern, or Formula's tooltip, before you learn it." },
             } },
             { L.CHANGELOG_CHANGED, {
                 { L.PROFTOOLTIPS_TITLE, "The game's minimap dots no longer get the skill line: since "
@@ -31,6 +33,7 @@ ns.changelog = {
                     .. "is no longer treated as far too low for you." },
                 { L.FLIGHTTIMER_TITLE, "The druid flights out of Moonglade, to Thunder Bluff and "
                     .. "Rut'theran Village, are timed and show the bar." },
+                { L.WAYLAIDCRATES_TITLE, "A crate you've never owned shows each bundle's cost in the auction house too." },
             } },
         },
     },

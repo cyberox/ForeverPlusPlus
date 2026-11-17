@@ -8,6 +8,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 - **Auto Open Containers**: Pick Locks on Right Click (off by default), for Rogues, casts Pick Lock on a locked lockbox you right click in your bags, then opens it.
 - For addon authors: the plugin kit's `QuestieDB.Quest` has a quest's `children`, `parent`, and the game's quest `tag`, and `QuestsUnlockedBy` and `QuestsLeadingTo` find the quests that come after or before one.
+- **Professions**: Cost to Craft on Recipes (on by default) shows what crafting a recipe costs on its Plans, Pattern, or Formula's tooltip, before you learn it.
 
 ### Changed
 
@@ -19,6 +20,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Quest Pins**: a quest whose earlier quest QuestieDB marks with a minus sign gets its pin once that quest is done.
 - **Quest Pins**: a quest that scales to your level, such as the warlock quest Devourer of Souls, is no longer treated as far too low for you.
 - **Flight Timer**: the druid flights out of Moonglade, to Thunder Bluff and Rut'theran Village, are timed and show the bar.
+- **Waylaid Crates**: a crate you've never owned shows each bundle's cost in the auction house too.
 
 ## 1.8.0 (2026-11-16)
 

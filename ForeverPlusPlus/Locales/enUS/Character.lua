@@ -318,6 +318,9 @@ L.PROFESSIONS_CRAFTING_DESC = "Show Total Cost, Value, and Estimated Profit (aft
 L.PROFESSIONS_CRAFTING_ROWS = "Profit in Recipe List"
 L.PROFESSIONS_CRAFTING_ROWS_DESC = "Show each recipe's Estimated Profit at the right of its row in "
     .. "the recipe list, green for a profit and red for a loss. Enchants, which make no item, show nothing."
+L.PROFESSIONS_CRAFTING_TOOLTIP = "Cost to Craft on Recipes"
+L.PROFESSIONS_CRAFTING_TOOLTIP_DESC = "Show what crafting a recipe costs on its Plans, Pattern, "
+    .. "or Formula's tooltip, before you learn it: the same Total Cost as the professions window."
 L.PROFESSIONS_CRAFTING_SELL = "Sell At"
 L.PROFESSIONS_CRAFTING_SELL_DESC = "Where Value and Estimated Profit count the crafted item as sold. "
     .. "Higher Price takes the auction house, after its cut, or a merchant, whichever pays more. "
@@ -329,6 +332,8 @@ L.PROFESSIONS_CRAFT_VENDOR_VALUE = "Vendor Value"
 L.PROFESSIONS_CRAFT_NO_PRICE = "No price"
 L.PROFESSIONS_CRAFT_EACH = "%s  %s" -- coins, then a gray note
 L.PROFESSIONS_CRAFT_COST = "Total Cost"
+L.PROFESSIONS_CRAFT_TOOLTIP = "Cost to Craft"
+L.PROFESSIONS_CRAFT_PARTIAL = "not every reagent priced"
 L.PROFESSIONS_CRAFT_VALUE = "Value"
 L.PROFESSIONS_CRAFT_VALUE_COUNT = "Value x%s" -- how many the recipe makes
 L.PROFESSIONS_CRAFT_RANGE = "%d-%d" -- fewest and most the recipe makes

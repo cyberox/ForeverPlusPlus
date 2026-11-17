@@ -6,7 +6,7 @@
 -- through ns.Prices.
 local _, ns = ...
 
-local ipairs, type, tonumber = ipairs, type, tonumber
+local ipairs, type, tonumber, setmetatable = ipairs, type, tonumber, setmetatable
 local _G = _G
 
 local L = ns.L
@@ -123,24 +123,26 @@ function internal.Bundles(data)
     return bundles
 end
 
-local crates = {} -- item link (or itemID) -> whether its tooltip lists bundles
+local crates = {} -- item link (or itemID) -> true once its tooltip listed bundles
+local byData = setmetatable({}, { __mode = "k" }) -- tooltip data -> whether it lists bundles
 
----Whether the item in this tooltip data is a crate, looked at once per item: line callbacks ask
----before every line of every item tooltip.
+---Whether the item in this tooltip data is a crate, looked at once per tooltip: line callbacks
+---ask before every line of every item tooltip. Only "yes" is remembered for the item. A crate
+---the game hasn't loaded yet (one never owned, in the auction house) is drawn first without its
+---Use text, so "no" holds only for that tooltip's data, and the redraw once it loads looks again.
 ---@param data table tooltip data
 ---@return boolean
 function internal.IsCrate(data)
     local key = ns.IsText(data.hyperlink, true) and data.hyperlink or ns.ItemTooltip.ItemID(data)
-    if not key then
-        return true -- can't tell: look at its lines
+    if key and crates[key] then
+        return true
     end
-    local known = crates[key]
+    local known = byData[data]
     if known == nil then
         known = #internal.Bundles(data) > 0
-        -- An item not loaded yet has a lone "Retrieving" line: don't remember that as "no".
-        local lines = data.lines
-        if known or (type(lines) == "table" and #lines > 1) then
-            crates[key] = known
+        byData[data] = known
+        if known and key then
+            crates[key] = true
         end
     end
     return known

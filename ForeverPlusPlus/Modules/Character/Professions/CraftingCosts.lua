@@ -11,7 +11,7 @@
 -- inside Blizzard's reagent slots didn't fit, and a row per reagent was too much.)
 local _, ns = ...
 
-local ipairs, format, time, floor = ipairs, string.format, time, math.floor
+local ipairs, pairs, format, time, floor = ipairs, pairs, string.format, time, math.floor
 local CreateFrame, select, tostring, wipe = CreateFrame, select, tostring, wipe
 local C_Item, C_TradeSkillUI, Enum = C_Item, C_TradeSkillUI, Enum
 local GRAY_FONT_COLOR, HIGHLIGHT_FONT_COLOR = GRAY_FONT_COLOR, HIGHLIGHT_FONT_COLOR
@@ -25,6 +25,7 @@ local module = professions:NewPart({
     section = L.PROFESSIONS_CRAFTING,
 }, {
     craftingRows = true, -- each recipe's profit on its row of the recipe list
+    craftingTooltip = true, -- a recipe item's tooltip says what crafting it costs
     -- Where the crafted item is sold: "auction" (a merchant only when it has no auction price),
     -- "vendor", or "best" (whichever pays more after the auction house's cut).
     craftingSell = "auction",
@@ -37,6 +38,10 @@ module:AddOptions({
     {
         key = "craftingRows", name = L.PROFESSIONS_CRAFTING_ROWS, description = L.PROFESSIONS_CRAFTING_ROWS_DESC,
         added = "1.5.0",
+    },
+    {
+        key = "craftingTooltip", name = L.PROFESSIONS_CRAFTING_TOOLTIP,
+        description = L.PROFESSIONS_CRAFTING_TOOLTIP_DESC, added = "1.9.0",
     },
     {
         key = "craftingSell", name = L.PROFESSIONS_CRAFTING_SELL, description = L.PROFESSIONS_CRAFTING_SELL_DESC,
@@ -223,6 +228,49 @@ local function craftSums(recipeID)
     end
     sums.oldest = oldest
     return sums
+end
+
+-- Recipe tooltips ----------------------------------------------------------------------------------
+-- A recipe item (a Plans, Pattern, Formula...) says what crafting its recipe costs, known or not:
+-- the same reagent sum as the window's Total Cost. The item is found in the generated recipe table,
+-- which names the item that teaches each recipe.
+
+local recipeOfItem -- teaching item ID -> recipe spell ID, made the first time a tooltip asks
+
+local function recipeSpell(itemID)
+    if not recipeOfItem then
+        recipeOfItem = {}
+        for _, recipe in pairs(professions.internal.recipes or {}) do
+            if recipe[5] and recipe[4] then
+                recipeOfItem[recipe[5]] = recipe[4]
+            end
+        end
+    end
+    return recipeOfItem[itemID]
+end
+
+local function addRecipeCost(tooltip, data)
+    if not (module.enabled and module.db.craftingTooltip and ns.Prices.Available()) then
+        return
+    end
+    local itemID = ns.ItemTooltip.ItemID(data)
+    local spell = itemID and recipeSpell(itemID)
+    local sums = spell and craftSums(spell)
+    if not sums then
+        return
+    end
+    local text
+    if not sums.missing then
+        text = coins(sums.cost)
+    elseif sums.cost > 0 then
+        -- Some reagents have no price yet: what the rest cost, said to be short.
+        text = format(L.PROFESSIONS_CRAFT_EACH, coins(sums.cost),
+            GRAY:WrapTextInColorCode(L.PROFESSIONS_CRAFT_PARTIAL))
+    else
+        text = GRAY:WrapTextInColorCode(L.PROFESSIONS_CRAFT_NO_PRICE)
+    end
+    ns.ItemTooltip.AddInfo(tooltip, L.PROFESSIONS_CRAFT_TOOLTIP, text,
+        ns.Prices.Inline() and "inline" or "right", "white")
 end
 
 -- The totals ---------------------------------------------------------------------------------------
@@ -528,6 +576,8 @@ function module:OnEnable()
     self:On("MERCHANT_SHOW", recordMerchant)
     self:On("MERCHANT_UPDATE", recordMerchant)
     ns.AddOns.WhenLoaded("Blizzard_Professions", hookProfessions)
+    -- The hook can't be removed; addRecipeCost checks the part is on instead.
+    ns.ItemTooltip.OnPrices(addRecipeCost, module)
 end
 
 function module:OnDisable()
