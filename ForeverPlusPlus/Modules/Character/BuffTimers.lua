@@ -309,7 +309,7 @@ local function layout()
     local side = module.db.sort
     -- Not with the controller interface on: its cursor still lands on a buff at no alpha, and its
     -- cancel button would take the unseen buff off (Blizzard_BuffFrame's gamepad branch).
-    local sorting, hiding = side ~= "off", module.db.hideTracking and not ns.Menus.GamepadUI()
+    local sorting, hiding = side ~= "off", module.db.hideTracking and not ns.Gamepad.On()
     if not (frames and container) or not (sorting or hiding) then
         unsort()
         return

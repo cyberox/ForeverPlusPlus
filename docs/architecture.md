@@ -86,7 +86,14 @@ Generated files, in `Lib/Generated/` (never edited by hand; see Generated data):
 
 ### `Keys.lua`
 
-- `ns.Keys`: the Skip Key dropdown and whether its key is held (`IsDown`). With the controller interface on, a held trigger stands in for the key (`PadHeld`), `PadDown(button)` reads one of the controller's buttons itself (Y over a talent of Talent Planner's or a map icon, which the game hands to nothing of ours), and `Detail()` says whether what shows only with Shift shows now: Shift, or always with the controller interface on.
+- `ns.Keys`: the Skip Key dropdown and whether its key is held (`IsDown`). With the controller interface on, a held trigger stands in for the key (`Gamepad.TriggerHeld`), and `Detail()` says whether what shows only with Shift shows now: Shift, or always with the controller interface on.
+
+### `Gamepad.lua`
+
+- `ns.Gamepad`: the game's controller interface. `On()` says whether it's on (Forever's `C_InputInterfaceStyle`). `HidesNotice()` is the `module.notice` for a module whose Blizzard frame it hides (the usual action bars, stance bar, bag bar, micro menu, the buttons beside chat), and `LimitedNotice()` the one for a module that needs a mouse click, a drag, a held key, or a window the controller's cursor can't reach.
+- `BUTTON` names the controller's buttons by where they sit (`FACE_BOTTOM`, `FACE_TOP`, `DPAD_LEFT`, `RIGHT_STICK`, `LEFT_TRIGGER`, ...), never by a letter, since another controller labels them otherwise.
+- `Down(button)` reads one of the controller's buttons itself (Y over a talent of Talent Planner's, the right stick over a map icon or a dungeon's map, which the game hands to nothing of ours), and `Press(button, held)` watches one for presses: `:Fired()` once a press, looked at every frame, and `:Reset(held)` where watching starts, so a button already held isn't a press. `TriggerHeld()` says whether a trigger is held, by Blizzard's modifiers or read from the controller.
+- `Label(button)` is a button as the player's controller shows it, and `Hint(text, button)` a click hint with the click given way to that button while the controller interface is on.
 
 ### `Sounds.lua`
 
@@ -109,9 +116,8 @@ Generated files, in `Lib/Generated/` (never edited by hand; see Generated data):
 ### `Menus.lua`
 
 - `ns.Menus`: every context menu we open goes through `Open(owner, generator, anchor)`. `generator(owner, root)` describes it as Blizzard's menus are described (`CreateTitle`, `CreateDivider`, `CreateButton`, `CreateCheckbox`, `CreateRadio`, a button's own entries as its submenu, `SetTooltip`, `SetEnabled`).
-- `PadHidesNotice()` is the `module.notice` for a module whose Blizzard frame the controller interface hides (the usual action bars, stance bar, bag bar, micro menu, the buttons beside chat). `PadLimitedNotice()` is the one for a module that needs a mouse click, a drag, a held key, or a window the controller's cursor can't reach.
 - `ns.ClosePopup(which)` (in `Confirm.lua`) closes one of Blizzard's own popups for the player, and leaves it up with the controller interface on, where closing it from addon code taints the controller's focus manager.
-- With the controller interface off it's `MenuUtil.CreateContextMenu`. With it on (`GamepadUI`) it's a plain list of our own frames, since Blizzard's menu opened from addon code taints the controller's focus manager for the session (`docs/forever-api.md`). Ours takes the mouse, and the controller's D-pad, A, and B while it's open.
+- With the controller interface off it's `MenuUtil.CreateContextMenu`. With it on (`Gamepad.On`) it's a plain list of our own frames, since Blizzard's menu opened from addon code taints the controller's focus manager for the session (`docs/forever-api.md`). Ours takes the mouse, and the controller's D-pad, A, and B while it's open.
 - `SetupDropdown(dropdown, generator)` takes the place of a Blizzard dropdown button's `SetupMenu`: the button, its text, and the wheel stay Blizzard's, and only what drops down is ours with the controller interface on (`OpenMenu` replaced on our own frame).
 - `Describe` gives the description as plain entries, with `IsEnabled` and `IsSelected` for one. Blizzard's own menus we add entries to (the world map's filter menu) are still Blizzard's, opened by Blizzard.
 - `Lib/Confirm.lua` does the same for popups: Blizzard's `StaticPopup`, or one frame of our own with the controller interface on.

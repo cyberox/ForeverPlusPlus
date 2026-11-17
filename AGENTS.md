@@ -116,6 +116,7 @@ One line here says what each file is for. [docs/architecture.md](docs/architectu
 | `Money.lua` | `Money`, `MoneyShort` | Copper as coin text. |
 | `Fonts.lua` | `Fonts` | The game's fonts a font dropdown offers. |
 | `Keys.lua` | `Keys` | The Skip Key dropdown and whether its key is held. |
+| `Gamepad.lua` | `Gamepad` | The controller interface: whether it's on (`On`), the notices of a module it hides or limits, its buttons by where they sit (`BUTTON`), reading one and a press of one (`Down`, `Press`), how the player's controller labels one, and click hints written for it. |
 | `Sounds.lua` | `Sounds` | The alert sounds every Sound dropdown offers, the dropdown itself (`Option`), and playing one. |
 | `RealmTime.lua` | `RealmTime` | Realm time moved to the player's clock. |
 | `Slash.lua` | `Slash` | Slash commands a module adds and takes away live. |
@@ -128,7 +129,7 @@ One line here says what each file is for. [docs/architecture.md](docs/architectu
 | File | `ns` | For |
 | --- | --- | --- |
 | `Frames.lua` | `Frames` | Atlas and template checks, Blizzard's panel button, saved anchors, our portrait windows, Escape to close, `Coalesce`, `Timer`, `Throttled`. |
-| `Menus.lua` | `Menus` | A context menu at the cursor (`Open`): Blizzard's, or a list of our own while the controller interface is on (`GamepadUI`), where Blizzard's opened by an addon breaks the controller's focus. A dropdown's menu goes through `SetupDropdown`. Never `MenuUtil.CreateContextMenu` or a dropdown's `SetupMenu` directly. |
+| `Menus.lua` | `Menus` | A context menu at the cursor (`Open`): Blizzard's, or a list of our own while the controller interface is on (`Gamepad.On`), where Blizzard's opened by an addon breaks the controller's focus. A dropdown's menu goes through `SetupDropdown`. Never `MenuUtil.CreateContextMenu` or a dropdown's `SetupMenu` directly. |
 | `Confirm.lua` | `Confirm`, `ConfirmChoice`, `ConfirmButtons`, `Prompt`, `PromptName`, `ClosePopup` | Yes/no popups, ones with two or three choices, and text popups: Blizzard's, or a frame of our own while the controller interface is on. `ClosePopup` closes one of Blizzard's own, and leaves it up with the controller interface on. Never `StaticPopup_Show` or `StaticPopup_Hide` directly. |
 | `EditMode.lua` | `EditMode` | Our own frames in Blizzard's Edit Mode, looking and working like Blizzard's (`RegisterModule`). |
 | `SettingsKit.lua` | `SettingsKit` | What a drawn Settings page is made of, for the Settings pages and a tool's `BuildPage`. |

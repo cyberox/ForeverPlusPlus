@@ -100,6 +100,7 @@ eq(picked[1], "quiet", "presets: a button picks its preset")
 eq(#Presets.Buttons(0, pick), 0, "presets: no room, no buttons")
 local menuRoot
 T.load("Lib/Secret")
+T.load("Lib/Gamepad")
 T.load("Lib/Menus") -- the menu opens through it: Blizzard's, with no controller interface
 MenuUtil = { CreateContextMenu = function(_, generate)
     local items = {}

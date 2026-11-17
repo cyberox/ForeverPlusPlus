@@ -215,7 +215,8 @@ local function build(map)
     -- With the controller interface on there's no right click to go back and no cursor on the
     -- words at the bottom, so its own buttons do both (seen in game 2026-11-16: B closed the whole
     -- map with a dungeon up).
-    if ns.Menus.GamepadUI() then
+    local Gamepad = ns.Gamepad
+    if Gamepad.On() then
         -- B: the controller asks the window it's closing for a close handler first, behind a
         -- taint barrier made for one that isn't Blizzard's (SmartNavigationMixin:AttemptClose,
         -- build 70938), and stops there when it says it handled it. The one field we put on a
@@ -231,26 +232,25 @@ local function build(map)
             end
         end
         -- The right stick pressed: the next floor, round to the first. It's the one button the
-        -- map leaves alone, read from the controller itself (Keys.PadDown), a press being down
+        -- map leaves alone, read from the controller itself (Gamepad.Press), a press being down
         -- now and not at the last look. The map's own buttons can't be had: under the dungeon
         -- they still work the map (A goes into the zone under the cursor, X up a map, Y opens
         -- More), and putting the map back afterwards (WorldMap.Show) left the map tainted, so
         -- closing it was blocked (all seen in game 2026-11-16). So there's no button for the
         -- floor before, and a dungeon has few floors to go round.
-        local wasDown = true
+        local stick = Gamepad.BUTTON.RIGHT_STICK
+        local press = Gamepad.Press(stick, true)
         view:SetScript("OnShow", function()
-            wasDown = true -- held as the dungeon opens isn't a press
+            press:Reset(true) -- held as the dungeon opens isn't a press
         end)
         view:SetScript("OnUpdate", function()
-            local down = ns.Keys.PadDown("PADRSTICK")
-            if down and not wasDown and shown and #shown.floors > 1 then
+            if press:Fired() and shown and #shown.floors > 1 then
                 shown.floor = shown.floor % #shown.floors + 1
                 draw()
             end
-            wasDown = down
         end)
         -- The word shows the button, since the map's cursor can't press it (draw hides Previous).
-        view.next:SetText(L.DUNGEONMAPS_NEXT_PAD:format(ns.Keys.PadLabel("PADRSTICK")))
+        view.next:SetText(L.DUNGEONMAPS_NEXT_PAD:format(Gamepad.Label(stick)))
         view.next:SetWidth(view.next:GetFontString():GetStringWidth() + 16)
         view.pad = true
     end

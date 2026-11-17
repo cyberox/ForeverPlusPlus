@@ -56,14 +56,15 @@ local function ownPopup()
     end
     if own.EnableGamePadButton then
         -- The D-pad moves between the buttons, A presses the one it's on, and B closes.
+        local pad = ns.Gamepad.BUTTON
         own:SetScript("OnGamePadButtonDown", function(_, button)
-            if button == "PAD1" then
+            if button == pad.FACE_BOTTOM then
                 own.press(own.focus)
-            elseif button == "PAD2" then
+            elseif button == pad.FACE_RIGHT then
                 own:Hide()
-            elseif button == "PADDLEFT" or button == "PADDRIGHT" then
+            elseif button == pad.DPAD_LEFT or button == pad.DPAD_RIGHT then
                 own.buttons[own.focus]:UnlockHighlight()
-                own.focus = (own.focus - 1 + (button == "PADDRIGHT" and 1 or -1)) % own.count + 1
+                own.focus = (own.focus - 1 + (button == pad.DPAD_RIGHT and 1 or -1)) % own.count + 1
                 own.buttons[own.focus]:LockHighlight()
             end
         end)
@@ -137,7 +138,7 @@ local function ask(text, buttons, edit)
 end
 
 local function gamepad()
-    return ns.Menus.GamepadUI()
+    return ns.Gamepad.On()
 end
 
 -- Shows our popup for `key`, made from `build()` the first time the key is used, so a key always

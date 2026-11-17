@@ -38,6 +38,7 @@ Lib\Colors.lua
 Lib\Text.lua
 Lib\GameData.lua
 Lib\Frames.lua
+Lib\Gamepad.lua
 Lib\Menus.lua
 Lib\Money.lua
 Lib\Fonts.lua

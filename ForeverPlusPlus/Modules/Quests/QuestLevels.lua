@@ -142,7 +142,7 @@ end
 local function refresh()
     -- Not with the controller interface on: GossipFrame:Update moves the controller's cursor
     -- (SmartNavigation), which refuses a call from addon code. The list is tagged when next opened.
-    if GossipFrame and GossipFrame.Update and GossipFrame:IsShown() and not ns.Menus.GamepadUI() then
+    if GossipFrame and GossipFrame.Update and GossipFrame:IsShown() and not ns.Gamepad.On() then
         GossipFrame:Update()
     end
     if QuestFrameGreetingPanel and QuestFrameGreetingPanel_OnShow and QuestFrameGreetingPanel:IsShown() then

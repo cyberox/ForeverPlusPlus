@@ -27,7 +27,7 @@ module.added = "0.9.0"
 -- The game's rule, not ours, so say it where the player turns it on; a notice with no button.
 module.notice = {
     { text = L.COMPREHENDSCROLLS_NOTICE, description = L.COMPREHENDSCROLLS_NOTICE_DESC },
-    ns.Menus.PadLimitedNotice(), -- the right click on a scroll in the bags (Lib/BagClicks.lua)
+    ns.Gamepad.LimitedNotice(), -- the right click on a scroll in the bags (Lib/BagClicks.lua)
 }
 
 -- Comprehend Scroll, in the General tab of a Mage's spellbook (skill line 3012, Comprehension).

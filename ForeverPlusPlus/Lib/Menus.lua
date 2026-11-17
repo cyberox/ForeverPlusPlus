@@ -26,40 +26,11 @@ local CreateFrame, UIParent, GetCursorPosition, GameTooltip = CreateFrame, UIPar
 local GetTime = GetTime
 local _G = _G
 
+local Gamepad = ns.Gamepad
+local BUTTON = Gamepad.BUTTON
+
 local Menus = {}
 ns.Menus = Menus
-
----Whether the game shows its controller interface. Probe: C_InputInterfaceStyle is Forever's
----(Blizzard_SharedXML's InputUtil.IsGamepadUIEnabled, Gethe `forever` branch).
----@return boolean
-function Menus.GamepadUI()
-    local C, types = _G.C_InputInterfaceStyle, _G.Enum and _G.Enum.InputDeviceInterfaceType
-    if not (C and C.GetCurrentStyle and types and types.Gamepad) then
-        return false
-    end
-    return ns.IsTrue(C.GetCurrentStyle() == types.Gamepad)
-end
-
----A `module.notice` entry for a module whose Blizzard frame the controller interface hides (the
----usual action bars, stance bar, bag bar, and micro menu), shown only while it's on.
----@return table notice
-function Menus.PadHidesNotice()
-    return {
-        text = ns.L.SETTINGS_CONTROLLER_HIDDEN, description = ns.L.SETTINGS_CONTROLLER_HIDDEN_DESC,
-        shown = Menus.GamepadUI,
-    }
-end
-
----A `module.notice` entry for a module that needs a mouse click, a drag, a held key, or a window
----the controller's cursor can't reach, so some or all of it does nothing with the controller
----interface on. Shown only while it's on.
----@return table notice
-function Menus.PadLimitedNotice()
-    return {
-        text = ns.L.SETTINGS_CONTROLLER_LIMITED, description = ns.L.SETTINGS_CONTROLLER_LIMITED_DESC,
-        shown = Menus.GamepadUI,
-    }
-end
 
 -- The description ---------------------------------------------------------------------------------
 
@@ -331,17 +302,17 @@ end
 local function onPadButton(_, button)
     local frame = levels[focus.depth]
     local row = frame and frame.rows[focus.index]
-    if button == "PADDUP" then
+    if button == BUTTON.DPAD_UP then
         move(-1)
-    elseif button == "PADDDOWN" then
+    elseif button == BUTTON.DPAD_DOWN then
         move(1)
-    elseif button == "PADDRIGHT" or button == "PAD1" then
+    elseif button == BUTTON.DPAD_RIGHT or button == BUTTON.FACE_BOTTOM then
         if row and #row.entry.items > 0 and levels[focus.depth + 1] and levels[focus.depth + 1]:IsShown() then
             focusOn(focus.depth + 1)
-        elseif row and button == "PAD1" then
+        elseif row and button == BUTTON.FACE_BOTTOM then
             pick(row)
         end
-    elseif button == "PADDLEFT" or button == "PAD2" then
+    elseif button == BUTTON.DPAD_LEFT or button == BUTTON.FACE_RIGHT then
         if focus.depth > 1 then
             -- Back to the row the submenu hangs from.
             hideFrom(focus.depth)
@@ -351,7 +322,7 @@ local function onPadButton(_, button)
             if back then
                 back:LockHighlight()
             end
-        elseif button == "PAD2" then
+        elseif button == BUTTON.FACE_RIGHT then
             close()
         end
     end
@@ -490,7 +461,7 @@ end
 ---Whether a menu can open: Blizzard's is there, or the controller interface is on and it's ours.
 ---@return boolean
 function Menus.Available()
-    return Menus.GamepadUI() or (_G.MenuUtil and _G.MenuUtil.CreateContextMenu) and true or false
+    return Gamepad.On() or (_G.MenuUtil and _G.MenuUtil.CreateContextMenu) and true or false
 end
 
 ---Opens a context menu at the cursor: Blizzard's, or our own list while the controller interface
@@ -502,7 +473,7 @@ end
 ---@param anchor table?
 ---@return boolean opened
 function Menus.Open(menuOwner, generator, anchor)
-    if not Menus.GamepadUI() then
+    if not Gamepad.On() then
         local util = _G.MenuUtil
         if not (util and util.CreateContextMenu) then
             return false
@@ -536,7 +507,7 @@ function Menus.SetupDropdown(dropdown, generator)
     dropdown:SetupMenu(generator)
     local blizzardOpen = dropdown.OpenMenu
     dropdown.OpenMenu = function(self)
-        if not Menus.GamepadUI() then
+        if not Gamepad.On() then
             return blizzardOpen(self)
         end
         if not self:IsEnabled() or (closedOwner == self and closedAt == GetTime()) then

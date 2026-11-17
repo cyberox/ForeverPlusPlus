@@ -84,7 +84,7 @@ end
 do
     local Chat = ns.Chat
     local controller = false
-    ns.Menus = { GamepadUI = function() return controller end }
+    ns.Gamepad = { On = function() return controller end }
     local NAV = "[Interface/AddOns/Blizzard_GamepadSmartNavigation/SmartNavigation.lua]:84: in function"
     local LIST = NAV .. "\n[Interface/AddOns/Blizzard_Settings_Shared/Blizzard_CategoryList.lua]:120:"
     eq(Chat.HarmlessRefusal(NAV), true, "refusal: the controller navigation, controller interface off")

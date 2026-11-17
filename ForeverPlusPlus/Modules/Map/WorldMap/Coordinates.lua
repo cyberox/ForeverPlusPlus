@@ -106,7 +106,7 @@ local function update()
     copy(bar.player, coords.PlayerCoords, half)
     -- With the controller interface on, Blizzard's cursor row is its crosshair's (CrosshairCoords,
     -- WorldMapTemplates, build 70938; read, not seen in game), and the mouse's is wherever it was left.
-    local cursor = ns.Menus.GamepadUI() and coords.CrosshairCoords or coords.CursorCoords
+    local cursor = ns.Gamepad.On() and coords.CrosshairCoords or coords.CursorCoords
     copy(bar.cursor, cursor, half - (button and button:GetWidth() or 0))
 end
 

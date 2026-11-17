@@ -46,7 +46,7 @@ module.added = "0.8.0"
 module.notice = {
     { text = L.AUTOWEAPONBUFF_NOTICE, description = L.AUTOWEAPONBUFF_NOTICE_DESC },
     -- From the bags it's a right click of ours (Lib/BagClicks.lua); from an action bar it works.
-    ns.Menus.PadLimitedNotice(),
+    ns.Gamepad.LimitedNotice(),
 }
 
 module.options = {

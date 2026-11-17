@@ -129,20 +129,18 @@ local IsShiftKeyDown, IsControlKeyDown = IsShiftKeyDown, IsControlKeyDown
 -- to forget this node>" becomes "<(the button) to forget this node>"; English, and left as
 -- written where that doesn't fit). The map pin there is Blizzard's own, on the left stick, in
 -- its footer.
-local PAD_SECOND = "PADRSTICK" -- the right stick, pressed
-
 local function hints(info)
-    local Note = ns.MapTooltip.Hint
-    local pad = ns.Menus.GamepadUI()
+    local Note, Gamepad = ns.MapTooltip.Hint, ns.Gamepad
+    local pad = Gamepad.On()
     local list = {}
     if info.click and info.clickHint then
-        list[#list + 1] = Note(ns.Keys.PadHint(info.clickHint))
+        list[#list + 1] = Note(Gamepad.Hint(info.clickHint))
     end
     if (info.waypoint or info.ctrlClick) and not pad then
         list[#list + 1] = Note(ns.L.MAPPINS_HINT_WAYPOINT)
     end
     if info.shiftClick and info.shiftHint then
-        list[#list + 1] = Note(ns.Keys.PadHint(info.shiftHint, PAD_SECOND))
+        list[#list + 1] = Note(Gamepad.Hint(info.shiftHint, Gamepad.BUTTON.RIGHT_STICK))
     end
     return list
 end
@@ -519,22 +517,20 @@ local function padLeave()
     end
 end
 
-local padSecondWas = false -- the right stick was pressed at the last look
+local padSecond -- the right stick's press, made with padWatcher
 
 local function padLook(_, elapsed)
     -- The right stick pressed, looked at every frame so a short press isn't missed: the icon
     -- under the cursor gets its Shift click (a module's own action, such as forgetting a node),
     -- which no button of the controller's reaches. Read from the controller itself
-    -- (Keys.PadDown). It's the one button the map leaves free: Y, tried first, is the map's own
+    -- (Gamepad.Press). It's the one button the map leaves free: Y, tried first, is the map's own
     -- More (seen in game 2026-11-16), and the left stick's press is its map pin.
-    local second = ns.Keys.PadDown(PAD_SECOND)
-    if second and not padSecondWas then
+    if padSecond:Fired() then
         local info = padPin and padPin.info
         if info and info.shiftClick then
             info.shiftClick(padPin, "RightButton")
         end
     end
-    padSecondWas = second
     padElapsed = padElapsed + elapsed
     if padElapsed < PAD_INTERVAL then
         return
@@ -581,13 +577,14 @@ end
 
 local function padWatch(map)
     -- Not made at all without the controller interface, which takes a reload to turn on.
-    if padWatcher or not map or not ns.Menus.GamepadUI() then
+    if padWatcher or not map or not ns.Gamepad.On() then
         return
     end
+    padSecond = ns.Gamepad.Press(ns.Gamepad.BUTTON.RIGHT_STICK)
     padWatcher = CreateFrame("Frame", nil, map)
     padWatcher:SetScript("OnShow", function(self)
         padElapsed = 0
-        self:SetScript("OnUpdate", ns.Menus.GamepadUI() and _G.SoftCursor and padLook or nil)
+        self:SetScript("OnUpdate", ns.Gamepad.On() and _G.SoftCursor and padLook or nil)
     end)
     padWatcher:SetScript("OnHide", padLeave)
     -- The A button: the map clicks its own pins under the cursor (ClickHoveredPins), then goes

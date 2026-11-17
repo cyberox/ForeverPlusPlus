@@ -20,7 +20,7 @@ local module = ns.NewModule("AutoConfirm", L.AUTOCONFIRM_DESC, {
 })
 module.title = L.AUTOCONFIRM_TITLE
 module.category = "automation"
-module.notice = ns.Menus.PadLimitedNotice() -- the popup can't be closed for the player then (accept)
+module.notice = ns.Gamepad.LimitedNotice() -- the popup can't be closed for the player then (accept)
 module.added = "1.7.0"
 
 module.options = {
@@ -34,7 +34,7 @@ module.options = {
 -- pressed on one already answered would answer twice, so it's left to the player whole.
 local function accept(call, popup)
     local fn = C_Item and C_Item[call]
-    if fn and not ns.Menus.GamepadUI() and pcall(fn) then
+    if fn and not ns.Gamepad.On() and pcall(fn) then
         ns.ClosePopup(popup)
     end
 end

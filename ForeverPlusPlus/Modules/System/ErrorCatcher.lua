@@ -266,7 +266,7 @@ end
 -- What was going on when an action was blocked, since it comes with no stack: combat, the kind
 -- of instance, the frame under the mouse, the menus open, whether the controller interface was
 -- on, and whether the taint log was writing.
-local gamepadUI = ns.Menus.GamepadUI
+local gamepadUI = ns.Gamepad.On
 
 local function blockedContext()
     local none = L.ERRORCATCHER_CONTEXT_NONE

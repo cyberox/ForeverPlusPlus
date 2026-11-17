@@ -218,7 +218,7 @@ local function fade()
         return
     end
     local hide = module.db.mouseover and not frame:IsMouseOver() and not ns.EditMode.IsActive()
-        and not ns.Menus.GamepadUI()
+        and not ns.Gamepad.On()
     frame:SetAlpha(hide and 0 or 1)
 end
 

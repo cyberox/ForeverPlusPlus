@@ -483,7 +483,7 @@ local function onWhisper(event, text, sender, _, _, _, _, _, _, _, _, _, guid, b
         setReplyTarget(sender, conversation.bnet and "BN_WHISPER" or "WHISPER")
     end
     -- Not with the controller interface on: its cursor can't reach the window (not one it tracks).
-    if module.db.openOnWhisper and not internal.IsShown() and not ns.Menus.GamepadUI() then
+    if module.db.openOnWhisper and not internal.IsShown() and not ns.Gamepad.On() then
         ns.AfterCombat(function()
             if module.enabled and not internal.IsShown() then
                 internal.Open(conversation)
@@ -530,7 +530,7 @@ end
 -- The chat filter for Hide Whispers in Chat: true hides the line in every chat window.
 local function filter(_, event, text, sender, _, _, _, _, _, _, _, _, _, _, bnSenderID)
     -- With the controller interface on the window can't be reached, so whispers stay in chat.
-    if not (module.enabled and module.db.hideInChat) or inTab(event) or ns.Menus.GamepadUI() then
+    if not (module.enabled and module.db.hideInChat) or inTab(event) or ns.Gamepad.On() then
         return false
     end
     if AWAY[event] then

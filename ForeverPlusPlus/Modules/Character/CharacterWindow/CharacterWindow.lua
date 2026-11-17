@@ -147,7 +147,7 @@ end
 -- Blizzard_GamepadSharedUtility's TabIndicators.lua, build 70938), so hiding the row would leave
 -- Titles, the Equipment Manager, and the pet with no way in.
 local function sideTabsOn()
-    return module.db.sideTabs and not ns.Menus.GamepadUI()
+    return module.db.sideTabs and not ns.Gamepad.On()
 end
 
 local function collapsed()
