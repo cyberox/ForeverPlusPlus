@@ -259,6 +259,7 @@ do
         "plugins: no new coalesce after login")
     raises(function() kit.NewMapLayer(function() end, plugin) end, "while the plugin loads",
         "plugins: no new layer after login")
+    eq(#real.timers == 3 and #layers == 1, true, "plugins: a refused one makes nothing")
 
     -- Settings: a table of the plugin's own over Store's, taking only its defaults' keys and types.
     local db = plugin.db
