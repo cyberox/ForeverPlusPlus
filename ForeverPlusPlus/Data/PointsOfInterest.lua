@@ -402,3 +402,13 @@ ns.Data.poiPoints = {
         { "ship", 80.6, 54.6, "N", "Steamwheedle Port", 1446 }, -- from Powderfuse Port
     },
 }
+
+-- Flights an NPC starts when asked in its gossip, not from the flight map: the druids' flights
+-- out of Moonglade. By NPC ID: the flight point it flies from and to (C_TaxiMap's node IDs), and
+-- the English place it flies to. The NPC IDs are Classic's (Wowhead), not checked in game; the
+-- nodes are the only path out of each druid flight point in build 70938's TaxiPath (316: 63 to
+-- 22, 315: 62 to 27). Flight Timer reads it through ns.GameData.
+ns.Data.gossipFlights = {
+    [11798] = { from = 63, to = 22, place = "Thunder Bluff" }, -- Bunthen Plainswind
+    [11800] = { from = 62, to = 27, place = "Rut'theran Village" }, -- Silva Fil'naveth
+}

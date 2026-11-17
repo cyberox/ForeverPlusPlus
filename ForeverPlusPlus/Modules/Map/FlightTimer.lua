@@ -8,7 +8,7 @@
 local _, ns = ...
 
 local ipairs, floor, format, max, min, tonumber = ipairs, math.floor, string.format, math.max, math.min, tonumber
-local Enum, GetTime, UnitOnTaxi, time, wipe = Enum, GetTime, UnitOnTaxi, time, wipe
+local Enum, GetTime, UnitOnTaxi, UnitGUID, time, wipe = Enum, GetTime, UnitOnTaxi, UnitGUID, time, wipe
 local GetNumRoutes, TaxiGetNodeSlot = GetNumRoutes, TaxiGetNodeSlot
 local CreateFrame, UIParent, GameTooltip = CreateFrame, UIParent, GameTooltip
 
@@ -154,8 +154,8 @@ end
 -- How long the flight from the flight master to a node takes: the player's own time once it has
 -- been flown, else the estimate from its route (Estimated Times). Also whether it's an estimate,
 -- and whether that estimate is the rougher kind, for a flight with stops.
-local function flightTime(to, slot)
-    local seconds = timed(current, to)
+local function flightTime(from, to, slot)
+    local seconds = timed(from, to)
     if seconds then
         return seconds, false, false
     end
@@ -164,7 +164,7 @@ local function flightTime(to, slot)
     end
     -- Without the flight master's route, only a direct path can be assumed: the game takes one
     -- when there is one.
-    local estimate, direct = ns.Taxi.FlightEstimate(routeOf(slot, to) or { current, to })
+    local estimate, direct = ns.Taxi.FlightEstimate(routeOf(slot, to) or { from, to })
     if estimate then
         return estimate, true, not direct
     end
@@ -345,10 +345,29 @@ local function onTake(slot)
         flight = nil
         return
     end
-    local total, estimated, rough = flightTime(to, slot)
+    local total, estimated, rough = flightTime(current, to, slot)
     flight = {
         from = current, to = to, total = total, estimated = estimated, rough = rough,
         name = nameOfNode[to], asked = GetTime(),
+    }
+    watcher:Show()
+end
+
+-- Flights an NPC starts from its gossip, with no flight map and no TakeTaxiNode: the druids'
+-- flights out of Moonglade (Data/PointsOfInterest.lua). Any option picked at one of them is taken
+-- as asking for its flight; one that doesn't take off is dropped after WAIT, as at a flight master.
+local gossipFlights = ns.GameData.New("gossipFlights", ns.Data.gossipFlights, { label = "Gossip flights" })
+
+local function onGossipOption()
+    local npc = ns.Units.NpcID(UnitGUID("npc"))
+    local route = npc and gossipFlights:Get(npc)
+    if not route or UnitOnTaxi("player") then
+        return
+    end
+    local total, estimated, rough = flightTime(route.from, route.to)
+    flight = {
+        from = route.from, to = route.to, total = total, estimated = estimated, rough = rough,
+        name = L[route.place], asked = GetTime(),
     }
     watcher:Show()
 end
@@ -427,7 +446,7 @@ local function onTooltipShow(tooltip)
     if not (to and current) or to == current then
         return
     end
-    local time, estimated = flightTime(to, slotOfNode[to])
+    local time, estimated = flightTime(current, to, slotOfNode[to])
     if not time then
         return
     end
@@ -550,6 +569,8 @@ function module:OnEnable()
     self:On("TAXIMAP_OPENED", readNodes)
     self:Hook("TakeTaxiNode", onTake)
     self:Hook("TaxiRequestEarlyLanding", onEarlyLanding)
+    self:Hook(C_GossipInfo, "SelectOption", onGossipOption)
+    self:Hook(C_GossipInfo, "SelectOptionByIndex", onGossipOption)
     self:Hook(GameTooltip, "Show", onTooltipShow)
     self:On("PLAYER_ENTERING_WORLD", onEnteringWorld)
     ns.EditMode.RegisterModule(self, bar, L.FLIGHTTIMER_TITLE, place, sample)

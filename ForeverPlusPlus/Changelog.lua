@@ -22,6 +22,8 @@ ns.changelog = {
                 { L.QUESTPINS_TITLE, "A quest whose earlier quest QuestieDB marks with a minus sign gets its pin once that quest is done." },
                 { L.QUESTPINS_TITLE, "A quest that scales to your level, such as the warlock quest Devourer of Souls, "
                     .. "is no longer treated as far too low for you." },
+                { L.FLIGHTTIMER_TITLE, "The druid flights out of Moonglade, to Thunder Bluff and "
+                    .. "Rut'theran Village, are timed and show the bar." },
             } },
         },
     },

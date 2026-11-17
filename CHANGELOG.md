@@ -13,6 +13,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 - **Quest Pins**: a quest whose earlier quest QuestieDB marks with a minus sign gets its pin once that quest is done.
 - **Quest Pins**: a quest that scales to your level, such as the warlock quest Devourer of Souls, is no longer treated as far too low for you.
+- **Flight Timer**: the druid flights out of Moonglade, to Thunder Bluff and Rut'theran Village, are timed and show the bar.
 
 ## 1.8.0 (2026-11-16)
 
