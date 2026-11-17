@@ -38,7 +38,7 @@ function WorldMap.Show(mapID)
     if not (map and map.SetMapID and mapID) or InCombatLockdown() then
         return false
     end
-    if ns.Menus.GamepadUI() then
+    if ns.Gamepad.On() then
         if not (C_Map and C_Map.OpenWorldMap) then
             return false
         end

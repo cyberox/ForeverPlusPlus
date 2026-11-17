@@ -141,10 +141,7 @@ end
 
 local watched -- the talent of ours the cursor is on
 local relaying = false -- drawOverlays is hiding our buttons to lay them out again
-
-local function yDown()
-    return ns.Keys.PadDown("PAD4") -- the top face button (GAMEPAD_FACE_TOP)
-end
+local yPress = ns.Gamepad.Press(ns.Gamepad.BUTTON.FACE_TOP) -- Y (GAMEPAD_FACE_TOP)
 
 local function unwatchY(self)
     self:SetScript("OnUpdate", nil)
@@ -158,13 +155,9 @@ local function watchY(self)
         unwatchY(self)
         return
     end
-    local down = yDown()
-    if down and not self.yWas then
-        self.yWas = true
+    if yPress:Fired() then
         onNodeClick(self, "RightButton")
-        return
     end
-    self.yWas = down
 end
 
 local function onNodeLeave(self)
@@ -180,9 +173,9 @@ local function onNodeEnter(self)
         return
     end
     -- Also called to redraw the tooltip after a click, when the watch is already on.
-    if watched ~= self and ns.Menus.GamepadUI() then
+    if watched ~= self and ns.Gamepad.On() then
         watched = self
-        self.yWas = yDown() -- held as the cursor arrives isn't a press
+        yPress:Reset() -- held as the cursor arrives isn't a press
         self:SetScript("OnUpdate", watchY)
     end
     internal.describe(node)
@@ -220,9 +213,10 @@ local function onNodeEnter(self)
     GameTooltip:AddLine(" ")
     local green = GREEN_FONT_COLOR -- a click hint, green as Blizzard's instruction lines are
     local hint
-    if ns.Menus.GamepadUI() then
+    local Gamepad = ns.Gamepad
+    if Gamepad.On() then
         -- The buttons as the player's own controller shows them.
-        local add, remove = ns.Keys.PadLabel("PAD1"), ns.Keys.PadLabel("PAD4")
+        local add, remove = Gamepad.Label(Gamepad.BUTTON.FACE_BOTTOM), Gamepad.Label(Gamepad.BUTTON.FACE_TOP)
         if count < node.max then
             hint = format(L.TALENTPLANNER_CLICK_PAD, add, remove)
         else
@@ -313,7 +307,7 @@ function internal.drawOverlays(plan)
         if node then
             internal.describe(node)
             fade(button)
-            if ns.Menus.GamepadUI() then
+            if ns.Gamepad.On() then
                 hide(button)
             end
             local overlay = overlays[node.id] or makeOverlay(node.id)

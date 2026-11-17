@@ -83,9 +83,9 @@ local QUEST_FILL = "UI-HUD-ExperienceBar-Fill-Reputation-Faction-Green"
 local RESTED_COLOR = { 0.25, 0.6, 1 }
 local READY_COLOR = { 0.25, 0.85, 0.25 }
 
-local texts = setmetatable({}, { __mode = "k" }) -- Blizzard's experience bar -> our font string
+-- Blizzard's experience bars, once found, and each one's font string of ours (StatusBars.Texts).
+local bars, texts = {}, {}
 local fills = setmetatable({}, { __mode = "k" }) -- Blizzard's experience bar -> our quest fill
-local bars = {} -- the experience bars, once found
 local questXP = 0 -- what the Quest XP choice counts, for the text
 local readyXP = 0 -- what the quests ready to turn in give
 local allXP = 0 -- what all the quests in the log give
@@ -330,37 +330,25 @@ local function newFill(bar)
     return fill
 end
 
+-- A bar needs its fill bar for the quest fill.
+local function hasStatusBar(bar)
+    return bar.StatusBar
+end
+
+local function addFill(bar)
+    fills[bar] = newFill(bar)
+end
+
 -- Finds each container's experience bar and gives it our text, once.
 local function setUp()
     if not module.enabled then
         return
     end
-    local manager = StatusTrackingBarManager
-    local index = StatusTrackingBarInfo and StatusTrackingBarInfo.BarsEnum
-        and StatusTrackingBarInfo.BarsEnum.Experience
-    if not (manager and manager.barContainers and index) then
+    local found, made = ns.StatusBars.Texts("Experience", hasStatusBar, addFill)
+    if not found then
         return
     end
-    for _, container in ipairs(manager.barContainers) do
-        local bar = container.bars and container.bars[index]
-        if bar and bar.OverlayFrame and bar.OverlayFrame.Text and bar.StatusBar and not texts[bar] then
-            -- Our own frame like Blizzard's OverlayFrame, so that one (holding only Blizzard's
-            -- text) can be hidden while ours shows. Hidden, not alpha 0: on Forever something
-            -- outside Lua put its alpha back to 1 just after login (2026-10-13).
-            local holder = CreateFrame("Frame", nil, bar)
-            holder:SetFrameStrata("MEDIUM")
-            holder:SetAllPoints(bar.OverlayFrame)
-            -- Above the bar's divider lines and border, as Blizzard's text is.
-            holder:SetFrameLevel(bar.OverlayFrame:GetFrameLevel() + 1)
-            local ours = holder:CreateFontString(nil, "ARTWORK", "TextStatusBarText")
-            ours:SetDrawLayer("ARTWORK", 5)
-            ours:SetPoint("CENTER", holder, "CENTER", 0, 0)
-            ours:Hide()
-            texts[bar] = ours
-            fills[bar] = newFill(bar)
-            bars[#bars + 1] = bar
-        end
-    end
+    bars, texts = found, made
     for _, bar in ipairs(bars) do
         -- Blizzard sets its text on every XP update and shows it on mouseover.
         module:Hook(bar, "UpdateCurrentText", update)

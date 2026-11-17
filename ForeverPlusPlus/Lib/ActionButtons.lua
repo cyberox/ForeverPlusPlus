@@ -55,7 +55,7 @@ end
 ---@param fn fun(button: table, bar: number, index: number)
 ---@param all boolean?
 function ActionButtons.Each(fn, all)
-    local pad = ns.Menus.GamepadUI()
+    local pad = ns.Gamepad.On()
     if all or not pad then
         for bar, prefix in ipairs(BARS) do
             for index = 1, BUTTONS do
@@ -84,7 +84,7 @@ function ActionButtons.Watch(module, fn)
     -- Only with the controller interface on, so nothing is heard without it: turning it on or
     -- off takes a reload (the swap needs one "to achieve proper input handling", Blizzard's own
     -- note in Blizzard_Kiosk's ColdSwap.lua), and modules ask again as they turn on after it.
-    if watching or not ns.Menus.GamepadUI() or not (EventRegistry and EventRegistry.RegisterCallback) then
+    if watching or not ns.Gamepad.On() or not (EventRegistry and EventRegistry.RegisterCallback) then
         return
     end
     watching = true

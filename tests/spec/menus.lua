@@ -4,18 +4,15 @@ local T = ...
 local ns, eq, same = T.ns, T.eq, T.same
 
 T.load("Lib/Secret", ns)
+T.load("Lib/Gamepad", ns)
 T.load("Lib/Menus", ns)
 local Menus = ns.Menus
 
--- The controller interface: only Forever's C_InputInterfaceStyle says.
-eq(Menus.GamepadUI(), false, "gamepad: no API, no controller interface")
+-- The controller interface on (Lib/Gamepad.lua, tested in the gamepad spec).
+eq(Menus.Available(), false, "available: no controller interface, and no Blizzard menu")
 Enum = Enum or {}
 Enum.InputDeviceInterfaceType = { MouseAndKeyboard = 0, Gamepad = 1 }
-local style = 0
-C_InputInterfaceStyle = { GetCurrentStyle = function() return style end }
-eq(Menus.GamepadUI(), false, "gamepad: mouse and keyboard")
-style = 1
-eq(Menus.GamepadUI(), true, "gamepad: the controller interface")
+C_InputInterfaceStyle = { GetCurrentStyle = function() return 1 end }
 eq(Menus.Available(), true, "available: ours needs nothing of Blizzard's")
 
 -- A description, written as Blizzard's generators are.

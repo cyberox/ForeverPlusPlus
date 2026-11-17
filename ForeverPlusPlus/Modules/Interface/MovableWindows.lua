@@ -106,7 +106,7 @@ local RESET_BUTTONS = { right = "RightButton", middle = "MiddleButton", left = "
 
 module.notice = {
     { text = L.MOVABLEWINDOWS_NOTICE, description = L.MOVABLEWINDOWS_NOTICE_DESC },
-    ns.Menus.PadLimitedNotice(), -- a drag, a held key, and the mouse wheel
+    ns.Gamepad.LimitedNotice(), -- a drag, a held key, and the mouse wheel
 }
 
 -- The windows, by global name. Most load with Blizzard's load-on-demand addons, so they're looked

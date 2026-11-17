@@ -141,7 +141,7 @@ function Set:Update()
     -- With the controller interface on, the cursor presses Blizzard's own item button
     -- (SmartNavigation's MouseDown and MouseUp), never an overlay over it, which would only sit
     -- in the mouse's way.
-    if ns.Menus.GamepadUI() then
+    if ns.Gamepad.On() then
         return
     end
     local match = self.match

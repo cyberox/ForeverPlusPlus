@@ -45,7 +45,7 @@ local function openKeyBindings()
 end
 
 module.notice = {
-    ns.Menus.PadLimitedNotice(), -- the ring opens at the mouse and reads which way it moves
+    ns.Gamepad.LimitedNotice(), -- the ring opens at the mouse and reads which way it moves
     {
         text = L.TARGETMARKERS_NO_KEY, description = L.TARGETMARKERS_NO_KEY_DESC,
         button = L.TARGETMARKERS_BIND, fn = openKeyBindings,

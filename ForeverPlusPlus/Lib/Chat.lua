@@ -358,7 +358,7 @@ function Chat.HarmlessRefusal(stack)
         return false
     end
     return find(stack, "Blizzard_Settings", 1, true) ~= nil
-        or find(stack, "Blizzard_CategoryList.lua", 1, true) ~= nil or not ns.Menus.GamepadUI()
+        or find(stack, "Blizzard_CategoryList.lua", 1, true) ~= nil or not ns.Gamepad.On()
 end
 
 local quieted = false
@@ -509,11 +509,11 @@ function Chat.HiddenNotice(key, text, description, shown)
         {
             text = text, description = description,
             shown = function()
-                return (not shown or shown()) and Chat.ButtonsHidden() and not ns.Menus.GamepadUI()
+                return (not shown or shown()) and Chat.ButtonsHidden() and not ns.Gamepad.On()
             end,
         },
         -- With the controller interface on it's Blizzard that hides them (FloatingChatFrame.lua).
-        ns.Menus.PadHidesNotice(),
+        ns.Gamepad.HidesNotice(),
         {
             text = ns.L.CHAT_BUTTON_FOLDED, description = ns.L.CHAT_BUTTON_FOLDED_DESC,
             shown = function()

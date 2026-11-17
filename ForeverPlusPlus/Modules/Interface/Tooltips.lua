@@ -599,7 +599,7 @@ end
 -- to the mouse instead.
 local function onDefaultAnchor(tooltip, parent)
     -- Not with the controller interface on: there's no mouse, only wherever it was left.
-    if module.db.anchorCursor and not ns.Menus.GamepadUI() then
+    if module.db.anchorCursor and not ns.Gamepad.On() then
         tooltip:SetOwner(parent, "ANCHOR_CURSOR")
     end
 end

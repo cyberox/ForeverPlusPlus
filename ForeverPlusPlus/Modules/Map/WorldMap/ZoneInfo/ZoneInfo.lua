@@ -285,7 +285,7 @@ end
 -- Whether the detail key is held.
 local function detailHeld()
     -- Always with the controller interface on, where no key can be held over the map.
-    return Keys.IsDown(module.db.detailKey) or ns.Menus.GamepadUI()
+    return Keys.IsDown(module.db.detailKey) or ns.Gamepad.On()
 end
 
 -- Whether a gathering row shows: its setting is "always", "known" and the player has the
@@ -458,7 +458,7 @@ local function target(map)
     end
     -- With the controller interface on, the zone under its map cursor, not under the mouse.
     local x, y
-    if ns.Menus.GamepadUI() and map.GetNormalizedGamepadCursorPosition then
+    if ns.Gamepad.On() and map.GetNormalizedGamepadCursorPosition then
         x, y = map:GetNormalizedGamepadCursorPosition()
     else
         x, y = map:GetNormalizedCursorPosition()

@@ -8,21 +8,24 @@ local held = {}
 IsShiftKeyDown = function() return held.shift end
 IsControlKeyDown = function() return held.ctrl end
 IsAltKeyDown = function() return held.alt end
--- The controller interface, and which of its triggers are held.
+-- The controller interface, and which of its triggers are held (Lib/Gamepad.lua, tested in the
+-- gamepad spec).
 local pad = { on = false }
-ns.Menus = { GamepadUI = function() return pad.on end }
 ns.IsTrue = function(value) return value == true end
 GamepadMode = {
     IsHUDBindingModifierDown = function() return pad.hud end,
     IsTargetingModifierDown = function() return pad.targeting end,
 }
+T.load("Locales/enUS/Automation")
+T.load("Lib/Gamepad")
+local BUTTON = ns.Gamepad.BUTTON
+ns.Gamepad.On = function() return pad.on end
 -- The controller's own state: buttons by name, counted from 0, in a table counted from 1.
-local PAD_NAMES = { PAD4 = 3, PADLTRIGGER = 8, PADRTRIGGER = 9 }
+local PAD_NAMES = { [BUTTON.FACE_TOP] = 3, [BUTTON.LEFT_TRIGGER] = 8, [BUTTON.RIGHT_TRIGGER] = 9 }
 C_GamePad = {
     ButtonBindingToIndex = function(name) return PAD_NAMES[name] end,
     GetDeviceMappedState = function() return pad.state end,
 }
-T.load("Locales/enUS/Automation")
 T.load("Lib/Keys") -- it caches the three
 local Keys = ns.Keys
 
@@ -47,24 +50,12 @@ pad.hud, pad.targeting = false, true
 eq(Keys.IsDown("ctrl"), true, "keys: the targeting trigger counts too")
 pad.targeting = false
 eq(Keys.IsDown("ctrl"), false, "keys: no trigger, no key")
--- The controller's buttons read themselves, for where Blizzard's modifiers say nothing.
-eq(Keys.PadDown("PAD4"), false, "keys: no controller state, no button")
+-- The triggers read from the controller itself, for where Blizzard's modifiers say nothing.
 pad.state = { buttons = { false, false, false, true } }
-eq(Keys.PadDown("PAD4"), true, "keys: a button is found one past its 0-based index")
-eq(Keys.PadDown("PADNONSENSE"), false, "keys: an unknown button isn't down")
 eq(Keys.IsDown("shift"), false, "keys: Y isn't a trigger")
 pad.state = { buttons = { [10] = true } }
 eq(Keys.IsDown("shift"), true, "keys: a trigger read from the controller is the key")
-pad.on = false
-eq(Keys.PadDown("PADRTRIGGER"), false, "keys: nothing is read without the controller interface")
-pad.on, pad.state = true, nil
--- A button is named as the game names it for the player's controller.
-eq(Keys.PadLabel("PAD4"), "Y", "keys: a button's Xbox letter where the game says nothing")
-GetBindingText = function(button) return button == "PAD4" and "<triangle>" or button end
-eq(Keys.PadLabel("PAD4"), "<triangle>", "keys: the game's own label for the button")
-eq(Keys.PadLabel("PAD1"), "A", "keys: the button's name handed back isn't a label")
-eq(Keys.PadLabel("PADODD"), "PADODD", "keys: an unknown button is its name")
-GetBindingText = nil
+pad.state = nil
 eq(Keys.Detail(), true, "keys: Shift's details always show with the controller interface on")
 pad.on = false
 held.shift = true

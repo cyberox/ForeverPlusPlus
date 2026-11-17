@@ -143,11 +143,11 @@ L.SETTINGS_ENABLED = "Enabled" -- the module's own on/off checkbox, under its de
 L.SETTINGS_NEEDS_ADDON = "Needs the %s addon."
 L.SETTINGS_NEEDS_MODULE = "Needs the %s module turned on."
 L.SETTINGS_NEEDS_CLIENT = "This version of the game doesn't have what it needs."
--- A notice on a module whose Blizzard frame the controller interface hides (ns.Menus.PadHidesNotice).
+-- A notice on a module whose Blizzard frame the controller interface hides (ns.Gamepad.HidesNotice).
 L.SETTINGS_CONTROLLER_HIDDEN = "Does nothing with the controller interface"
 L.SETTINGS_CONTROLLER_HIDDEN_DESC = "The controller interface hides what this changes and shows "
     .. "its own in its place, so this does nothing while it's on."
--- And on one that needs a mouse, a held key, or a window its cursor can't reach (PadLimitedNotice).
+-- And on one that needs a mouse, a held key, or a window its cursor can't reach (LimitedNotice).
 L.SETTINGS_CONTROLLER_LIMITED = "Limited with the controller interface"
 L.SETTINGS_CONTROLLER_LIMITED_DESC = "Some or all of this needs a mouse click, a drag, a held key, "
     .. "or a window the controller's cursor can't reach, and does nothing while the controller "

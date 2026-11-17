@@ -251,7 +251,7 @@ local function onEnter(self)
     end
     if searchable() then
         GameTooltip:AddLine(" ")
-        GameTooltip:AddLine(ns.Keys.PadHint(L.WAYLAIDCRATES_HINT), GREEN_FONT_COLOR:GetRGB())
+        GameTooltip:AddLine(ns.Gamepad.Hint(L.WAYLAIDCRATES_HINT), GREEN_FONT_COLOR:GetRGB())
     end
     GameTooltip:Show()
 end

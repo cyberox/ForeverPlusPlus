@@ -381,7 +381,7 @@ local function quickMenu(owner)
     local side = module.db.menuSide
     -- With the controller interface on, a menu of Blizzard's opened from here breaks the
     -- controller's focus (see Lib/Menus.lua), so it's our own list, at the same place.
-    if ns.Menus.GamepadUI() then
+    if ns.Gamepad.On() then
         ns.Menus.Open(owner, quickMenuItems, side ~= "auto" and AnchorUtil and menuAnchor(side) or nil)
         return
     end

@@ -779,7 +779,7 @@ end
 local function collapseAtLogin(_, isLogin, isReload)
     -- Not with the controller interface on: the tracker's update also steers the controller's
     -- cursor then (Blizzard_ObjectiveTracker.lua), which refuses a call from addon code.
-    if not (isLogin or isReload) or ns.Menus.GamepadUI() then
+    if not (isLogin or isReload) or ns.Gamepad.On() then
         return
     end
     ns.AfterCombat(function()
