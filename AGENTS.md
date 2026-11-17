@@ -179,7 +179,7 @@ One line here says what each file is for. [docs/architecture.md](docs/architectu
 | `DungeonMaps.lua` | `DungeonMaps` | A dungeon's map over the world map, drawn from the old map art the client still has, or opened in the DungeonJournal addon when it has none. |
 | `Gathering.lua` | `Gathering` | What the player gathers as they gather it, a map's remembered nodes, and nodes as shareable text. |
 | `Taxi.lua` | `Taxi` | The open flight master's flight points, and a flight's estimated time. |
-| `Quests.lua` | `Quests` | Which quest Blizzard's quest windows show, a quest's level, and whether it's a group quest. |
+| `Quests.lua` | `Quests` | Which quest Blizzard's quest windows show, a quest's level and tag, and whether it's a group quest. |
 | `QuestieDB.lua` | `QuestieDB` | The one place we read the separate QuestieDB addon, at run time (`Require` for a module that needs it). |
 
 **Generated**, in `Lib/Generated/` (never edit by hand): `InstanceLevels.lua`, `DisenchantBrackets.lua`, `LockboxSkills.lua`, `ComprehendScrolls.lua`, `WeaponBuffs.lua`, `TaxiRoutes.lua`.

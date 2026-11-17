@@ -499,7 +499,8 @@ end
 ---quest is listed in; `sortID` is the quest log category of one listed under a category instead.
 ---`races` and `classes` are masks, nil for anyone. `flags` and `specialFlags` are QuestieDB's
 ---quest flag masks (0 when none); `repeatable` is true for a repeatable, daily, weekly, or monthly
----quest, and `raid` for one its flags mark as a raid quest.
+---quest, and `raid` for one its flags mark as a raid quest. `tag` is the client's, not QuestieDB's
+---(`ns.Quests.Tag`), nil until the client has the quest cached; QuestieDB has no quest tags.
 ---@param questID number
 ---@return table|nil
 function QuestieDB.Quest(questID)
@@ -539,6 +540,7 @@ function QuestieDB.Quest(questID)
         specialFlags = special,
         repeatable = special % 2 == 1 or hasFlag(flags, QUEST_DAILY) or hasFlag(flags, QUEST_WEEKLY) or hasFlag(flags, QUEST_MONTHLY),
         raid = hasFlag(flags, QUEST_RAID),
+        tag = ns.Quests.Tag(questID),
         minRep = reputation(f.requiredMinRep),
         maxRep = reputation(f.requiredMaxRep),
     }

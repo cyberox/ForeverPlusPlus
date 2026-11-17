@@ -39,7 +39,7 @@ local NEW_RACE_BITS = { [95] = 33, [96] = 34 }
 -- The client's quest tags for a dungeon or a raid (Classic's: Dungeon, Raid, Heroic, Raid 10 and
 -- 25, Scenario).
 local INSTANCE_TAGS = { [81] = true, [62] = true, [85] = true, [88] = true, [89] = true, [98] = true }
-local tagged = {} -- quest ID -> its tag's ID, once the client has answered
+local tagOf = ns.Quests.Tag
 
 -- Whether a mask of races or classes has the bit of an ID (1, 2, 3, ... from the lowest bit).
 local function inMask(mask, id)
@@ -54,19 +54,6 @@ local function raceInMask(mask, race)
     end
     local bit = NEW_RACE_BITS[race]
     return not bit or inMask(mask, bit)
-end
-
--- The client's tag for a quest, or nil while it hasn't said.
-local function tagOf(id)
-    local known = tagged[id]
-    if known == nil and C_QuestLog and C_QuestLog.GetQuestTagInfo then
-        local tag = C_QuestLog.GetQuestTagInfo(id)
-        if type(tag) == "table" and tag.tagID then
-            known = tag.tagID
-            tagged[id] = known
-        end
-    end
-    return known
 end
 
 local function isInstance(id, info)

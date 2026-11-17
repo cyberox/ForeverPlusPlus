@@ -38,7 +38,10 @@ C_AddOns = {
         return key == "Version" and "9.9.9" or nil
     end,
 }
+-- The client knows only the second quest's tag.
+C_QuestLog = { GetQuestTagInfo = function(id) return id == 900002 and { tagID = 81 } or nil end }
 T.load("Lib/AddOns")
+T.load("Lib/Quests")
 T.load("Lib/QuestieDB")
 local Q = ns.QuestieDB
 
@@ -305,6 +308,7 @@ local sorted = Q.Quest(900002)
 eq(sorted.sortID == 61 and sorted.areaID == nil and sorted.maxLevel == 20, true, "questiedb: a quest under a category")
 same(sorted.prerequisites.any, { 900001 }, "questiedb: any one prerequisite, without 0")
 eq(sorted.parent == 900001 and #sorted.children == 0, true, "questiedb: a quest's parent, and no children")
+eq(sorted.tag == 81 and quest.tag == nil, true, "questiedb: the client's tag, nil while it hasn't said")
 
 same(Q.QuestsUnlockedBy(900001), { 900002 }, "questiedb: the quests a quest unlocks, once though in both lists")
 same(Q.QuestsUnlockedBy(900000), { 900001 }, "questiedb: a quest that only others name")

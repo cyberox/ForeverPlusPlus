@@ -85,6 +85,29 @@ function Quests.IsElite(questID)
     return type(tag) == "table" and elite ~= nil and tag.tagID == elite
 end
 
+local tags = {} -- quest ID -> its tag's ID, once the client has answered
+
+---The client's tag for a quest (`C_QuestLog.GetQuestTagInfo`'s `tagID`: 81 Dungeon, 62 Raid, 41
+---PvP, 1 Group, and so on), or nil while the client hasn't said: it knows only quests it has
+---cached. An answer is kept, so a quest is asked about until the client knows it, then never again.
+---@param questID number?
+---@return number? tagID
+function Quests.Tag(questID)
+    if type(questID) ~= "number" then
+        return nil
+    end
+    local known = tags[questID]
+    local log = C_QuestLog
+    if known == nil and log and log.GetQuestTagInfo then
+        local tag = log.GetQuestTagInfo(questID)
+        if type(tag) == "table" and ns.IsNumber(tag.tagID) then
+            known = tag.tagID
+            tags[questID] = known
+        end
+    end
+    return known
+end
+
 ---A quest's level as the quest log writes it before a title: "[12]", or "[12+]" for an elite quest.
 ---@param questID number?
 ---@param level number

@@ -7,7 +7,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 ### Added
 
 - **Auto Open Containers**: Pick Locks on Right Click (off by default), for Rogues, casts Pick Lock on a locked lockbox you right click in your bags, then opens it.
-- For addon authors: the plugin kit's `QuestieDB.Quest` has a quest's `children` and `parent`, and `QuestsUnlockedBy` and `QuestsLeadingTo` find the quests that come after or before one.
+- For addon authors: the plugin kit's `QuestieDB.Quest` has a quest's `children`, `parent`, and the game's quest `tag`, and `QuestsUnlockedBy` and `QuestsLeadingTo` find the quests that come after or before one.
 
 ## 1.8.0 (2026-11-16)
 

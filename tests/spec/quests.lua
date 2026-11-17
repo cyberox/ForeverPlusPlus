@@ -44,6 +44,11 @@ do
     C_QuestLog.GetQuestTagInfo = function(id) return id == 103 and { tagID = 1 } or nil end
     eq(Quests.IsElite(103), true, "quests: elite by its tag")
     eq(Quests.IsElite(nil), false, "quests: no quest isn't elite")
+    eq(Quests.Tag(103), 1, "quests: the client's tag")
+    eq(Quests.Tag(101), nil, "quests: no tag while the client hasn't said")
+    C_QuestLog.GetQuestTagInfo = function(id) return id == 101 and { tagID = 81 } or nil end
+    eq(Quests.Tag(101) == 81 and Quests.Tag(103) == 1, true, "quests: asked again until it answers, then kept")
+    eq(Quests.Tag("103"), nil, "quests: a quest ID that isn't a number")
     QuestInfoFrame = { questLog = true }
     eq(Quests.DetailsID(), 102, "quests: details from the quest log")
     QuestInfoFrame.questLog = nil
