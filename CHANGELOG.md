@@ -6,20 +6,29 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 ### Added
 
-- **Quest Pins**: PvP Quests, a kind of its own for battleground and other player-versus-player quests, in Settings and the map's filter menu. Untick it to hide their pins.
+- **Reputation Bar Text**: a new module, on by default, that shows your reputation on the bar all the time, with the percent and your standing, and gives the bar a tooltip. Watch Faction You Gain With (off by default) moves the bar to the faction you last gained with.
+- **Hide Zone Text**: a new module, off by default, that hides the zone and area names shown when you enter one, and the territory line under them.
 - **Hide Bag and Menu Bars**: a new module, off by default, that hides the bag bar and the micro menu until the mouse is over them, or always.
-- **Reputation Bar Text**: a new module, on by default, that shows your reputation on the reputation bar all the time, with the percent and your standing, and gives the bar a tooltip. Watch Faction You Gain With (off by default) moves the bar to the faction you last gained reputation with.
 - **XP Bar Text**, **Reputation Bar Text**: Solid Bar (off by default) takes the divider lines off the bar.
-- **Hide Zone Text**: a new module, off by default, that hides the zone and area names that appear at the top of the screen when you enter one, and the territory line under them.
-- **Auto Screenshot**: Turn Off HDR for the Shot (off by default) turns HDR off while a screenshot is taken and back on after, so it doesn't come out washed out.
-- **Tooltips**: Scale makes tooltips bigger or smaller, from 50% to 200%, and Hide Chat Tab Tooltips (off by default) shows no tooltip over a chat tab.
-- **Quest Tracker**: Collapse at Login (off by default) starts the tracker collapsed each time you log in or reload.
+- **Auto Screenshot**: Turn Off HDR for the Shot (off by default) turns HDR off for a screenshot, so it isn't washed out.
+- **Tooltips**: Scale, from 50% to 200%, and Hide Chat Tab Tooltips (off by default).
+- **Quest Pins**: PvP Quests are a kind of their own, in Settings and the map's filter menu.
+- **Quest Tracker**: Collapse at Login (off by default) starts the tracker collapsed.
 - **Currency Bar**: Show on Mouseover (off by default) hides the box until the mouse is over it.
-- Controller interface: Spell Ranks, Macros, and Auto Weapon Buff work on its action bars, Loot Rolls' seconds and roll counts and the item marks show on its roll list, map icons show their tooltip under its map cursor, and Tooltips' Scale covers its buff tooltip. World Map's Coordinates and Zone Info follow its map cursor, and a module that needs a mouse or a held key says so in Settings while it's on. A held trigger counts as a module's Skip Key, and tooltip lines shown only with Shift always show. The select button clicks the map icon under the map cursor and pressing the right stick does its second action, such as forgetting a gathering node. A dungeon's map turns floors and goes back with the controller's buttons, and in Talent Planner one button adds a point and another removes one. Hints show each button as your controller draws it.
+
+### Controller Interface
+
+- Spell Ranks, Macros, and Auto Weapon Buff work on the controller's action bars.
+- **Loot Rolls**: the seconds left and roll counts show on the controller's roll list, as do item marks.
+- **World Map**: our map icons show their tooltip under the map cursor. The select button clicks one, and pressing the right stick does its second action, such as forgetting a gathering node. Coordinates and Zone Info follow the cursor.
+- A dungeon's map goes back with the back button and turns floors with the right stick.
+- **Talent Planner**: one button adds a point and another removes one.
+- A held trigger counts as a module's Skip Key, and tooltip lines shown only with Shift always show.
+- Hints show each button as your controller draws it, and a module that needs a mouse or a held key says so in Settings.
 
 ### Changed
 
-- **Talent Planner**: a talent at its highest rank in the plan shows gold, learned or not, and its tooltip no longer offers to add a point.
+- **Talent Planner**: a talent at its highest planned rank shows gold, learned or not.
 
 ## 1.7.0 (2026-11-15)
 

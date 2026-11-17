@@ -13,45 +13,46 @@ ns.changelog = {
         version = L.CHANGELOG_UNRELEASED,
         sections = {
             { L.CHANGELOG_ADDED, {
-                { L.QUESTPINS_TITLE, "PvP Quests, a kind of its own for battleground and other "
-                    .. "player-versus-player quests, in Settings and the map's filter menu. Untick it "
-                    .. "to hide their pins." },
+                { L.REPBARTEXT_TITLE, "a new module, on by default, that shows your reputation on "
+                    .. "the bar all the time, with the percent and your standing, and gives the "
+                    .. "bar a tooltip. Watch Faction You Gain With (off by default) moves the bar "
+                    .. "to the faction you last gained with." },
+                { L.HIDEZONETEXT_TITLE, "a new module, off by default, that hides the zone and area "
+                    .. "names shown when you enter one, and the territory line under them." },
                 { L.HIDEMENUBARS_TITLE, "a new module, off by default, that hides the bag bar and "
                     .. "the micro menu until the mouse is over them, or always." },
-                { L.REPBARTEXT_TITLE, "a new module, on by default, that shows your reputation on "
-                    .. "the reputation bar all the time, with the percent and your standing, and "
-                    .. "gives the bar a tooltip. Watch Faction You Gain With (off by default) moves "
-                    .. "the bar to the faction you last gained reputation with." },
                 { L.XPBARTEXT_TITLE, "Solid Bar (off by default) takes the divider lines off the "
                     .. "bar. Reputation Bar Text has it too." },
-                { L.HIDEZONETEXT_TITLE, "a new module, off by default, that hides the zone and area "
-                    .. "names that appear at the top of the screen when you enter one, and the "
-                    .. "territory line under them." },
                 { L.AUTOSCREENSHOT_TITLE, "Turn Off HDR for the Shot (off by default) turns HDR off "
-                    .. "while a screenshot is taken and back on after, so it doesn't come out "
-                    .. "washed out." },
-                { L.TOOLTIPS_TITLE, "Scale makes tooltips bigger or smaller, from 50% to 200%, and "
-                    .. "Hide Chat Tab Tooltips (off by default) shows no tooltip over a chat tab." },
+                    .. "for a screenshot, so it isn't washed out." },
+                { L.TOOLTIPS_TITLE, "Scale, from 50% to 200%, and Hide Chat Tab Tooltips (off by "
+                    .. "default)." },
+                { L.QUESTPINS_TITLE, "PvP Quests are a kind of their own, in Settings and the "
+                    .. "map's filter menu." },
                 { L.QUESTTRACKER_TITLE, "Collapse at Login (off by default) starts the tracker "
-                    .. "collapsed each time you log in or reload." },
+                    .. "collapsed." },
                 { L.CURRENCYBAR_TITLE, "Show on Mouseover (off by default) hides the box until the "
                     .. "mouse is over it." },
-                "Controller interface: Spell Ranks, Macros, and Auto Weapon Buff work on its action "
-                    .. "bars, Loot Rolls' seconds and roll counts and the item marks show on its "
-                    .. "roll list, map icons show their tooltip under its map cursor, and "
-                    .. "Tooltips' Scale covers its buff tooltip. World Map's Coordinates and Zone "
-                    .. "Info follow its map cursor, and a module that needs a mouse or a held key "
-                    .. "says so in Settings while it's on. A held trigger counts as a module's "
-                    .. "Skip Key, and tooltip lines shown only with Shift always show. The select "
-                    .. "button clicks the map icon under the map cursor and pressing the right "
-                    .. "stick does its second action, such as forgetting a gathering node. A "
-                    .. "dungeon's map turns floors and goes back with the controller's buttons, "
-                    .. "and in Talent Planner one button adds a point and another removes one. "
-                    .. "Hints show each button as your controller draws it.",
+            } },
+            { L.CHANGELOG_CONTROLLER, {
+                "Spell Ranks, Macros, and Auto Weapon Buff work on the controller's action bars.",
+                { L.LOOTROLLS_TITLE, "the seconds left and roll counts show on the controller's "
+                    .. "roll list, as do item marks." },
+                { L.WORLDMAP_TITLE, "our map icons show their tooltip under the map cursor. The "
+                    .. "select button clicks one, and pressing the right stick does its second "
+                    .. "action, such as forgetting a gathering node. Coordinates and Zone Info "
+                    .. "follow the cursor." },
+                "A dungeon's map goes back with the back button and turns floors with the right "
+                    .. "stick.",
+                { L.TALENTPLANNER_TITLE, "one button adds a point and another removes one." },
+                "A held trigger counts as a module's Skip Key, and tooltip lines shown only with "
+                    .. "Shift always show.",
+                "Hints show each button as your controller draws it, and a module that needs a "
+                    .. "mouse or a held key says so in Settings.",
             } },
             { L.CHANGELOG_CHANGED, {
-                { L.TALENTPLANNER_TITLE, "a talent at its highest rank in the plan shows gold, "
-                    .. "learned or not, and its tooltip no longer offers to add a point." },
+                { L.TALENTPLANNER_TITLE, "a talent at its highest planned rank shows gold, "
+                    .. "learned or not." },
             } },
         },
     },
