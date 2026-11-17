@@ -90,6 +90,10 @@ local DATA = {
             startedBy = {}, finishedBy = {}, objectives = {}, zoneOrSort = -61,
             preQuestGroup = { 900001 }, preQuestSingle = { 900001, 0 }, parentQuest = 900001,
         },
+        [900003] = { -- QuestieDB's -1: scales to the player's level
+            name = "Scaling Errand", questLevel = -1, requiredLevel = 20,
+            startedBy = {}, finishedBy = {}, objectives = {},
+        },
     },
     Npc = {
         [800001] = {
@@ -319,6 +323,8 @@ same(Q.QuestsUnlockedBy("900001"), {}, "questiedb: links of a quest ID that isn'
 local unlocked = Q.QuestsUnlockedBy(900001)
 unlocked[1] = 1
 same(Q.QuestsUnlockedBy(900001), { 900002 }, "questiedb: links are our own copies")
+local scaling = Q.Quest(900003)
+eq(scaling.level == nil and scaling.requiredLevel == 20, true, "questiedb: a level of -1 (scales) is no level")
 eq(Q.Quest(1), nil, "questiedb: an unknown quest")
 eq(Q.Quest("900001"), nil, "questiedb: a quest ID that isn't a number")
 
@@ -355,7 +361,7 @@ eq(Q.UiMapID(20), 1581, "questiedb: an area's map")
 eq(Q.UiMapID(30), nil, "questiedb: an override of 0 is no map")
 eq(Q.UiMapID(99), nil, "questiedb: an unknown area")
 
-same(Q.Ids("Quest"), { 900001, 900002 }, "questiedb: every quest ID")
+same(Q.Ids("Quest"), { 900001, 900002, 900003 }, "questiedb: every quest ID")
 same(Q.Ids("Spell"), {}, "questiedb: an unknown kind")
 same(Q.IdsByName("Object", "Test Crate"), { 600001 }, "questiedb: IDs by name")
 same(Q.IdsByName("Object", "Nothing"), {}, "questiedb: no IDs by name")

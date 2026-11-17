@@ -1,6 +1,6 @@
 # QuestieDB
 
-How Forever++ reads the [QuestieDB](https://github.com/Questie/questiedb) addon, which has quest, NPC, item, and world object data for Forever (about 4,244 quests, 10,119 NPCs, 14,889 items, and 6,645 objects, as its own docs count them). Players install it themselves; Forever++ only calls its public API at run time, through `Lib/QuestieDB.lua` (`ns.QuestieDB`). Modules never touch it directly.
+How Forever++ reads the [QuestieDB](https://github.com/Questie/questiedb) addon, which has quest, NPC, item, and world object data for Forever (5,922 quests, 15,564 NPCs, 23,863 items, and 7,291 objects in 1.1.2, counted from its own `GetAllIds`). Players install it themselves; Forever++ only calls its public API at run time, through `Lib/QuestieDB.lua` (`ns.QuestieDB`). Modules never touch it directly.
 
 QuestieDB's licence is partly all rights reserved. **Never copy its data or code into this repository, and never commit any of its files.** Read it at run time only. A module that needs it is off by default and calls `ns.QuestieDB.Require(module)`, which gives it QuestieDB's notices in its settings.
 
@@ -103,6 +103,30 @@ Quest Pins (`Modules/Quests/QuestPins/`) is the first module to read it. What it
 2. With the Debug module on, run the Debug page's Self Test > Run (or `/fpp selftest`), then `/reload`, and read the `== questiedb` lines in `ForeverPlusPlusDB.selfTest` in the SavedVariables file: `questiedb.addon` (status, version, contract, mode), `questiedb.counts` (expect about the counts above), and `questiedb.quest` and `questiedb.npc` PASS, the NPC's map named and its x, y matching where it stands when you go there.
 3. `/run print(LibQuestieDB.Support.Get("ZoneDB") ~= nil, LibQuestieDB.Support.Get("QuestieClassicItemDrops") ~= nil)` should print `true true` (the zone and drop tables are there in baked mode too).
 4. `/run print(LibQuestieDB.Npc.IdsByName and #(LibQuestieDB.Npc.IdsByName(UnitName("target")) or {}))` with an NPC targeted should print 1 or more (names match the client's language).
+
+## Data quirks we checked
+
+Checked 2026-11-17 against QuestieDB 1.1.2 (baked, its Corrections applied, once as each side): every quest, NPC, item, and object read through `Lib/QuestieDB.lua` offline, with no errors. Two of its conventions we convert, and the rest are QuestieDB's to fix; none breaks a reader of ours.
+
+**Converted**
+
+- A negative ID in `preQuestGroup` (quests 4964 and 4975) still names a quest that must be done; we drop the sign. No other ID field has a negative.
+- A quest level of `-1` (7 quests, such as the warlock quests 1472, 1507, and 1716, Devourer of Souls) means the quest scales to the player's level; `level` is nil for it, so Quest Pins uses its required level.
+
+**Left as they are**
+
+| What | Count | For us |
+| --- | --- | --- |
+| Quests with no starter / no finisher | 216 / 252 | No pin, mostly removed or event quests |
+| Quests listed under an area with no map (dungeons such as the Sunken Temple, 1417) | 219 | No `uiMapID`; pins go where the giver stands |
+| Quests with a `zoneOrSort` of 0 | 285 | No `areaID` or `sortID` |
+| NPCs whose `zoneID` has no map (the Deeprun Tram, 2257) | 360 | No `uiMapID`; every NPC and object spawn point has a map |
+| Quests that need a higher level than their own (the level 1 mount exchanges need 60) | 31 | Faded as low level; the game calls them level 1 too |
+| Items dropped by an NPC or object it doesn't have | 184 | That source has no place |
+| A prerequisite it doesn't have (4604 lists 2955, one of three) | 1 | None |
+| A child whose `parentQuest` isn't the quest listing it (1119/1127, 1521/1462, 1799/4962, 1799/4963) | 4 | Only a chain walker sees it |
+| Quests with no name (7790, 8152, 97176, 99204) | 4 | Quest Pins writes "Quest 123" |
+| An NPC with no name (18232, 6110000), NPCs and objects that give quests but have no spawns | 2, 10 | No pin |
 
 ## Race masks that look wrong in its data
 

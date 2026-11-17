@@ -282,6 +282,13 @@ end
 -- A number, or nil for 0 and anything else: levels and masks that 0 means "not set" for.
 local number = id
 
+-- A level, or nil for none: QuestieDB's 0, and its -1 for a quest that scales to the player's
+-- level (7 quests in 1.1.2, such as the warlock quests Devourer of Souls), which isn't a level.
+local function level(value)
+    local n = number(value)
+    return n and n > 0 and n or nil
+end
+
 -- A string, or nil.
 local function str(value)
     return type(value) == "string" and value or nil
@@ -531,9 +538,9 @@ function QuestieDB.Quest(questID)
     return {
         id = questID,
         name = str(f.name),
-        level = number(f.questLevel),
-        requiredLevel = number(f.requiredLevel),
-        maxLevel = number(f.requiredMaxLevel),
+        level = level(f.questLevel),
+        requiredLevel = level(f.requiredLevel),
+        maxLevel = level(f.requiredMaxLevel),
         races = number(f.requiredRaces),
         classes = number(f.requiredClasses),
         areaID = zone > 0 and zone or nil,
