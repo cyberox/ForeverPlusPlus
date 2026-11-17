@@ -238,7 +238,10 @@ function internal.onTooltipRefreshed(tooltip)
         return
     end
     local owner = tooltip:GetOwner()
-    if owner and owner.nodeID and overlays[owner.nodeID] == owner and owner:IsMouseOver() then
+    -- Under the mouse, or under the controller's cursor, which is no mouse: without that the
+    -- first look at a talent kept only Blizzard's text (seen in game 2026-11-16).
+    if owner and owner.nodeID and overlays[owner.nodeID] == owner
+        and (owner:IsMouseOver() or watched == owner) then
         redrawing = true
         onNodeEnter(owner)
         redrawing = false
