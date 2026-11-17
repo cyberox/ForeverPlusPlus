@@ -11,6 +11,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Reputation Bar Text**: a new module, on by default, that shows your reputation on the reputation bar all the time, with the percent and your standing, and gives the bar a tooltip. Watch Faction You Gain With (off by default) moves the bar to the faction you last gained reputation with.
 - **XP Bar Text**, **Reputation Bar Text**: Solid Bar (off by default) takes the divider lines off the bar.
 - **Hide Zone Text**: a new module, off by default, that hides the zone and area names that appear at the top of the screen when you enter one, and the territory line under them.
+- **Auto Screenshot**: Turn Off HDR for the Shot (off by default) turns HDR off while a screenshot is taken and back on after, so it doesn't come out washed out.
 - **Tooltips**: Scale makes tooltips bigger or smaller, from 50% to 200%, and Hide Chat Tab Tooltips (off by default) shows no tooltip over a chat tab.
 - **Quest Tracker**: Collapse at Login (off by default) starts the tracker collapsed each time you log in or reload.
 - **Currency Bar**: Show on Mouseover (off by default) hides the box until the mouse is over it.

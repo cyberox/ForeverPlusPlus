@@ -32,8 +32,11 @@ local module = ns.NewModule("AutoScreenshot", L.AUTOSCREENSHOT_DESC, {
     hideUI = false,
     playedTime = false,
     hideOwn = false,
+    noHDR = false,
     chat = true,
+    saved = {}, -- the player's HDR setting while it's off for a shot (ns.CVars)
 })
+ns.CVars.Track(module)
 module.title = L.AUTOSCREENSHOT_TITLE
 module.category = "automation"
 module.quickToggle = "other"
@@ -46,6 +49,8 @@ module.options = {
         section = GENERAL },
     { key = "hideOwn", name = L.AUTOSCREENSHOT_HIDE_OWN, description = L.AUTOSCREENSHOT_HIDE_OWN_DESC,
         section = GENERAL, requires = "hideUI", added = "0.8.0" },
+    { key = "noHDR", name = L.AUTOSCREENSHOT_NO_HDR, description = L.AUTOSCREENSHOT_NO_HDR_DESC,
+        section = GENERAL, added = "1.7.1" },
     ns.ChatOption(L.AUTOSCREENSHOT_CHAT_DESC, GENERAL),
     { key = "levelUp", name = L.AUTOSCREENSHOT_LEVEL_UP, description = L.AUTOSCREENSHOT_LEVEL_UP_DESC,
         section = EVENTS },
@@ -85,6 +90,11 @@ module.options = {
 local DELAY = 1 -- seconds after the event, so its toast is on screen
 local HIDE_WAIT = 0.1 -- seconds between hiding the interface and the shot, so it's drawn without
 local UI_BACK = 3 -- seconds before the interface comes back if the game never reports the shot
+-- HDR: Forever has no setting for it in its menus; the CVar turns it on and off live (seen in game
+-- 2026-11-16: "/console HDROutput 1" changed the picture at once). A shot taken with it on comes
+-- out washed out, so it's off for the shot.
+local HDR = "HDROutput"
+local HDR_WAIT = 0.5 -- seconds between turning HDR off and the shot, so it's drawn without
 -- Forever's PvP rank is the renown level of this faction (Blizzard's Camelot PVPRankFrame.lua).
 local PVP_RANK_FACTION = 2800
 
@@ -106,6 +116,7 @@ local function finish()
     fallback:Cancel()
     busy = false
     showUI()
+    ns.CVars.Restore(module.db.saved, HDR) -- back on, if this shot turned it off
 end
 
 function onShot(event)
@@ -144,14 +155,24 @@ local function take(why)
     fallback:Start(UI_BACK, finish)
     -- Hiding the interface in combat can be blocked, and so can showing it again, so only out of
     -- combat. If the player hid it themselves (Alt-Z), it's already out of the way.
+    local wait
     if module.db.hideUI and not InCombatLockdown() and UIParent:IsShown() then
         hidden = true
         module:On("PLAYER_REGEN_DISABLED", showUI)
         -- Faded, not hidden: Hide and Show would run every shown window's OnHide and OnShow from
         -- our code. The shot looks the same.
         UIParent:SetAlpha(0)
-        -- Not once the module has been turned off meanwhile (its OnDisable shows the UI again).
-        C_Timer.After(HIDE_WAIT, function()
+        wait = HIDE_WAIT
+    end
+    -- HDR off for the shot, and back on when it's over (finish). Not in combat: CVars waits
+    -- combat out, and by then the shot would be long taken.
+    if module.db.noHDR and not InCombatLockdown() and ns.CVars.IsOn(HDR) then
+        ns.CVars.Set(module.db.saved, HDR, "0")
+        wait = HDR_WAIT
+    end
+    if wait then
+        -- Not once the module has been turned off meanwhile (its OnDisable puts both back).
+        C_Timer.After(wait, function()
             if module.enabled then
                 Screenshot()
             end

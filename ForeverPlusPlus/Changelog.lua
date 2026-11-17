@@ -27,6 +27,9 @@ ns.changelog = {
                 { L.HIDEZONETEXT_TITLE, "a new module, off by default, that hides the zone and area "
                     .. "names that appear at the top of the screen when you enter one, and the "
                     .. "territory line under them." },
+                { L.AUTOSCREENSHOT_TITLE, "Turn Off HDR for the Shot (off by default) turns HDR off "
+                    .. "while a screenshot is taken and back on after, so it doesn't come out "
+                    .. "washed out." },
                 { L.TOOLTIPS_TITLE, "Scale makes tooltips bigger or smaller, from 50% to 200%, and "
                     .. "Hide Chat Tab Tooltips (off by default) shows no tooltip over a chat tab." },
                 { L.QUESTTRACKER_TITLE, "Collapse at Login (off by default) starts the tracker "
