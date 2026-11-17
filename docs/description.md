@@ -86,6 +86,7 @@ Everything is on by default except where noted. Each module can be turned off, a
 - **Combat Alert**: Floats "Entering Combat" and "Leaving Combat" up the screen, with an optional sound. Placed in Edit Mode. Off by default.
 - **Currency Bar**: Shows your gold, and optionally currencies, in a small box, with this session's gains and gold per hour in its tooltip. Placed in Edit Mode. Off by default.
 - **Hide Bag and Menu Bars**: Hides the bag bar and the micro menu until the mouse is over them, or always. Their keys still work. Off by default.
+- **Hide Zone Text**: Hides the zone and area names that appear at the top of the screen when you enter one. Off by default.
 - **Hide Error Messages**: Keeps the red errors that repeat while you fight (Out of range, Not enough energy) off the screen, along with their sounds. Off by default.
 - **Hide Stance Bar**: Hides the stance bar. Its keys still work, and Show on Mouseover brings it back under the mouse. Off by default.
 - **Loot Rolls**: Place the Need, Greed, and Pass rolls in Edit Mode, with their direction and spacing. Each roll shows the seconds left and what your group picked. Off by default.

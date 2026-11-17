@@ -361,6 +361,7 @@ What each module is, in the code's terms (what it does for players is in `README
 - **Movable Windows**: drag Blizzard's windows with a key held, and resize one with a key and the mouse wheel (a frame of our own takes the wheel while the key is held, so no Blizzard frame gets a wheel handler), remembered always, for the session, or until closed.
 - **Hide Stance Bar**: the stance bar faded out, its buttons not taking the mouse.
 - **Hide Bag and Menu Bars**: `HideMenuBars`: the bag bar and micro menu faded out until the mouse is over them, their buttons not taking the mouse while Show on Mouseover is off.
+- **Hide Zone Text**: `HideZoneText`: the zone, area, and territory font strings of Blizzard's zone text faded out, its two fading frames left to run.
 - **Hide Error Messages**: `HideErrors`: the error frame's UI_ERROR_MESSAGE heard in its place, and only the errors not hidden handed to it.
 - **Loot Rolls**: the group loot rolls placed in Edit Mode, with their grow direction, spacing, and preview as Edit Mode settings, and the seconds left and roll counts on each.
 - **Movable Framerate**

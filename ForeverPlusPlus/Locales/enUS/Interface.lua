@@ -88,6 +88,18 @@ L.HIDESTANCEBAR_MOUSEOVER_DESC = "Show the stance bar while the mouse is over it
     .. "click it as usual."
 
 -- HideMenuBars
+-- HideZoneText
+L.HIDEZONETEXT_TITLE = "Hide Zone Text"
+L.HIDEZONETEXT_DESC = "Hide the names that appear at the top of the screen when you enter a zone or "
+    .. "a place in it. The zone's name is still on the minimap."
+L.HIDEZONETEXT_ZONE = "Zone Name"
+L.HIDEZONETEXT_ZONE_DESC = "Hide the zone's name, such as Elwynn Forest."
+L.HIDEZONETEXT_SUBZONE = "Area Name"
+L.HIDEZONETEXT_SUBZONE_DESC = "Hide the name of the place in the zone, such as Goldshire."
+L.HIDEZONETEXT_PVP = "Territory Line"
+L.HIDEZONETEXT_PVP_DESC = "Hide the line under the name that says whose territory it is, such as "
+    .. "Contested Territory or Sanctuary."
+
 L.HIDEMENUBARS_TITLE = "Hide Bag and Menu Bars"
 L.HIDEMENUBARS_DESC = "Hide the bag bar and the micro menu until the mouse is over them. Their keys "
     .. "in Key Bindings still work, and both show in Edit Mode."

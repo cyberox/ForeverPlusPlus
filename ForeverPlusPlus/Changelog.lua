@@ -24,6 +24,9 @@ ns.changelog = {
                     .. "the bar to the faction you last gained reputation with." },
                 { L.XPBARTEXT_TITLE, "Solid Bar (off by default) takes the divider lines off the "
                     .. "bar. Reputation Bar Text has it too." },
+                { L.HIDEZONETEXT_TITLE, "a new module, off by default, that hides the zone and area "
+                    .. "names that appear at the top of the screen when you enter one, and the "
+                    .. "territory line under them." },
                 { L.TOOLTIPS_TITLE, "Scale makes tooltips bigger or smaller, from 50% to 200%, and "
                     .. "Hide Chat Tab Tooltips (off by default) shows no tooltip over a chat tab." },
                 { L.QUESTTRACKER_TITLE, "Collapse at Login (off by default) starts the tracker "
