@@ -140,6 +140,7 @@ end
 -- controller's state, and a press takes a point out.
 
 local watched -- the talent of ours the cursor is on
+local relaying = false -- drawOverlays is hiding our buttons to lay them out again
 
 local function yDown()
     return ns.Keys.PadDown("PAD4") -- the top face button (GAMEPAD_FACE_TOP)
@@ -271,7 +272,11 @@ local function makeOverlay(id)
     button:SetScript("OnClick", onNodeClick)
     button:SetScript("OnEnter", onNodeEnter)
     button:SetScript("OnLeave", onNodeLeave)
-    button:SetScript("OnHide", unwatchY)
+    button:SetScript("OnHide", function(self)
+        if not relaying then
+            unwatchY(self)
+        end
+    end)
     overlays[id] = button
     return button
 end
@@ -286,10 +291,17 @@ local function sizeLike(ours, theirs, fallback)
 end
 
 function internal.drawOverlays(plan)
+    -- Hidden and shown again below: not a reason to stop watching the controller's Y on the one
+    -- its cursor is on (a redraw of anyone's doing, such as a level up, would leave Y dead).
+    relaying = true
     for _, overlay in pairs(overlays) do
         overlay:Hide()
     end
+    relaying = false
     if not internal.planning then
+        if watched then
+            unwatchY(watched)
+        end
         return
     end
     local tree = internal.tree
@@ -335,6 +347,10 @@ function internal.drawOverlays(plan)
             end
             overlay:Show()
         end
+    end
+    -- The one being watched didn't come back (its talent left the tree): nothing to watch.
+    if watched and not watched:IsShown() then
+        unwatchY(watched)
     end
 end
 

@@ -400,6 +400,8 @@ local function syncTitles()
 end
 
 function module:OnEnable()
+    -- A reload or logout between a shot's HDR going off and coming back left it off.
+    ns.CVars.Restore(self.db.saved, HDR)
     syncTitles()
     bindKeys()
     self:On("UPDATE_BINDINGS", bindKeys)

@@ -15,6 +15,7 @@
 local _, ns = ...
 
 local type, pcall, rawget, ipairs, pairs = type, pcall, rawget, ipairs, pairs
+local GetTime = GetTime
 local min, CreateFrame, hooksecurefunc = math.min, CreateFrame, hooksecurefunc
 
 local L = ns.L
@@ -208,8 +209,15 @@ local function build(map)
     view.next = textButton(L.DUNGEONMAPS_NEXT, "BOTTOMRIGHT", -24, turn(1))
 
     -- Another map picked (the zone dropdown, the player zoning): the dungeon gives way to it.
+    -- Not a change in the frame the dungeon opened in: the controller's A opens it (MapPins) and
+    -- then goes into the zone under its cursor, when there is one there, in the same press.
     if map.OnMapChanged then
-        hooksecurefunc(map, "OnMapChanged", close)
+        hooksecurefunc(map, "OnMapChanged", function()
+            if shown and shown.at == GetTime() then
+                return
+            end
+            close()
+        end)
     end
 
     -- With the controller interface on there's no right click to go back and no cursor on the
@@ -271,7 +279,7 @@ local function show(floors)
     if not view then
         build(map)
     end
-    shown = { floors = floors, floor = 1 }
+    shown = { floors = floors, floor = 1, at = GetTime() } -- GetTime is the same all frame
     draw()
     view:Show()
     fadeAreaLabel(true)
