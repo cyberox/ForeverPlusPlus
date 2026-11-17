@@ -50,6 +50,19 @@ local function fade(region)
     region:SetAlpha(0)
 end
 
+-- With the controller interface on, a faded talent button of Blizzard's isn't enough: its cursor
+-- lands on any visible button, see-through or not, and with ours right over Blizzard's it took
+-- theirs for some talents, where A is Blizzard's Add Point and not our click (in game
+-- 2026-11-16). So while planning theirs are hidden, which is all that takes them off the
+-- cursor's list (SmartNavigationMixin:IsButtonValid, build 70938). Talent buttons aren't
+-- protected, and ours keep their place: a hidden frame still has its rectangle.
+local hidden = setmetatable({}, { __mode = "k" }) -- Blizzard talent buttons we hid -> true
+
+local function hide(button)
+    hidden[button] = true
+    button:Hide()
+end
+
 -- Puts back the alpha of everything we faded. A talent button Blizzard keeps invisible (alpha 0
 -- is how it hides nodes) stays that way.
 local function unfadeAll()
@@ -58,6 +71,18 @@ local function unfadeAll()
         region:SetAlpha(hiddenNode and 0 or 1)
     end
     faded = setmetatable({}, { __mode = "k" })
+    if next(hidden) then
+        -- Only the buttons the tree still uses: one it has since put away stays hidden.
+        local frame = internal.frame
+        if frame and frame.EnumerateAllTalentButtons then
+            for button in frame:EnumerateAllTalentButtons() do
+                if hidden[button] then
+                    button:Show()
+                end
+            end
+        end
+        hidden = setmetatable({}, { __mode = "k" })
+    end
 end
 
 -- Takes the plan off the tree: our buttons and counts go, Blizzard's come back.
@@ -106,12 +131,69 @@ local function onNodeClick(self, mouse)
     end
 end
 
+-- The controller's Y ------------------------------------------------------------------------------
+-- With the controller interface on, A reaches a talent of ours as a left click and nothing
+-- reaches it as a right one. The footer's Remove Point on Y asks Blizzard's own talent buttons,
+-- and ours answering as those do tainted the controller's bindings ("action blocked" on closing
+-- the window); a held trigger isn't reported inside the window (both in game, 2026-11-16). So
+-- while the cursor is on a talent of ours it watches the Y button itself, a plain read of the
+-- controller's state, and a press takes a point out.
+
+local PAD_Y = "PAD4" -- the top face button (GAMEPAD_FACE_TOP, Blizzard's GamepadConstants.lua)
+local padY -- its place in the state's buttons, false when it can't be found
+local watched -- the talent of ours the cursor is on
+
+local function yDown()
+    local pad = C_GamePad
+    if not (pad and pad.GetDeviceMappedState and pad.ButtonBindingToIndex) then
+        return false
+    end
+    if padY == nil then
+        local index = pad.ButtonBindingToIndex(PAD_Y)
+        padY = index and index + 1 or false -- that index counts from 0, the table from 1
+    end
+    local state = padY and pad.GetDeviceMappedState()
+    return state and state.buttons and state.buttons[padY] and true or false
+end
+
+local function unwatchY(self)
+    self:SetScript("OnUpdate", nil)
+    if watched == self then
+        watched = nil
+    end
+end
+
+local function watchY(self)
+    if watched ~= self then
+        unwatchY(self)
+        return
+    end
+    local down = yDown()
+    if down and not self.yWas then
+        self.yWas = true
+        onNodeClick(self, "RightButton")
+        return
+    end
+    self.yWas = down
+end
+
+local function onNodeLeave(self)
+    unwatchY(self)
+    internal.onLeave()
+end
+
 local function onNodeEnter(self)
     local tree = internal.tree
     local plan = internal.getPlan(true)
     local node = plan and tree and tree.nodes[self.nodeID]
     if not node then
         return
+    end
+    -- Also called to redraw the tooltip after a click, when the watch is already on.
+    if watched ~= self and ns.Menus.GamepadUI() then
+        watched = self
+        self.yWas = yDown() -- held as the cursor arrives isn't a press
+        self:SetScript("OnUpdate", watchY)
     end
     internal.describe(node)
     local first = internal.firstLevel()
@@ -147,7 +229,13 @@ local function onNodeEnter(self)
     end
     GameTooltip:AddLine(" ")
     local green = GREEN_FONT_COLOR -- a click hint, green as Blizzard's instruction lines are
-    GameTooltip:AddLine(L.TALENTPLANNER_CLICK, green.r, green.g, green.b, true)
+    local hint
+    if ns.Menus.GamepadUI() then
+        hint = count < node.max and L.TALENTPLANNER_CLICK_PAD or L.TALENTPLANNER_CLICK_PAD_MAXED
+    else
+        hint = count < node.max and L.TALENTPLANNER_CLICK or L.TALENTPLANNER_CLICK_MAXED
+    end
+    GameTooltip:AddLine(hint, green.r, green.g, green.b, true)
     GameTooltip:Show()
 end
 
@@ -187,7 +275,8 @@ local function makeOverlay(id)
     button.Text:SetPoint("BOTTOM", 11, 4)
     button:SetScript("OnClick", onNodeClick)
     button:SetScript("OnEnter", onNodeEnter)
-    button:SetScript("OnLeave", internal.onLeave)
+    button:SetScript("OnLeave", onNodeLeave)
+    button:SetScript("OnHide", unwatchY)
     overlays[id] = button
     return button
 end
@@ -217,6 +306,9 @@ function internal.drawOverlays(plan)
         if node then
             internal.describe(node)
             fade(button)
+            if ns.Menus.GamepadUI() then
+                hide(button)
+            end
             local overlay = overlays[node.id] or makeOverlay(node.id)
             overlay:ClearAllPoints()
             overlay:SetAllPoints(button)
@@ -229,9 +321,9 @@ function internal.drawOverlays(plan)
             local count = counts[node.id] or 0
             local open = not full and Plan.CanTake(tree, counts, tabs, node.id)
             local atlas, color
-            -- Gold only once it's learned: a talent maxed in the plan alone stays green, so the
-            -- tree shows what's still to learn.
-            if count >= node.max and (tree.ranks[node.id] or 0) >= node.max then
+            -- Gold at its highest rank in the plan, learned or not: green there read as room for
+            -- another point.
+            if count >= node.max then
                 atlas, color = ATLAS_MAXED, YELLOW_FONT_COLOR
             elseif count > 0 or open then
                 atlas, color = ATLAS_OPEN, GREEN_FONT_COLOR

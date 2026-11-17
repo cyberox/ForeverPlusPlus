@@ -36,7 +36,13 @@ ns.changelog = {
                     .. "Tooltips' Scale covers its buff tooltip. World Map's Coordinates and Zone "
                     .. "Info follow its map cursor, and a module that needs a mouse or a held key "
                     .. "says so in Settings while it's on. A held trigger counts as a module's "
-                    .. "Skip Key, and tooltip lines shown only with Shift always show.",
+                    .. "Skip Key, and tooltip lines shown only with Shift always show. A clicks "
+                    .. "the map icon under the map cursor, and in Talent Planner A adds a point "
+                    .. "and Y removes one.",
+            } },
+            { L.CHANGELOG_CHANGED, {
+                { L.TALENTPLANNER_TITLE, "a talent at its highest rank in the plan shows gold, "
+                    .. "learned or not, and its tooltip no longer offers to add a point." },
             } },
         },
     },

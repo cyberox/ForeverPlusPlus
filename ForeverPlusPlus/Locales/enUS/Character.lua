@@ -75,7 +75,11 @@ L.TALENTPLANNER_DONE = "Done Planning"
 L.TALENTPLANNER_PLAN_DESC = "Place talents without learning them. Each click adds a point to the "
     .. "plan, in order, so you can follow it as you level. The plan is saved for this character."
 L.TALENTPLANNER_CLICK = "<Click to add a point>\n<Right click to remove one>\n<Hold Shift for every rank>"
-L.TALENTPLANNER_RANK = "Rank %d/%d" -- planned ranks, most ranks
+L.TALENTPLANNER_CLICK_MAXED = "<Right click to remove one>\n<Hold Shift for every rank>" -- at its highest rank
+-- With the controller interface on, where there are no clicks
+L.TALENTPLANNER_CLICK_PAD = "<A to add a point>\n<Y to remove one>"
+L.TALENTPLANNER_CLICK_PAD_MAXED = "<Y to remove one>" -- at its highest rank
+L.TALENTPLANNER_RANK ="Rank %d/%d" -- planned ranks, most ranks
 L.TALENTPLANNER_NEXT_RANK = "Next Rank:"
 L.TALENTPLANNER_PLANNED = "Planned at Level:"
 L.TALENTPLANNER_POINTS = "Points Planned: %d/%d" -- planned, points at the plan's level
