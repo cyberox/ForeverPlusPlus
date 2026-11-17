@@ -45,6 +45,38 @@ function Keys.PadDown(button)
     return state and state.buttons and state.buttons[index] and true or false
 end
 
+-- What a button is called where the game can't say, as on an Xbox controller.
+local PAD_NAMES = { PAD1 = "A", PAD2 = "B", PAD3 = "X", PAD4 = "Y", PADRSTICK = "R3" }
+
+---A controller button as the player's own controller shows it: the game's small icon for it (a
+---letter, a PlayStation shape, a Steam glyph), which Blizzard's own prompts use, for a hint or a
+---label of ours. Never write "A" or "Y" in text: they're other buttons on another controller.
+---@param button string its name, as `Keys.PadDown` takes it ("PAD1" is the bottom face button)
+---@return string label
+function Keys.PadLabel(button)
+    local getText = _G.GetBindingText
+    local text = getText and getText(button, "KEY_", true) -- abbreviated: the small icon
+    if type(text) == "string" and text ~= "" and text ~= button then
+        return text
+    end
+    return PAD_NAMES[button] or button
+end
+
+---A click hint for the controller interface: with it on, the click named at its start gives way
+---to the button that does it there, as the player's controller shows it ("<Click to see its map>"
+---becomes "<(the button) to see its map>"). Up to the hint's first " to ", so English, and the
+---hint comes back as written where that doesn't fit or the controller interface is off.
+---@param text string the hint, as written for the mouse
+---@param button? string the button that does it, the bottom face button ("PAD1") by default
+---@return string hint
+function Keys.PadHint(text, button)
+    if not ns.Menus.GamepadUI() then
+        return text
+    end
+    local rest = text:match("^<.- to (.+)$")
+    return rest and ("<" .. Keys.PadLabel(button or "PAD1") .. " to " .. rest) or text
+end
+
 ---Whether a trigger is held with the controller interface on. Blizzard's own modifiers (which swap
 ---its action bars or start targeting while held: GamepadMode.IsHUDBindingModifierDown and
 ---IsTargetingModifierDown, HoldBindings.lua, build 70938) say so only out in the world: with the
@@ -90,6 +122,12 @@ end
 ---@param changed? string the version it last changed in, for its NEW tag
 ---@return table option
 function Keys.Option(key, name, description, section, changed)
+    -- With the controller interface on (which takes a reload to change) a trigger is the key,
+    -- whichever is picked: say so, with the triggers as the player's controller shows them.
+    if ns.Menus and ns.Menus.GamepadUI() then -- Menus isn't there in every offline spec
+        description = description .. " " .. L.KEY_PAD_NOTE:format(Keys.PadLabel("PADLTRIGGER"),
+            Keys.PadLabel("PADRTRIGGER"))
+    end
     return { key = key, name = name, description = description, choices = Keys.CHOICES,
         section = section, changed = changed }
 end

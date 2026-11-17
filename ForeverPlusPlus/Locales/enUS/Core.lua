@@ -47,6 +47,9 @@ L.KEY_SHIFT = "Shift"
 L.KEY_CTRL = "Ctrl"
 L.KEY_ALT = "Alt"
 L.KEY_NONE = "None"
+-- Added to a key dropdown's description with the controller interface on; each %s is a trigger
+-- as the player's controller shows it
+L.KEY_PAD_NOTE = "With the controller interface on, hold %s or %s in its place."
 L.SKIP_KEY = "Skip Key" -- the option of every module that a held key skips
 
 -- Lib/MapPins.lua: icons on the world map.

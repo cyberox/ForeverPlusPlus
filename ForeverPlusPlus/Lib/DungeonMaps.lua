@@ -112,12 +112,35 @@ local function draw()
     for i, tile in ipairs(view.tiles) do
         tile:SetTexture(ART_PATH .. floors[floor] .. i)
     end
-    view.previous:SetShown(#floors > 1)
+    view.previous:SetShown(#floors > 1 and not view.pad) -- the controller only goes forward
     view.next:SetShown(#floors > 1)
+end
+
+-- The map's own name for the place under the cursor ("Kodo Graveyard"), at its top. It's in a
+-- strata above ours and kept showing over a dungeon (seen in game 2026-11-16), so it's faded out
+-- while one is up. Found once: the label of the map's area label provider
+-- (AreaLabelDataProviderMixin, build 70938).
+local areaLabel
+
+local function fadeAreaLabel(hide)
+    if areaLabel == nil then
+        areaLabel = false
+        local map = ns.WorldMap.Get()
+        for provider in pairs(map and map.dataProviders or {}) do
+            if type(provider) == "table" and provider.OnSetAreaLabel and provider.Label then
+                areaLabel = provider.Label
+                break
+            end
+        end
+    end
+    if areaLabel then
+        areaLabel:SetAlpha(hide and 0 or 1)
+    end
 end
 
 local function close()
     shown = nil
+    fadeAreaLabel(false)
     if view then
         view:Hide()
     end
@@ -188,6 +211,55 @@ local function build(map)
     if map.OnMapChanged then
         hooksecurefunc(map, "OnMapChanged", close)
     end
+
+    -- With the controller interface on there's no right click to go back and no cursor on the
+    -- words at the bottom, so its own buttons do both (seen in game 2026-11-16: B closed the whole
+    -- map with a dungeon up).
+    if ns.Menus.GamepadUI() then
+        -- B: the controller asks the window it's closing for a close handler first, behind a
+        -- taint barrier made for one that isn't Blizzard's (SmartNavigationMixin:AttemptClose,
+        -- build 70938), and stops there when it says it handled it. The one field we put on a
+        -- Blizzard frame, since nothing else comes before the map closes; the map has none of
+        -- its own, and one it gains later is left alone.
+        if map.SmartNavigationCloseHandler == nil then
+            map.SmartNavigationCloseHandler = function()
+                if shown then
+                    close()
+                    return true
+                end
+                return false
+            end
+        end
+        -- The right stick pressed: the next floor, round to the first. It's the one button the
+        -- map leaves alone, read from the controller itself (Keys.PadDown), a press being down
+        -- now and not at the last look. The map's own buttons can't be had: under the dungeon
+        -- they still work the map (A goes into the zone under the cursor, X up a map, Y opens
+        -- More), and putting the map back afterwards (WorldMap.Show) left the map tainted, so
+        -- closing it was blocked (all seen in game 2026-11-16). So there's no button for the
+        -- floor before, and a dungeon has few floors to go round.
+        local wasDown = true
+        view:SetScript("OnShow", function()
+            wasDown = true -- held as the dungeon opens isn't a press
+        end)
+        view:SetScript("OnUpdate", function()
+            local down = ns.Keys.PadDown("PADRSTICK")
+            if down and not wasDown and shown and #shown.floors > 1 then
+                shown.floor = shown.floor % #shown.floors + 1
+                draw()
+            end
+            wasDown = down
+        end)
+        -- The word shows the button, since the map's cursor can't press it (draw hides Previous).
+        view.next:SetText(L.DUNGEONMAPS_NEXT_PAD:format(ns.Keys.PadLabel("PADRSTICK")))
+        view.next:SetWidth(view.next:GetFontString():GetStringWidth() + 16)
+        view.pad = true
+    end
+end
+
+---Whether a dungeon's map is up over the world map, for what shouldn't act on the map under it.
+---@return boolean
+function DungeonMaps.Shown()
+    return shown ~= nil
 end
 
 -- Shows an instance's art over the world map, which must be open. Returns whether it did.
@@ -202,6 +274,7 @@ local function show(floors)
     shown = { floors = floors, floor = 1 }
     draw()
     view:Show()
+    fadeAreaLabel(true)
     layout()
     return true
 end

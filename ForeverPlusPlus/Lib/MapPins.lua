@@ -123,28 +123,26 @@ local IsShiftKeyDown, IsControlKeyDown = IsShiftKeyDown, IsControlKeyDown
 -- the icon's `info` takes (see Clicks), for every layer alike: the Ctrl+click line is ours, and a
 -- module gives only the words for its own actions (`clickHint`, `shiftHint`).
 --
--- With the controller interface on there are no clicks: A is the plain click and Y the Shift one
--- (see The controller's cursor), so a hint names the button in the click's place, by its first
--- " to " ("<Shift right click to forget this node>" becomes "<Y to forget this node>"; English,
--- and left as written where that doesn't fit). The map pin there is Blizzard's own, on the left
--- stick, in its footer.
-local function padHint(text, button)
-    local rest = text:match("^<.- to (.+)$")
-    return rest and ("<" .. button .. " to " .. rest) or text
-end
+-- With the controller interface on there are no clicks: A is the plain click and the right
+-- stick pressed the Shift one (see The controller's cursor), so a hint shows the button, as the
+-- player's controller draws it, in the click's place, by its first " to " ("<Shift right click
+-- to forget this node>" becomes "<(the button) to forget this node>"; English, and left as
+-- written where that doesn't fit). The map pin there is Blizzard's own, on the left stick, in
+-- its footer.
+local PAD_SECOND = "PADRSTICK" -- the right stick, pressed
 
 local function hints(info)
     local Note = ns.MapTooltip.Hint
     local pad = ns.Menus.GamepadUI()
     local list = {}
     if info.click and info.clickHint then
-        list[#list + 1] = Note(pad and padHint(info.clickHint, "A") or info.clickHint)
+        list[#list + 1] = Note(ns.Keys.PadHint(info.clickHint))
     end
     if (info.waypoint or info.ctrlClick) and not pad then
         list[#list + 1] = Note(ns.L.MAPPINS_HINT_WAYPOINT)
     end
     if info.shiftClick and info.shiftHint then
-        list[#list + 1] = Note(pad and padHint(info.shiftHint, "Y") or info.shiftHint)
+        list[#list + 1] = Note(ns.Keys.PadHint(info.shiftHint, PAD_SECOND))
     end
     return list
 end
@@ -521,20 +519,22 @@ local function padLeave()
     end
 end
 
-local padYWas = false -- Y was down at the last look
+local padSecondWas = false -- the right stick was pressed at the last look
 
 local function padLook(_, elapsed)
-    -- Y, looked at every frame so a short press isn't missed: the icon under the cursor gets its
-    -- Shift click (a module's own action, such as forgetting a node), which no button of the
-    -- controller's reaches. Read from the controller itself (Keys.PadDown).
-    local y = ns.Keys.PadDown("PAD4")
-    if y and not padYWas then
+    -- The right stick pressed, looked at every frame so a short press isn't missed: the icon
+    -- under the cursor gets its Shift click (a module's own action, such as forgetting a node),
+    -- which no button of the controller's reaches. Read from the controller itself
+    -- (Keys.PadDown). It's the one button the map leaves free: Y, tried first, is the map's own
+    -- More (seen in game 2026-11-16), and the left stick's press is its map pin.
+    local second = ns.Keys.PadDown(PAD_SECOND)
+    if second and not padSecondWas then
         local info = padPin and padPin.info
         if info and info.shiftClick then
             info.shiftClick(padPin, "RightButton")
         end
     end
-    padYWas = y
+    padSecondWas = second
     padElapsed = padElapsed + elapsed
     if padElapsed < PAD_INTERVAL then
         return
@@ -546,6 +546,10 @@ local function padLook(_, elapsed)
     -- the quest list beside it.
     local map = padWatcher:GetParent()
     local focused = not map.IsCanvasGamepadFocus or map:IsCanvasGamepadFocus()
+    -- Nor under a dungeon's map, which covers the icons as it does for the mouse.
+    if focused and ns.DungeonMaps and ns.DungeonMaps.Shown() then
+        focused = false
+    end
     if focused and cursor and cursor:IsShown() then
         cx, cy = screenCenter(cursor)
     end

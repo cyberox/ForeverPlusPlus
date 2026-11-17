@@ -182,7 +182,7 @@ local function buildCommands(frame, pageWidth)
 
     local hint = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     hint:SetPoint("BOTTOMLEFT", RIGHT, 10)
-    hint:SetText(L.HOME_COMMANDS_HINT)
+    hint:SetText(ns.Keys.PadHint(L.HOME_COMMANDS_HINT))
     hint:SetTextColor(GREEN_FONT_COLOR:GetRGB())
     addLine(frame, "BOTTOMLEFT", RIGHT, 28, width)
 

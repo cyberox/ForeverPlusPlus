@@ -77,8 +77,9 @@ L.TALENTPLANNER_PLAN_DESC = "Place talents without learning them. Each click add
 L.TALENTPLANNER_CLICK = "<Click to add a point>\n<Right click to remove one>\n<Hold Shift for every rank>"
 L.TALENTPLANNER_CLICK_MAXED = "<Right click to remove one>\n<Hold Shift for every rank>" -- at its highest rank
 -- With the controller interface on, where there are no clicks
-L.TALENTPLANNER_CLICK_PAD = "<A to add a point>\n<Y to remove one>"
-L.TALENTPLANNER_CLICK_PAD_MAXED = "<Y to remove one>" -- at its highest rank
+-- Each %s is a button as the player's controller shows it (Keys.PadLabel): A, then Y
+L.TALENTPLANNER_CLICK_PAD = "<%s to add a point>\n<%s to remove one>"
+L.TALENTPLANNER_CLICK_PAD_MAXED = "<%s to remove one>" -- at its highest rank
 L.TALENTPLANNER_RANK ="Rank %d/%d" -- planned ranks, most ranks
 L.TALENTPLANNER_NEXT_RANK = "Next Rank:"
 L.TALENTPLANNER_PLANNED = "Planned at Level:"

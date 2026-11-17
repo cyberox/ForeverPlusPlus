@@ -220,7 +220,13 @@ local function onNodeEnter(self)
     local green = GREEN_FONT_COLOR -- a click hint, green as Blizzard's instruction lines are
     local hint
     if ns.Menus.GamepadUI() then
-        hint = count < node.max and L.TALENTPLANNER_CLICK_PAD or L.TALENTPLANNER_CLICK_PAD_MAXED
+        -- The buttons as the player's own controller shows them.
+        local add, remove = ns.Keys.PadLabel("PAD1"), ns.Keys.PadLabel("PAD4")
+        if count < node.max then
+            hint = format(L.TALENTPLANNER_CLICK_PAD, add, remove)
+        else
+            hint = format(L.TALENTPLANNER_CLICK_PAD_MAXED, remove)
+        end
     else
         hint = count < node.max and L.TALENTPLANNER_CLICK or L.TALENTPLANNER_CLICK_MAXED
     end

@@ -58,6 +58,13 @@ eq(Keys.IsDown("shift"), true, "keys: a trigger read from the controller is the 
 pad.on = false
 eq(Keys.PadDown("PADRTRIGGER"), false, "keys: nothing is read without the controller interface")
 pad.on, pad.state = true, nil
+-- A button is named as the game names it for the player's controller.
+eq(Keys.PadLabel("PAD4"), "Y", "keys: a button's Xbox letter where the game says nothing")
+GetBindingText = function(button) return button == "PAD4" and "<triangle>" or button end
+eq(Keys.PadLabel("PAD4"), "<triangle>", "keys: the game's own label for the button")
+eq(Keys.PadLabel("PAD1"), "A", "keys: the button's name handed back isn't a label")
+eq(Keys.PadLabel("PADODD"), "PADODD", "keys: an unknown button is its name")
+GetBindingText = nil
 eq(Keys.Detail(), true, "keys: Shift's details always show with the controller interface on")
 pad.on = false
 held.shift = true

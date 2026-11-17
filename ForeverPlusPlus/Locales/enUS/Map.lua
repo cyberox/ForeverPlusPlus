@@ -53,6 +53,8 @@ L.POI_DUNGEON_MAPS_FIRST_GAME = "The Game's Art"
 L.POI_DUNGEON_MAPS_FIRST_JOURNAL = "DungeonJournal"
 L.DUNGEONMAPS_PREVIOUS = "Previous" -- the floor before, on a dungeon's map
 L.DUNGEONMAPS_NEXT = "Next"
+-- With the controller interface on; %s is the button as the player's controller shows it
+L.DUNGEONMAPS_NEXT_PAD = "Next %s"
 L.DUNGEONMAPS_WING = "%s: %s" -- an instance and one of its wings, "Dire Maul: East"
 L.DUNGEONMAPS_DM_EAST = "East"
 L.DUNGEONMAPS_DM_WEST = "West"
