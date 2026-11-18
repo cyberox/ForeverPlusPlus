@@ -36,6 +36,7 @@ local Quests = ns.Quests
 local module = ns.NewModule("QuestReputation", L.QUESTREPUTATION_DESC, {
     enabled = false,
     show = "rewards",
+    icon = "handshake",
 })
 module.title = L.QUESTREPUTATION_TITLE
 module.category = "quests"
@@ -51,6 +52,16 @@ module.options = {
             { "description", L.QUESTREPUTATION_SHOW_DESCRIPTION },
         },
     },
+    {
+        key = "icon",
+        name = L.QUESTREPUTATION_ICON,
+        description = L.QUESTREPUTATION_ICON_DESC,
+        shown = function(db) return db.show == "rewards" end,
+        choices = {
+            { "handshake", L.QUESTREPUTATION_ICON_HANDSHAKE },
+            { "banner", L.QUESTREPUTATION_ICON_BANNER },
+        },
+    },
 }
 
 -- Dark colors for the quest log's parchment, Blizzard's bright ones when it uses light text.
@@ -60,7 +71,8 @@ local GAIN, LOSS = { r = 0.1, g = 0.5, b = 0.1 }, { r = 0.7, g = 0.1, b = 0.1 }
 -- reputation button, its 8 between buttons in a row, 2 between rows, 5 before a new section,
 -- and where QUEST_TEMPLATE_MAP_REWARDS puts the rewards frame.
 local TEMPLATE = "SmallQuestInfoRewardReputationTemplate"
-local ICON = "Interface\\Icons\\Achievement_Reputation_01"
+local HANDSHAKE = "Interface\\Icons\\Achievement_Reputation_01"
+local BANNER = { Alliance = "Interface\\Icons\\INV_BannerPVP_02", Horde = "Interface\\Icons\\INV_BannerPVP_01" }
 local BUTTON_WIDTH, BUTTON_HEIGHT = 130, 30
 local COLUMN_GAP, ROW_GAP, SECTION_GAP = 8, 2, 5
 local MAP_X, MAP_Y = 12, -52
@@ -186,8 +198,18 @@ local function hideButtons()
     standalone = nil
 end
 
+-- The icon every button wears: the handshake, or the banner of the player's side.
+local function icon()
+    if module.db.icon == "banner" then
+        local side = _G.UnitFactionGroup and _G.UnitFactionGroup("player")
+        return ns.IsText(side, true) and BANNER[side] or HANDSHAKE
+    end
+    return HANDSHAKE
+end
+
 -- Our buttons for `list`, in rows of two from the holder's top; returns their height.
 local function layout(list)
+    local texture = icon()
     if not holder then
         holder = _G.CreateFrame("Frame")
         holder:SetSize(BUTTON_WIDTH * 2 + COLUMN_GAP, BUTTON_HEIGHT)
@@ -201,10 +223,10 @@ local function layout(list)
             button = _G.CreateFrame("Button", nil, holder, TEMPLATE)
             button:SetScript("OnEnter", onEnter)
             button:SetScript("OnLeave", onLeave)
-            button.Icon:SetTexture(ICON)
             buttons[i] = button
         end
         rewardOf[button] = reward
+        button.Icon:SetTexture(texture)
         button.Name:SetText(reward.name)
         button.RewardAmount:SetText(amountText(reward.amount, true))
         local column, row = (i - 1) % 2, floor((i - 1) / 2)
@@ -290,8 +312,13 @@ function module:OnDisable()
 end
 
 -- The quest shown now gets the other kind at its next display; take off what no longer fits.
-function module:OnOptionChanged()
-    if module.db.show == "rewards" then
+function module:OnOptionChanged(key)
+    if key == "icon" then
+        local texture = icon()
+        for _, button in ipairs(buttons) do
+            button.Icon:SetTexture(texture)
+        end
+    elseif module.db.show == "rewards" then
         applyDescription(false)
     else
         hideButtons()
