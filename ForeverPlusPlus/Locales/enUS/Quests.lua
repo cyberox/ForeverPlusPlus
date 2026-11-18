@@ -63,6 +63,13 @@ L.QUESTLEVELS_COLOR = "Color by Difficulty"
 L.QUESTLEVELS_COLOR_DESC = "Color the level gray through red by how it compares with yours, like "
     .. "the quest log's colors."
 
+-- QuestReputation
+L.QUESTREPUTATION_TITLE = "Quest Reputation"
+L.QUESTREPUTATION_DESC = "List the reputation a quest gives, and with which faction, at the bottom of "
+    .. "its description in the quest log. A major faction's renown is Blizzard's own line, so it "
+    .. "isn't repeated."
+L.QUESTREPUTATION_LINE = "%s reputation with %s"
+
 -- ForeverQuestIcons
 L.FOREVERQUESTICONS_TITLE = "Forever Quest Icons"
 L.FOREVERQUESTICONS_DESC = "Mark quests that are new to Forever, the ones that weren't in original "
