@@ -21,6 +21,8 @@ ns.changelog = {
                     .. "recipe costs on its Plans, Pattern, or Formula's tooltip, before you learn it." },
                 { L.MOVABLECOMBATLOGTAB_TITLE, "A new module, off by default, that lets you drag the "
                     .. "Combat Log's tab anywhere among your chat tabs, even after the ones you made." },
+                { L.QUESTREPUTATION_TITLE, "A new module, off by default, that lists the reputation a "
+                    .. "quest gives, and with which faction, at the bottom of its description in the quest log." },
             } },
             { L.CHANGELOG_CHANGED, {
                 { L.PROFTOOLTIPS_TITLE, "The game's minimap dots no longer get the skill line: since "

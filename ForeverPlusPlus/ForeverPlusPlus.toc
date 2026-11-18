@@ -177,6 +177,7 @@ Modules\Character\DurabilityWarning.lua
 Modules\Quests\ForeverQuestIcons.lua
 Modules\Quests\QuestTracker.lua
 Modules\Quests\QuestLevels.lua
+Modules\Quests\QuestReputation.lua
 Modules\Quests\QuestItemSparkles.lua
 Modules\Quests\QuestPins\QuestPins.lua
 Modules\Quests\QuestPins\Index.lua
