@@ -66,7 +66,7 @@ Everything is on by default except where noted. Each module can be turned off, a
 | Loot Rolls | Place the Need, Greed, and Pass rolls in Edit Mode, with their direction and spacing. Each roll shows the seconds left and what your group picked. Off by default. |
 | Local Time | While the clock's Use Local Time is on, the calendar and a few other realm times show in your own time. |
 | Movable Windows | Hold a key (Shift by default) and drag Blizzard's windows where you want them, by the whole window or only its title bar, and hold Ctrl and scroll to resize one. Positions and sizes are kept always, for the session, or until the window closes. Off by default. |
-| Tooltips | Colors unit and item tooltips by class, reaction, or quality, and adds player titles and who a unit is targeting. Can hide the health bar, quest lines, the unit frames' and chat tabs' right-click hints, and the fishing bobber's tooltip. |
+| Tooltips | Colors unit and item tooltips by class, reaction, or quality, and adds player titles, who a unit is targeting, and, with the QuestieDB addon, the chance a creature drops a quest's item. Can hide the health bar, quest lines, the unit frames' and chat tabs' right-click hints, and the fishing bobber's tooltip. |
 | Movable Framerate | Lets you move and resize the framerate text (Ctrl+R) in Edit Mode. Off by default. |
 | **Items** | |
 | Already Known | Marks recipes, mounts, pets, toys, and other items you already know with a green check on their icon, at merchants, the auction house, bags, mail, and loot. |

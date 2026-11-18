@@ -9,7 +9,7 @@
 -- left alone then, and colors that come back secret go straight to the setters.
 local _, ns = ...
 
-local _G, type, setmetatable, ipairs = _G, type, setmetatable, ipairs
+local _G, type, setmetatable, ipairs, pairs = _G, type, setmetatable, ipairs, pairs
 local find, sub, byte, format = string.find, string.sub, string.byte, string.format
 local Enum, C_Item = Enum, C_Item
 local UnitExists, UnitClass, UnitLevel, UnitName = UnitExists, UnitClass, UnitLevel, UnitName
@@ -24,6 +24,8 @@ local UnitChannelInfo, C_Spell, select = UnitChannelInfo, C_Spell, select
 local L = ns.L
 local readable = ns.IsReadable
 local Units = ns.Units
+local QuestieDB = ns.QuestieDB
+local C_QuestLog = C_QuestLog
 local colorCode = ns.Colors.Code
 
 local module = ns.NewModule("Tooltips", L.TOOLTIPS_DESC, {
@@ -45,6 +47,7 @@ local module = ns.NewModule("Tooltips", L.TOOLTIPS_DESC, {
     hideTabTooltip = false, -- hide the tooltip of a chat window's tab
     hideHealthBar = false, -- hide the health bar under unit tooltips
     questLines = "show", -- "show", "units" (hidden on unit tooltips), "all" (and on objects)
+    dropChance = true, -- a quest item's drop chance after its objective line; needs QuestieDB
     scale = 100, -- percent
 })
 module.title = L.TOOLTIPS_TITLE
@@ -86,6 +89,10 @@ module.options = {
         section = L.TOOLTIPS_SECTION_LINES },
     { key = "target", name = L.TOOLTIPS_TARGET, description = L.TOOLTIPS_TARGET_DESC,
         section = L.TOOLTIPS_SECTION_LINES },
+    { key = "dropChance", name = L.TOOLTIPS_DROP_CHANCE, description = L.TOOLTIPS_DROP_CHANCE_DESC,
+        section = L.TOOLTIPS_SECTION_LINES, added = "1.9.0",
+        available = function() return QuestieDB.IsReady() end,
+        needs = format(L.SETTINGS_NEEDS_ADDON, "QuestieDB") },
     { key = "scale", name = L.TOOLTIPS_SCALE, description = L.TOOLTIPS_SCALE_DESC,
         section = L.TOOLTIPS_SECTION_BEHAVIOR, added = "1.8.0",
         min = 50, max = 200, step = 10, format = "%d%%" },
@@ -655,12 +662,108 @@ local function skipQuestLine(tooltip)
     return kind == types.Unit or (mode == "all" and kind == types.Object)
 end
 
+-- Drop Chance: a creature's quest objective line for an item it drops, "0/1 Intact Hailstrider
+-- Beak", gets the chance it drops it after it, "(35%)" in gray. The chances are the QuestieDB
+-- addon's, Classic's numbers from Wowhead and CMaNGOS rather than measured on Forever, so an
+-- estimate. The line is found by the item's name in it: the quest log's item objectives a creature
+-- drops, by the creature, from QuestieDB's lists.
+local dropQuests = {} -- quest ID -> QuestieDB.QuestDrops, or false; kept, since a quest's items don't change
+local dropsByNpc -- NPC ID -> a list of QuestDrops' items, for the quests in the log; nil when stale
+local dropRates = {} -- item ID -> QuestieDB.DropRates, or false
+local ratesRead -- the drop table has been read: its first read is a large one, kept out of combat
+
+local function staleDrops()
+    dropsByNpc = nil
+end
+
+local function npcDrops(npcID)
+    if not dropsByNpc then
+        dropsByNpc = {}
+        if C_QuestLog and C_QuestLog.GetNumQuestLogEntries and C_QuestLog.GetInfo then
+            for index = 1, (C_QuestLog.GetNumQuestLogEntries()) do
+                local info = C_QuestLog.GetInfo(index)
+                local questID = info and not info.isHeader and info.questID
+                if type(questID) == "number" then
+                    local drops = dropQuests[questID]
+                    if drops == nil then
+                        drops = QuestieDB.QuestDrops(questID) or false
+                        dropQuests[questID] = drops
+                    end
+                    for _, drop in ipairs(drops or {}) do
+                        for npc in pairs(drop.npcs) do
+                            local list = dropsByNpc[npc]
+                            if not list then
+                                list = {}
+                                dropsByNpc[npc] = list
+                            end
+                            list[#list + 1] = drop
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return dropsByNpc[npcID]
+end
+
+-- "(35%)" for the item an objective line names, or nil when the creature drops none of it or
+-- QuestieDB has no chance for it. A chance under 10 keeps a decimal.
+local function dropChance(npcID, text)
+    for _, drop in ipairs(npcDrops(npcID) or {}) do
+        if drop.name and find(text, drop.name, 1, true) then
+            local rates = dropRates[drop.itemID]
+            if rates == nil then
+                if not ratesRead and InCombatLockdown() then
+                    return nil
+                end
+                rates = QuestieDB.DropRates(drop.itemID) or false
+                ratesRead = true
+                dropRates[drop.itemID] = rates
+            end
+            local chance = rates and rates[npcID]
+            if chance and chance > 0 then
+                local number = chance >= 9.95 and format("%d", chance + 0.5) or format("%.1f", chance)
+                local gray = ns.Colors.GRAY
+                return colorCode(gray[1], gray[2], gray[3]) .. format(L.TOOLTIPS_DROP_CHANCE_FORMAT, number) .. "|r"
+            end
+        end
+    end
+    return nil
+end
+
+-- An objective line: left out by Quest Lines, or added by us with its drop chance, or Blizzard's.
+local function questObjectiveLine(tooltip, line)
+    if skipQuestLine(tooltip) then
+        return true
+    end
+    if not module.db.dropChance or not tooltip.GetProcessingTooltipInfo or not QuestieDB.IsReady()
+        or (tooltip.IsForbidden and tooltip:IsForbidden()) then
+        return false
+    end
+    local info = tooltip:GetProcessingTooltipInfo()
+    local data = info and info.tooltipData
+    local text = line and line.leftText
+    if not data or data.type ~= Enum.TooltipDataType.Unit or not ns.IsText(text, true) then
+        return false
+    end
+    local npcID = Units.NpcID(data.guid)
+    local chance = npcID and dropChance(npcID, text)
+    if not chance then
+        return false
+    end
+    -- As Blizzard adds the line (TooltipDataHandlerMixin:AddLineDataText), with the chance after it.
+    local color = line.leftColor or NORMAL_FONT_COLOR
+    tooltip:AddLine(text .. " " .. chance, color.r, color.g, color.b, line.wrapText or false, line.leftOffset)
+    return true
+end
+
 function module:OnEnable()
     -- Probe: line types and line pre calls are Mainline's.
     local lineTypes = Enum.TooltipDataLineType
     for _, name in ipairs(lineTypes and QUEST_LINES or {}) do
-        self:TooltipLinePreCall(lineTypes[name], skipQuestLine)
+        self:TooltipLinePreCall(lineTypes[name], name == "QuestObjective" and questObjectiveLine or skipQuestLine)
     end
+    self:On("QUEST_LOG_UPDATE", staleDrops)
     self:TooltipPostCall(Enum.TooltipDataType.Unit, onUnit)
     self:TooltipPostCall(Enum.TooltipDataType.Item, onItem)
     self:TooltipPostCall(Enum.TooltipDataType.Object, onObject)
