@@ -65,10 +65,15 @@ L.QUESTLEVELS_COLOR_DESC = "Color the level gray through red by how it compares 
 
 -- QuestReputation
 L.QUESTREPUTATION_TITLE = "Quest Reputation"
-L.QUESTREPUTATION_DESC = "List the reputation a quest gives, and with which faction, at the bottom of "
-    .. "its description in the quest log. A major faction's renown is Blizzard's own line, so it "
-    .. "isn't repeated."
+L.QUESTREPUTATION_DESC = "Show the reputation a quest gives, and with which faction, in the quest "
+    .. "log. A major faction's renown is Blizzard's own, so it isn't repeated."
 L.QUESTREPUTATION_LINE = "%s reputation with %s"
+L.QUESTREPUTATION_SHOW = "Show In"
+L.QUESTREPUTATION_SHOW_DESC = "Where the reputation goes: a button for each faction in the quest's "
+    .. "Rewards, or lines at the bottom of its description. The quest log's popup window always "
+    .. "uses lines."
+L.QUESTREPUTATION_SHOW_REWARDS = "Rewards"
+L.QUESTREPUTATION_SHOW_DESCRIPTION = "Description"
 
 -- ForeverQuestIcons
 L.FOREVERQUESTICONS_TITLE = "Forever Quest Icons"

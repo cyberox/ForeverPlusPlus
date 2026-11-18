@@ -384,7 +384,7 @@ What each module is, in the code's terms (what it does for players is in `README
 - **Forever Quest Icons**
 - **Quest Tracker**
 - **Quest Levels**
-- **Quest Reputation**: appends the selected quest's `GetQuestLogRewardFactionInfo` rewards to `QuestInfoDescriptionText` after `QuestInfo_Display`.
+- **Quest Reputation**: the selected quest's `GetQuestLogRewardFactionInfo` rewards, after `QuestInfo_Display`: buttons of Blizzard's small reputation template in a frame of ours under the map's `MapQuestInfoRewardsFrame` (standing alone, with the panel resized after `QuestMapFrame_ShowQuestDetails`, when the quest has no other rewards), or lines on the end of `QuestInfoDescriptionText`.
 - **Quest Item Sparkles**: keeps the CVar for the sparkle on quest items in the world on.
 - **Quest Pins**: a folder: the module, its index of quest starts by map read from QuestieDB a few milliseconds a frame, the rules for which quests the player can take, its world map pins, and its NPC tooltip lines; needs QuestieDB, off by default.
 - **Talent Planner**: a folder: the module, reading the tree, drawing on it, the plan bar, and the level-up reminder.
