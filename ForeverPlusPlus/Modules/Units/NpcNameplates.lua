@@ -98,8 +98,15 @@ end
 -- Blizzard's friendly NPC nameplates can be turned off after this module turns them on, and then
 -- there are no plates to draw on.
 local SHOW_NPCS = { "nameplateShowFriendlyNpcs", "nameplateShowFriendlyNPCs" }
-module.notice = ns.CVars.OffNotice(module, SHOW_NPCS, L.PLATES_BLIZZARD_OFF,
-    L.NPCNAMEPLATES_BLIZZARD_OFF_DESC)
+-- Players' pets, minions, and guardians have a plate only with Blizzard's Minions setting under
+-- Friendly Player Nameplates on, which is off by default (Blizzard_SettingsDefinitions_Frame's
+-- Nameplates.lua). Without it they keep the game's blue name in the world, whatever Skip Pets
+-- says. The player's choice, so a notice with a button and not a CVar we set.
+local SHOW_MINIONS = "nameplateShowFriendlyPlayerMinions"
+module.notice = {
+    ns.CVars.OffNotice(module, SHOW_NPCS, L.PLATES_BLIZZARD_OFF, L.NPCNAMEPLATES_BLIZZARD_OFF_DESC),
+    ns.CVars.OffNotice(module, SHOW_MINIONS, L.NPCNAMEPLATES_MINIONS_OFF, L.NPCNAMEPLATES_MINIONS_OFF_DESC),
+}
 
 ns.FriendlyPlates.New(module, {
     players = false,

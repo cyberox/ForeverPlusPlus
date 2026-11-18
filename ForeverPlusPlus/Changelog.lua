@@ -36,6 +36,8 @@ ns.changelog = {
                     .. "the game's dots. They show for your own icons, as before." },
             } },
             { L.CHANGELOG_FIXED, {
+                { L.NPCNAMEPLATES_TITLE, "A notice with a Turn On button shows while Blizzard's nameplates "
+                    .. "for players' pets are off, which left pets with the game's own name whatever Skip Pets said." },
                 { L.QUESTPINS_TITLE, "A quest whose earlier quest QuestieDB marks with a minus sign gets its pin once that quest is done." },
                 { L.QUESTPINS_TITLE, "A quest that scales to your level, such as the warlock quest Devourer of Souls, "
                     .. "is no longer treated as far too low for you." },
