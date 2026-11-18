@@ -12,7 +12,7 @@
 -- so it stays cleared until the module turns off, which puts it back.
 local _, ns = ...
 
-local _G = _G
+local _G, ipairs = _G, ipairs
 
 local L = ns.L
 
@@ -23,9 +23,18 @@ module.title = L.MOVABLECOMBATLOGTAB_TITLE
 module.category = "chat"
 module.added = "1.9.0"
 
+-- Where the log sits in the dock, and whether it's the window shown.
+local function place(dock, frame)
+    for index, docked in ipairs(_G.FCFDock_GetChatFrames(dock)) do
+        if docked == frame then
+            return index, _G.FCFDock_GetSelectedWindow(dock) == frame
+        end
+    end
+end
+
 local function apply()
-    local frame = _G.ChatFrame2
-    if not frame then
+    local frame, dock = _G.ChatFrame2, _G.GENERAL_CHAT_DOCK
+    if not (frame and dock) then
         return
     end
     local fixed = not module.enabled
@@ -33,11 +42,20 @@ local function apply()
         return
     end
     frame.isStaticDocked = fixed or nil
-    _G.FCF_DockUpdate()
+    local index, selected = place(dock, frame)
+    if fixed or not index then
+        _G.FCF_DockUpdate()
+        return
+    end
+    -- Redrawing as it is would loop the anchors: the strip of tabs sits at the log tab's right
+    -- edge, and the log's tab would go into that strip, so the redraw stops halfway and both
+    -- vanish. Out of the dock first, the strip moves to General's edge, then back in its place.
+    _G.FCF_UnDockFrame(frame)
+    _G.FCF_DockFrame(frame, index, selected)
 end
 
 function module:IsAvailable()
-    return _G.ChatFrame2 ~= nil and _G.FCF_DockUpdate ~= nil
+    return _G.ChatFrame2 ~= nil and _G.GENERAL_CHAT_DOCK ~= nil and _G.FCF_DockFrame ~= nil
 end
 
 function module:OnEnable()

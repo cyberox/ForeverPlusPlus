@@ -91,3 +91,6 @@
 1	ForeverPlusPlus/Modules/Map/GatheringMap/Page.lua: warning[undefined-field] undefined field 'entry' on class 'Frame'
 1	ForeverPlusPlus/Modules/Map/GatheringMap/Page.lua: warning[undefined-field] undefined field 'kind' on class 'Frame'
 3	ForeverPlusPlus/Settings/Profiles.lua: warning[undefined-field] undefined field 'character' on class 'Button'
+
+# Not sorted yet: move each under the comment that says why it stays, or fix it.
+1	ForeverPlusPlus/Modules/Chat/MovableCombatLogTab.lua: warning[undefined-field] undefined field 'GENERAL_CHAT_DOCK' on class '_G'
