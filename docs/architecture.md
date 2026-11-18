@@ -333,6 +333,7 @@ What each module is, in the code's terms (what it does for players is in `README
 - **Upgrade Arrows**: a folder: the module and its stat weight templates.
 - **Best Quest Reward**
 - **Easy Delete**
+- **Auction Totals**: sums `C_AuctionHouse.GetOwnedAuctionInfo` into one line of text on a child of the Auctions page's Cancel Auction button.
 - **Hide Beta Feedback**: beta/PTR only.
 - **Gathering Tracking**
 - **Gathering Skill Tooltips**: `ProfessionTooltips`.

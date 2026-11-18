@@ -100,6 +100,7 @@ Everything is on by default except where noted. Each module can be turned off, a
 
 - **Already Known**: Marks recipes, mounts, pets, toys, and other items you already know with a green check on their icon, at merchants, the auction house, bags, mail, and loot.
 - **Appearance Icons**: Marks gear whose appearance you haven't collected with Blizzard's transmogrifier icon, in bags, the bank, merchants, the auction house, loot, and on recipes that make it.
+- **Auction Totals**: On the auction house's Auctions page, shows next to Cancel Auction what your auctions are listed for in all, and how much has sold.
 - **Bag Slot Counter**: Shows free bag slots on the backpack button, or each bag's own count, turning orange when few are left and red at 0.
 - **Easy Delete**: Types DELETE for you when you destroy a good item, so Yes is a single click. Off by default.
 - **Item Tooltips**: Adds lines to item tooltips, each with its own checkbox.

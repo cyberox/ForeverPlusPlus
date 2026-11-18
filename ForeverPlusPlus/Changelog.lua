@@ -19,6 +19,8 @@ ns.changelog = {
                     .. "and the game's quest tag, and QuestsUnlockedBy and QuestsLeadingTo find the quests that come after or before one.",
                 { L.PROFESSIONS_TITLE, "Cost to Craft on Recipes (on by default) shows what crafting a "
                     .. "recipe costs on its Plans, Pattern, or Formula's tooltip, before you learn it." },
+                { L.AUCTIONTOTALS_TITLE, "A new module that shows, next to Cancel Auction on the "
+                    .. "auction house's Auctions page, what your auctions are listed for in all and how much has sold." },
                 { L.MOVABLECOMBATLOGTAB_TITLE, "A new module, off by default, that lets you drag the "
                     .. "Combat Log's tab anywhere among your chat tabs, even after the ones you made." },
                 { L.QUESTREPUTATION_TITLE, "A new module, off by default, that shows the reputation a "

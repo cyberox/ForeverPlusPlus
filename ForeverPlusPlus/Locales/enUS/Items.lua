@@ -223,6 +223,13 @@ L.PRICE_QUANTITY = "x%d" -- how many items the price is for
 L.PRICE_INLINE = "%s  %s" -- padded label, coins
 L.PRICE_INFO_LINE = "%s:" -- line name, on a price-style line with text instead of coins
 
+-- AuctionTotals
+L.AUCTIONTOTALS_TITLE = "Auction Totals"
+L.AUCTIONTOTALS_DESC = "On the auction house's Auctions page, show next to Cancel Auction what your "
+    .. "auctions are listed for in all, and how much has sold and is on its way."
+L.AUCTIONTOTALS_FORMAT = "Listed: %s   Sold: %s"
+L.AUCTIONTOTALS_PARTIAL = "%s +"
+
 -- BagSlotCounter
 L.BAGSLOTCOUNTER_TITLE = "Bag Slot Counter"
 L.BAGSLOTCOUNTER_DESC = "Show how many bag slots are free on the bag buttons, in orange when few are "
