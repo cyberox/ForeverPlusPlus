@@ -76,6 +76,7 @@ L.QUESTREPUTATION_SHOW_REWARDS = "Rewards"
 L.QUESTREPUTATION_SHOW_DESCRIPTION = "Description"
 L.QUESTREPUTATION_ICON = "Icon"
 L.QUESTREPUTATION_ICON_DESC = "The icon on each faction's button in the quest's Rewards."
+L.QUESTREPUTATION_ICON_NEEDS = "Needs Show In set to Rewards."
 L.QUESTREPUTATION_ICON_HANDSHAKE = "Handshake"
 L.QUESTREPUTATION_ICON_BANNER = "Your Faction's Banner"
 

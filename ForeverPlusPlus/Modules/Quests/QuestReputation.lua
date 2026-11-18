@@ -56,7 +56,9 @@ module.options = {
         key = "icon",
         name = L.QUESTREPUTATION_ICON,
         description = L.QUESTREPUTATION_ICON_DESC,
-        shown = function(db) return db.show == "rewards" end,
+        -- Greyed out, not hidden, while the lines are used: they have no icon.
+        available = function() return module.db.show == "rewards" end,
+        needs = L.QUESTREPUTATION_ICON_NEEDS,
         choices = {
             { "handshake", L.QUESTREPUTATION_ICON_HANDSHAKE },
             { "banner", L.QUESTREPUTATION_ICON_BANNER },
