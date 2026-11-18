@@ -48,7 +48,8 @@ local function rewards()
     for i = 1, n do
         local factionID, amount = info(i)
         if ns.IsNumber(factionID) and ns.IsNumber(amount) then
-            amount = floor(amount / 100)
+            -- To the nearest whole point, a loss the same as a gain: floor alone makes -2510 -26.
+            amount = amount < 0 and -floor(-amount / 100 + 0.5) or floor(amount / 100 + 0.5)
             local data = getFaction(factionID)
             local name = type(data) == "table" and data.name
             if amount ~= 0 and ns.IsText(name, true) then
@@ -93,8 +94,10 @@ local function apply()
     local plain = strip(text)
     local questID = module.enabled and Quests.DetailsID()
     -- Only for a quest whose rewards Blizzard just worked out: its call is the one that fills the list.
+    -- A client without ShouldShowQuestRewards fills it every time, as older ones did.
+    local shouldShow = _G.C_QuestLog.ShouldShowQuestRewards
     if questID and _G.QuestInfoFrame and _G.QuestInfoFrame.questLog
-        and _G.C_QuestLog.ShouldShowQuestRewards and _G.C_QuestLog.ShouldShowQuestRewards(questID) then
+        and (not shouldShow or shouldShow(questID)) then
         local shown = lines(rewards())
         if #shown > 0 then
             suffix = "\n\n" .. concat(shown, "\n")
