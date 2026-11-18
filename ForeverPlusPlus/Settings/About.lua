@@ -38,7 +38,7 @@ local LINKS = {
 -- Who else wrote part of the addon, by the name they go by on GitHub, and what they added. Keep
 -- it the same as the README's Contributors list.
 local CREDITS = {
-    { "cyberox", concat({ L.TOOLTIPS_QUEST_LINES, L.QUESTPINS_TITLE }, ", ") },
+    { "cyberox", concat({ L.TOOLTIPS_QUEST_LINES, L.QUESTPINS_TITLE, L.QUESTREPUTATION_TITLE }, ", ") },
 }
 
 -- The other addons a module reads when the player has them, and what for.

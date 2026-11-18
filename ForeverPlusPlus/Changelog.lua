@@ -23,7 +23,7 @@ ns.changelog = {
                     .. "Combat Log's tab anywhere among your chat tabs, even after the ones you made." },
                 { L.QUESTREPUTATION_TITLE, "A new module, off by default, that shows the reputation a "
                     .. "quest gives, and with which faction, in its Rewards in the quest log, or at the "
-                    .. "bottom of its description." },
+                    .. "bottom of its description. Thanks to cyberox." },
                 { L.TOOLTIPS_TITLE, "Quest Item Drop Chance (on by default, needs the QuestieDB addon) "
                     .. "shows the chance a creature drops a quest's item after its line on the "
                     .. "creature's tooltip, like \"0/1 Intact Hailstrider Beak (35%)\"." },

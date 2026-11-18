@@ -174,7 +174,7 @@ Bugs and ideas go in [GitHub issues](https://github.com/xIGBClutchIx/ForeverPlus
 
 Thanks to everyone who has added to Forever++ (also on the in-game About page):
 
-- [cyberox](https://github.com/cyberox): Tooltips' Quest Lines option, the Quest Pins module, and the first draft of the plugin API.
+- [cyberox](https://github.com/cyberox): Tooltips' Quest Lines option, the Quest Pins and Quest Reputation modules, and the first draft of the plugin API.
 
 ## Contributing
 
