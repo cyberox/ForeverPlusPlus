@@ -47,6 +47,22 @@ ran = {}
 Store.Upgrade(oldDB, oldChar)
 eq(#ran, 0, "store: each step runs once")
 
+-- Saved variables from a newer release keep their version and run no steps: lowering it would
+-- make that release run its steps on them again.
+local newerDB, newerChar = { version = Store.VERSION + 1, settings = {} }, { version = Store.VERSION + 1 }
+eq(Store.Upgrade(newerDB, newerChar), false, "store: a newer release's saved variables aren't a fresh install")
+eq(#ran, 0, "store: and run no steps")
+eq(newerDB.version, Store.VERSION + 1, "store: a newer account version is never lowered")
+eq(newerChar.version, Store.VERSION + 1, "store: nor a newer character version")
+-- Each of the two on its own: a character last seen under a newer release, on an older account.
+local mixedChar = { version = Store.VERSION + 1 }
+Store.Upgrade({ version = Store.VERSION, settings = {} }, mixedChar)
+eq(mixedChar.version, Store.VERSION + 1, "store: a newer character version stays beside a current account")
+local olderChar = { version = Store.VERSION - 1 }
+Store.Upgrade(newerDB, olderChar)
+eq(olderChar.version, Store.VERSION, "store: an older character is still brought up to date")
+eq(newerDB.version, Store.VERSION + 1, "store: beside an account that stays newer")
+
 -- What a module reads and writes.
 local defaults = { enabled = true, size = "large", position = "bottomright", banks = {}, seen = { list = {} } }
 oldDB.settings.BagSlotCounter.stale = 5

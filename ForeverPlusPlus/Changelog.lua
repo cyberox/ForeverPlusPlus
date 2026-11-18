@@ -36,6 +36,8 @@ ns.changelog = {
                 { L.FLIGHTTIMER_TITLE, "The druid flights out of Moonglade, to Thunder Bluff and "
                     .. "Rut'theran Village, are timed and show the bar." },
                 { L.WAYLAIDCRATES_TITLE, "A crate you've never owned shows each bundle's cost in the auction house too." },
+                "Settings saved by a newer version of Forever++ are no longer marked as this version's "
+                    .. "when you go back to an older one.",
             } },
         },
     },

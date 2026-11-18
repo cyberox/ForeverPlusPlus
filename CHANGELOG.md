@@ -22,6 +22,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Quest Pins**: a quest that scales to your level, such as the warlock quest Devourer of Souls, is no longer treated as far too low for you.
 - **Flight Timer**: the druid flights out of Moonglade, to Thunder Bluff and Rut'theran Village, are timed and show the bar.
 - **Waylaid Crates**: a crate you've never owned shows each bundle's cost in the auction house too.
+- Settings saved by a newer version of Forever++ are no longer marked as this version's when you go back to an older one.
 
 ## 1.8.0 (2026-11-16)
 

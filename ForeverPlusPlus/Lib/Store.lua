@@ -209,7 +209,9 @@ function Store.HighestStep()
 end
 
 ---Runs the steps the saved variables haven't had and marks them current. A fresh install (an empty
----table) has nothing to bring up to date.
+---table) has nothing to bring up to date. A version is only ever raised: saved variables a newer
+---release wrote run no steps and keep their own version, so going back to this release doesn't
+---mark them older than they are (the newer release would then run its steps on them twice).
 ---@param db table ForeverPlusPlusDB
 ---@param char table ForeverPlusPlusCharDB
 ---@return boolean fresh true when `db` was empty
@@ -221,9 +223,13 @@ function Store.Upgrade(db, char)
     -- The 0.8 layout saved every default as if the player chose it; Store.Load drops those.
     loose = loose or (db.version or 0) < 2
     run(steps, db.version or 0, db)
-    db.version = Store.VERSION
+    if (db.version or 0) < Store.VERSION then
+        db.version = Store.VERSION
+    end
     run(characterSteps, char.version or 0, char, db)
-    char.version = Store.VERSION
+    if (char.version or 0) < Store.VERSION then
+        char.version = Store.VERSION
+    end
     return fresh
 end
 
