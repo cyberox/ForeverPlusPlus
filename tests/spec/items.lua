@@ -133,6 +133,20 @@ do
         ITEM_MOD_CRIT_RATING = "Increases your critical strike by %s.",
         ITEM_MOD_CRIT_RATING_SHORT = "Critical Strike", RESISTANCE2_NAME = "Fire Resistance",
         ITEM_MOD_SPELL_POWER_SHORT = "Spell Power", ITEM_MOD_ATTACK_POWER_SHORT = "Attack Power",
+        -- The client's own stat lines (build 70959's).
+        TOOLTIP_ITEM_STAT_CRIT_PERCENT_INCREASE = "Equip: Improves your chance to get a critical strike by %1$.1f%%.",
+        TOOLTIP_ITEM_STAT_DODGE_PCT_INCREASE = "Equip: Increases your chance to Dodge an attack by %1$.1f%%.",
+        ITEM_MOD_DODGE_RATING_SHORT = "Dodge",
+        TOOLTIP_ITEM_STAT_MANA_REGEN_INCREASE = "Equip: Restores %1$d Mana per 5 sec.",
+        ITEM_MOD_POWER_REGEN0_SHORT = "Mana Per 5 Sec.",
+        TOOLTIP_ITEM_STAT_SHADOW_DAMAGE_INCREASE = "Equip: Increases damage done by Shadow spells and effects by up to %1$d.",
+        ITEM_MOD_SHADOW_DAMAGE_DONE_SHORT = "Shadow Damage",
+        ["TOOLTIP_ITEM_STAT_SKILL_TWO-HANDED_SWORDS_INCREASE"] = "Equip: Increased Two-Handed Swords +%1$d.",
+        ITEM_MOD_TWOHANDED_SWORDS_SHORT = "Two-Handed Swords Skill",
+        TOOLTIP_ITEM_STAT_SPELL_HEALING_INCREASE = "Equip: Increases healing done by magical spells and effects by up to %1$d.",
+        TOOLTIP_ITEM_STAT_SPELL_HEALING_INCREASE_DAMAGE_INCREASE = "Equip: Increases healing done by up to %1$d "
+            .. "and damage done by up to %2$d for all magical spells and effects.",
+        ITEM_MOD_SPELL_HEALING_DONE_SHORT = "Spell Healing", ITEM_MOD_SPELL_DAMAGE_DONE_SHORT = "Spell Damage",
     }
     for name, text in pairs(strings) do
         _G[name] = text
@@ -166,6 +180,24 @@ do
     eq(short("SP", spellEffect, nil), nil, "short effect: not without the item's stats")
     eq(short("SP", spellEffect, { ITEM_MOD_SPELL_POWER_SHORT = 5 }), nil,
         "short effect: not when the number isn't the stat's")
+    -- A line that is one of the client's own says its stat without the item's stats, so two
+    -- stats with the same number (a helm with 2% hit and 2% crit) are told apart.
+    local helm = { ITEM_MOD_HIT_RATING_SHORT = 20, ITEM_MOD_CRIT_RATING_SHORT = 28 }
+    local crit = "Improves your chance to get a critical strike by 2.0%."
+    eq(line("Equip: " .. crit, helm), "CRIT", "stat line: crit beside hit of the same percent")
+    eq(short("CRIT", crit, helm), "+2% Critical Strike", "stat line: a whole percent loses its .0")
+    eq(short("DODGE", "Increases your chance to Dodge an attack by 1.5%."), "+1.5% Dodge",
+        "stat line: a part of a percent stays, and no item stats are needed")
+    eq(short("MP5", "Restores 4 Mana per 5 sec."), "+4 Mana Per 5 Sec.", "stat line: mana regen")
+    eq(short("SP", "Increases damage done by Shadow spells and effects by up to 14."), "+14 Shadow Damage",
+        "stat line: school damage")
+    eq(line("Equip: Increased Two-Handed Swords +3."), "SKILL", "stat line: a skill whose key has a hyphen")
+    eq(short("SKILL", "Increased Two-Handed Swords +3."), "+3 Two-Handed Swords Skill", "stat line: and its name")
+    eq(short("HEAL", "Increases healing done by magical spells and effects by up to 33."), "+33 Spell Healing",
+        "stat line: healing alone")
+    eq(short("HEAL", "Increases healing done by up to 20 and damage done by up to 7 for all magical spells "
+        .. "and effects."), "+20 Spell Healing and +7 Spell Damage", "stat line: healing and damage together")
+    eq(line("Equip: Decreases your chance to Dodge an attack by 1.5%."), nil, "stat line: a penalty is left alone")
     -- Stats only a line needs, and healing with spell damage on one line (build 70959's strings).
     strings.ITEM_MOD_FIRE_DAMAGE_DONE = "Increases fire damage done by up to %s."
     strings.ITEM_MOD_FIRE_DAMAGE_DONE_SHORT = "Fire Damage"

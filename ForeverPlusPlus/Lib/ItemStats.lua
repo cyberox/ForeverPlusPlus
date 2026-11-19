@@ -592,6 +592,110 @@ local function healingAndDamage(effect, raw)
     return nil
 end
 
+-- Every Equip: line the client writes for a stat an item has, as opposed to a spell on it: its
+-- TOOLTIP_ITEM_STAT_<name>_INCREASE strings ("Equip: Improves your chance to hit by %1$.1f%%."),
+-- all of them in build 70959 (wago.tools GlobalStrings). Each is { name, our key for its color,
+-- the stat's short name (an ITEM_MOD_*_SHORT string) }; the one with two numbers has a second
+-- short name. The _DECREASE strings aren't here: a penalty keeps the game's wording. A stat an
+-- item gets from a spell instead (537 wordings on 1,342 items, nearly all conditional, a proc,
+-- or about one ability) isn't either. That these strings are Lua globals on Forever is
+-- Unverified in game; without them a line is read by its number, as before.
+local STAT_LINES = {
+    { "ATTACK_POWER", "AP", "ITEM_MOD_ATTACK_POWER_SHORT" },
+    { "RANGED_ATTACK_POWER", "RAP", "ITEM_MOD_RANGED_ATTACK_POWER_SHORT" },
+    { "ARMOR_PENETRATION", "ARMORPEN", "ITEM_MOD_ARMOR_PENETRATION_RATING_SHORT" },
+    { "HIT_PERCENT", "HIT", "ITEM_MOD_HIT_RATING_SHORT" },
+    { "CRIT_PERCENT", "CRIT", "ITEM_MOD_CRIT_RATING_SHORT" },
+    { "HASTE_PCT", "HASTE", "ITEM_MOD_HASTE_RATING_SHORT" },
+    { "EXPERTISE_PCT", "EXPERTISE", "ITEM_MOD_EXPERTISE_RATING_SHORT" },
+    { "DEFENSE", "DEF", "ITEM_MOD_DEFENSE_SKILL_RATING_SHORT" },
+    { "DODGE_PCT", "DODGE", "ITEM_MOD_DODGE_RATING_SHORT" },
+    { "PARRY_PCT", "PARRY", "ITEM_MOD_PARRY_RATING_SHORT" },
+    { "BLOCK_CHANCE", "BLOCK", "ITEM_MOD_BLOCK_RATING_SHORT" },
+    { "BLOCK_VALUE", "BLOCKVALUE", "ITEM_MOD_BLOCK_VALUE_SHORT" },
+    { "HEALTH_REGEN", "HP5", "ITEM_MOD_HEALTH_REGEN_SHORT" },
+    { "MANA_REGEN", "MP5", "ITEM_MOD_POWER_REGEN0_SHORT" },
+    { "SPELL_POWER", "SP", "ITEM_MOD_SPELL_POWER_SHORT" },
+    { "SPELL_DAMAGE", "SP", DAMAGE },
+    { "SPELL_HEALING", "HEAL", HEALING },
+    { "SPELL_HEALING_INCREASE_DAMAGE", "HEAL", HEALING, DAMAGE },
+    { "SPELL_PENETRATION", "SP", "ITEM_MOD_SPELL_PENETRATION_SHORT" },
+}
+for _, school in ipairs({ "FIRE", "FROST", "SHADOW", "ARCANE", "NATURE", "HOLY" }) do
+    STAT_LINES[#STAT_LINES + 1] = { school .. "_DAMAGE", "SP", "ITEM_MOD_" .. school .. "_DAMAGE_DONE_SHORT" }
+    STAT_LINES[#STAT_LINES + 1] = { school .. "_PENETRATION", "SP", "ITEM_MOD_" .. school .. "_PENETRATION_SHORT" }
+end
+for _, kind in ipairs({ "BEAST", "DEMON", "DRAGONKIN", "ELEMENTAL", "GIANT", "HUMANOID", "MECHANICAL",
+    "UNDEAD" }) do
+    STAT_LINES[#STAT_LINES + 1] = { "AP_VS_" .. kind, "AP", "ITEM_MOD_ATTACK_POWER_VS_" .. kind .. "_SHORT" }
+    STAT_LINES[#STAT_LINES + 1] = { "SD_VS_" .. kind, "SP", "ITEM_MOD_SPELL_DAMAGE_VS_" .. kind .. "_SHORT" }
+end
+-- The skills, whose line strings and short names are keyed alike but for these.
+local SKILL_NAMES = { DUAL_WIELD = "DUAL_WIELDING", THROWN = "THROWN_WEAPONS",
+    TWOHANDED_AXES = "TWO-HANDED_AXES", TWOHANDED_MACES = "TWO-HANDED_MACES",
+    TWOHANDED_SWORDS = "TWO-HANDED_SWORDS" }
+for gameKey, key in pairs(ItemStats.LINE_KEYS) do
+    if key == "SKILL" then
+        local skill = match(gameKey, "^ITEM_MOD_(.+)_SHORT$")
+        STAT_LINES[#STAT_LINES + 1] = { "SKILL_" .. (SKILL_NAMES[skill] or skill), "SKILL", gameKey }
+    end
+end
+
+local statPatterns -- { pattern, entry, percent, swapped } of each string above, longest first
+
+-- One of the client's stat line strings as a pattern that captures its numbers, without its
+-- "Equip:": "%1$d" and "%1$.1f" are a number, "%%" a percent sign.
+local function statPattern(text)
+    local equip = _G.ITEM_SPELL_TRIGGER_ONEQUIP
+    if type(equip) == "string" and equip ~= "" and text:sub(1, #equip) == equip then
+        text = text:sub(#equip + 1):gsub("^%s+", "")
+    end
+    text = text:gsub("%%%d*%$?%.?%d*[df]", "\1"):gsub("%%%%", "\2")
+    text = text:gsub("[%^%$%(%)%.%[%]%*%+%-%?%%]", "%%%0")
+    return "^" .. text:gsub("\1", "([%%d%%.]+)"):gsub("\2", "%%%%") .. "$"
+end
+
+local function buildStatPatterns()
+    statPatterns = {}
+    for _, entry in ipairs(STAT_LINES) do
+        local text = _G["TOOLTIP_ITEM_STAT_" .. entry[1] .. "_INCREASE"]
+        if type(text) == "string" and text ~= "" then
+            local first, second = text:find("%1$", 1, true), text:find("%2$", 1, true)
+            statPatterns[#statPatterns + 1] = {
+                pattern = statPattern(text), entry = entry,
+                percent = text:find("%%", 1, true) ~= nil,
+                -- Its two numbers the other way round, as another language may write them.
+                swapped = first ~= nil and second ~= nil and second < first,
+            }
+        end
+    end
+    sort(statPatterns, function(a, b)
+        return #a.pattern > #b.pattern
+    end)
+end
+
+-- The stat line an Equip: line's effect is, with the numbers in it, or nil.
+local function statLine(effect)
+    if not statPatterns then
+        buildStatPatterns()
+    end
+    for _, known in ipairs(statPatterns) do
+        local first, second = match(effect, known.pattern)
+        if first then
+            if known.swapped then
+                first, second = second, first
+            end
+            return known.entry, first, second, known.percent
+        end
+    end
+    return nil
+end
+
+-- A captured number as a short stat writes it: "2.0" is 2, "29." (a sentence's end) is 29.
+local function written(number)
+    return (number:gsub("%.0*$", ""))
+end
+
 local linePatterns, lineNames -- { pattern, key } from the client's long strings; short name -> key
 
 -- Built from the client's strings the first time a line is read, so they match in any language:
@@ -660,7 +764,8 @@ local function equipKeyByNumber(text, raw)
 end
 
 ---Which stat a line of an item's tooltip is about, in our keys: "+6 Spirit" and the like by the
----client's own strings, and an Equip: line by those or, when its wording is a spell's ("Increases
+---client's own strings, and an Equip: line by the client's stat line strings (STAT_LINES), its
+---long stat strings, or, when its wording is neither ("Increases
 ---damage and healing done by magical spells and effects by up to 2."), by its number among the
 ---item's stats. Nil for any other line. The second value is the text after "Equip: " on an
 ---Equip: line.
@@ -681,6 +786,12 @@ function ItemStats.LineStat(text, raw)
         effect = text:sub(#equip + 1):gsub("^%s+", "")
     end
     local body = effect or text
+    if effect then
+        local known = statLine(effect)
+        if known then
+            return known[2], effect
+        end
+    end
     for _, entry in ipairs(linePatterns) do
         if match(body, entry[1]) then
             return entry[2], effect
@@ -709,7 +820,24 @@ end
 ---@param raw table? the item's C_Item.GetItemStats table
 ---@return string? short
 function ItemStats.ShortEffect(key, effect, raw)
-    if type(raw) ~= "table" or type(effect) ~= "string" then
+    if type(effect) ~= "string" then
+        return nil
+    end
+    -- One of the client's own stat lines says which stat it is, whatever else the item has.
+    local known, first, second, percent = statLine(effect)
+    if known then
+        local name, other = _G[known[3]], known[4] and _G[known[4]]
+        if type(name) ~= "string" or name == "" or (known[4] and type(other) ~= "string") then
+            return nil
+        end
+        local short = format(percent and L.ITEMSTATS_SHORT_PERCENT or L.ITEMSTATS_SHORT, written(first), name)
+        if known[4] then
+            return second and format(L.ITEMSTATS_SHORT_AND, short, format(L.ITEMSTATS_SHORT, written(second), other))
+                or nil
+        end
+        return short
+    end
+    if type(raw) ~= "table" then
         return nil
     end
     local kind, value = healingAndDamage(effect, raw)

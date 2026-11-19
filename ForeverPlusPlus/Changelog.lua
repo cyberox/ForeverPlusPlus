@@ -23,7 +23,7 @@ ns.changelog = {
                     .. "auction house's Auctions page, what your auctions are listed for in all and how much has sold." },
                 { L.ITEMTOOLTIPS_TITLE, "Short Stat Text (off by default) writes an Equip: bonus that is "
                     .. "a plain stat the way the game writes a stat, like \"+29 Spell Power\", "
-                    .. "\"+14 Fire Damage\", or \"+20 Spell Healing and +7 Spell Damage\"." },
+                    .. "\"+2% Hit\", \"+14 Fire Damage\", or \"+20 Spell Healing and +7 Spell Damage\"." },
                 { L.ITEMTOOLTIPS_TITLE, "Show New in Forever (off by default) says \"New in Forever\" "
                     .. "on an item Classic never had." },
                 { L.PLAYERNAMEPLATES_TITLE, "Total RP 3 Name Colors (on by default, needs the Total RP 3 "

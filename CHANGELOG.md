@@ -10,7 +10,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - For addon authors: the plugin kit's `QuestieDB.Quest` has a quest's `children`, `parent`, and the game's quest `tag`, and `QuestsUnlockedBy` and `QuestsLeadingTo` find the quests that come after or before one.
 - **Professions**: Cost to Craft on Recipes (on by default) shows what crafting a recipe costs on its Plans, Pattern, or Formula's tooltip, before you learn it.
 - **Auction Totals**: a new module that shows, next to Cancel Auction on the auction house's Auctions page, what your auctions are listed for in all and how much has sold.
-- **Item Tooltips**: Short Stat Text (off by default) writes an Equip: bonus that is a plain stat the way the game writes a stat, like "+29 Spell Power", "+14 Fire Damage", or "+20 Spell Healing and +7 Spell Damage".
+- **Item Tooltips**: Short Stat Text (off by default) writes an Equip: bonus that is a plain stat the way the game writes a stat, like "+29 Spell Power", "+2% Hit", "+14 Fire Damage", or "+20 Spell Healing and +7 Spell Damage".
 - **Item Tooltips**: Show New in Forever (off by default) says "New in Forever" on an item Classic never had.
 - **Player Nameplates**: Total RP 3 Name Colors (on by default, needs the Total RP 3 addon) colors a player's name with the color on their roleplay profile.
 - **World Map**: Points of Interest shows the entrances of Krol'dok Stronghold, in the Riverglades, and Alcaz Prison, off Dustwallow Marsh.
