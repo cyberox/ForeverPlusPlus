@@ -70,6 +70,33 @@ ItemStats.KEYS = {
     ITEM_MOD_DAMAGE_PER_SECOND_SHORT = "DPS",
 }
 
+-- Stats that only a tooltip line needs: no weight set prices them, so Normalize leaves them out.
+-- By game key, the key of ours whose color the line takes ("SKILL" has none). The names are the
+-- client's ITEM_MOD_* strings (wago.tools GlobalStrings, build 70959); the item table has school
+-- damage on about 220 items, spell piercing on 23, and the rest on a handful each (ItemSparse's
+-- StatModifier_bonusStat, same build). That C_Item.GetItemStats names them by these keys is
+-- Unverified in game: a key it doesn't use changes nothing.
+ItemStats.LINE_KEYS = {
+    ITEM_MOD_FERAL_ATTACK_POWER_SHORT = "AP",
+}
+for _, school in ipairs({ "FIRE", "FROST", "SHADOW", "ARCANE", "NATURE", "HOLY" }) do
+    ItemStats.LINE_KEYS["ITEM_MOD_" .. school .. "_DAMAGE_DONE_SHORT"] = "SP"
+end
+for _, school in ipairs({ "SPELL", "FIRE", "FROST", "SHADOW", "ARCANE", "NATURE" }) do
+    ItemStats.LINE_KEYS["ITEM_MOD_" .. school .. "_PENETRATION_SHORT"] = "SP"
+end
+for _, kind in ipairs({ "BEAST", "DEMON", "DRAGONKIN", "ELEMENTAL", "GIANT", "HUMANOID", "MECHANICAL",
+    "UNDEAD" }) do
+    ItemStats.LINE_KEYS["ITEM_MOD_ATTACK_POWER_VS_" .. kind .. "_SHORT"] = "AP"
+    ItemStats.LINE_KEYS["ITEM_MOD_SPELL_DAMAGE_VS_" .. kind .. "_SHORT"] = "SP"
+end
+for _, skill in ipairs({ "ALCHEMY", "BLACKSMITHING", "COOKING", "ENCHANTING", "ENGINEERING", "FIRST_AID",
+    "FISHING", "HERBALISM", "JEWELCRAFTING", "LEATHERWORKING", "MINING", "SKINNING", "TAILORING",
+    "AXES", "BOWS", "CROSSBOWS", "DAGGERS", "DUAL_WIELD", "FIST_WEAPONS", "GUNS", "MACES", "POLEARMS",
+    "STAVES", "SWORDS", "THROWN", "TWOHANDED_AXES", "TWOHANDED_MACES", "TWOHANDED_SWORDS", "WANDS" }) do
+    ItemStats.LINE_KEYS["ITEM_MOD_" .. skill .. "_SHORT"] = "SKILL"
+end
+
 -- Our keys in the order a page lists them. DPS_OFF and DPS_RANGED aren't stats an item has: a
 -- weight set uses them for a weapon's DPS in the off hand and the ranged slot (see `Slotted`).
 ItemStats.ORDER = {
@@ -172,7 +199,7 @@ function ItemStats.Normalize(raw)
                 end
             elseif ours then
                 add(ours, value)
-            elseif type(key) == "string" then
+            elseif type(key) == "string" and not ItemStats.LINE_KEYS[key] then
                 unknown[key] = true
             end
         end
@@ -516,7 +543,7 @@ end
 
 -- Our key for a game key; a folded one (hit for melee and spells) gives its first.
 local function ourKey(gameKey)
-    local ours = ItemStats.KEYS[gameKey]
+    local ours = ItemStats.KEYS[gameKey] or ItemStats.LINE_KEYS[gameKey]
     if type(ours) == "table" then
         return ours[1]
     end
@@ -528,8 +555,42 @@ end
 local EQUIP_KEYS = {
     AP = true, RAP = true, SP = true, HEAL = true, HIT = true, CRIT = true, HASTE = true,
     SPELLHIT = true, SPELLCRIT = true, MP5 = true, HP5 = true, EXPERTISE = true, ARMORPEN = true,
-    DEF = true, DODGE = true, PARRY = true, BLOCK = true, BLOCKVALUE = true,
+    DEF = true, DODGE = true, PARRY = true, BLOCK = true, BLOCKVALUE = true, SKILL = true,
 }
+
+-- Healing and spell damage as two stats of one item, which the client writes as one line: with
+-- the same value as "damage and healing ... by up to 29", which is Spell Power, and with two as
+-- "Increases healing done by up to 20 and damage done by up to 7 for all magical spells and
+-- effects." (TOOLTIP_ITEM_STAT_SPELL_HEALING_INCREASE_DAMAGE_INCREASE; 321 items have both stats
+-- in build 70959's item table). Returns "power" and the value, or "pair" and whether healing is
+-- the line's first number; nil for any other line.
+local HEALING, DAMAGE = "ITEM_MOD_SPELL_HEALING_DONE_SHORT", "ITEM_MOD_SPELL_DAMAGE_DONE_SHORT"
+local function healingAndDamage(effect, raw)
+    if type(raw) ~= "table" then
+        return nil
+    end
+    local healing, damage = raw[HEALING], raw[DAMAGE]
+    if not (ns.IsNumber(healing) and ns.IsNumber(damage) and healing > 0 and damage > 0) then
+        return nil
+    end
+    local first, second, third = match(effect, "(%d+)%D+(%d*)%D*(%d*)")
+    first, second = tonumber(first), tonumber(second)
+    if third ~= "" then
+        return nil
+    end
+    if not second then
+        if healing == damage and first == healing then
+            return "power", healing
+        end
+    elseif healing ~= damage then
+        if first == healing and second == damage then
+            return "pair", true
+        elseif first == damage and second == healing then
+            return "pair", false
+        end
+    end
+    return nil
+end
 
 local linePatterns, lineNames -- { pattern, key } from the client's long strings; short name -> key
 
@@ -538,7 +599,13 @@ local linePatterns, lineNames -- { pattern, key } from the client's long strings
 -- each short name ("Spirit", "Fire Resistance") for a "+6 <name>" line no long string fits.
 local function buildLinePatterns()
     linePatterns, lineNames = {}, {}
-    for gameKey in pairs(ItemStats.KEYS) do
+    local gameKeys = {}
+    for _, keys in ipairs({ ItemStats.KEYS, ItemStats.LINE_KEYS }) do
+        for gameKey in pairs(keys) do
+            gameKeys[#gameKeys + 1] = gameKey
+        end
+    end
+    for _, gameKey in ipairs(gameKeys) do
         local key = ourKey(gameKey)
         local long = _G[(gameKey:gsub("_SHORT$", ""))]
         if key ~= "DPS" and gameKey:find("_SHORT$") and type(long) == "string" then
@@ -621,6 +688,10 @@ function ItemStats.LineStat(text, raw)
     end
     if effect then
         local key = equipKeyByNumber(effect, raw)
+        if not key then
+            local kind = healingAndDamage(effect, raw)
+            key = kind == "power" and "SP" or kind == "pair" and "HEAL" or nil
+        end
         return key, key and effect or nil
     end
     local name = match(text, "^[%+%-]%d+%s+(.+)$")
@@ -630,14 +701,34 @@ end
 ---An Equip: line's effect written as the game writes a plain stat: "Increases damage and healing
 ---done by magical spells and effects by up to 29." as "+29 Spell Power". The number is the line's
 ---own, so a line that gives a percent keeps it ("+1% Hit"), and the name is the client's short
----string for the stat. Nil when the item's stats don't hold exactly one stat of that key with a
----number in the line.
+---string for the stat. The one line the client writes for healing and spell damage together
+---gives both ("+20 Spell Healing and +7 Spell Damage"), or Spell Power when they're the same.
+---Nil when the item's stats don't hold exactly one stat of that key with a number in the line.
 ---@param key string our key for the line, from ItemStats.LineStat
 ---@param effect string the text after "Equip: ", from ItemStats.LineStat
 ---@param raw table? the item's C_Item.GetItemStats table
 ---@return string? short
 function ItemStats.ShortEffect(key, effect, raw)
     if type(raw) ~= "table" or type(effect) ~= "string" then
+        return nil
+    end
+    local kind, value = healingAndDamage(effect, raw)
+    if kind then
+        local power, healing, damage = _G.ITEM_MOD_SPELL_POWER_SHORT, _G[HEALING], _G[DAMAGE]
+        if kind == "power" then
+            return type(power) == "string" and format(L.ITEMSTATS_SHORT, value, power) or nil
+        end
+        if type(healing) ~= "string" or type(damage) ~= "string" then
+            return nil
+        end
+        healing = format(L.ITEMSTATS_SHORT, raw[HEALING], healing)
+        damage = format(L.ITEMSTATS_SHORT, raw[DAMAGE], damage)
+        -- In the line's own order.
+        return format(L.ITEMSTATS_SHORT_AND, value and healing or damage, value and damage or healing)
+    end
+    -- An item with both whose line isn't one of those two (one of them a decrease) keeps the
+    -- game's wording: half of it as a short stat would drop the other half.
+    if (key == "HEAL" or key == "SP") and ns.IsNumber(raw[HEALING]) and ns.IsNumber(raw[DAMAGE]) then
         return nil
     end
     local rate = ItemStats.RatingRates()[key]

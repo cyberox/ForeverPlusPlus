@@ -166,6 +166,36 @@ do
     eq(short("SP", spellEffect, nil), nil, "short effect: not without the item's stats")
     eq(short("SP", spellEffect, { ITEM_MOD_SPELL_POWER_SHORT = 5 }), nil,
         "short effect: not when the number isn't the stat's")
+    -- Stats only a line needs, and healing with spell damage on one line (build 70959's strings).
+    strings.ITEM_MOD_FIRE_DAMAGE_DONE = "Increases fire damage done by up to %s."
+    strings.ITEM_MOD_FIRE_DAMAGE_DONE_SHORT = "Fire Damage"
+    strings.ITEM_MOD_FISHING_SHORT = "Fishing Skill"
+    strings.ITEM_MOD_SPELL_HEALING_DONE_SHORT = "Spell Healing"
+    strings.ITEM_MOD_SPELL_DAMAGE_DONE_SHORT = "Spell Damage"
+    for name, text in pairs(strings) do
+        _G[name] = text
+    end
+    local fire = { ITEM_MOD_FIRE_DAMAGE_DONE_SHORT = 14, ITEM_MOD_SPELL_POWER_SHORT = 9 }
+    eq(line("Equip: Increases damage done by Fire spells and effects by up to 14.", fire), "SP",
+        "line stat: school damage takes spell power's color")
+    eq(short("SP", "Increases damage done by Fire spells and effects by up to 14.", fire), "+14 Fire Damage",
+        "short effect: school damage by its own name")
+    local pole = { ITEM_MOD_FISHING_SHORT = 5 }
+    eq(line("Equip: Increased Fishing +5.", pole), "SKILL", "line stat: a skill")
+    eq(short("SKILL", "Increased Fishing +5.", pole), "+5 Fishing Skill", "short effect: a skill")
+    eq(ItemStats.Normalize(fire).SP, 9, "stats: school damage isn't spell power")
+    local both = "Increases healing done by up to 20 and damage done by up to 7 for all magical spells and effects."
+    local healer = { ITEM_MOD_SPELL_HEALING_DONE_SHORT = 20, ITEM_MOD_SPELL_DAMAGE_DONE_SHORT = 7 }
+    eq(line("Equip: " .. both, healer), "HEAL", "line stat: healing and damage on one line")
+    eq(short("HEAL", both, healer), "+20 Spell Healing and +7 Spell Damage", "short effect: both of them")
+    local same = { ITEM_MOD_SPELL_HEALING_DONE_SHORT = 29, ITEM_MOD_SPELL_DAMAGE_DONE_SHORT = 29 }
+    local power = "Increases damage and healing done by magical spells and effects by up to 29."
+    eq(line("Equip: " .. power, same), "SP", "line stat: the same healing and damage is spell power")
+    eq(short("SP", power, same), "+29 Spell Power", "short effect: and reads as it")
+    eq(short("HEAL", "Increases healing done by up to 20 and decreases damage done by up to 7 for all "
+        .. "magical spells and effects.", { ITEM_MOD_SPELL_HEALING_DONE_SHORT = 20,
+        ITEM_MOD_SPELL_DAMAGE_DONE_SHORT = -7 }), nil,
+        "short effect: a decrease keeps the game's wording")
     for name in pairs(strings) do
         _G[name] = nil
     end
