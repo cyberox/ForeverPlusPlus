@@ -5,7 +5,7 @@
 -- recipe that makes such gear in the professions window, each with its own checkbox.
 --
 -- "Not collected" is what the game's own item tooltip says: its "You haven't collected this
--- appearance" line (TRANSMOGRIFY_TOOLTIP_APPEARANCE_UNKNOWN), seen on Forever in Cameron's
+-- appearance" line (TRANSMOGRIFY_TOOLTIP_APPEARANCE_UNKNOWN), seen on Forever in a
 -- screenshot (2026-11-06). C_TransmogCollection is in Forever's API too (Gethe forever branch,
 -- TransmogItemsDocumentation.lua), but the tooltip line is what the player sees, so it decides.
 -- Nothing is written onto Blizzard's frames: our own texture sits on the icon.

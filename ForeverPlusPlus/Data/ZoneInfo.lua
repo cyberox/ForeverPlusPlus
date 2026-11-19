@@ -208,7 +208,5 @@ end
 
 -- Dungeons in a zone whose entrance Data/PointsOfInterest.lua doesn't place (the game's own
 -- entrance list puts them on the map), by zone map ID: instance keys of Data/Instances.lua.
-ns.Data.zoneDungeons = {
-    [2548] = { "kroldok" }, -- Riverglades
-    [1445] = { "alcazPrison" }, -- Dustwallow Marsh
-}
+-- None today: every dungeon the game has is placed.
+ns.Data.zoneDungeons = {}

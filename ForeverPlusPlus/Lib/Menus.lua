@@ -7,7 +7,7 @@
 -- tainted: the manager writes its own state (shownFrames, isUIFocused, the suspended frame) in
 -- our name, SmartNavigation refuses ("Interface action failed because of an AddOn"), and from then
 -- on Blizzard's own SetPreferredGamepadInteractTarget is blocked whenever the manager runs: on
--- Escape, opening chat, closing a menu (Cameron's taint.log, build 70888, 2026-11-14; Gethe
+-- Escape, opening chat, closing a menu (a taint.log, build 70888, 2026-11-14; Gethe
 -- `forever` branch). A frame of our own never reaches the manager. Other Forever addons do the
 -- same (WhatsTraining draws its own menus; read to learn how, none of its code is here).
 --

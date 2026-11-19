@@ -79,7 +79,7 @@ module.options = {
 
 local ICON_SIZE = 18 -- at 100%, on a plate at the game's default nameplate size
 -- Forever doesn't scale a nameplate as a whole: it draws its parts bigger as the game's nameplate
--- size goes up. The name is 11.2 at the default size, 14 at 2x, and 17.5 at 3x (Cameron's /dump of
+-- size goes up. The name is 11.2 at the default size, 14 at 2x, and 17.5 at 3x (a /dump of
 -- the target plate's name:GetFont(), 2026-11-06), so the column grows with the name's size.
 local NAME_SIZE = 11.2
 local TEXT_SIZE = 12

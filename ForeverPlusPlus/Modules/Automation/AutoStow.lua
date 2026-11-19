@@ -6,8 +6,8 @@
 -- toggle draws the ranged weapon: it toggles, waits for the state to change, and toggles again
 -- until everything is away, three toggles at most. A toggle that changes nothing within a couple
 -- of seconds is tried once more, then it stops until the state changes some other way. The game
--- also sheathes by itself a few seconds after combat, often before the Delay is up (Cameron's
--- log, 2026-10-22).
+-- also sheathes by itself a few seconds after combat, often before the Delay is up (a log
+-- from play, 2026-10-22).
 local _, ns = ...
 
 -- The original ToggleSheath, from before the hook below, so our own stow doesn't look like the
@@ -55,12 +55,12 @@ module.options = {
 local SHEATHED = 1
 local LOOK = 0.5 -- seconds between looks out of combat
 local RETRY = 1 -- seconds to wait while casting before trying again
--- A press shows in the state 0.1 to 0.7 seconds later (Cameron's log, 2026-10-22).
+-- A press shows in the state 0.1 to 0.7 seconds later (a log from play, 2026-10-22).
 local POLL = 0.25 -- seconds between looks after a toggle
 local WAIT = 2 -- seconds to wait for a toggle to change the state
 -- A toggle right after the state changes is ignored: one the moment the ranged weapon came out
--- changed nothing, and Cameron's own press 0.5 seconds after a change did nothing while one 1.1
--- seconds after worked (his logs, 2026-10-22). So the next toggle waits this long.
+-- changed nothing, and a player's own press 0.5 seconds after a change did nothing while one 1.1
+-- seconds after worked (logs from play, 2026-10-22). So the next toggle waits this long.
 local SETTLE = 1.25 -- seconds after a change before toggling again
 local AGAIN = 1.5 -- seconds before trying once more after a toggle that changed nothing
 local TOGGLES = 3 -- at most per stow

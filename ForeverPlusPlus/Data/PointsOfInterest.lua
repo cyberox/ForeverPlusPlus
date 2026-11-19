@@ -55,7 +55,7 @@ ns.Data.poiPoints = {
     -- Eastern Kingdoms -------------------------------------------------------------------------
     [1416] = { -- Alterac Mountains
         -- At the back of Dalaran, by the Violet Citadel's dome: a guide's /way 19.4 85.6, which
-        -- Cameron's description matches. Not checked in game.
+        -- a description from play matches. Not checked in game.
         { "dungeon", 19.4, 85.6, "dalaran" },
         -- Zephras Isle's skyship, which lands north of Dalaran. Not checked in game.
         { "zeppelin", 12.8, 51.2, "N", "Valanaar", 2521 },
@@ -188,8 +188,8 @@ ns.Data.poiPoints = {
         { "spirit", 51.7, 49.7 },
     },
     [1437] = { -- Wetlands
-        -- Above Thelgen Rock's spider cave: a guide's 47.9, 56.5, which Cameron's description
-        -- matches. Not checked in game.
+        -- Above Thelgen Rock's spider cave: a guide's 47.9, 56.5, which a description
+        -- from play matches. Not checked in game.
         { "dungeon", 47.9, 56.5, "excavationSite" },
         { "flight", 9.5, 59.7, "A", "Menethil Harbor" },
         { "ship", 5.0, 63.5, "A", "Theramore Isle", 1445 },
@@ -305,6 +305,9 @@ ns.Data.poiPoints = {
     },
     [1445] = { -- Dustwallow Marsh
         { "raid", 52.6, 76.8, "onyxia" },
+        -- In the basement of the tower on Alcaz Island: Conquest Capped's 75.3, 14.1 and
+        -- Mobalytics' /way 75 14. Not checked in game.
+        { "dungeon", 75.3, 14.1, "alcazPrison" },
         { "flight", 67.5, 51.3, "A", "Theramore Isle" },
         { "flight", 35.6, 31.9, "H", "Brackenwall Village" },
         { "ship", 71.6, 56.4, "A", "Menethil Harbor", 1437 },
@@ -397,6 +400,9 @@ ns.Data.poiPoints = {
         { "spirit", 55.0, 68.2 },
     },
     [2548] = { -- Riverglades
+        -- The portal, in a cave west of the stronghold's closed gates: guides' 37.5, 37.2, which
+        -- a reading of about 37.5, 37.5 at the portal in game agrees with (2026-11-19).
+        { "dungeon", 37.5, 37.2, "kroldok" },
         { "flight", 60.6, 81.6, "A", "Farholde Keep" },
         { "flight", 59.6, 45.1, "H", "Rog'mar" },
         { "ship", 80.6, 54.6, "N", "Steamwheedle Port", 1446 }, -- from Powderfuse Port

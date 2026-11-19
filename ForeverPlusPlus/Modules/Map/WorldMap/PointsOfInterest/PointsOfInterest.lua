@@ -199,7 +199,7 @@ local KINDS = {
     -- Skyborne spots: ley lines purple, convergences orange. Both are Kotmogu balls like the cyan
     -- and green ones, but Unverified on Forever. With Ley Line Icon on Portal (`portal`), a ley
     -- line is the blue swirl the minimap shows for one, MagePortalAlliance in the minimap's object
-    -- icons (UiTextureAtlasMember, wago.tools, build 70338; Cameron picked it, 2026-10-14). The
+    -- icons (UiTextureAtlasMember, wago.tools, build 70338; picked 2026-10-14). The
     -- same on either side: the minimap's icon is the ley line's own, not the player's faction's.
     leyline = { show = "leyLines", size = "leyLineSize", pixels = 18,
         atlases = { "Vehicle-TempleofKotmogu-PurpleBall", "Vehicle-TempleofKotmogu-CyanBall" },

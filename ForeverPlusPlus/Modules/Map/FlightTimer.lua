@@ -427,7 +427,7 @@ local function nodeOfOwner(owner)
     end
     -- Only the old map's own buttons, TaxiButtonN: a bag slot or action button has an ID too.
     -- Found by name, not by parent: Blizzard makes them on TaxiRouteMap, but their template's own
-    -- parent (TaxiFrame) wins, so GetParent isn't the frame they were made on (Cameron, build
+    -- parent (TaxiFrame) wins, so GetParent isn't the frame they were made on (seen in game, build
     -- 70938, 2026-11-15).
     if TaxiFrame and TaxiFrame:IsShown() and owner.GetID then
         local slot = owner:GetID()

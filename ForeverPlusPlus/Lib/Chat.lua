@@ -344,7 +344,7 @@ end
 -- SettingsPanel focuses its list through SmartNavigation:EnterFocusGroup. With the controller
 -- interface off, what it refused is only where a controller's focus goes, which nobody is using,
 -- so the line reports nothing the player can act on. Picking one of our pages in the sidebar does
--- it too, however Settings was opened (Cameron, build 70888, 2026-11-14).
+-- it too, however Settings was opened (seen in game, build 70888, 2026-11-14).
 
 ---Whether a stack is the controller navigation refusing addon code where nothing is lost: inside
 ---Blizzard's Settings panel, or any refusal while the controller interface is off. The panel

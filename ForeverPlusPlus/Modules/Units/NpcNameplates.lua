@@ -114,7 +114,7 @@ ns.FriendlyPlates.New(module, {
         { names = SHOW_NPCS, value = "1" },
     },
     style = style,
-    -- A player's pet or summon has the player's name in its title ("Cameron's Minion"), which
+    -- A player's pet or summon has the player's name in its title ("Thrall's Minion"), which
     -- reads as clutter on a name-only plate.
     Skip = function(unit)
         local db = module.db
