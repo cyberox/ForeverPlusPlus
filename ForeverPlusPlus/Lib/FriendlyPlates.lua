@@ -75,21 +75,23 @@ local function onNameColored(fontString)
     end
 end
 
-local colorHooked
+local sharedHooked
 
 -- Total RP 3 calls the widget's own method off its metatable, past any hook on the font string
--- itself, so the hook goes on the method every font string shares. Only with Total RP 3 loaded
--- (probe: its global), since that's the one addon known to do it; it costs a table lookup for
--- each font string colored.
-local function hookColor(name)
-    if colorHooked or not _G.TRP3_BlizzardNamePlates then
+-- itself, so these hooks go on the methods every font string shares: the color, and the text,
+-- which it sets to the name with its out of character mark, for our label to copy. Only with
+-- Total RP 3 loaded (probe: its global), since that's the one addon known to do it; each costs a
+-- table lookup for every font string colored or written.
+local function hookShared(name)
+    if sharedHooked or not _G.TRP3_BlizzardNamePlates then
         return
     end
     local meta = getmetatable(name)
     local methods = meta and meta.__index
-    if type(methods) == "table" and methods.SetVertexColor then
-        colorHooked = true
+    if type(methods) == "table" and methods.SetVertexColor and methods.SetText then
+        sharedHooked = true
         hooksecurefunc(methods, "SetVertexColor", onNameColored)
+        hooksecurefunc(methods, "SetText", onNameSet)
     end
 end
 
@@ -98,7 +100,7 @@ local function hookName(name)
         hookedNames[name] = true
         hooksecurefunc(name, "SetText", onNameSet)
     end
-    hookColor(name)
+    hookShared(name)
 end
 
 -- Blizzard unit frame -> { plates, unit } while one of ours shows on it
