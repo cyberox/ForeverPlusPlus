@@ -25,6 +25,8 @@ ns.changelog = {
                     .. "one plain stat the way the game writes a stat, like \"+29 Spell Power\"." },
                 { L.ITEMTOOLTIPS_TITLE, "Show New in Forever (off by default) says \"New in Forever\" "
                     .. "on an item Classic never had." },
+                { L.PLAYERNAMEPLATES_TITLE, "Total RP 3 Name Colors (on by default, needs the Total RP 3 "
+                    .. "addon) colors a player's name with the color on their roleplay profile." },
                 { L.MOVABLECOMBATLOGTAB_TITLE, "A new module, off by default, that lets you drag the "
                     .. "Combat Log's tab anywhere among your chat tabs, even after the ones you made." },
                 { L.QUESTREPUTATION_TITLE, "A new module, off by default, that shows the reputation a "

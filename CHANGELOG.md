@@ -12,6 +12,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Auction Totals**: a new module that shows, next to Cancel Auction on the auction house's Auctions page, what your auctions are listed for in all and how much has sold.
 - **Item Tooltips**: Short Stat Text (off by default) writes an Equip: bonus that is one plain stat the way the game writes a stat, like "+29 Spell Power".
 - **Item Tooltips**: Show New in Forever (off by default) says "New in Forever" on an item Classic never had.
+- **Player Nameplates**: Total RP 3 Name Colors (on by default, needs the Total RP 3 addon) colors a player's name with the color on their roleplay profile.
 - **Movable Combat Log Tab**: a new module, off by default, that lets you drag the Combat Log's tab anywhere among your chat tabs, even after the ones you made.
 - **Quest Reputation**: a new module, off by default, that shows the reputation a quest gives, and with which faction, in its Rewards in the quest log, or at the bottom of its description. Thanks to cyberox.
 - **Tooltips**: Quest Item Drop Chance (on by default, needs the QuestieDB addon) shows the chance a creature drops a quest's item after its line on the creature's tooltip, like "0/1 Intact Hailstrider Beak (35%)".

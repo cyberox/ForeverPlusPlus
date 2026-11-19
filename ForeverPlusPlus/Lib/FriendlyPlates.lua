@@ -95,6 +95,34 @@ local function hookShared(name)
     end
 end
 
+---Whether the Total RP 3 addon's nameplates are here, for an option that needs them.
+---@return boolean
+function FriendlyPlates.HasRoleplay()
+    return _G.TRP3_BlizzardNamePlates ~= nil
+end
+
+-- Total RP 3's own answer for a unit's plate, as it last worked it out (it keeps one per unit).
+local function roleplayInfo(unit)
+    local addon = _G.TRP3_BlizzardNamePlates
+    return addon and addon.GetUnitDisplayInfo and addon:GetUnitDisplayInfo(unit)
+end
+
+---The color Total RP 3 gives a unit's name: the one on the player's roleplay profile, where its
+---own Name Colors setting is on. Nil without the addon, for a unit it doesn't color, or while its
+---nameplates are off.
+---@param unit string
+---@return number? r
+---@return number? g
+---@return number? b
+function FriendlyPlates.RoleplayColor(unit)
+    -- Its table of units isn't there until its nameplates turn on, and the call throws.
+    local ok, info = pcall(roleplayInfo, unit)
+    local color = ok and type(info) == "table" and info.shouldColorName and info.color
+    if type(color) == "table" and color.GetRGB then
+        return color:GetRGB()
+    end
+end
+
 local function hookName(name)
     if not hookedNames[name] then
         hookedNames[name] = true

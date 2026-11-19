@@ -3,7 +3,7 @@
 -- The plates themselves are ns.FriendlyPlates; this module picks the colors and the guild line.
 local _, ns = ...
 
-local ipairs, GetGuildInfo = ipairs, GetGuildInfo
+local ipairs, GetGuildInfo, format = ipairs, GetGuildInfo, format
 local UnitClass, UnitIsUnit = UnitClass, UnitIsUnit
 
 local L = ns.L
@@ -13,6 +13,7 @@ local Units = ns.Units
 local module = ns.NewModule("PlayerNameplates", L.PLAYERNAMEPLATES_DESC, ns.FriendlyPlates.Defaults({
     nameColor = "class", -- "class" or "white"
     lightRogue = false, -- rogues in a pale yellow, apart from neutral NPCs' yellow
+    roleplayColor = true, -- the name color Total RP 3 gives a player, with that addon loaded
     dimOthers = true, -- not in your group or guild, a friend, or a recent ally: faded
     dimAmount = 30, -- percent dimmer
     iconSize = 80, -- percent of Blizzard's name size, like nameSize
@@ -63,6 +64,12 @@ module.options = ns.FriendlyPlates.Options(L.PLAYERNAMEPLATES_HEALTH_BAR_DESC, {
         key = "lightRogue", name = L.PLAYERNAMEPLATES_LIGHT_ROGUE, description = L.PLAYERNAMEPLATES_LIGHT_ROGUE_DESC,
         section = L.PLATES_SECTION_NAME, added = "1.0.1",
         shown = function(db) return db.nameColor == "class" and ns.FriendlyPlates.HasNameView(db) end,
+    },
+    {
+        key = "roleplayColor", name = L.PLAYERNAMEPLATES_ROLEPLAY_COLOR,
+        description = L.PLAYERNAMEPLATES_ROLEPLAY_COLOR_DESC,
+        section = L.PLATES_SECTION_NAME, added = "1.9.0", shown = ns.FriendlyPlates.HasNameView,
+        available = ns.FriendlyPlates.HasRoleplay, needs = format(L.SETTINGS_NEEDS_ADDON, "Total RP 3"),
     },
     {
         key = "dimOthers", name = L.PLAYERNAMEPLATES_DIM, description = L.PLAYERNAMEPLATES_DIM_DESC,
@@ -201,6 +208,12 @@ end
 function style.NameColor(unit)
     if isRecentAlly(unit, "color") then
         return RECENT_ALLY[1], RECENT_ALLY[2], RECENT_ALLY[3]
+    end
+    if module.db.roleplayColor then
+        local r, g, b = ns.FriendlyPlates.RoleplayColor(unit)
+        if r then
+            return r, g, b
+        end
     end
     if module.db.nameColor == "class" then
         if module.db.lightRogue and isRogue(unit) then
