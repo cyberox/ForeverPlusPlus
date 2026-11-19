@@ -58,7 +58,7 @@ L.TOOLTIPS_SCALE_DESC = "How big tooltips are, with the item links you click and
     .. "compare gear."
 L.TOOLTIPS_ANCHOR_CURSOR = "Anchor to Cursor"
 L.TOOLTIPS_ANCHOR_CURSOR_DESC = "Show tooltips at your mouse instead of their usual spot in the "
-    .. "corner."
+    .. "corner. To move that spot, drag HUD Tooltip in the game's Edit Mode."
 L.TOOLTIPS_HIDE_IN_COMBAT = "Hide Unit Tooltips in Combat"
 L.TOOLTIPS_HIDE_IN_COMBAT_DESC = "Don't show player and NPC tooltips while you're in combat. Item "
     .. "and spell tooltips still show."
