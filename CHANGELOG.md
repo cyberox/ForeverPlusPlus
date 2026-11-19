@@ -10,6 +10,8 @@ What changed in each release of Forever++. The same notes show in game under Set
 - For addon authors: the plugin kit's `QuestieDB.Quest` has a quest's `children`, `parent`, and the game's quest `tag`, and `QuestsUnlockedBy` and `QuestsLeadingTo` find the quests that come after or before one.
 - **Professions**: Cost to Craft on Recipes (on by default) shows what crafting a recipe costs on its Plans, Pattern, or Formula's tooltip, before you learn it.
 - **Auction Totals**: a new module that shows, next to Cancel Auction on the auction house's Auctions page, what your auctions are listed for in all and how much has sold.
+- **Item Tooltips**: Short Stat Text (off by default) writes an Equip: bonus that is one plain stat the way the game writes a stat, like "+29 Spell Power".
+- **Item Tooltips**: Show New in Forever (off by default) says "New in Forever" on an item Classic never had.
 - **Movable Combat Log Tab**: a new module, off by default, that lets you drag the Combat Log's tab anywhere among your chat tabs, even after the ones you made.
 - **Quest Reputation**: a new module, off by default, that shows the reputation a quest gives, and with which faction, in its Rewards in the quest log, or at the bottom of its description. Thanks to cyberox.
 - **Tooltips**: Quest Item Drop Chance (on by default, needs the QuestieDB addon) shows the chance a creature drops a quest's item after its line on the creature's tooltip, like "0/1 Intact Hailstrider Beak (35%)".

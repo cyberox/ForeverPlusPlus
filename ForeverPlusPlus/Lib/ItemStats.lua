@@ -11,6 +11,8 @@ local format, gmatch, match, lower, concat = string.format, string.gmatch, strin
 local floor, abs = math.floor, math.abs
 local C_Item, UnitStat, UnitLevel = C_Item, UnitStat, UnitLevel
 
+local L = ns.L
+
 local ItemStats = {}
 ns.ItemStats = ItemStats
 
@@ -623,4 +625,45 @@ function ItemStats.LineStat(text, raw)
     end
     local name = match(text, "^[%+%-]%d+%s+(.+)$")
     return name and lineNames[name] or nil
+end
+
+---An Equip: line's effect written as the game writes a plain stat: "Increases damage and healing
+---done by magical spells and effects by up to 29." as "+29 Spell Power". The number is the line's
+---own, so a line that gives a percent keeps it ("+1% Hit"), and the name is the client's short
+---string for the stat. Nil when the item's stats don't hold exactly one stat of that key with a
+---number in the line.
+---@param key string our key for the line, from ItemStats.LineStat
+---@param effect string the text after "Equip: ", from ItemStats.LineStat
+---@param raw table? the item's C_Item.GetItemStats table
+---@return string? short
+function ItemStats.ShortEffect(key, effect, raw)
+    if type(raw) ~= "table" or type(effect) ~= "string" then
+        return nil
+    end
+    local rate = ItemStats.RatingRates()[key]
+    local short
+    for gameKey, value in pairs(raw) do
+        if ns.IsReadable(gameKey) and ns.IsNumber(value) and ourKey(gameKey) == key then
+            local name = _G[gameKey]
+            local percent = rate and value * rate
+            for number in gmatch(effect, "%d+%.?%d*") do
+                local amount = tonumber(number)
+                local asPercent = percent and amount ~= value and abs(amount - percent) < 0.05
+                if amount == value or asPercent then
+                    if type(name) ~= "string" or name == "" then
+                        return nil
+                    end
+                    -- "29." at a sentence's end is the number 29.
+                    local written = number:gsub("%.$", "")
+                    local this = format(asPercent and L.ITEMSTATS_SHORT_PERCENT or L.ITEMSTATS_SHORT,
+                        written, name)
+                    if short and short ~= this then
+                        return nil
+                    end
+                    short = this
+                end
+            end
+        end
+    end
+    return short
 end

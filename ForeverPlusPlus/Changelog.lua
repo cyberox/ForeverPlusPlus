@@ -21,6 +21,10 @@ ns.changelog = {
                     .. "recipe costs on its Plans, Pattern, or Formula's tooltip, before you learn it." },
                 { L.AUCTIONTOTALS_TITLE, "A new module that shows, next to Cancel Auction on the "
                     .. "auction house's Auctions page, what your auctions are listed for in all and how much has sold." },
+                { L.ITEMTOOLTIPS_TITLE, "Short Stat Text (off by default) writes an Equip: bonus that is "
+                    .. "one plain stat the way the game writes a stat, like \"+29 Spell Power\"." },
+                { L.ITEMTOOLTIPS_TITLE, "Show New in Forever (off by default) says \"New in Forever\" "
+                    .. "on an item Classic never had." },
                 { L.MOVABLECOMBATLOGTAB_TITLE, "A new module, off by default, that lets you drag the "
                     .. "Combat Log's tab anywhere among your chat tabs, even after the ones you made." },
                 { L.QUESTREPUTATION_TITLE, "A new module, off by default, that shows the reputation a "

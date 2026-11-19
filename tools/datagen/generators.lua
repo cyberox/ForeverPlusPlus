@@ -1,5 +1,6 @@
 -- The generated files, one module each: its `path`, the `tables` it reads, `Build` to write it,
--- and `Entry` for summary.lua to tell its entries apart.
+-- and `Entry` for summary.lua to tell its entries apart. One that compares with Classic lists
+-- those tables in `classic`, and reads each as `tables["Classic.<name>"]`.
 return {
     require("unexplored"),
     require("skilllevels"),
@@ -10,4 +11,5 @@ return {
     require("lockboxes"),
     require("scrolls"),
     require("weaponbuffs"),
+    require("newitems"),
 }

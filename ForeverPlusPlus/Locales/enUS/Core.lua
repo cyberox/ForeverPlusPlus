@@ -33,6 +33,10 @@ L.TEXT_AGO_DAYS = "%dd ago" -- days
 L.TEXT_YARDS = "%s yds" -- a distance; the game's own words are used when it has them
 L.SLIDER_YARDS = "%d yds" -- a slider's value in yards, worded like TEXT_YARDS
 
+-- Lib/ItemStats.lua: an Equip: bonus written as a plain stat, an amount and the stat's name
+L.ITEMSTATS_SHORT = "+%s %s"
+L.ITEMSTATS_SHORT_PERCENT = "+%s%% %s"
+
 -- Lib/Fonts.lua: the game's fonts, in every font dropdown
 L.FONT_FRIZQT = "Friz Quadrata"
 L.FONT_ARIALN = "Arial Narrow"

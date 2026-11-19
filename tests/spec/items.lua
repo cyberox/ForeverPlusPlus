@@ -156,6 +156,16 @@ do
         "line stat: an attribute is never an Equip: line's")
     eq(line("Equip: Improves your chance to hit by 1%.", { ITEM_MOD_HIT_RATING_SHORT = 10 }), "HIT",
         "line stat: a rating's percent")
+    local short = ItemStats.ShortEffect
+    local spellEffect = "Increases damage and healing done by magical spells and effects by up to 2."
+    eq(short("SP", spellEffect, wand), "+2 Spell Power", "short effect: a spell's wording")
+    eq(short("HIT", "Improves your chance to hit by 1%.", { ITEM_MOD_HIT_RATING_SHORT = 10 }), "+1% Hit",
+        "short effect: a percent stays a percent")
+    eq(short("HIT", "Increases your hit by 10.", { ITEM_MOD_HIT_RATING_SHORT = 10 }), "+10 Hit",
+        "short effect: a rating's points")
+    eq(short("SP", spellEffect, nil), nil, "short effect: not without the item's stats")
+    eq(short("SP", spellEffect, { ITEM_MOD_SPELL_POWER_SHORT = 5 }), nil,
+        "short effect: not when the number isn't the stat's")
     for name in pairs(strings) do
         _G[name] = nil
     end

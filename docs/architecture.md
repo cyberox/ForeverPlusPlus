@@ -41,7 +41,7 @@ Game data kept by hand, loaded after the locales and before `Lib/`: plain tables
 
 Shared services any module can use, loaded before the modules. They cost nothing until a module uses them.
 
-Generated files, in `Lib/Generated/` (never edited by hand; see Generated data): `InstanceLevels.lua`, `DisenchantBrackets.lua`, `LockboxSkills.lua`, `ComprehendScrolls.lua`, `WeaponBuffs.lua`, `TaxiRoutes.lua`.
+Generated files, in `Lib/Generated/` (never edited by hand; see Generated data): `InstanceLevels.lua`, `DisenchantBrackets.lua`, `LockboxSkills.lua`, `ComprehendScrolls.lua`, `WeaponBuffs.lua`, `TaxiRoutes.lua`, `NewItems.lua`.
 
 ### `Store.lua`
 
@@ -194,6 +194,10 @@ Generated files, in `Lib/Generated/` (never edited by hand; see Generated data):
 
 - `ns.Disenchant`: which items can be disenchanted (the game's brackets, from the generated `DisenchantBrackets.lua`), what each gives (learned in play where not known) with its chance and amount, and their average value at given prices.
 
+### `NewItems.lua`
+
+- `ns.NewItems`: `Has(itemID)` says whether Classic never had the item, by a binary search of the generated `NewItems.lua`'s runs of IDs; an ID above the highest the game had when the list was made is new too. Only IDs are compared, so an item Forever changed isn't new.
+
 ### `Professions.lua`
 
 - `ns.Professions`: `WatchWindow(module, hook, catchUp)` keeps a module's hooks on the professions window as it loads, opens, and lists its recipes, so no module listens for those events itself; the player's profession skills by skill line (and a rogue's Lockpicking), with a profession's skill and its rank's most as its window shows them (`Progress`), gathering difficulty colors, herbs and veins by name with the skill and item they give, chests by name with a locked one's Lockpicking (`Chest`, `LearnChest`), fishing pools by name and world object (`Pool`, `PoolByObject`, `LearnPool`), the kinds of node maps sort by (`KINDS`: herb, ore, treasure, fish; `Kind`, `LineKind`), veins that spawn in each other's spots (`SharesSpawn`: Silver in Tin's), the gathering skill an item comes from (`ItemSkill`), and the Skinning a creature's level needs, a recipe's yellow, green, and gray levels from its yellow and gray (`RecipeLevels`), the color they give at a skill (`LevelDifficulty`, in `DIFFICULTY`'s numbers), and their bar (`LevelBar`), and the professions window's recipe form (`RecipeForm`) and recipe rows: `EachRecipeRow`, `HookRecipeRows`, the recipe a row is about at its best known rank (`RowRecipe`, `BestRank`), and `NewRowColumn` for a column of a module's own at the rows' right end, taking space only while it's in use, with the recipe's name cut short before the columns.
@@ -325,7 +329,7 @@ What each module is, in the code's terms (what it does for players is in `README
 - **Auto Repair**
 - **Auto Sell Junk**
 - **Auto Open Containers**: `AutoOpen`: opens the containers in the bags by themselves, when nothing is in the way, and for a Rogue, a right click on a locked lockbox casts Pick Lock on it (`ns.BagClicks`).
-- **Item Tooltips**: a folder: the module and its parts, Sell Price, Repair Cost, Item Count, Disenchant, Stat Colors, Compare Crafted Gear, and Auction Prices, with its auction house scan in `Scan.lua`.
+- **Item Tooltips**: a folder: the module and its parts, Sell Price, Repair Cost, Item Count, Disenchant, Stat Colors (with Short Stat Text), New in Forever, Compare Crafted Gear, and Auction Prices, with its auction house scan in `Scan.lua`.
 - **Waylaid Crates**: a folder: the module, Bundle Costs, and its auction house category.
 - **Already Known**
 - **Appearance Icons**: uncollected appearances.
@@ -446,7 +450,7 @@ What each module is, in the code's terms (what it does for players is in `README
 ## Generated data (`tools/datagen/`)
 
 - The generator of data files made from the client's database tables (not shipped).
-- `lua5.1 tools/datagen/generate.lua [build]` downloads the tables it needs for a `wowf` build from wago.tools with curl (the latest build when none is given; `--latest` only prints it), caches them in `cache/` (ignored by git), and writes every generated file: Unexplored Areas' `Data.lua` (WorldMapOverlay, WorldMapOverlayTile, UiMapXMapArt, UiMap), Professions' `Data.lua` (SkillLineAbility, SkillLine, ItemEffect, ItemXItemEffect, ItemSparse, TradeSkillCategory: each recipe's yellow and gray levels, skill line, spell, and teaching item with its skill, and the Season of Discovery recipe categories Unlearned Recipes leaves out), `Lib/Generated/InstanceLevels.lua` (LFGDungeons, ContentTuning, Map, AreaTable: each instance's dungeon finder level), `Lib/Generated/DisenchantBrackets.lua` (ItemDisenchantLoot), `Lib/Generated/LockboxSkills.lua` (ItemSparse, Lock: each lockbox's Lockpicking), `Lib/Generated/ComprehendScrolls.lua` (ItemSparse: the items that need skill line 3012), `Lib/Generated/WeaponBuffs.lua` (ItemEffect, ItemXItemEffect, SpellEffect, SpellEquippedItems, SpellName: each item whose use puts a temporary buff on a weapon, with the mask of weapon subclasses it goes on), `Lib/Generated/TaxiRoutes.lua` (TaxiPath, TaxiPathNode: each direct flight's length and what flying through a stop saves), and `Reference.txt`, what the tables say about data kept by hand (the Map table's dungeons and raids against `Data/Instances.lua`, TaxiNodes' flight points and TaxiPathNode's transport stops in zone percent, for `Data/PointsOfInterest.lua`), so a new build's diff shows what to check there.
+- `lua5.1 tools/datagen/generate.lua [build]` downloads the tables it needs for a `wowf` build from wago.tools with curl (the latest build when none is given; `--latest` only prints it), caches them in `cache/` (ignored by git), and writes every generated file: Unexplored Areas' `Data.lua` (WorldMapOverlay, WorldMapOverlayTile, UiMapXMapArt, UiMap), Professions' `Data.lua` (SkillLineAbility, SkillLine, ItemEffect, ItemXItemEffect, ItemSparse, TradeSkillCategory: each recipe's yellow and gray levels, skill line, spell, and teaching item with its skill, and the Season of Discovery recipe categories Unlearned Recipes leaves out), `Lib/Generated/InstanceLevels.lua` (LFGDungeons, ContentTuning, Map, AreaTable: each instance's dungeon finder level), `Lib/Generated/DisenchantBrackets.lua` (ItemDisenchantLoot), `Lib/Generated/LockboxSkills.lua` (ItemSparse, Lock: each lockbox's Lockpicking), `Lib/Generated/ComprehendScrolls.lua` (ItemSparse: the items that need skill line 3012), `Lib/Generated/WeaponBuffs.lua` (ItemEffect, ItemXItemEffect, SpellEffect, SpellEquippedItems, SpellName: each item whose use puts a temporary buff on a weapon, with the mask of weapon subclasses it goes on), `Lib/Generated/TaxiRoutes.lua` (TaxiPath, TaxiPathNode: each direct flight's length and what flying through a stop saves), `Lib/Generated/NewItems.lua` (Item, less the Item table of the Classic Era build `CLASSIC_BUILD` names, the last before Season of Discovery: the items Classic never had, as runs of IDs), and `Reference.txt`, what the tables say about data kept by hand (the Map table's dungeons and raids against `Data/Instances.lua`, TaxiNodes' flight points and TaxiPathNode's transport stops in zone percent, for `Data/PointsOfInterest.lua`), so a new build's diff shows what to check there.
 - `BUILD` is the build they came from.
 - Never edit a generated file by hand: change the generator (one module per file, listed in `generators.lua`) and run it again.
 - Output is sorted, so the same build gives the same bytes.

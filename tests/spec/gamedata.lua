@@ -188,4 +188,24 @@ eq(takes(6947, 15), true, "weapon buffs: Instant Poison goes on a dagger")
 eq(takes(6947, 20), false, "weapon buffs: a poison doesn't go on a fishing pole")
 eq(takes(6529, 20), true, "weapon buffs: a lure goes on a fishing pole")
 eq(buffs[259846], nil, "weapon buffs: a worn item (the fishing hat) is left out")
+
+-- The items Classic never had, generated from the client's Item table less Classic's.
+T.load("Lib/Generated/NewItems")
+T.load("Lib/NewItems")
+local isNew = ns.NewItems.Has
+eq(isNew(2589), false, "new items: Linen Cloth is Classic's")
+eq(isNew(19019), false, "new items: Thunderfury is Classic's")
+eq(isNew(227937), true, "new items: Forever's Puzzle Box")
+eq(isNew(ns.TableData.newItemsHighest + 1), true, "new items: an ID above every one known")
+eq(isNew(nil), false, "new items: no item")
+do
+    local runs = ns.TableData.newItems
+    local ordered = #runs % 2 == 0
+    for i = 2, #runs do
+        ordered = ordered and runs[i] >= runs[i - 1]
+    end
+    eq(ordered, true, "new items: the runs are pairs in order")
+    eq(isNew(runs[1]) and isNew(runs[#runs]), true, "new items: the ends of the list")
+    eq(isNew(runs[2] + 1), false, "new items: just past a run")
+end
 ns.db = savedDB

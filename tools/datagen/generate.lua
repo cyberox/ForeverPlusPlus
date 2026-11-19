@@ -21,6 +21,10 @@ local ROOT = dir .. "/../.."
 local CACHE = dir .. "/cache"
 local BUILD_FILE = dir .. "/BUILD"
 local PRODUCT = "wowf"
+-- The Classic a generator compares Forever with (its `classic` tables): the last Classic Era
+-- build before Season of Discovery (wago.tools' build list, read 2026-11-19). Fixed, so the
+-- output only changes with the Forever build.
+local CLASSIC_BUILD = "1.14.4.51829"
 local AGENT = "Mozilla/5.0 (compatible; db2-table-fetch/1.0)"
 local WINDOWS = package.config:sub(1, 1) == "\\"
 
@@ -148,11 +152,15 @@ for _, generator in ipairs(GENERATORS) do
     for _, name in ipairs(generator.tables) do
         tables[name] = tables[name] or getTable(name, build)
     end
+    for _, name in ipairs(generator.classic or {}) do
+        local key = "Classic." .. name
+        tables[key] = tables[key] or getTable(name, CLASSIC_BUILD)
+    end
 end
 -- Every file is made before any is written, so a failure leaves the tree as it was.
 local texts = {}
 for i, generator in ipairs(GENERATORS) do
-    local ok, text = pcall(generator.Build, tables, build, SCRIPT, ROOT)
+    local ok, text = pcall(generator.Build, tables, build, SCRIPT, ROOT, CLASSIC_BUILD)
     if not ok then
         fail(generator.path .. ": " .. tostring(text))
     end
