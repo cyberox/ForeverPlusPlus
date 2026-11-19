@@ -22,7 +22,7 @@ local short = ns.modules.ItemTooltips:NewPart({
     key = "shortStats", name = L.ITEMTOOLTIPS_SHORTSTATS, description = L.SHORTSTATS_DESC,
     section = L.SHORTSTATS_TITLE, added = "1.9.0",
 }, {
-    shortStats = false,
+    shortStats = true,
     shortCombat = true,
     shortSpell = true,
     shortRegen = true,

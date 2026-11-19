@@ -21,7 +21,7 @@ ns.changelog = {
                     .. "recipe costs on its Plans, Pattern, or Formula's tooltip, before you learn it." },
                 { L.AUCTIONTOTALS_TITLE, "A new module that shows, next to Cancel Auction on the "
                     .. "auction house's Auctions page, what your auctions are listed for in all and how much has sold." },
-                { L.ITEMTOOLTIPS_TITLE, "Short Stat Text (off by default) writes an Equip: bonus that is "
+                { L.ITEMTOOLTIPS_TITLE, "Short Stat Text (on by default) writes an Equip: bonus that is "
                     .. "a plain stat the way the game writes a stat, like \"+29 Spell Power\", "
                     .. "\"+2% Hit\", \"+14 Fire Damage\", or \"+20 Spell Healing and +7 Spell Damage\". "
                     .. "Four checkboxes pick which kinds it shortens: Attack and Defense, Spells and "
