@@ -13,14 +13,14 @@ local ItemTooltip, ItemStats, Colors, Text = ns.ItemTooltip, ns.ItemStats, ns.Co
 
 local module = ns.modules.ItemTooltips:NewPart({
     key = "statColors", name = L.ITEMTOOLTIPS_STATCOLORS, description = L.STATCOLORS_DESC,
-    section = L.ITEMTOOLTIPS_SECTION_STATS, added = "1.0.0-beta.1",
+    section = L.STATCOLORS_TITLE, added = "1.0.0-beta.1",
 }, {
     statColors = true,
 })
 
 local short = ns.modules.ItemTooltips:NewPart({
     key = "shortStats", name = L.ITEMTOOLTIPS_SHORTSTATS, description = L.SHORTSTATS_DESC,
-    section = L.ITEMTOOLTIPS_SECTION_STATS, added = "1.9.0",
+    section = L.SHORTSTATS_TITLE, added = "1.9.0",
 }, {
     shortStats = false,
 })

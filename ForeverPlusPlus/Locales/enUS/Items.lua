@@ -160,7 +160,8 @@ L.EASYDELETE_TITLE = "Easy Delete"
 L.EASYDELETE_DESC = "Type DELETE for you when destroying a good item, so Yes is a single click."
 
 -- ItemTooltips (its parts' sections use SELLPRICE_TITLE, REPAIRCOST_TITLE, ITEMCOUNT_TITLE,
--- DISENCHANT_TITLE, STATCOLORS_TITLE, CRAFTEDCOMPARE_TITLE, and AUCTIONPRICES_TITLE)
+-- DISENCHANT_TITLE, STATCOLORS_TITLE, SHORTSTATS_TITLE, NEWITEM_TITLE, CRAFTEDCOMPARE_TITLE, and
+-- AUCTIONPRICES_TITLE: a section holds one part, since its checkbox reads "Enabled" under it)
 L.ITEMTOOLTIPS_TITLE = "Item Tooltips"
 L.ITEMTOOLTIPS_DESC = "Add to item tooltips: the stack's sell price, the repair cost of damaged gear, how many "
     .. "you own, what disenchanting gives, and the lowest auction buyout, color each stat, and "
@@ -176,8 +177,8 @@ L.NEWITEM_TITLE = "New in Forever"
 L.NEWITEM_DESC = "Say \"New in Forever\" on an item Classic never had. An item Forever changed but "
     .. "Classic also had isn't marked."
 L.NEWITEM_LINE = "New in Forever" -- the tooltip line
-L.ITEMTOOLTIPS_SECTION_STATS = "Stats"
 L.ITEMTOOLTIPS_SHORTSTATS = "Short Stat Text"
+L.SHORTSTATS_TITLE = "Short Stat Text"
 L.SHORTSTATS_DESC = "Write an Equip: bonus as a plain stat: \"+29 Spell Power\" for \"Equip: "
     .. "Increases damage and healing done by magical spells and effects by up to 29.\" A bonus "
     .. "that isn't one plain stat keeps the game's wording."
