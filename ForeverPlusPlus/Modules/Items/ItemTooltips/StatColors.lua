@@ -23,6 +23,20 @@ local short = ns.modules.ItemTooltips:NewPart({
     section = L.SHORTSTATS_TITLE, added = "1.9.0",
 }, {
     shortStats = false,
+    shortCombat = true,
+    shortSpell = true,
+    shortRegen = true,
+    shortSkill = true,
+})
+
+-- Which kinds of bonus are shortened, by ItemStats.LineGroup's names.
+local GROUP_OPTIONS = { combat = "shortCombat", spell = "shortSpell", regen = "shortRegen", skill = "shortSkill" }
+
+short:AddOptions({
+    { key = "shortCombat", name = L.SHORTSTATS_COMBAT, description = L.SHORTSTATS_COMBAT_DESC },
+    { key = "shortSpell", name = L.SHORTSTATS_SPELL, description = L.SHORTSTATS_SPELL_DESC },
+    { key = "shortRegen", name = L.SHORTSTATS_REGEN, description = L.SHORTSTATS_REGEN_DESC },
+    { key = "shortSkill", name = L.SHORTSTATS_SKILL, description = L.SHORTSTATS_SKILL_DESC },
 })
 
 -- Probe: Mainline's line types; plain stat and Equip: lines are 0 (docs/forever-api.md).
@@ -72,7 +86,8 @@ local function drawLine(tooltip, data, lineData)
     local raw = isEquip(plain) and statsOf(data) or nil
     local key, effect = ItemStats.LineStat(plain, raw)
     local color = colors and key and Colors.STATS[key]
-    local brief = shorten and key and effect and ItemStats.ShortEffect(key, effect, raw)
+    local group = shorten and key and effect and GROUP_OPTIONS[ItemStats.LineGroup(key)]
+    local brief = group and short.db[group] and ItemStats.ShortEffect(key, effect, raw)
     if not (color or brief) then
         return
     end

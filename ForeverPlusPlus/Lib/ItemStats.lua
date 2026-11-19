@@ -809,6 +809,25 @@ function ItemStats.LineStat(text, raw)
     return name and lineNames[name] or nil
 end
 
+-- The kind of bonus each key an Equip: line can carry is, for a module that treats kinds apart.
+local LINE_GROUPS = {
+    AP = "combat", RAP = "combat", HIT = "combat", CRIT = "combat", HASTE = "combat", EXPERTISE = "combat",
+    ARMORPEN = "combat", DEF = "combat", DODGE = "combat", PARRY = "combat", BLOCK = "combat",
+    BLOCKVALUE = "combat",
+    SP = "spell", HEAL = "spell", SPELLHIT = "spell", SPELLCRIT = "spell",
+    MP5 = "regen", HP5 = "regen",
+    SKILL = "skill",
+}
+
+---The kind of bonus an Equip: line's key is: "combat" (attack power, hit, crit, haste, defense,
+---dodge, and the like), "spell" (spell power, damage, healing, piercing), "regen" (mana and health
+---per 5 seconds), or "skill" (profession and weapon skills).
+---@param key string from ItemStats.LineStat
+---@return string? group
+function ItemStats.LineGroup(key)
+    return LINE_GROUPS[key]
+end
+
 ---An Equip: line's effect written as the game writes a plain stat: "Increases damage and healing
 ---done by magical spells and effects by up to 29." as "+29 Spell Power". The number is the line's
 ---own, so a line that gives a percent keeps it ("+1% Hit"), and the name is the client's short

@@ -198,6 +198,9 @@ do
     eq(short("HEAL", "Increases healing done by up to 20 and damage done by up to 7 for all magical spells "
         .. "and effects."), "+20 Spell Healing and +7 Spell Damage", "stat line: healing and damage together")
     eq(line("Equip: Decreases your chance to Dodge an attack by 1.5%."), nil, "stat line: a penalty is left alone")
+    eq(ItemStats.LineGroup("CRIT") .. " " .. ItemStats.LineGroup("HEAL") .. " " .. ItemStats.LineGroup("MP5")
+        .. " " .. ItemStats.LineGroup("SKILL"), "combat spell regen skill", "line group: the four kinds")
+    eq(ItemStats.LineGroup("STR"), nil, "line group: an attribute is no Equip: line's")
     -- Stats only a line needs, and healing with spell damage on one line (build 70959's strings).
     strings.ITEM_MOD_FIRE_DAMAGE_DONE = "Increases fire damage done by up to %s."
     strings.ITEM_MOD_FIRE_DAMAGE_DONE_SHORT = "Fire Damage"
