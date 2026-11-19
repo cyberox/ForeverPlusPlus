@@ -21,6 +21,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 ### Fixed
 
+- **NPC Nameplates**, **Player Nameplates**: the game's own name no longer shows over ours with the Total RP 3 addon loaded.
 - **NPC Nameplates**: a notice with a Turn On button shows while Blizzard's nameplates for players' pets are off, which left pets with the game's own name whatever Skip Pets said.
 - **Quest Pins**: a quest whose earlier quest QuestieDB marks with a minus sign gets its pin once that quest is done.
 - **Quest Pins**: a quest that scales to your level, such as the warlock quest Devourer of Souls, is no longer treated as far too low for you.

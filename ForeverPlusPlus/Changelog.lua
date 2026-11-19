@@ -38,6 +38,8 @@ ns.changelog = {
                     .. "the game's dots. They show for your own icons, as before." },
             } },
             { L.CHANGELOG_FIXED, {
+                { L.NPCNAMEPLATES_TITLE, "The game's own name no longer shows over ours with the "
+                    .. "Total RP 3 addon loaded. The same goes for Player Nameplates." },
                 { L.NPCNAMEPLATES_TITLE, "A notice with a Turn On button shows while Blizzard's nameplates "
                     .. "for players' pets are off, which left pets with the game's own name whatever Skip Pets said." },
                 { L.QUESTPINS_TITLE, "A quest whose earlier quest QuestieDB marks with a minus sign gets its pin once that quest is done." },

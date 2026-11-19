@@ -27,6 +27,7 @@
 local _, ns = ...
 
 local pairs, ipairs, setmetatable, hooksecurefunc, type = pairs, ipairs, setmetatable, hooksecurefunc, type
+local getmetatable = getmetatable
 local CreateFrame = CreateFrame
 local UnitIsPlayer, UnitIsFriend, UnitIsUnit = UnitIsPlayer, UnitIsFriend, UnitIsUnit
 local UnitAffectingCombat, UnitHealthPercent = UnitAffectingCombat, UnitHealthPercent
@@ -65,11 +66,39 @@ local function onNameSet(fontString)
     end
 end
 
+-- A color set with an alpha sets the font string's alpha too, which shows a name we hid. Blizzard
+-- sets three numbers, but Total RP 3 (Modules/NamePlates/NamePlatesBlizzard.lua) puts the name's
+-- color back with the alpha it read before we hid it, whenever it updates a plate.
+local function onNameColored(fontString)
+    if mirrored[fontString] then
+        fontString:SetAlpha(0)
+    end
+end
+
+local colorHooked
+
+-- Total RP 3 calls the widget's own method off its metatable, past any hook on the font string
+-- itself, so the hook goes on the method every font string shares. Only with Total RP 3 loaded
+-- (probe: its global), since that's the one addon known to do it; it costs a table lookup for
+-- each font string colored.
+local function hookColor(name)
+    if colorHooked or not _G.TRP3_BlizzardNamePlates then
+        return
+    end
+    local meta = getmetatable(name)
+    local methods = meta and meta.__index
+    if type(methods) == "table" and methods.SetVertexColor then
+        colorHooked = true
+        hooksecurefunc(methods, "SetVertexColor", onNameColored)
+    end
+end
+
 local function hookName(name)
     if not hookedNames[name] then
         hookedNames[name] = true
         hooksecurefunc(name, "SetText", onNameSet)
     end
+    hookColor(name)
 end
 
 -- Blizzard unit frame -> { plates, unit } while one of ours shows on it
