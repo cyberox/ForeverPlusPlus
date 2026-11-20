@@ -70,6 +70,28 @@ local function isCombatLog(frame)
     return frame == _G.COMBATLOG or (_G.IsCombatLog and _G.IsCombatLog(frame)) and true or false
 end
 
+-- The longest line kept, in bytes. A chat line with its links and colors is well under this: it's
+-- here so a line something made huge is dropped instead of saved and put back again (see `add`).
+local MAX_LINE = 4000
+
+-- Puts a saved line back as it was drawn, through Blizzard's own AddMessage and not the window's.
+-- Another chat addon replaces a window's AddMessage to rewrite each line as it's added: a level
+-- before a name, a web address made a link. A saved line already has those, so through the
+-- window's AddMessage it got them again at every login and was saved with one more layer each
+-- time, and a link inside a link doubles: a Guild Message of the Day with a web address reached
+-- 2.4 GB in one character's saved file, and the game ran out of memory loading it (vChat, from a
+-- player's files, 2026-11-20). Our own readers of new lines skip these too, which they'd only
+-- have read a second time.
+local function add(frame, text, r, g, b)
+    local mixin = _G.ChatFrameMixin
+    local blizzard = mixin and mixin.AddMessage or frame.AddMessage
+    blizzard(frame, text, r, g, b)
+end
+
+local function keepable(text)
+    return ns.IsText(text) and #text <= MAX_LINE
+end
+
 local function save()
     local saved = {}
     local whispers = whisperIDs()
@@ -81,7 +103,7 @@ local function save()
             -- An unreadable type id is left out too, since it could be a whisper's.
             local whisper = not ns.IsReadable(chatTypeID)
                 or (type(chatTypeID) == "number" and whispers[chatTypeID])
-            if not whisper and ns.IsText(text)
+            if not whisper and keepable(text)
                 and text ~= L.CHATHISTORY_DIVIDER
                 and ns.IsReadable(r) and ns.IsReadable(g) and ns.IsReadable(b) then
                 lines[#lines + 1] = { text, r, g, b }
@@ -102,13 +124,18 @@ local function restore(_, isLogin, isReload)
         local lines = not isCombatLog(frame) and module.db.saved[index]
         if lines and #lines > 0 then
             for _, line in ipairs(lines) do
-                frame:AddMessage(line[1], line[2], line[3], line[4])
+                if type(line) == "table" and keepable(line[1]) then
+                    add(frame, line[1], line[2], line[3], line[4])
+                end
             end
             if module.db.divider then
-                frame:AddMessage(L.CHATHISTORY_DIVIDER, 0.6, 0.6, 0.6)
+                add(frame, L.CHATHISTORY_DIVIDER, 0.6, 0.6, 0.6)
             end
         end
     end
+    -- They're in the windows now, and logging out saves the windows again. Let go of the saved
+    -- copy so a huge line from before the limit isn't held in memory for the whole session.
+    module.db.saved = {}
 end
 
 function module:IsAvailable()

@@ -57,6 +57,11 @@ ns.changelog = {
                     .. "caused it." },
             } },
             { L.CHANGELOG_FIXED, {
+                { L.CHATHISTORY_TITLE, "With another chat addon that rewrites chat lines, such as "
+                    .. "vChat, saved lines no longer get its changes added again at every login. A "
+                    .. "line with a web address doubled in size each time until the saved file was "
+                    .. "gigabytes and the game ran out of memory at login. Lines are now put back "
+                    .. "exactly as saved, and one longer than 4,000 letters is not kept." },
                 { L.NPCNAMEPLATES_TITLE, "The game's own name no longer shows over ours with the "
                     .. "Total RP 3 addon loaded. The same goes for Player Nameplates." },
                 { L.NPCNAMEPLATES_TITLE, "A notice with a Turn On button shows while Blizzard's nameplates "

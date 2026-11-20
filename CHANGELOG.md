@@ -25,6 +25,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 ### Fixed
 
+- **Chat History**: with another chat addon that rewrites chat lines, such as vChat, saved lines no longer get its changes added again at every login. A line with a web address doubled in size each time until the saved file was gigabytes and the game ran out of memory at login. Lines are now put back exactly as saved, and one longer than 4,000 letters is not kept.
 - **NPC Nameplates**, **Player Nameplates**: the game's own name no longer shows over ours with the Total RP 3 addon loaded.
 - **NPC Nameplates**: a notice with a Turn On button shows while Blizzard's nameplates for players' pets are off, which left pets with the game's own name whatever Skip Pets said.
 - **Quest Pins**: a quest whose earlier quest QuestieDB marks with a minus sign gets its pin once that quest is done.
