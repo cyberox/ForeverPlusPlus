@@ -44,6 +44,7 @@ module.category = "system"
 
 local MAX_ERRORS = 100 -- the oldest go first
 local MAX_TEXT = 2000 -- letters kept of a stack or the locals, so the saved file stays small
+local MAX_CONTEXT = 6000 -- letters kept of what was going on, which lists the controller's state
 local PER_SECOND = 10 -- errors caught a second at most; an error in OnUpdate repeats every frame
 local ANNOUNCE_EVERY = 10 -- seconds between chat messages and sounds about new errors
 
@@ -450,7 +451,11 @@ local function blockedContext()
     if gamepadUI() then
         lines[#lines + 1] = format(L.ERRORCATCHER_CONTEXT_STATE, controllerState())
     end
-    return concat(lines, "\n")
+    local text = concat(lines, "\n")
+    if #text > MAX_CONTEXT then
+        text = text:sub(1, MAX_CONTEXT) .. "\n..."
+    end
+    return text
 end
 
 -- ADDON_ACTION_BLOCKED and ADDON_ACTION_FORBIDDEN: an addon called something only Blizzard's

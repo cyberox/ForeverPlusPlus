@@ -39,6 +39,7 @@ local internal = module.internal
 local MAX_MESSAGES = 200 -- kept per conversation, the oldest go first
 local MAX_CONVERSATIONS = 50 -- the ones quiet longest go first
 local MAX_WHISPER = 255 -- bytes the game sends in one whisper
+local MAX_STORED = 4096 -- bytes kept of one saved message
 internal.MAX_MESSAGES = MAX_MESSAGES
 internal.MAX_TEXT = 1000 -- bytes the reply box takes, sent as several whispers past MAX_WHISPER
 
@@ -223,6 +224,11 @@ local function classOf(guid)
 end
 
 local function add(conversation, kind, text)
+    -- A whisper is 255 bytes and a Battle.net one a few thousand at most, so this cuts nothing
+    -- real: it's here so no one line can make the saved file large.
+    if type(text) == "string" and #text > MAX_STORED then
+        text = text:sub(1, MAX_STORED)
+    end
     local messages = conversation.messages
     messages[#messages + 1] = { time = time(), kind = kind, text = text }
     while #messages > MAX_MESSAGES do
