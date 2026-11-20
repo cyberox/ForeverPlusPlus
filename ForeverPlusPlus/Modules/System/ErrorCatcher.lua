@@ -275,13 +275,18 @@ local gamepadUI = ns.Gamepad.On
 -- time a value carries an addon's name it's noted with the time and the windows open then, for
 -- the bug report. issecurevariable only asks who wrote a value: nothing is called or written.
 local WATCH_EVERY = 0.5 -- seconds
-local WATCH_KEYS = 2000 -- values asked about in one check at most
-local WATCH_NOTES = 30 -- notes kept
+local WATCH_KEYS = 6000 -- values asked about in one check at most
+local WATCH_NOTES = 40 -- notes kept
 local WATCH_ROOTS = { -- a global's name, and how many tables deep to look
     { "GamepadMode", 3 },
     { "SmartNavigation", 2 },
     { "GamepadMainActionBarFrame", 1 },
+    -- The binding stack (InputBindingManager): its sets, each set's bindings, and each binding's
+    -- own state are that many tables down. The focus manager reads it on nearly every path.
+    { "GamepadSharedUtility", 7 },
 }
+
+local watchingSince -- time() of the first check, since a value found then was written before it
 
 local stateNotes = {} -- { path, by, time, windows }, in the order found
 local noted = setmetatable({}, { __mode = "k" }) -- table -> the keys of it already noted
@@ -360,6 +365,7 @@ local function checkControllerState()
     end
     wipe(visited)
     asked = 0
+    watchingSince = watchingSince or time()
     for _, root in ipairs(WATCH_ROOTS) do
         local tbl = _G[root[1]]
         if type(tbl) == "table" then
@@ -383,7 +389,7 @@ local function controllerState()
     if #stateNotes == 0 then
         return L.ERRORCATCHER_CONTEXT_NONE
     end
-    local lines = {}
+    local lines = { format(L.ERRORCATCHER_CONTEXT_STATE_SINCE, date("%H:%M:%S", watchingSince)) }
     for _, note in ipairs(stateNotes) do
         lines[#lines + 1] = format(L.ERRORCATCHER_CONTEXT_STATE_LINE, note.path, note.by,
             date("%H:%M:%S", note.time), note.windows or L.ERRORCATCHER_CONTEXT_NONE)

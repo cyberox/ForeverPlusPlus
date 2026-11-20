@@ -61,6 +61,8 @@ L.ERRORCATCHER_CONTEXT_TAINT_LOG = "Taint log on: %s"
 L.ERRORCATCHER_CONTEXT_STATE = "Controller state written by an addon: %s"
 -- The value's name, the addon, the time first seen, and the windows open then.
 L.ERRORCATCHER_CONTEXT_STATE_LINE = "  %s by %s, first seen %s, windows open: %s"
+-- When the watch began: a value first seen at this time was already written before it.
+L.ERRORCATCHER_CONTEXT_STATE_SINCE = "  (watching since %s)"
 L.ERRORCATCHER_CONTEXT_YES = "yes"
 L.ERRORCATCHER_CONTEXT_NO = "no"
 L.ERRORCATCHER_CONTEXT_NONE = "none"
