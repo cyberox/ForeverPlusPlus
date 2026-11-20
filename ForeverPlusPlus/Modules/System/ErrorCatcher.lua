@@ -276,7 +276,7 @@ local gamepadUI = ns.Gamepad.On
 -- the bug report. issecurevariable only asks who wrote a value: nothing is called or written.
 local WATCH_EVERY = 0.5 -- seconds
 local WATCH_KEYS = 6000 -- values asked about in one check at most
-local WATCH_NOTES = 40 -- notes kept
+local WATCH_NOTES = 300 -- notes kept; the report groups them
 local WATCH_ROOTS = { -- a global's name, and how many tables deep to look
     { "GamepadMode", 3 },
     { "SmartNavigation", 2 },
@@ -390,8 +390,26 @@ local function controllerState()
         return L.ERRORCATCHER_CONTEXT_NONE
     end
     local lines = { format(L.ERRORCATCHER_CONTEXT_STATE_SINCE, date("%H:%M:%S", watchingSince)) }
+    -- A table whose every entry was written at once (the binding stack's forty buttons) is one
+    -- line: its first entry, and how many more.
+    local groups, order = {}, {}
     for _, note in ipairs(stateNotes) do
-        lines[#lines + 1] = format(L.ERRORCATCHER_CONTEXT_STATE_LINE, note.path, note.by,
+        local parent = note.path:match("^(.*)%.[^.]*$") or note.path
+        local id = concat({ parent, note.by, note.time, note.windows or "" }, "\1")
+        local group = groups[id]
+        if group then
+            group.more = group.more + 1
+        else
+            group = { note = note, more = 0 }
+            groups[id] = group
+            order[#order + 1] = group
+        end
+    end
+    for _, group in ipairs(order) do
+        local note = group.note
+        local path = group.more > 0 and format(L.ERRORCATCHER_CONTEXT_STATE_MORE, note.path, group.more)
+            or note.path
+        lines[#lines + 1] = format(L.ERRORCATCHER_CONTEXT_STATE_LINE, path, note.by,
             date("%H:%M:%S", note.time), note.windows or L.ERRORCATCHER_CONTEXT_NONE)
     end
     return "\n" .. concat(lines, "\n")
