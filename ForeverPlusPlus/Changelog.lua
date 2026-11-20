@@ -51,6 +51,10 @@ ns.changelog = {
                     .. "and veins in the world still show it." },
                 { L.GATHERINGMAP_TITLE, "The same patch means minimap tooltips no longer add lines to "
                     .. "the game's dots. They show for your own icons, as before." },
+                { L.ERRORCATCHER_TITLE, "With the controller interface on, a blocked action's report "
+                    .. "also lists what an addon has written into the controller's own state, with "
+                    .. "the time it was first seen and the windows open then, to help find what "
+                    .. "caused it." },
             } },
             { L.CHANGELOG_FIXED, {
                 { L.NPCNAMEPLATES_TITLE, "The game's own name no longer shows over ours with the "

@@ -381,7 +381,7 @@ What each module is, in the code's terms (what it does for players is in `README
 - **XP Bar Text**
 - **Reputation Bar Text**: `RepBarText`: our text over each container's reputation bar as XP Bar Text does it (`StatusBars.Texts`), a tooltip of our own, and the watched faction moved to the one that last gained.
 - **AddOns List**
-- **Error Catcher**
+- **Error Catcher**: while the controller interface is on it also checks the controller navigation's tables (`GamepadMode`, `SmartNavigation`) twice a second with `issecurevariable`, and notes each value an addon wrote for a blocked action's report.
 - **Minimap Button**: its menu of quick toggles, picked by the player with the Customize button in its settings.
 - **Currency Bar**
 - **Character Window**: a folder: the module, its durability bars, and equipped weapon skill colors.

@@ -22,6 +22,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 
 - **Gathering Skill Tooltips**: the game's minimap dots no longer get the skill line: since the latest patch the game hides from addons which dot is under the mouse. Herbs and veins in the world still show it.
 - **Gathering Map**: the same patch means minimap tooltips no longer add lines to the game's dots. They show for your own icons, as before.
+- **Error Catcher**: with the controller interface on, a blocked action's report also lists what an addon has written into the controller's own state, with the time it was first seen and the windows open then, to help find what caused it.
 
 ### Fixed
 

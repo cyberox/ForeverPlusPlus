@@ -50,6 +50,7 @@
     "C_EncodingUtil",
     "Enum",
     "issecretvalue",
+    "issecurevariable",
     "UnitHealth",
     "UnitHealthMax",
     "UnitHealthPercent",

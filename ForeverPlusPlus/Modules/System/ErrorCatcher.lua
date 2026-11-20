@@ -14,6 +14,7 @@ local _, ns = ...
 
 local format, tostring, pcall, select, ipairs, type = string.format, tostring, pcall, select, ipairs, type
 local min = math.min
+local pairs, setmetatable, issecurevariable, _G = pairs, setmetatable, issecurevariable, _G
 local concat, tremove, wipe, time, date = table.concat, table.remove, wipe, time, date
 local CreateFrame, GetTime = CreateFrame, GetTime
 local C_Timer, error = C_Timer, error
@@ -263,11 +264,137 @@ local function openMenus()
     return #names > 0 and concat(names, ", ") or nil
 end
 
--- What was going on when an action was blocked, since it comes with no stack: combat, the kind
--- of instance, the frame under the mouse, the menus open, whether the controller interface was
--- on, and whether the taint log was writing.
 local gamepadUI = ns.Gamepad.On
 
+-- The controller's stored state -----------------------------------------------------------------
+-- Forever's controller navigation keeps what's open, what has focus, and which buttons do what in
+-- plain tables. A value written there while addon code runs keeps that addon's name, and whatever
+-- reads it next, even the game's own key press, is refused from then on (WoWUIBugs #896). A
+-- refusal's stack shows only the read. What caused it is the write, which can be minutes earlier,
+-- so while the controller interface is on these tables are checked twice a second, and the first
+-- time a value carries an addon's name it's noted with the time and the windows open then, for
+-- the bug report. issecurevariable only asks who wrote a value: nothing is called or written.
+local WATCH_EVERY = 0.5 -- seconds
+local WATCH_KEYS = 2000 -- values asked about in one check at most
+local WATCH_NOTES = 30 -- notes kept
+local WATCH_ROOTS = { -- a global's name, and how many tables deep to look
+    { "GamepadMode", 3 },
+    { "SmartNavigation", 2 },
+    { "GamepadMainActionBarFrame", 1 },
+}
+
+local stateNotes = {} -- { path, by, time, windows }, in the order found
+local noted = setmetatable({}, { __mode = "k" }) -- table -> the keys of it already noted
+local visited, trail, asked = {}, {}, 0
+
+-- The windows the controller's focus manager has open, by name.
+local function controllerWindows()
+    local mode = _G.GamepadMode
+    local manager = type(mode) == "table" and mode.FrameControlsManager
+    local frames = type(manager) == "table" and manager.shownFrames
+    if type(frames) ~= "table" then
+        return nil
+    end
+    local names = {}
+    for i = 1, min(#frames, 8) do
+        local frame = frames[i]
+        if type(frame) == "table" and frame.GetDebugName then
+            local ok, name = pcall(frame.GetDebugName, frame)
+            names[#names + 1] = ok and readable(name, nil) or nil
+        end
+    end
+    return #names > 0 and concat(names, ", ") or nil
+end
+
+local function noteState(tbl, key, by, depth)
+    local keys = noted[tbl]
+    if not keys then
+        keys = {}
+        noted[tbl] = keys
+    end
+    if keys[key] or #stateNotes >= WATCH_NOTES then
+        return
+    end
+    keys[key] = true
+    trail[depth] = tostring(key)
+    stateNotes[#stateNotes + 1] = {
+        path = concat(trail, ".", 1, depth),
+        by = readable(by, L.ERRORCATCHER_UNKNOWN),
+        time = time(),
+        windows = controllerWindows(),
+    }
+end
+
+local function scanState(tbl, depth, deepest)
+    if visited[tbl] then
+        return
+    end
+    visited[tbl] = true
+    for key, value in pairs(tbl) do
+        if asked >= WATCH_KEYS then
+            return
+        end
+        local kind = type(key)
+        if kind == "string" or kind == "number" then
+            asked = asked + 1
+            -- It takes a name, so a list's own entries can't be asked about; the list can.
+            if kind == "string" then
+                local ok, secure, by = pcall(issecurevariable, tbl, key)
+                if ok and secure == false then
+                    noteState(tbl, key, by, depth)
+                end
+            end
+            -- Not into a frame: its fields are its children, which is most of the interface.
+            if depth < deepest and type(value) == "table" and not value.GetObjectType then
+                trail[depth] = tostring(key)
+                scanState(value, depth + 1, deepest)
+            end
+        end
+    end
+end
+
+-- Notes every value in the controller's tables that an addon wrote and wasn't noted before.
+local function checkControllerState()
+    if not (issecurevariable and gamepadUI()) then
+        return
+    end
+    wipe(visited)
+    asked = 0
+    for _, root in ipairs(WATCH_ROOTS) do
+        local tbl = _G[root[1]]
+        if type(tbl) == "table" then
+            trail[1] = root[1]
+            pcall(scanState, tbl, 2, root[2] + 1)
+        end
+    end
+    wipe(visited)
+end
+
+local stateTimer = ns.Frames.Timer(module)
+
+local function watchControllerState()
+    checkControllerState()
+    stateTimer:Start(WATCH_EVERY, watchControllerState)
+end
+
+-- The notes as the report's lines, or "none".
+local function controllerState()
+    checkControllerState()
+    if #stateNotes == 0 then
+        return L.ERRORCATCHER_CONTEXT_NONE
+    end
+    local lines = {}
+    for _, note in ipairs(stateNotes) do
+        lines[#lines + 1] = format(L.ERRORCATCHER_CONTEXT_STATE_LINE, note.path, note.by,
+            date("%H:%M:%S", note.time), note.windows or L.ERRORCATCHER_CONTEXT_NONE)
+    end
+    return "\n" .. concat(lines, "\n")
+end
+
+-- What was going on when an action was blocked, since it comes with no stack: combat, the kind
+-- of instance, the frame under the mouse, the menus open, whether the controller interface was
+-- on, whether the taint log was writing, and what an addon has written into the controller's
+-- state.
 local function blockedContext()
     local none = L.ERRORCATCHER_CONTEXT_NONE
     local _, instance = IsInInstance()
@@ -282,6 +409,9 @@ local function blockedContext()
         format(L.ERRORCATCHER_CONTEXT_TAINT_LOG, taintLogOn() and L.ERRORCATCHER_CONTEXT_YES
             or L.ERRORCATCHER_CONTEXT_NO),
     }
+    if gamepadUI() then
+        lines[#lines + 1] = format(L.ERRORCATCHER_CONTEXT_STATE, controllerState())
+    end
     return concat(lines, "\n")
 end
 
@@ -996,6 +1126,7 @@ function module:OnEnable()
         self:Hook("StaticPopup_Show", onPopup)
     end
     self:HookScript(ScriptErrorsFrame, "OnShow", onErrorWindow)
+    watchControllerState()
 
     if #pending > 0 then
         local count = #pending

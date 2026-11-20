@@ -57,6 +57,10 @@ L.ERRORCATCHER_CONTEXT_MOUSE = "Mouse over: %s" -- a frame's name, such as Targe
 L.ERRORCATCHER_CONTEXT_MENUS = "Menus open: %s" -- menu tags, such as MENU_UNIT_TARGET
 L.ERRORCATCHER_CONTEXT_GAMEPAD = "Controller interface: %s"
 L.ERRORCATCHER_CONTEXT_TAINT_LOG = "Taint log on: %s"
+-- Values in the controller navigation's tables that addon code wrote, each on a line of its own.
+L.ERRORCATCHER_CONTEXT_STATE = "Controller state written by an addon: %s"
+-- The value's name, the addon, the time first seen, and the windows open then.
+L.ERRORCATCHER_CONTEXT_STATE_LINE = "  %s by %s, first seen %s, windows open: %s"
 L.ERRORCATCHER_CONTEXT_YES = "yes"
 L.ERRORCATCHER_CONTEXT_NO = "no"
 L.ERRORCATCHER_CONTEXT_NONE = "none"
