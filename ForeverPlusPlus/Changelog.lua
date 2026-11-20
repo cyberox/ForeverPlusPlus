@@ -37,7 +37,8 @@ ns.changelog = {
                 { L.WORLDMAP_TITLE, "Points of Interest shows the entrances of Krol'dok Stronghold, in "
                     .. "the Riverglades, and Alcaz Prison, off Dustwallow Marsh." },
                 { L.MOVABLECOMBATLOGTAB_TITLE, "A new module, off by default, that lets you drag the "
-                    .. "Combat Log's tab anywhere among your chat tabs, even after the ones you made." },
+                    .. "Combat Log's tab anywhere among your chat tabs, even after the ones you made. "
+                    .. "With the controller interface on it leaves the tab where the game puts it." },
                 { L.QUESTREPUTATION_TITLE, "A new module, off by default, that shows the reputation a "
                     .. "quest gives, and with which faction, in its Rewards in the quest log, or at the "
                     .. "bottom of its description. Thanks to cyberox." },

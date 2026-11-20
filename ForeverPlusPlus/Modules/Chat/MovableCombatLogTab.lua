@@ -22,6 +22,7 @@ local module = ns.NewModule("MovableCombatLogTab", L.MOVABLECOMBATLOGTAB_DESC, {
 module.title = L.MOVABLECOMBATLOGTAB_TITLE
 module.category = "chat"
 module.added = "1.9.0"
+module.notice = ns.Gamepad.LimitedNotice() -- it leaves the tab alone then (see `apply`)
 
 -- Where the log sits in the dock, and whether it's the window shown.
 local function place(dock, frame)
@@ -34,7 +35,14 @@ end
 
 local function apply()
     local frame, dock = _G.ChatFrame2, _G.GENERAL_CHAT_DOCK
-    if not (frame and dock) then
+    -- Not with the controller interface on. Taking the log out of the dock and putting it back
+    -- writes the dock's list of windows in our name, the dock makes its LB and RB bindings again
+    -- from that list, and from then on the controller's own code is refused: the game menu, bags,
+    -- and SetPreferredGamepadInteractTarget, until a /reload (Error Catcher's controller state,
+    -- seen in game, build 70959, 2026-11-19: ChatFrame2.dock and GENERAL_CHAT_DOCK.footer.bindings
+    -- ours a second after login). Dragging a tab needs a mouse besides. The log's tab stays where
+    -- Blizzard puts it; XML sets the mark again at the next load.
+    if not (frame and dock) or ns.Gamepad.On() then
         return
     end
     local fixed = not module.enabled
