@@ -14,8 +14,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Item Tooltips**: Show New in Forever (off by default) says "New in Forever" on an item Classic never had.
 - **Player Nameplates**: three options for the Total RP 3 addon, on by default: Total RP 3 Names writes a player's roleplay name with its out of character mark, Total RP 3 Name Colors uses the color on their roleplay profile, and Total RP 3 Icons shows their profile icon beside the name with the other icons. Each follows Total RP 3's own nameplate settings, and none needs its Blizzard Nameplates module turned on.
 - **World Map**: Points of Interest shows the entrances of Krol'dok Stronghold, in the Riverglades, and Alcaz Prison, off Dustwallow Marsh.
-- **Movable Combat Log Tab**: a new module, off by default, that lets you drag the Combat Log's tab anywhere among your chat tabs, even after the ones you made. With the controller interface on it leaves the tab where the game puts it.
-- **Quest Reputation**: a new module, off by default, that shows the reputation a quest gives, and with which faction, in its Rewards in the quest log, or at the bottom of its description. Thanks to cyberox.
+- **Movable Combat Log Tab**: a new module, off by default, that lets you drag the Combat Log's tab anywhere among your chat tabs, even after the ones you made.- **Quest Reputation**: a new module, off by default, that shows the reputation a quest gives, and with which faction, in its Rewards in the quest log, or at the bottom of its description. Thanks to cyberox.
 - **Tooltips**: Quest Item Drop Chance (on by default, needs the QuestieDB addon) shows the chance a creature drops a quest's item after its line on the creature's tooltip, like "0/1 Intact Hailstrider Beak (35%)".
 
 ### Changed

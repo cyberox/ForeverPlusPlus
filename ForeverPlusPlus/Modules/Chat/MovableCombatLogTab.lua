@@ -22,27 +22,22 @@ local module = ns.NewModule("MovableCombatLogTab", L.MOVABLECOMBATLOGTAB_DESC, {
 module.title = L.MOVABLECOMBATLOGTAB_TITLE
 module.category = "chat"
 module.added = "1.9.0"
-module.notice = ns.Gamepad.LimitedNotice() -- it leaves the tab alone then (see `apply`)
+module.notice = ns.Gamepad.LimitedNotice() -- dragging a tab needs a mouse
 
--- Where the log sits in the dock, and whether it's the window shown.
-local function place(dock, frame)
-    for index, docked in ipairs(_G.FCFDock_GetChatFrames(dock)) do
-        if docked == frame then
-            return index, _G.FCFDock_GetSelectedWindow(dock) == frame
+-- The tab of the last fixed window in the dock, which the strip of the other tabs starts after.
+local function lastFixedTab(dock)
+    local tab
+    for _, docked in ipairs(_G.FCFDock_GetChatFrames(dock)) do
+        if docked.isStaticDocked then
+            tab = _G[docked:GetName() .. "Tab"] or tab
         end
     end
+    return tab
 end
 
 local function apply()
     local frame, dock = _G.ChatFrame2, _G.GENERAL_CHAT_DOCK
-    -- Not with the controller interface on. Taking the log out of the dock and putting it back
-    -- writes the dock's list of windows in our name, the dock makes its LB and RB bindings again
-    -- from that list, and from then on the controller's own code is refused: the game menu, bags,
-    -- and SetPreferredGamepadInteractTarget, until a /reload (Error Catcher's controller state,
-    -- seen in game, build 70959, 2026-11-19: ChatFrame2.dock and GENERAL_CHAT_DOCK.footer.bindings
-    -- ours a second after login). Dragging a tab needs a mouse besides. The log's tab stays where
-    -- Blizzard puts it; XML sets the mark again at the next load.
-    if not (frame and dock) or ns.Gamepad.On() then
+    if not (frame and dock) then
         return
     end
     local fixed = not module.enabled
@@ -50,20 +45,32 @@ local function apply()
         return
     end
     frame.isStaticDocked = fixed or nil
-    local index, selected = place(dock, frame)
-    if fixed or not index then
-        _G.FCF_DockUpdate()
-        return
-    end
     -- Redrawing as it is would loop the anchors: the strip of tabs sits at the log tab's right
     -- edge, and the log's tab would go into that strip, so the redraw stops halfway and both
-    -- vanish. Out of the dock first, the strip moves to General's edge, then back in its place.
-    _G.FCF_UnDockFrame(frame)
-    _G.FCF_DockFrame(frame, index, selected)
+    -- vanish. So the strip is moved to the last fixed tab's edge first, as the redraw then does
+    -- itself.
+    --
+    -- Not by taking the log out of the dock and putting it back (FCF_UnDockFrame, FCF_DockFrame),
+    -- which does the same: that writes the dock's list of windows in our name. With the controller
+    -- interface on the dock makes its LB and RB bindings again from that list, and from then on
+    -- the controller's own code is refused: the game menu, bags, and
+    -- SetPreferredGamepadInteractTarget, until a /reload (Error Catcher's controller state, seen
+    -- in game, build 70959, 2026-11-19: ChatFrame2.dock and GENERAL_CHAT_DOCK.footer.bindings ours
+    -- a second after login).
+    local strip = dock.scrollFrame
+    if not fixed and strip then
+        local tab = lastFixedTab(dock)
+        if tab then
+            strip:SetPoint("LEFT", tab, "RIGHT")
+        else
+            strip:SetPoint("LEFT")
+        end
+    end
+    _G.FCF_DockUpdate()
 end
 
 function module:IsAvailable()
-    return _G.ChatFrame2 ~= nil and _G.GENERAL_CHAT_DOCK ~= nil and _G.FCF_DockFrame ~= nil
+    return _G.ChatFrame2 ~= nil and _G.GENERAL_CHAT_DOCK ~= nil and _G.FCF_DockUpdate ~= nil
 end
 
 function module:OnEnable()
