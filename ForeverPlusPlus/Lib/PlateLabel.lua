@@ -11,6 +11,7 @@
 --                          iconSize (a percent like nameSize; nameSize without it),
 --                          socialIcons, groupIcon ("role"/"looking"), iconSide
 --                          ("after"/"before" the name) and testIcons
+--   style.Name(unit)       the name to write in place of Blizzard's (optional; nil for Blizzard's)
 --   style.NameColor(unit)  r, g, b for the name
 --   style.BarNameColor(unit)  r, g, b for the name while the bar is up (optional; NameColor)
 --   style.Subtitle(unit)   the subtitle text (nil for none; may be secret) and when it shows:
@@ -627,7 +628,13 @@ end
 ---@param unit string
 ---@param style table see the top of this file
 function PlateLabel.Layout(label, record, unit, style)
-    label.name:SetText(record.name:GetText())
+    -- Blizzard's own text may be secret, so it's only ever passed on.
+    local own = style.Name and style.Name(unit)
+    if own then
+        label.name:SetText(own)
+    else
+        label.name:SetText(record.name:GetText())
+    end
     matchFont(label, record.name, (style.db.nameSize or 100) / 100)
     label.name:SetTextColor(style.NameColor(unit))
     -- Out from the name on each side: the class icon, then the level (or the other way round, with
@@ -690,7 +697,11 @@ function PlateLabel.Layout(label, record, unit, style)
     -- With the bar up: our bar-view name centered on the plate just above the bar, the class
     -- icon and other icons beside it, all shifted so they're centered together. Blizzard's level
     -- stays on the bar.
-    label.barName:SetText(record.name:GetText())
+    if own then
+        label.barName:SetText(own)
+    else
+        label.barName:SetText(record.name:GetText())
+    end
     label.barName:SetTextColor((style.BarNameColor or style.NameColor)(unit))
     local barClassWidth = placeClass(label.barClassIcon, label.barName, classLeft, classSize, gap,
         atlas, round)

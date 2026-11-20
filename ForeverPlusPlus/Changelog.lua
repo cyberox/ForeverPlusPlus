@@ -28,11 +28,12 @@ ns.changelog = {
                     .. "Healing, Mana and Health Regen, and Skills." },
                 { L.ITEMTOOLTIPS_TITLE, "Show New in Forever (off by default) says \"New in Forever\" "
                     .. "on an item Classic never had." },
-                { L.PLAYERNAMEPLATES_TITLE, "Total RP 3 Name Colors (on by default, needs the Total RP 3 "
-                    .. "addon) colors a player's name with the color on their roleplay profile." },
-                { L.PLAYERNAMEPLATES_TITLE, "Total RP 3 Icons (on by default, needs the Total RP 3 "
-                    .. "addon) shows the icon on a player's roleplay profile beside their name, with "
-                    .. "the other icons." },
+                { L.PLAYERNAMEPLATES_TITLE, "Three options for the Total RP 3 addon, on by default: "
+                    .. "Total RP 3 Names writes a player's roleplay name with its out of character "
+                    .. "mark, Total RP 3 Name Colors uses the color on their roleplay profile, and "
+                    .. "Total RP 3 Icons shows their profile icon beside the name with the other "
+                    .. "icons. Each follows Total RP 3's own nameplate settings, and none needs its "
+                    .. "Blizzard Nameplates module turned on." },
                 { L.WORLDMAP_TITLE, "Points of Interest shows the entrances of Krol'dok Stronghold, in "
                     .. "the Riverglades, and Alcaz Prison, off Dustwallow Marsh." },
                 { L.MOVABLECOMBATLOGTAB_TITLE, "A new module, off by default, that lets you drag the "

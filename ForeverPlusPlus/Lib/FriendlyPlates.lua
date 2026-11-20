@@ -8,9 +8,11 @@
 --       players = true,             -- friendly players, or false for friendly NPCs
 --       cvars = { { names = { "cvarName", "olderName" }, value = "1" }, ... }, -- value may be fn(db)
 --       style = { NameColor = fn, Subtitle = fn, SubtitleColor = fn, icons = bool },
---       -- and optionally style.RoleplayIcon and style.OwnsRoleplayIcon (see ns.PlateLabel)
+--       -- and optionally style.Name, style.RoleplayIcon and style.OwnsRoleplayIcon (see
+--       -- ns.PlateLabel)
 --       OnEnable = fn(module), -- optional: more to do when the module turns on
 --       Skip = fn(unit),       -- optional: true leaves this unit's plate to Blizzard
+--       Roleplay = fn(db),     -- optional: true while its settings use Total RP 3's plate data
 --   })
 --   plates:Refresh() -- after a setting the plates draw from changed
 --   plates:Recheck() -- after a setting Skip reads changed
@@ -28,8 +30,8 @@
 local _, ns = ...
 
 local pairs, ipairs, setmetatable, hooksecurefunc, type = pairs, ipairs, setmetatable, hooksecurefunc, type
-local getmetatable = getmetatable
-local CreateFrame = CreateFrame
+local getmetatable, next, wipe = getmetatable, next, wipe
+local CreateFrame, C_Timer = CreateFrame, C_Timer
 local UnitIsPlayer, UnitIsFriend, UnitIsUnit = UnitIsPlayer, UnitIsFriend, UnitIsUnit
 local UnitAffectingCombat, UnitHealthPercent = UnitAffectingCombat, UnitHealthPercent
 local UnitHealth, UnitHealthMax, pcall, max, floor = UnitHealth, UnitHealthMax, pcall, math.max, math.floor
@@ -96,43 +98,111 @@ local function hookShared(name)
     end
 end
 
----Whether the Total RP 3 addon's nameplates are here, for an option that needs them.
----@return boolean
-function FriendlyPlates.HasRoleplay()
-    return _G.TRP3_BlizzardNamePlates ~= nil
+-- Total RP 3 ------------------------------------------------------------------------------------
+-- What Total RP 3 works out for a unit's plate (the roleplay name, its out of character mark, the
+-- profile's color and icon) comes from its nameplate core, TRP3_NamePlates, which tells whoever
+-- listens each time a plate's data changes: the way its own Plater and Platynator support get it
+-- (Modules/NamePlates/NamePlatesCore.lua, 3.5.5). So ours works with its Blizzard Nameplates
+-- module off, which players turn off for the errors it gives on Forever. The core is marked
+-- private there, so everything read from it is probed, and its calls go through pcall.
+local roleplay = {} -- unit -> its display info, as last told
+local roleplayUsers = {} -- the plates that want it -> true
+local listening = false
+local listener = {}
+
+local function roleplayCore()
+    local core = _G.TRP3_NamePlates
+    return type(core) == "table" and core.RegisterCallback and core.UnregisterCallback and core or nil
 end
 
--- Total RP 3's own answer for a unit's plate, as it last worked it out (it keeps one per unit).
-local function roleplayInfo(unit)
-    local addon = _G.TRP3_BlizzardNamePlates
-    return addon and addon.GetUnitDisplayInfo and addon:GetUnitDisplayInfo(unit)
+-- Called by the core, as it calls its own listeners: (event, nameplate, unit, display info).
+function listener:OnNamePlateDataUpdated(_, _, unit, info)
+    if type(unit) ~= "string" then
+        return
+    end
+    roleplay[unit] = type(info) == "table" and info or nil
+    for plates in pairs(active) do
+        if plates.records[unit] then
+            plates:Layout(unit)
+        end
+    end
+end
+
+-- Listens while any of our plates wants it, and stops when none does. The core turns itself on
+-- for its first listener and tells it about every plate on screen.
+local function syncRoleplay()
+    local want = next(roleplayUsers) ~= nil
+    local core = roleplayCore()
+    if want == listening or not core then
+        return
+    end
+    if pcall(want and core.RegisterCallback or core.UnregisterCallback, listener, "OnNamePlateDataUpdated") then
+        listening = want
+    end
+    if not listening then
+        wipe(roleplay)
+        for plates in pairs(active) do
+            plates:Refresh()
+        end
+    end
+end
+
+-- A frame later: Total RP 3 starts itself at login too, and its core can't be listened to before.
+local function useRoleplay(plates, on)
+    roleplayUsers[plates] = on and true or nil
+    C_Timer.After(0, syncRoleplay)
+end
+
+---Whether the Total RP 3 addon's nameplate data is here, for an option that needs it.
+---@return boolean
+function FriendlyPlates.HasRoleplay()
+    return roleplayCore() ~= nil
+end
+
+---The name Total RP 3 gives a unit: the one on the player's roleplay profile, as its own name
+---settings write it, with its out of character mark where that setting is on. Nil without the
+---addon or for a unit it gives no name.
+---@param unit string
+---@return string? name
+function FriendlyPlates.RoleplayName(unit)
+    local info = roleplay[unit]
+    local name = info and info.name
+    if not ns.IsText(name, true) then
+        return nil
+    end
+    local util = _G.TRP3_NamePlatesUtil
+    if info.roleplayStatus and type(util) == "table" and util.PrependRoleplayStatusToText then
+        local ok, marked = pcall(util.PrependRoleplayStatusToText, name, info.roleplayStatus)
+        if ok and ns.IsText(marked, true) then
+            name = marked
+        end
+    end
+    return name
 end
 
 ---The color Total RP 3 gives a unit's name: the one on the player's roleplay profile, where its
----own Name Colors setting is on. Nil without the addon, for a unit it doesn't color, or while its
----nameplates are off.
+---own Name Colors setting is on. Nil without the addon or for a unit it doesn't color.
 ---@param unit string
 ---@return number? r
 ---@return number? g
 ---@return number? b
 function FriendlyPlates.RoleplayColor(unit)
-    -- Its table of units isn't there until its nameplates turn on, and the call throws.
-    local ok, info = pcall(roleplayInfo, unit)
-    local color = ok and type(info) == "table" and info.shouldColorName and info.color
+    local info = roleplay[unit]
+    local color = info and info.shouldColorName and info.color
     if type(color) == "table" and color.GetRGB then
         return color:GetRGB()
     end
 end
 
 ---Sets `texture` to the icon Total RP 3 gives a unit's plate: the one on the player's roleplay
----profile, where its own icon setting is on. False without the addon, for a unit it gives no
----icon, or while its nameplates are off; the texture is left as it was then.
+---profile, where its own icon setting is on. False without the addon or for a unit it gives no
+---icon; the texture is left as it was then.
 ---@param unit string
 ---@param texture table a texture of ours
 ---@return boolean set
 function FriendlyPlates.RoleplayIcon(unit, texture)
-    local ok, info = pcall(roleplayInfo, unit)
-    local icon = ok and type(info) == "table" and not info.shouldHide and info.icon
+    local info = roleplay[unit]
+    local icon = info and info.icon
     local util = _G.TRP3_IconUtil
     if not (icon and type(util) == "table" and util.SetTextureToIcon) then
         return false
@@ -462,6 +532,7 @@ function FriendlyPlates.New(module, spec)
     end
     module.OnOptionChanged = module.OnOptionChanged or function(mod)
         if mod.enabled then
+            self:SyncRoleplay()
             self:ApplyCVars(true)
             self:Recheck()
             self:Refresh()
@@ -697,6 +768,7 @@ function Plates:Remove(unit)
         return
     end
     self.records[unit] = nil
+    roleplay[unit] = nil -- the unit's name goes to another unit; Total RP 3 says who as it's added
     anchorBuffs(record, "blizzard")
     record.container:SetAlpha(1)
     fadeLevel(record, 1)
@@ -739,6 +811,12 @@ function Plates:ApplyCVars(changing)
     end
 end
 
+---Listens to Total RP 3 while the module's settings use what it says (`spec.Roleplay(db)`).
+function Plates:SyncRoleplay()
+    local wants = self.spec.Roleplay
+    useRoleplay(self, wants and wants(self.module.db) or false)
+end
+
 ---Sets the CVars, and starts handling plates and their events (the events through module:On, so
 ---they stop by themselves when the module turns off).
 function Plates:Enable()
@@ -748,6 +826,7 @@ function Plates:Enable()
         curve, inverse = ns.HealthStepCurve(1, 0), ns.HealthStepCurve(0, 1)
     end
     self.style.db = module.db
+    self:SyncRoleplay()
     self:ApplyCVars()
     for _, event in ipairs(EVENTS) do
         module:On(event, self.onUnitEvent)
@@ -773,6 +852,7 @@ end
 ---Gives every plate back to Blizzard and puts the player's CVars back.
 function Plates:Disable()
     active[self] = nil
+    useRoleplay(self, false)
     Nameplates.Unregister(self)
     ns.CVars.RestoreAll(self.module.db.saved)
 end

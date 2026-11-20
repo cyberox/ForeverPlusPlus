@@ -13,6 +13,7 @@ local Units = ns.Units
 local module = ns.NewModule("PlayerNameplates", L.PLAYERNAMEPLATES_DESC, ns.FriendlyPlates.Defaults({
     nameColor = "class", -- "class" or "white"
     lightRogue = false, -- rogues in a pale yellow, apart from neutral NPCs' yellow
+    roleplayName = true, -- the name Total RP 3 gives a player, with that addon loaded
     roleplayColor = true, -- the name color Total RP 3 gives a player, with that addon loaded
     roleplayIcon = true, -- the profile icon Total RP 3 gives a player, with that addon loaded
     dimOthers = true, -- not in your group or guild, a friend, or a recent ally: faded
@@ -65,6 +66,12 @@ module.options = ns.FriendlyPlates.Options(L.PLAYERNAMEPLATES_HEALTH_BAR_DESC, {
         key = "lightRogue", name = L.PLAYERNAMEPLATES_LIGHT_ROGUE, description = L.PLAYERNAMEPLATES_LIGHT_ROGUE_DESC,
         section = L.PLATES_SECTION_NAME, added = "1.0.1",
         shown = function(db) return db.nameColor == "class" and ns.FriendlyPlates.HasNameView(db) end,
+    },
+    {
+        key = "roleplayName", name = L.PLAYERNAMEPLATES_ROLEPLAY_NAME,
+        description = L.PLAYERNAMEPLATES_ROLEPLAY_NAME_DESC,
+        section = L.PLATES_SECTION_NAME, added = "1.9.0",
+        available = ns.FriendlyPlates.HasRoleplay, needs = format(L.SETTINGS_NEEDS_ADDON, "Total RP 3"),
     },
     {
         key = "roleplayColor", name = L.PLAYERNAMEPLATES_ROLEPLAY_COLOR,
@@ -234,6 +241,11 @@ function style.NameColor(unit)
     return 1, 1, 1
 end
 
+-- Total RP 3 Names: the roleplay name, with its out of character mark.
+function style.Name(unit)
+    return module.db.roleplayName and ns.FriendlyPlates.RoleplayName(unit) or nil
+end
+
 -- Total RP 3 Icons: the profile icon, drawn with our other icons in place of that addon's own.
 function style.OwnsRoleplayIcon()
     return module.db.roleplayIcon and ns.FriendlyPlates.HasRoleplay()
@@ -334,6 +346,9 @@ plates = ns.FriendlyPlates.New(module, {
         { names = { "nameplateUseClassColorForFriendlyPlayerUnitNames" }, value = "0" },
     },
     style = style,
+    Roleplay = function(db)
+        return db.roleplayName or db.roleplayColor or db.roleplayIcon
+    end,
     OnEnable = function(self)
         if Units.HasRecentAllies() then
             for _, event in ipairs(Units.RECENT_ALLY_EVENTS) do
