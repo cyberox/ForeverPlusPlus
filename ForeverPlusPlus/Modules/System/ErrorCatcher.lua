@@ -285,6 +285,12 @@ local WATCH_ROOTS = { -- a global's name, and how many tables deep to look
     -- The binding stack (InputBindingManager): its sets, each set's bindings, and each binding's
     -- own state are that many tables down. The focus manager reads it on nearly every path.
     { "GamepadSharedUtility", 7 },
+    -- The chat dock: its LB and RB bindings are made again each time it looks at its list of
+    -- windows, so a list an addon touched makes them that addon's (FloatingChatFrame.lua,
+    -- PromptedBindingFooter.lua, Gethe `forever` branch).
+    { "GENERAL_CHAT_DOCK", 2 },
+    { "ChatFrame1", 1 },
+    { "ChatFrame2", 1 },
 }
 
 local watchingSince -- time() of the first check, since a value found then was written before it
