@@ -149,7 +149,7 @@ Generated files, in `Lib/Generated/` (never edited by hand; see Generated data):
 
 ### `PlateLabel.lua` and `FriendlyPlates.lua`
 
-- `ns.PlateLabel`, `ns.FriendlyPlates`: the name-only friendly plates Player Nameplates and NPC Nameplates share. With the Total RP 3 addon loaded (`HasRoleplay`), the plates keep Blizzard's name hidden and copy the name it writes, and `RoleplayColor(unit)` gives the name color it worked out for a unit.
+- `ns.PlateLabel`, `ns.FriendlyPlates`: the name-only friendly plates Player Nameplates and NPC Nameplates share. With the Total RP 3 addon loaded (`HasRoleplay`), the plates keep Blizzard's name hidden and copy the name it writes, `RoleplayColor(unit)` gives the name color it worked out for a unit, and `RoleplayIcon(unit, texture)` sets a texture to the profile icon it gives the unit's plate.
 
 ### `Units.lua`
 

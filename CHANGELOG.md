@@ -13,6 +13,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Item Tooltips**: Short Stat Text (on by default) writes an Equip: bonus that is a plain stat the way the game writes a stat, like "+29 Spell Power", "+2% Hit", "+14 Fire Damage", or "+20 Spell Healing and +7 Spell Damage". Four checkboxes pick which kinds it shortens: Attack and Defense, Spells and Healing, Mana and Health Regen, and Skills.
 - **Item Tooltips**: Show New in Forever (off by default) says "New in Forever" on an item Classic never had.
 - **Player Nameplates**: Total RP 3 Name Colors (on by default, needs the Total RP 3 addon) colors a player's name with the color on their roleplay profile.
+- **Player Nameplates**: Total RP 3 Icons (on by default, needs the Total RP 3 addon) shows the icon on a player's roleplay profile beside their name, with the other icons.
 - **World Map**: Points of Interest shows the entrances of Krol'dok Stronghold, in the Riverglades, and Alcaz Prison, off Dustwallow Marsh.
 - **Movable Combat Log Tab**: a new module, off by default, that lets you drag the Combat Log's tab anywhere among your chat tabs, even after the ones you made.
 - **Quest Reputation**: a new module, off by default, that shows the reputation a quest gives, and with which faction, in its Rewards in the quest log, or at the bottom of its description. Thanks to cyberox.

@@ -8,6 +8,7 @@
 --       players = true,             -- friendly players, or false for friendly NPCs
 --       cvars = { { names = { "cvarName", "olderName" }, value = "1" }, ... }, -- value may be fn(db)
 --       style = { NameColor = fn, Subtitle = fn, SubtitleColor = fn, icons = bool },
+--       -- and optionally style.RoleplayIcon and style.OwnsRoleplayIcon (see ns.PlateLabel)
 --       OnEnable = fn(module), -- optional: more to do when the module turns on
 --       Skip = fn(unit),       -- optional: true leaves this unit's plate to Blizzard
 --   })
@@ -120,6 +121,33 @@ function FriendlyPlates.RoleplayColor(unit)
     local color = ok and type(info) == "table" and info.shouldColorName and info.color
     if type(color) == "table" and color.GetRGB then
         return color:GetRGB()
+    end
+end
+
+---Sets `texture` to the icon Total RP 3 gives a unit's plate: the one on the player's roleplay
+---profile, where its own icon setting is on. False without the addon, for a unit it gives no
+---icon, or while its nameplates are off; the texture is left as it was then.
+---@param unit string
+---@param texture table a texture of ours
+---@return boolean set
+function FriendlyPlates.RoleplayIcon(unit, texture)
+    local ok, info = pcall(roleplayInfo, unit)
+    local icon = ok and type(info) == "table" and not info.shouldHide and info.icon
+    local util = _G.TRP3_IconUtil
+    if not (icon and type(util) == "table" and util.SetTextureToIcon) then
+        return false
+    end
+    -- Its own call, so a profile's icon is found the way it finds it (a file or an atlas).
+    return pcall(util.SetTextureToIcon, texture, icon) and true or false
+end
+
+-- Total RP 3's own icon on a plate (UnitFrame.TRP3_Icon, its texture) hangs off Blizzard's name,
+-- which we hide and which sits at the bar's left: hidden while our label draws the icon, and
+-- shown again as the plate is given back.
+local function fadeRoleplayIcon(record, alpha)
+    local theirs = record.frame and record.frame.TRP3_Icon
+    if type(theirs) == "table" and theirs.SetAlpha then
+        theirs:SetAlpha(alpha)
     end
 end
 
@@ -547,7 +575,9 @@ end
 function Plates:Layout(unit)
     local record = self.records[unit]
     if record and record.label then
-        PlateLabel.Layout(record.label, record, unit, self.style)
+        local style = self.style
+        fadeRoleplayIcon(record, style.OwnsRoleplayIcon and style.OwnsRoleplayIcon() and 0 or 1)
+        PlateLabel.Layout(record.label, record, unit, style)
         record.label.rise = nameRise(record.label)
         -- The row may be wider or narrower now; keep the raid icon just past it.
         if record.raidWhere == "name" or record.raidWhere == "unsure" then
@@ -675,6 +705,7 @@ function Plates:Remove(unit)
         mirrored[record.name] = nil
     end
     anchorRaidTarget(record, "blizzard")
+    fadeRoleplayIcon(record, 1)
     if record.frame then
         anchoredFrames[record.frame] = nil
     end

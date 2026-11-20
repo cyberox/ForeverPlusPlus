@@ -30,6 +30,9 @@ ns.changelog = {
                     .. "on an item Classic never had." },
                 { L.PLAYERNAMEPLATES_TITLE, "Total RP 3 Name Colors (on by default, needs the Total RP 3 "
                     .. "addon) colors a player's name with the color on their roleplay profile." },
+                { L.PLAYERNAMEPLATES_TITLE, "Total RP 3 Icons (on by default, needs the Total RP 3 "
+                    .. "addon) shows the icon on a player's roleplay profile beside their name, with "
+                    .. "the other icons." },
                 { L.WORLDMAP_TITLE, "Points of Interest shows the entrances of Krol'dok Stronghold, in "
                     .. "the Riverglades, and Alcaz Prison, off Dustwallow Marsh." },
                 { L.MOVABLECOMBATLOGTAB_TITLE, "A new module, off by default, that lets you drag the "

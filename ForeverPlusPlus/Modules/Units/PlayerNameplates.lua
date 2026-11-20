@@ -14,6 +14,7 @@ local module = ns.NewModule("PlayerNameplates", L.PLAYERNAMEPLATES_DESC, ns.Frie
     nameColor = "class", -- "class" or "white"
     lightRogue = false, -- rogues in a pale yellow, apart from neutral NPCs' yellow
     roleplayColor = true, -- the name color Total RP 3 gives a player, with that addon loaded
+    roleplayIcon = true, -- the profile icon Total RP 3 gives a player, with that addon loaded
     dimOthers = true, -- not in your group or guild, a friend, or a recent ally: faded
     dimAmount = 30, -- percent dimmer
     iconSize = 80, -- percent of Blizzard's name size, like nameSize
@@ -154,6 +155,12 @@ module.options = ns.FriendlyPlates.Options(L.PLAYERNAMEPLATES_HEALTH_BAR_DESC, {
         requires = "socialIcons", section = L.PLAYERNAMEPLATES_SECTION_ICONS,
     },
     {
+        key = "roleplayIcon", name = L.PLAYERNAMEPLATES_ROLEPLAY_ICON,
+        description = L.PLAYERNAMEPLATES_ROLEPLAY_ICON_DESC,
+        section = L.PLAYERNAMEPLATES_SECTION_ICONS, added = "1.9.0",
+        available = ns.FriendlyPlates.HasRoleplay, needs = format(L.SETTINGS_NEEDS_ADDON, "Total RP 3"),
+    },
+    {
         -- Also the recent ally icon, so not under Group and Friend Icons.
         key = "iconSide", name = L.PLAYERNAMEPLATES_ICON_SIDE, description = L.PLAYERNAMEPLATES_ICON_SIDE_DESC,
         choices = {
@@ -225,6 +232,15 @@ function style.NameColor(unit)
         end
     end
     return 1, 1, 1
+end
+
+-- Total RP 3 Icons: the profile icon, drawn with our other icons in place of that addon's own.
+function style.OwnsRoleplayIcon()
+    return module.db.roleplayIcon and ns.FriendlyPlates.HasRoleplay()
+end
+
+function style.RoleplayIcon(unit, texture)
+    return module.db.roleplayIcon and ns.FriendlyPlates.RoleplayIcon(unit, texture)
 end
 
 -- Dim Other Players: anyone not in your group or guild, a friend, or a recent ally, unless you

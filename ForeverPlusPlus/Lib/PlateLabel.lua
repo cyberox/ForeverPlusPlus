@@ -23,6 +23,11 @@
 --                          db.classIconStyle's look ("ring"/"round"/"square"), and past the
 --                          level instead when it's on the same side and db.classIconOrder is
 --                          "outside"
+--   style.RoleplayIcon(unit, texture)  sets `texture` to the unit's roleplay profile icon and
+--                          returns true, or false for none (optional): it sits with the other
+--                          icons, nearest the name
+--   style.OwnsRoleplayIcon()  whether that icon is ours to draw now (optional): FriendlyPlates
+--                          hides the roleplay addon's own while it is
 --   style.Alpha(unit)      how opaque the name and what's beside it are, 0 to 1 (optional; 1)
 -- Labels are kept per Blizzard unit frame and shared by every module, since plates are pooled.
 local _, ns = ...
@@ -211,6 +216,31 @@ local function placeIcons(icons, anchor, left, size, gap, unit, style)
     return width
 end
 
+-- The roleplay profile icon (style.RoleplayIcon), the size of the other icons and first of them
+-- beside `anchor` (left of it when `left`); returns the width it takes, 0 for a unit with none.
+-- A profile's icon is mostly a spell-style one, so its border is cropped as Blizzard crops those;
+-- set first, since an icon that's an atlas brings its own coordinates.
+local function placeRoleplay(icon, anchor, left, size, gap, unit, style)
+    icon:ClearAllPoints()
+    if not style.RoleplayIcon then
+        icon:Hide()
+        return 0
+    end
+    icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    if not style.RoleplayIcon(unit, icon) then
+        icon:Hide()
+        return 0
+    end
+    icon:SetSize(size, size)
+    if left then
+        icon:SetPoint("RIGHT", anchor, "LEFT", -gap, 0)
+    else
+        icon:SetPoint("LEFT", anchor, "RIGHT", gap, 0)
+    end
+    icon:Show()
+    return size + gap
+end
+
 -- The class icon, the same size as the other icons, in one of Blizzard's looks: the square class
 -- art, the round art of Retail's class portraits, or the group finder's icon in a ring (Forever's
 -- own -c60 one first). Each falls back to the others, since atlas names change between builds.
@@ -338,6 +368,10 @@ local function createLabel(frame)
     label.barIcons = createIcons(label.barFrame)
     label.classIcon = newClassIcon(label)
     label.barClassIcon = newClassIcon(label.barFrame)
+    label.roleplayIcon = label:CreateTexture(nil, "OVERLAY")
+    label.roleplayIcon:Hide()
+    label.barRoleplayIcon = label.barFrame:CreateTexture(nil, "OVERLAY")
+    label.barRoleplayIcon:Hide()
     return label
 end
 
@@ -638,7 +672,9 @@ function PlateLabel.Layout(label, record, unit, style)
     elseif classHere then
         anchor = label.classIcon
     end
-    local iconsWidth = placeIcons(label.icons, anchor, iconsLeft, size, gap, unit, style)
+    local roleplayWidth = placeRoleplay(label.roleplayIcon, anchor, iconsLeft, size, gap, unit, style)
+    local iconsWidth = roleplayWidth + placeIcons(label.icons,
+        roleplayWidth > 0 and label.roleplayIcon or anchor, iconsLeft, size, gap, unit, style)
     local leftWidth, rightWidth = 0, 0
     local function add(left, width)
         if left then
@@ -659,7 +695,10 @@ function PlateLabel.Layout(label, record, unit, style)
     local barClassWidth = placeClass(label.barClassIcon, label.barName, classLeft, classSize, gap,
         atlas, round)
     local barAnchor = atlas and classLeft == iconsLeft and label.barClassIcon or label.barName
-    local barIconsWidth = placeIcons(label.barIcons, barAnchor, iconsLeft, size, gap, unit, style)
+    local barRoleplayWidth = placeRoleplay(label.barRoleplayIcon, barAnchor, iconsLeft, size, gap,
+        unit, style)
+    local barIconsWidth = barRoleplayWidth + placeIcons(label.barIcons,
+        barRoleplayWidth > 0 and label.barRoleplayIcon or barAnchor, iconsLeft, size, gap, unit, style)
     local barLeft = (classLeft and barClassWidth or 0) + (iconsLeft and barIconsWidth or 0)
     local barRight = (classLeft and 0 or barClassWidth) + (iconsLeft and 0 or barIconsWidth)
     local barRow = label.barRow
@@ -676,7 +715,8 @@ function PlateLabel.Layout(label, record, unit, style)
     if label.alpha ~= alpha then
         label.alpha = alpha
         for _, region in ipairs({ label.name, label.subtitle, label.level, label.classIcon,
-            label.barName, label.barSubtitle, label.barClassIcon }) do
+            label.barName, label.barSubtitle, label.barClassIcon, label.roleplayIcon,
+            label.barRoleplayIcon }) do
             region:SetAlpha(alpha)
         end
         for _, kind in ipairs(ORDER) do
