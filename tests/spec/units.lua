@@ -175,6 +175,8 @@ eq(Units.Title("focus"), nil, "title: no tooltip, no title")
 -- NPC IDs out of GUIDs.
 eq(Units.NpcID("Creature-0-4444-0-12-2955-0000AB12CD"), 2955, "npc id: a creature's")
 eq(Units.NpcID("Vehicle-0-4444-0-12-3100-0000AB12CD"), 3100, "npc id: a vehicle's")
+eq(Units.NpcID("Creature-X9-A1F0-0-ZZ-2955-0000AB12CD"), 2955, "npc id: with the parts before it hidden")
+eq(Units.NpcID("Creature---0--2955-0000AB12CD"), 2955, "npc id: with the parts before it empty")
 eq(Units.NpcID("Player-4444-00ABCDEF"), nil, "npc id: a player has none")
 eq(Units.NpcID(SECRET), nil, "npc id: a secret GUID isn't read")
 eq(Units.NpcID(nil), nil, "npc id: nothing")

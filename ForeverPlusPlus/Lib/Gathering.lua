@@ -444,8 +444,9 @@ local function lootSource()
     if not guid:find("^GameObject") then
         return false, nil
     end
-    -- GameObject-0-[server]-[instance]-[zone]-[object ID]-[spawn]
-    return true, tonumber(guid:match("^GameObject%-%d+%-%d+%-%d+%-%d+%-(%d+)%-"))
+    -- GameObject-0-[server]-[instance]-[zone]-[object ID]-[spawn]. The parts before the ID are
+    -- taken as any text, since the game hides them (see Units.NpcID).
+    return true, tonumber(guid:match("^GameObject%-[^%-]*%-[^%-]*%-[^%-]*%-[^%-]*%-(%d+)%-"))
 end
 
 -- The item in a loot slot: { id, count, icon }, any of them nil when it can't be read.

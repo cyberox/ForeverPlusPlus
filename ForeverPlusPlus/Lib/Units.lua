@@ -334,12 +334,16 @@ end
 
 ---The NPC's ID from a creature's (or vehicle's) GUID, or nil for anything else. A secret GUID, in
 ---combat or an instance, isn't read.
+---
+---Creature-0-[server]-[instance]-[zone]-[NPC ID]-[spawn]. Only the ID's place is counted on: the
+---game hides the parts before it one by one (the server and spawn, then the realm, in a 1.60.1
+---hotfix, from Blizzard's 12.1.7 PTR notes, 2026-11-19), so they are taken as any text.
 ---@param guid any
 ---@return number?
 function Units.NpcID(guid)
     if not ns.IsText(guid) then
         return nil
     end
-    return tonumber(guid:match("^Creature%-%d+%-%d+%-%d+%-%d+%-(%d+)%-"))
-        or tonumber(guid:match("^Vehicle%-%d+%-%d+%-%d+%-%d+%-(%d+)%-"))
+    return tonumber(guid:match("^Creature%-[^%-]*%-[^%-]*%-[^%-]*%-[^%-]*%-(%d+)%-"))
+        or tonumber(guid:match("^Vehicle%-[^%-]*%-[^%-]*%-[^%-]*%-[^%-]*%-(%d+)%-"))
 end
