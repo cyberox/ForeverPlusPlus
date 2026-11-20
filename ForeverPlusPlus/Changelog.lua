@@ -61,7 +61,11 @@ ns.changelog = {
                     .. "vChat, saved lines no longer get its changes added again at every login. A "
                     .. "line with a web address doubled in size each time until the saved file was "
                     .. "gigabytes and the game ran out of memory at login. Lines are now put back "
-                    .. "exactly as saved, and one longer than 4,000 letters is not kept." },
+                    .. "exactly as saved, and one longer than 4,000 letters is not kept. A file that "
+                    .. "had grown mends itself the next time you log in and out. If the game still "
+                    .. "stops with a memory error at login, close it and delete that character's "
+                    .. "SavedVariables\\ForeverPlusPlus.lua, in WTF\\Account\\<account>\\<realm>\\"
+                    .. "<character>." },
                 { L.NPCNAMEPLATES_TITLE, "The game's own name no longer shows over ours with the "
                     .. "Total RP 3 addon loaded. The same goes for Player Nameplates." },
                 { L.NPCNAMEPLATES_TITLE, "A notice with a Turn On button shows while Blizzard's nameplates "
