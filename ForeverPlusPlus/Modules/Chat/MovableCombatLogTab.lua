@@ -13,6 +13,7 @@
 local _, ns = ...
 
 local _G, ipairs = _G, ipairs
+local tinsert, min = table.insert, math.min
 
 local L = ns.L
 
@@ -33,6 +34,49 @@ local function lastFixedTab(dock)
         end
     end
     return tab
+end
+
+-- The log fixed again: back to its own place in the dock's list, right after the other fixed
+-- windows. A fixed tab is drawn there wherever the list has it, but the list is what the
+-- controller's LB and RB step through and what a dropped tab's place is counted in, so a log left
+-- third in the list was shown second and reached third (seen in game, 2026-11-20).
+local function putBack(dock, frame)
+    local frames = _G.FCFDock_GetChatFrames(dock)
+    local at, want = nil, 1
+    for index, docked in ipairs(frames) do
+        if docked == frame then
+            at = index
+        elseif docked.isStaticDocked then
+            want = want + 1
+        end
+    end
+    if not at or at == want then
+        _G.FCF_DockUpdate()
+        return
+    end
+    if not ns.Gamepad.On() then
+        local selected = _G.FCFDock_GetSelectedWindow(dock) == frame
+        _G.FCF_UnDockFrame(frame)
+        _G.FCF_DockFrame(frame, want, selected)
+        return
+    end
+    -- With the controller interface on, moving it in the list is what breaks the controller (see
+    -- `apply`). So only the saved order is put right, as FCF_SaveDock writes it, which the game
+    -- reads at the next load; until then LB and RB reach the log where it was left.
+    local save = _G.SetChatWindowDocked
+    if save then
+        local order = {}
+        for _, docked in ipairs(frames) do
+            if docked ~= frame then
+                order[#order + 1] = docked
+            end
+        end
+        tinsert(order, min(want, #order + 1), frame)
+        for index, docked in ipairs(order) do
+            save(docked:GetID(), index)
+        end
+    end
+    _G.FCF_DockUpdate()
 end
 
 local function apply()
@@ -58,15 +102,19 @@ local function apply()
     -- in game, build 70959, 2026-11-19: ChatFrame2.dock and GENERAL_CHAT_DOCK.footer.bindings ours
     -- a second after login).
     local strip = dock.scrollFrame
-    if not fixed and strip then
-        local tab = lastFixedTab(dock)
-        if tab then
-            strip:SetPoint("LEFT", tab, "RIGHT")
-        else
-            strip:SetPoint("LEFT")
+    if not fixed then
+        if strip then
+            local tab = lastFixedTab(dock)
+            if tab then
+                strip:SetPoint("LEFT", tab, "RIGHT")
+            else
+                strip:SetPoint("LEFT")
+            end
         end
+        _G.FCF_DockUpdate()
+        return
     end
-    _G.FCF_DockUpdate()
+    putBack(dock, frame)
 end
 
 function module:IsAvailable()
