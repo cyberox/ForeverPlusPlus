@@ -15,6 +15,7 @@ local _, ns = ...
 local format, tostring, pcall, select, ipairs, type = string.format, tostring, pcall, select, ipairs, type
 local min = math.min
 local pairs, setmetatable, issecurevariable, _G = pairs, setmetatable, issecurevariable, _G
+local rawget = rawget
 local concat, tremove, wipe, time, date = table.concat, table.remove, wipe, time, date
 local CreateFrame, GetTime = CreateFrame, GetTime
 local C_Timer, error = C_Timer, error
@@ -322,8 +323,14 @@ local function noteState(tbl, key, by, depth)
     end
     keys[key] = true
     trail[depth] = tostring(key)
+    -- A binding set or binding says whose it is in its `name` ("TabIndicatorBindings").
+    local name = rawget(tbl, "name")
+    local path = concat(trail, ".", 1, depth)
+    if type(name) == "string" and ns.IsReadable(name) then
+        path = path .. " [" .. name .. "]"
+    end
     stateNotes[#stateNotes + 1] = {
-        path = concat(trail, ".", 1, depth),
+        path = path,
         by = readable(by, L.ERRORCATCHER_UNKNOWN),
         time = time(),
         windows = controllerWindows(),
@@ -395,6 +402,7 @@ local function controllerState()
     local groups, order = {}, {}
     for _, note in ipairs(stateNotes) do
         local parent = note.path:match("^(.*)%.[^.]*$") or note.path
+        parent = parent .. (note.path:match("( %[.*%])$") or "")
         local id = concat({ parent, note.by, note.time, note.windows or "" }, "\1")
         local group = groups[id]
         if group then
