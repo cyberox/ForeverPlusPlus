@@ -45,6 +45,15 @@ local function onReplace()
     end
 end
 
+-- An enchant cast from the professions window onto the item in its target slot asks with an event,
+-- popup, and call of its own (Blizzard_Game's Mainline HandleReplaceTradeskillEnchant, and
+-- REPLACE_TRADESKILL_ENCHANT in Blizzard_StaticPopup_Game's Mainline GameDialogDefs.lua).
+local function onReplaceCrafted()
+    if module.db.replace then
+        accept("ReplaceTradeskillEnchant", "REPLACE_TRADESKILL_ENCHANT")
+    end
+end
+
 local function onBind()
     if module.db.bind then
         accept("BindEnchant", "BIND_ENCHANT")
@@ -57,5 +66,8 @@ end
 
 function module:OnEnable()
     self:On("REPLACE_ENCHANT", onReplace)
+    if ns.HasEvent("REPLACE_TRADESKILL_ENCHANT") then
+        self:On("REPLACE_TRADESKILL_ENCHANT", onReplaceCrafted)
+    end
     self:On("BIND_ENCHANT", onBind)
 end

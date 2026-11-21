@@ -26,6 +26,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 ### Fixed
 
 - **Chat History**: with another chat addon that rewrites chat lines, such as vChat, saved lines no longer get its changes added again at every login. A line with a web address doubled in size each time until the saved file was gigabytes and the game ran out of memory at login. Lines are now put back exactly as saved, and one longer than 4,000 letters is not kept. A file that had grown mends itself the next time you log in and out. If the game still stops with a memory error at login, close it and delete that character's `SavedVariables\ForeverPlusPlus.lua`, in `WTF\Account\<account>\<realm>\<character>`.
+- **Auto Confirm**: an enchant cast from the professions window onto the item in its target slot is answered too. It asks with a popup of its own, which was left up.
 - **NPC Nameplates**, **Player Nameplates**: the game's own name no longer shows over ours with the Total RP 3 addon loaded.
 - **NPC Nameplates**: a notice with a Turn On button shows while Blizzard's nameplates for players' pets are off, which left pets with the game's own name whatever Skip Pets said.
 - **Quest Pins**: a quest whose earlier quest QuestieDB marks with a minus sign gets its pin once that quest is done.
