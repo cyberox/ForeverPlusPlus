@@ -17,6 +17,7 @@ local module = ns.NewModule("AutoConfirm", L.AUTOCONFIRM_DESC, {
     enabled = false,
     replace = true, -- an enchant replacing the one the item has
     bind = false, -- an enchant that binds the item to you
+    tradeBind = false, -- the trade window's warning that an enchant may bind the item
 })
 module.title = L.AUTOCONFIRM_TITLE
 module.category = "automation"
@@ -26,6 +27,8 @@ module.added = "1.7.0"
 module.options = {
     { key = "replace", name = L.AUTOCONFIRM_REPLACE, description = L.AUTOCONFIRM_REPLACE_DESC },
     { key = "bind", name = L.AUTOCONFIRM_BIND, description = L.AUTOCONFIRM_BIND_DESC },
+    { key = "tradeBind", name = L.AUTOCONFIRM_TRADEBIND, description = L.AUTOCONFIRM_TRADEBIND_DESC,
+        added = "1.9.0" },
 }
 
 -- Says yes with the C_Item call the popup's own Yes makes, then closes the popup. A call the
@@ -55,11 +58,20 @@ local function onReplaceCrafted()
 end
 
 -- And so does an enchant cast on the item in the trade window's last slot (Blizzard_Game's Shared
--- HandleTradeReplaceEnchant). The trade's own bind warning (TRADE_POTENTIAL_BIND_ENCHANT) is left
--- alone: it holds the Trade button, and its buttons make no call of the enchant's.
+-- HandleTradeReplaceEnchant).
 local function onReplaceTraded()
     if module.db.replace then
         accept("ReplaceTradeEnchant", "TRADE_REPLACE_ENCHANT")
+    end
+end
+
+-- The trade window's warning that the enchant may bind the item. Its Okay makes no call: the popup
+-- only holds the Trade button while it's up and gives it back as it hides (TradeFrame.lua's
+-- TRADE_POTENTIAL_BIND_ENCHANT, and the popup's OnHide), so closing it is the whole answer. The
+-- event comes with false when the game takes the warning down itself.
+local function onTradeBind(_, canBind)
+    if module.db.tradeBind and ns.IsTrue(canBind) then
+        ns.ClosePopup("TRADE_POTENTIAL_BIND_ENCHANT")
     end
 end
 
@@ -80,6 +92,9 @@ function module:OnEnable()
     end
     if ns.HasEvent("TRADE_REPLACE_ENCHANT") then
         self:On("TRADE_REPLACE_ENCHANT", onReplaceTraded)
+    end
+    if ns.HasEvent("TRADE_POTENTIAL_BIND_ENCHANT") then
+        self:On("TRADE_POTENTIAL_BIND_ENCHANT", onTradeBind)
     end
     self:On("BIND_ENCHANT", onBind)
 end

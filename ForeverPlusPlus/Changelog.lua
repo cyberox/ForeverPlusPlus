@@ -15,6 +15,8 @@ ns.changelog = {
             { L.CHANGELOG_ADDED, {
                 { L.AUTOOPEN_TITLE, "Pick Locks on Right Click (off by default), for Rogues, casts "
                     .. "Pick Lock on a locked lockbox you right click in your bags, then opens it." },
+                { L.AUTOCONFIRM_TITLE, "Binding in a Trade (off by default) closes the warning that "
+                    .. "an enchant cast in the trade window may bind the item." },
                 "For addon authors: the plugin kit's QuestieDB.Quest has a quest's children, parent, "
                     .. "and the game's quest tag, and QuestsUnlockedBy and QuestsLeadingTo find the quests that come after or before one.",
                 { L.PROFESSIONS_TITLE, "Cost to Craft on Recipes (on by default) shows what crafting a "

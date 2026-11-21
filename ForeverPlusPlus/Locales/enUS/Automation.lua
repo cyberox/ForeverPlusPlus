@@ -203,6 +203,9 @@ L.AUTOCONFIRM_REPLACE_DESC = "Confirm an enchant that replaces the one the item 
 L.AUTOCONFIRM_BIND = "Binding the Item"
 L.AUTOCONFIRM_BIND_DESC = "Confirm an enchant that binds the item to you. The item can't be "
     .. "traded or sold at auction afterwards."
+L.AUTOCONFIRM_TRADEBIND = "Binding in a Trade"
+L.AUTOCONFIRM_TRADEBIND_DESC = "Close the warning that an enchant cast in the trade window may "
+    .. "bind the item, so the trade can go on."
 
 -- AutoRelease
 L.AUTORELEASE_TITLE = "Auto Release"
