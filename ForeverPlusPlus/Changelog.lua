@@ -67,8 +67,8 @@ ns.changelog = {
                     .. "SavedVariables\\ForeverPlusPlus.lua, in WTF\\Account\\<account>\\<realm>\\"
                     .. "<character>." },
                 { L.AUTOCONFIRM_TITLE, "An enchant cast from the professions window onto the item in "
-                    .. "its target slot is answered too. It asks with a popup of its own, which was "
-                    .. "left up." },
+                    .. "its target slot is answered too, and so is one cast on an item in the trade "
+                    .. "window. Each asks with a popup of its own, which was left up." },
                 { L.NPCNAMEPLATES_TITLE, "The game's own name no longer shows over ours with the "
                     .. "Total RP 3 addon loaded. The same goes for Player Nameplates." },
                 { L.NPCNAMEPLATES_TITLE, "A notice with a Turn On button shows while Blizzard's nameplates "

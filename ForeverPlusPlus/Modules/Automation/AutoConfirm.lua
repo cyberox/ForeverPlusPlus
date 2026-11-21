@@ -54,6 +54,15 @@ local function onReplaceCrafted()
     end
 end
 
+-- And so does an enchant cast on the item in the trade window's last slot (Blizzard_Game's Shared
+-- HandleTradeReplaceEnchant). The trade's own bind warning (TRADE_POTENTIAL_BIND_ENCHANT) is left
+-- alone: it holds the Trade button, and its buttons make no call of the enchant's.
+local function onReplaceTraded()
+    if module.db.replace then
+        accept("ReplaceTradeEnchant", "TRADE_REPLACE_ENCHANT")
+    end
+end
+
 local function onBind()
     if module.db.bind then
         accept("BindEnchant", "BIND_ENCHANT")
@@ -68,6 +77,9 @@ function module:OnEnable()
     self:On("REPLACE_ENCHANT", onReplace)
     if ns.HasEvent("REPLACE_TRADESKILL_ENCHANT") then
         self:On("REPLACE_TRADESKILL_ENCHANT", onReplaceCrafted)
+    end
+    if ns.HasEvent("TRADE_REPLACE_ENCHANT") then
+        self:On("TRADE_REPLACE_ENCHANT", onReplaceTraded)
     end
     self:On("BIND_ENCHANT", onBind)
 end
