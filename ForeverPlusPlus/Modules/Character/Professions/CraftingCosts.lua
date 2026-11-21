@@ -1,7 +1,8 @@
 -- Professions' Crafting Costs: in the professions window, under the recipe's description, what its
 -- reagents cost in all (each one's price times the count the recipe takes), what the crafted items
 -- are worth, the profit after the auction house's cut, and how old the oldest auction price in
--- them is; and, with Profit in Recipe List, each recipe's profit on its row.
+-- them is; and, with Profit in Recipe List, each recipe's profit on its row. On tooltips: what a
+-- recipe item's recipe costs to craft, and what filling a Craftsman's Writ costs.
 --
 -- Auction prices come through ns.Prices (Item Tooltips' Auction Prices, or Auctionator through
 -- it). A reagent a merchant sells costs the merchant's price when that's lower than the auction's;
@@ -11,7 +12,7 @@
 -- inside Blizzard's reagent slots didn't fit, and a row per reagent was too much.)
 local _, ns = ...
 
-local ipairs, pairs, format, time, floor = ipairs, pairs, string.format, time, math.floor
+local ipairs, pairs, format, time, floor, ceil = ipairs, pairs, string.format, time, math.floor, math.ceil
 local CreateFrame, select, tostring, wipe = CreateFrame, select, tostring, wipe
 local C_Item, C_TradeSkillUI, Enum = C_Item, C_TradeSkillUI, Enum
 local GRAY_FONT_COLOR, HIGHLIGHT_FONT_COLOR = GRAY_FONT_COLOR, HIGHLIGHT_FONT_COLOR
@@ -26,6 +27,7 @@ local module = professions:NewPart({
 }, {
     craftingRows = true, -- each recipe's profit on its row of the recipe list
     craftingTooltip = true, -- a recipe item's tooltip says what crafting it costs
+    craftingWrits = true, -- a Craftsman's Writ's tooltip says what filling it costs
     -- Where the crafted item is sold: "auction" (a merchant only when it has no auction price),
     -- "vendor", or "best" (whichever pays more after the auction house's cut).
     craftingSell = "auction",
@@ -42,6 +44,10 @@ module:AddOptions({
     {
         key = "craftingTooltip", name = L.PROFESSIONS_CRAFTING_TOOLTIP,
         description = L.PROFESSIONS_CRAFTING_TOOLTIP_DESC, added = "1.9.0",
+    },
+    {
+        key = "craftingWrits", name = L.PROFESSIONS_CRAFTING_WRITS,
+        description = L.PROFESSIONS_CRAFTING_WRITS_DESC, added = "1.9.0",
     },
     {
         key = "craftingSell", name = L.PROFESSIONS_CRAFTING_SELL, description = L.PROFESSIONS_CRAFTING_SELL_DESC,
@@ -271,6 +277,69 @@ local function addRecipeCost(tooltip, data)
     end
     ns.ItemTooltip.AddInfo(tooltip, L.PROFESSIONS_CRAFT_TOOLTIP, text,
         ns.Prices.Inline() and "inline" or "right", "white")
+end
+
+-- Craftsman's Writs --------------------------------------------------------------------------------
+-- A Craftsman's Writ (a supply faction's order for one crafted item) says what filling it costs:
+-- crafting the item, and buying it at auction. The generated writ table names each writ's item, the
+-- recipe that makes it, and its quest. How many it asks for isn't in the game's tables: it's read
+-- from the quest's objectives when the game gives them (the writ's quest in the log, at least),
+-- and is one otherwise. **Unverified** in game: that the objectives are given before the quest is
+-- taken, and how the objective's text names the item.
+
+-- How many of its item a writ asks for: from its quest's objective that names the item, or 1.
+local function writCount(writ)
+    local getObjectives = _G.C_QuestLog and _G.C_QuestLog.GetQuestObjectives
+    local name = C_Item.GetItemNameByID and C_Item.GetItemNameByID(writ.item)
+    local objectives = getObjectives and ns.IsText(name) and getObjectives(writ.quest)
+    for _, objective in ipairs(objectives or {}) do
+        local text, count = objective.text, objective.numRequired
+        if ns.IsText(text) and ns.IsNumber(count) and count > 1 and text:find(name, 1, true) then
+            return count
+        end
+    end
+    return 1
+end
+
+-- Coins, then how many they're for when it's more than one.
+local function forCount(text, count)
+    if count > 1 then
+        return format(L.PROFESSIONS_CRAFT_EACH, text,
+            GRAY:WrapTextInColorCode(format(L.PROFESSIONS_WRIT_COUNT, count)))
+    end
+    return text
+end
+
+local function addWritCost(tooltip, data)
+    if not (module.enabled and module.db.craftingWrits and ns.Prices.Available()) then
+        return
+    end
+    local itemID = ns.ItemTooltip.ItemID(data)
+    local writ = itemID and (professions.internal.writs or {})[itemID]
+    if not writ then
+        return
+    end
+    local count = writCount(writ)
+    local align = ns.Prices.Inline() and "inline" or "right"
+    local sums = writ.spell and craftSums(writ.spell)
+    if sums then
+        -- A craft may make several (Crafted Solid Shot): as many crafts as fill the order.
+        local made = sums.low and (sums.low + sums.high) / 2 or 1
+        local crafts = ceil(count / (made > 0 and made or 1))
+        local text
+        if not sums.missing then
+            text = coins(sums.cost * crafts)
+        elseif sums.cost > 0 then
+            text = format(L.PROFESSIONS_CRAFT_EACH, coins(sums.cost * crafts),
+                GRAY:WrapTextInColorCode(L.PROFESSIONS_CRAFT_PARTIAL))
+        else
+            text = GRAY:WrapTextInColorCode(L.PROFESSIONS_CRAFT_NO_PRICE)
+        end
+        ns.ItemTooltip.AddInfo(tooltip, L.PROFESSIONS_CRAFT_TOOLTIP, forCount(text, count), align, "white")
+    end
+    local price = auctionPrice(writ.item)
+    local text = price and coins(price * count) or GRAY:WrapTextInColorCode(L.PROFESSIONS_CRAFT_NO_PRICE)
+    ns.ItemTooltip.AddInfo(tooltip, L.PROFESSIONS_WRIT_BUY, forCount(text, count), align, "white")
 end
 
 -- The totals ---------------------------------------------------------------------------------------
@@ -578,6 +647,7 @@ function module:OnEnable()
     ns.AddOns.WhenLoaded("Blizzard_Professions", hookProfessions)
     -- The hook can't be removed; addRecipeCost checks the part is on instead.
     ns.ItemTooltip.OnPrices(addRecipeCost, module)
+    ns.ItemTooltip.OnPrices(addWritCost, module)
 end
 
 function module:OnDisable()

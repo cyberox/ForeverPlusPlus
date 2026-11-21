@@ -2584,3 +2584,160 @@ ns.modules.Professions.internal.retiredCategories = {
     [2597] = true,
     [2598] = true,
 }
+
+-- The Craftsman's Writs, by item ID: the item each asks for, the quest it starts, and the
+-- spell of the recipe that makes the item (ItemSparse's "Craftsman's Writ: <item>" names and
+-- StartQuestID, and SpellEffect's create item effects). How many a writ asks for isn't in the
+-- tables.
+ns.modules.Professions.internal.writs = {
+    [264011] = { item = 3391, quest = 94004, spell = 3188 }, -- Elixir of Ogre's Strength
+    [264012] = { item = 3383, quest = 94212, spell = 3171 }, -- Elixir of Wisdom
+    [264013] = { item = 3385, quest = 94213, spell = 3173 }, -- Lesser Mana Potion
+    [264014] = { item = 6048, quest = 94214, spell = 7256 }, -- Shadow Protection Potion
+    [264015] = { item = 5634, quest = 94215, spell = 6624 }, -- Free Action Potion
+    [264016] = { item = 3390, quest = 94216, spell = 2333 }, -- Elixir of Lesser Agility
+    [264017] = { item = 3388, quest = 94217, spell = 3176 }, -- Lesser Troll's Blood Elixir
+    [264018] = { item = 8951, quest = 94218, spell = 11450 }, -- Elixir of Defense
+    [264019] = { item = 5996, quest = 94219, spell = 7179 }, -- Draught of Water Breathing
+    [264020] = { item = 5540, quest = 94220, spell = 6517 }, -- Pearl-Handled Dagger
+    [264021] = { item = 11128, quest = 94221, spell = 14379 }, -- Golden Rod
+    [264022] = { item = 5541, quest = 94222, spell = 6518 }, -- Iridescent Hammer
+    [264023] = { item = 15869, quest = 94223, spell = 19666 }, -- Silver Skeleton Key
+    [264024] = { item = 3491, quest = 94224, spell = 3296 }, -- Heavy Bronze Mace
+    [264025] = { item = 2865, quest = 94225, spell = 2668 }, -- Rough Bronze Leggings
+    [264026] = { item = 3485, quest = 94226, spell = 3336 }, -- Green Iron Gauntlets
+    [264027] = { item = 3848, quest = 94227, spell = 3491 }, -- Big Bronze Knife
+    [264028] = { item = 3484, quest = 94228, spell = 3334 }, -- Green Iron Boots
+    [264029] = { item = 5507, quest = 94229, spell = 6458 }, -- Ornate Spyglass
+    [264030] = { item = 4384, quest = 94230, spell = 3955 }, -- Explosive Sheep
+    [264031] = { item = 4383, quest = 94231, spell = 3954 }, -- Moonsight Rifle
+    [264032] = { item = 4381, quest = 94232, spell = 3952 }, -- Minor Recombobulator
+    [264033] = { item = 6712, quest = 94233, spell = 8334 }, -- Practice Lock
+    [264034] = { item = 4373, quest = 94234, spell = 3940 }, -- Shadow Goggles
+    [264035] = { item = 7506, quest = 94235, spell = 9269 }, -- Gnomish Universal Remote
+    [264036] = { item = 4380, quest = 94236, spell = 3950 }, -- Big Bronze Bomb
+    [264037] = { item = 8069, quest = 94237, spell = 3947 }, -- Crafted Solid Shot
+    [264038] = { item = 18662, quest = 94238, spell = 23190 }, -- Heavy Leather Ball
+    [264039] = { item = 5958, quest = 94239, spell = 7133 }, -- Fine Leather Pants
+    [264040] = { item = 7349, quest = 94240, spell = 9146 }, -- Herbalist's Gloves
+    [264041] = { item = 2317, quest = 94241, spell = 2169 }, -- Dark Leather Tunic
+    [264042] = { item = 7358, quest = 94242, spell = 9148 }, -- Pilferer's Gloves
+    [264043] = { item = 7371, quest = 94243, spell = 9193 }, -- Heavy Quiver
+    [264044] = { item = 4252, quest = 94244, spell = 3769 }, -- Dark Leather Shoulders
+    [264045] = { item = 4254, quest = 94245, spell = 3771 }, -- Barbaric Gloves
+    [264046] = { item = 7284, quest = 94246, spell = 9072 }, -- Red Whelp Gloves
+    [264047] = { item = 5766, quest = 94247, spell = 6690 }, -- Lesser Wizard's Robe
+    [264048] = { item = 6263, quest = 94248, spell = 7639 }, -- Blue Overalls
+    [264049] = { item = 7048, quest = 94249, spell = 8760 }, -- Azure Silk Hood
+    [264050] = { item = 4245, quest = 94250, spell = 3813 }, -- Small Silk Pack
+    [264051] = { item = 4317, quest = 94251, spell = 3851 }, -- Phoenix Pants
+    [264052] = { item = 4313, quest = 94252, spell = 3847 }, -- Red Woolen Boots
+    [264053] = { item = 10048, quest = 94253, spell = 12047 }, -- Colorful Kilt
+    [264054] = { item = 6264, quest = 94254, spell = 7643 }, -- Greater Adept's Robe
+    [264055] = { item = 4321, quest = 94255, spell = 3856 }, -- Spider Silk Slippers
+    [264056] = { item = 6050, quest = 94256, spell = 7258 }, -- Frost Protection Potion
+    [264057] = { item = 3823, quest = 94257, spell = 3448 }, -- Lesser Invisibility Potion
+    [264058] = { item = 4623, quest = 94258, spell = 4942 }, -- Lesser Stoneshield Potion
+    [264059] = { item = 6052, quest = 94259, spell = 7259 }, -- Nature Protection Potion
+    [264060] = { item = 10592, quest = 94260, spell = 12609 }, -- Catseye Draught
+    [264061] = { item = 5633, quest = 94261, spell = 6618 }, -- Great Rage Potion
+    [264062] = { item = 3827, quest = 94262, spell = 3452 }, -- Mana Potion
+    [264063] = { item = 6049, quest = 94263, spell = 7257 }, -- Fire Protection Potion
+    [264064] = { item = 3824, quest = 94264, spell = 3449 }, -- Shadow Oil
+    [264065] = { item = 9061, quest = 94265, spell = 11456 }, -- Goblin Rocket Fuel
+    [264066] = { item = 8949, quest = 94266, spell = 11449 }, -- Elixir of Agility
+    [264067] = { item = 9144, quest = 94267, spell = 11458 }, -- Wildvine Potion
+    [264068] = { item = 7922, quest = 94268, spell = 9935 }, -- Steel Plate Helm
+    [264069] = { item = 9060, quest = 94269, spell = 11454 }, -- Inlaid Mithril Cylinder
+    [264070] = { item = 6041, quest = 94270, spell = 7224 }, -- Steel Weapon Chain
+    [264071] = { item = 7928, quest = 94271, spell = 9952 }, -- Ornate Mithril Shoulders
+    [264072] = { item = 7942, quest = 94272, spell = 9995 }, -- Blue Glittering Axe
+    [264073] = { item = 3853, quest = 94273, spell = 3496 }, -- Moonsteel Broadsword
+    [264074] = { item = 3837, quest = 94274, spell = 3503 }, -- Golden Scale Coif
+    [264075] = { item = 7964, quest = 94275, spell = 9918 }, -- Solid Sharpening Stone
+    [264076] = { item = 7943, quest = 94276, spell = 9997 }, -- Wicked Mithril Blade
+    [264077] = { item = 11144, quest = 94277, spell = 14380 }, -- Truesilver Rod
+    [264078] = { item = 9366, quest = 94278, spell = 11643 }, -- Golden Scale Gauntlets
+    [264079] = { item = 7941, quest = 94279, spell = 9993 }, -- Heavy Mithril Axe
+    [264080] = { item = 4396, quest = 94280, spell = 3969 }, -- Mechanical Dragonling
+    [264081] = { item = 4392, quest = 94281, spell = 3965 }, -- Advanced Target Dummy
+    [264082] = { item = 4393, quest = 94282, spell = 3966 }, -- Craftsman's Monocle
+    [264083] = { item = 4395, quest = 94283, spell = 3968 }, -- Goblin Land Mine
+    [264084] = { item = 10501, quest = 94284, spell = 12607 }, -- Catseye Ultra Goggles
+    [264085] = { item = 10560, quest = 94285, spell = 12591 }, -- Unstable Trigger
+    [264086] = { item = 4852, quest = 94286, spell = 8243 }, -- Flash Bomb
+    [264087] = { item = 10500, quest = 94287, spell = 12594 }, -- Fire Goggles
+    [264088] = { item = 10514, quest = 94288, spell = 12603 }, -- Mithril Frag Bomb
+    [264089] = { item = 10498, quest = 94289, spell = 12590 }, -- Gyromatic Micro-Adjuster
+    [264090] = { item = 11590, quest = 94290, spell = 15255 }, -- Mechanical Repair Kit
+    [264091] = { item = 16005, quest = 94291, spell = 19799 }, -- Dark Iron Bomb
+    [264092] = { item = 8174, quest = 94292, spell = 10490 }, -- Comfortable Leather Hat
+    [264093] = { item = 5965, quest = 94293, spell = 7153 }, -- Guardian Cloak
+    [264094] = { item = 7378, quest = 94294, spell = 9201 }, -- Dusky Bracers
+    [264095] = { item = 8214, quest = 94295, spell = 10546 }, -- Wild Leather Helmet
+    [264096] = { item = 8210, quest = 94296, spell = 10529 }, -- Wild Leather Shoulders
+    [264097] = { item = 8217, quest = 94297, spell = 14930 }, -- Quickdraw Quiver
+    [264098] = { item = 7391, quest = 94298, spell = 9208 }, -- Swift Boots
+    [264099] = { item = 8192, quest = 94299, spell = 10516 }, -- Nightscape Shoulders
+    [264100] = { item = 8201, quest = 94300, spell = 10531 }, -- Big Voodoo Mask
+    [264101] = { item = 8200, quest = 94301, spell = 10520 }, -- Big Voodoo Robe
+    [264102] = { item = 8189, quest = 94302, spell = 10511 }, -- Turtle Scale Breastplate
+    [264103] = { item = 8218, quest = 94303, spell = 14932 }, -- Thick Leather Ammo Pouch
+    [264104] = { item = 10050, quest = 94304, spell = 12065 }, -- Mageweave Bag
+    [264105] = { item = 10023, quest = 94305, spell = 12071 }, -- Shadoweave Gloves
+    [264106] = { item = 7063, quest = 94306, spell = 8802 }, -- Crimson Silk Robe
+    [264107] = { item = 10004, quest = 94307, spell = 12055 }, -- Shadoweave Robe
+    [264108] = { item = 22246, quest = 94308, spell = 27658 }, -- Enchanted Mageweave Pouch
+    [264109] = { item = 4329, quest = 94309, spell = 3864 }, -- Star Belt
+    [264110] = { item = 9998, quest = 94310, spell = 12048 }, -- Black Mageweave Vest
+    [264111] = { item = 10009, quest = 94311, spell = 12060 }, -- Red Mageweave Pants
+    [264112] = { item = 10052, quest = 94312, spell = 12064 }, -- Orange Martial Shirt
+    [264113] = { item = 10008, quest = 94313, spell = 12059 }, -- White Bandit Mask
+    [264114] = { item = 10042, quest = 94314, spell = 12069 }, -- Cindercloth Robe
+    [264115] = { item = 7061, quest = 94315, spell = 8797 }, -- Earthen Silk Belt
+    [264116] = { item = 9224, quest = 94316, spell = 11477 }, -- Potion of Demonslaying
+    [264117] = { item = 12190, quest = 94317, spell = 15833 }, -- Dreamless Sleep Potion
+    [264118] = { item = 13457, quest = 94318, spell = 17574 }, -- Greater Fire Protection Potion
+    [264119] = { item = 9233, quest = 94319, spell = 11478 }, -- Draught of Detect Demon
+    [264120] = { item = 9088, quest = 94320, spell = 11466 }, -- Gift of Arthas
+    [264121] = { item = 13513, quest = 94321, spell = 17638 }, -- Flask of Chromatic Resistance
+    [264122] = { item = 3387, quest = 94322, spell = 3175 }, -- Limited Invulnerability Potion
+    [264123] = { item = 18253, quest = 94323, spell = 22732 }, -- Major Rejuvenation Potion
+    [264124] = { item = 246948, quest = 94324, spell = 1244421 }, -- Distilled Firewater
+    [264125] = { item = 12417, quest = 94325, spell = 16659 }, -- Radiant Circlet
+    [264126] = { item = 12416, quest = 94326, spell = 16645 }, -- Radiant Belt
+    [264127] = { item = 7929, quest = 94327, spell = 9957 }, -- Orcish War Leggings
+    [264128] = { item = 7969, quest = 94328, spell = 9964 }, -- Mithril Spurs
+    [264129] = { item = 12422, quest = 94329, spell = 16663 }, -- Imperial Plate Chest
+    [264130] = { item = 20549, quest = 94330, spell = 24912 }, -- Darkrune Gauntlets
+    [264131] = { item = 12775, quest = 94331, spell = 16971 }, -- Huge Thorium Battleaxe
+    [264132] = { item = 15872, quest = 94332, spell = 19669 }, -- Arcanite Skeleton Key
+    [264133] = { item = 7947, quest = 94333, spell = 10013 }, -- Ebon Shiv
+    [264134] = { item = 16023, quest = 94334, spell = 19814 }, -- Masterwork Target Dummy
+    [264135] = { item = 10504, quest = 94335, spell = 12622 }, -- Green Lens
+    [264136] = { item = 15996, quest = 94336, spell = 19793 }, -- Lifelike Mechanical Toad
+    [264137] = { item = 18645, quest = 94337, spell = 23096 }, -- Gnomish Alarm-O-Bot
+    [264138] = { item = 18587, quest = 94338, spell = 23078 }, -- Goblin Jumper Cables XL
+    [264139] = { item = 18232, quest = 94339, spell = 22704 }, -- Field Repair Bot 74A
+    [264140] = { item = 18631, quest = 94340, spell = 23071 }, -- Truesilver Transformer
+    [264141] = { item = 10548, quest = 94341, spell = 12620 }, -- Sniper Scope
+    [264142] = { item = 21277, quest = 94342, spell = 26011 }, -- Tranquil Mechanical Yeti
+    [264143] = { item = 15087, quest = 94343, spell = 19083 }, -- Wicked Leather Pants
+    [264144] = { item = 18258, quest = 94344, spell = 22813 }, -- Gordok Ogre Suit
+    [264145] = { item = 15053, quest = 94345, spell = 19076 }, -- Volcanic Breastplate
+    [264146] = { item = 15094, quest = 94346, spell = 19082 }, -- Runic Leather Headband
+    [264147] = { item = 15084, quest = 94347, spell = 19052 }, -- Wicked Leather Bracers
+    [264148] = { item = 15075, quest = 94348, spell = 19081 }, -- Chimeric Vest
+    [264149] = { item = 15080, quest = 94349, spell = 19088 }, -- Heavy Scorpid Helm
+    [264150] = { item = 15092, quest = 94350, spell = 19065 }, -- Runic Leather Bracers
+    [264151] = { item = 15071, quest = 94351, spell = 19066 }, -- Frostsaber Boots
+    [264152] = { item = 14130, quest = 94352, spell = 18450 }, -- Wizardweave Turban
+    [264153] = { item = 14046, quest = 94353, spell = 18405 }, -- Runecloth Bag
+    [264154] = { item = 13864, quest = 94354, spell = 18423 }, -- Runecloth Boots
+    [264155] = { item = 10036, quest = 94355, spell = 12093 }, -- Tuxedo Jacket
+    [264156] = { item = 14108, quest = 94356, spell = 18437 }, -- Felcloth Boots
+    [264157] = { item = 22251, quest = 94357, spell = 27724 }, -- Cenarion Herb Bag
+    [264158] = { item = 10025, quest = 94358, spell = 12086 }, -- Shadoweave Mask
+    [264159] = { item = 14141, quest = 94359, spell = 18416 }, -- Ghostweave Vest
+    [264160] = { item = 21340, quest = 94360, spell = 26085 }, -- Soul Pouch
+}

@@ -21,6 +21,9 @@ ns.changelog = {
                     .. "and the game's quest tag, and QuestsUnlockedBy and QuestsLeadingTo find the quests that come after or before one.",
                 { L.PROFESSIONS_TITLE, "Cost to Craft on Recipes (on by default) shows what crafting a "
                     .. "recipe costs on its Plans, Pattern, or Formula's tooltip, before you learn it." },
+                { L.PROFESSIONS_TITLE, "Cost to Fill Craftsman's Writs (on by default) shows on a "
+                    .. "Craftsman's Writ's tooltip what the item it asks for costs to craft, and to "
+                    .. "buy at auction." },
                 { L.AUCTIONTOTALS_TITLE, "A new module that shows, next to Cancel Auction on the "
                     .. "auction house's Auctions page, what your auctions are listed for in all and how much has sold." },
                 { L.ITEMTOOLTIPS_TITLE, "Short Stat Text (on by default) writes an Equip: bonus that is "

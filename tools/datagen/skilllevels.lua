@@ -11,13 +11,15 @@
 -- RequiredSkillRank in ItemSparse (SkillLineAbility's MinSkillLineRank is 1 for nearly every
 -- recipe, so it isn't that; docs/table-survey.md, section 6). Names, icons, reagents, and what a
 -- recipe makes aren't written: the game gives them for a spell or item ID at run time.
+--
+-- Last, the Craftsman's Writs (see writs): the item each asks for and the recipe that makes it.
 local CSV = require("csv")
 local Lua = require("luaout")
 
 local M = {
     path = "ForeverPlusPlus/Modules/Character/Professions/Data.lua",
     tables = { "SkillLineAbility", "SkillLine", "ItemEffect", "ItemXItemEffect", "ItemSparse",
-        "TradeSkillCategory" },
+        "TradeSkillCategory", "SpellEffect" },
 }
 
 -- The name TradeSkillCategory gives the category, one per profession, that holds the recipes
@@ -29,12 +31,73 @@ local Int = CSV.Int
 
 local LEARN_TRIGGER = 6 -- ItemEffect.TriggerType for "teaches this spell"
 
--- For summary.lua: a recipe line's key (its SkillLineAbility ID) and the line itself.
+-- For summary.lua: a recipe line's key (its SkillLineAbility ID), or a writ's (its item ID), and
+-- the line itself.
 function M.Entry(line)
     local id = line:match("^    %[(%d+)%] = {")
     if id then
-        return "ability " .. id, line
+        return (line:find("{ item = ", 1, true) and "writ " or "ability ") .. id, line
     end
+end
+
+local WRIT_NAME = "^Craftsman's Writ: (.+)$" -- Forever's; Classic's Argent Dawn writs have " - "
+local CREATE_ITEM = 24 -- SpellEffect.Effect
+
+-- Writs that spell their item's name another way than the item does (build 1.60.1.70959): the
+-- name on the writ -> the item's own.
+local WRIT_ITEM_NAME = {
+    ["Elixir of Ogre's Strength"] = "Elixir of Ogre Strength",
+    ["Gyromatic Micro-Adjuster"] = "Gyromatic Micro-Adjustor",
+    ["Pearl-Handled Dagger"] = "Pearl-handled Dagger",
+    ["Potion of Demonslaying"] = "Potion of Demon Slaying",
+}
+
+-- The Craftsman's Writs: items named "Craftsman's Writ: <item>" that start a quest (ItemSparse's
+-- StartQuestID), each { id, name (of the item it asks for), quest, item, spell }. The item is the one of
+-- that name a profession's recipe makes (a SpellEffect with Effect 24 whose EffectItemType is the
+-- item, of a spell in `recipeSpells`), the lowest ID of several; without one, the lowest item of
+-- that name, with no spell. A writ whose item isn't found at all is left out, and said. How many it asks
+-- for isn't in the client's tables (the quest's objectives come from the server).
+local function writs(t, recipeSpells)
+    local madeBy = {} -- item ID -> the lowest recipe spell that makes it
+    for _, row in ipairs(CSV.Records(t.SpellEffect, "SpellEffect", { "SpellID", "Effect", "EffectItemType" })) do
+        local spell = Int(row.SpellID, "SpellEffect.SpellID")
+        local item = Int(row.EffectItemType, "EffectItemType")
+        if Int(row.Effect, "Effect") == CREATE_ITEM and item > 0 and recipeSpells[spell]
+            and (not madeBy[item] or spell < madeBy[item]) then
+            madeBy[item] = spell
+        end
+    end
+    local crafted, any = {}, {} -- item name -> the lowest item ID of that name: crafted, and at all
+    local orders = {}
+    for _, row in ipairs(CSV.Records(t.ItemSparse, "ItemSparse", { "ID", "Display_lang", "StartQuestID" })) do
+        local id, name = Int(row.ID, "ItemSparse.ID"), row.Display_lang
+        if madeBy[id] and (not crafted[name] or id < crafted[name]) then
+            crafted[name] = id
+        end
+        if not any[name] or id < any[name] then
+            any[name] = id
+        end
+        local wanted = name:match(WRIT_NAME)
+        if wanted and Int(row.StartQuestID, "StartQuestID") > 0 then
+            orders[#orders + 1] = { id = id, name = wanted, quest = Int(row.StartQuestID, "StartQuestID") }
+        end
+    end
+    local out = {}
+    for _, order in ipairs(orders) do
+        local name = WRIT_ITEM_NAME[order.name] or order.name
+        order.item = crafted[name] or any[name]
+        order.spell = order.item and madeBy[order.item]
+        if order.item then
+            out[#out + 1] = order
+        else
+            io.stderr:write("datagen: no item named for the writ ", order.name, " (", order.id, ")\n")
+        end
+    end
+    table.sort(out, function(a, b)
+        return a.id < b.id
+    end)
+    return out
 end
 
 -- spell ID -> the item that teaches it and the skill it needs (nil when ItemSparse has no row for
@@ -87,6 +150,7 @@ function M.Build(t, build, script)
     end
     local taught = teachers(t)
 
+    local recipeSpells = {} -- the spell of every recipe written
     local byLine = {} -- skill line ID -> { { id, spell, yellow, gray } }
     for _, row in ipairs(CSV.Records(t.SkillLineAbility, "SkillLineAbility", { "ID", "SkillLine",
         "Spell", "TrivialSkillLineRankLow", "TrivialSkillLineRankHigh" })) do
@@ -95,6 +159,7 @@ function M.Build(t, build, script)
         if gray > 0 and yellow > 0 and yellow <= gray then
             local line = Int(row.SkillLine, "SkillLine")
             byLine[line] = byLine[line] or {}
+            recipeSpells[Int(row.Spell, "Spell")] = true
             table.insert(byLine[line], {
                 id = Int(row.ID, "SkillLineAbility.ID"), spell = Int(row.Spell, "Spell"),
                 yellow = yellow, gray = gray,
@@ -153,6 +218,19 @@ function M.Build(t, build, script)
     out[#out + 1] = "ns.modules.Professions.internal.retiredCategories = {"
     for _, id in ipairs(retired) do
         out[#out + 1] = ("    [%d] = true,"):format(id)
+    end
+    out[#out + 1] = "}"
+
+    out[#out + 1] = ""
+    out[#out + 1] = "-- The Craftsman's Writs, by item ID: the item each asks for, the quest it starts, and the"
+    out[#out + 1] = "-- spell of the recipe that makes the item (ItemSparse's \"Craftsman's Writ: <item>\" names and"
+    out[#out + 1] = "-- StartQuestID, and SpellEffect's create item effects). How many a writ asks for isn't in the"
+    out[#out + 1] = "-- tables."
+    out[#out + 1] = "ns.modules.Professions.internal.writs = {"
+    for _, writ in ipairs(writs(t, recipeSpells)) do
+        local fields = "item = " .. writ.item .. ", quest = " .. writ.quest
+            .. (writ.spell and (", spell = " .. writ.spell) or "")
+        out[#out + 1] = ("    [%d] = { %s }, -- %s"):format(writ.id, fields, Lua.Comment(writ.name))
     end
     out[#out + 1] = "}"
     return table.concat(out, "\n") .. "\n"

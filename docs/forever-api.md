@@ -594,7 +594,8 @@ Check these in the live client and move them up with a tag and date:
 - [ ] Is `ReloadUI()` blocked when called from an addon's own button? (From `/run` it works.)
 - [ ] Does `C_Minimap.SetTracking` from a timer swap Find Minerals and Find Herbs, mounted and not, without an error or a dismount?
 - [ ] Is a Dwarf's Find Treasure spell 2481, and is it in the tracking list? (Gathering Tracking's Find Treasure.)
-- [ ] Do `C_Item.ReplaceEnchant()` and `C_Item.BindEnchant()` work from the `REPLACE_ENCHANT` and `BIND_ENCHANT` events, with no click behind them? (Auto Confirm.)
+- [ ] Do `C_Item.ReplaceEnchant()` and `C_Item.BindEnchant()` work from the `REPLACE_ENCHANT` and `BIND_ENCHANT` events, with no click behind them? The same for `C_Item.ReplaceTradeskillEnchant()` and `C_Item.ReplaceTradeEnchant()` from `REPLACE_TRADESKILL_ENCHANT` and `TRADE_REPLACE_ENCHANT`, and does the Trade button still work after an addon closes the `TRADE_POTENTIAL_BIND_ENCHANT` popup? (Auto Confirm.)
+- [ ] Does `C_QuestLog.GetQuestObjectives(questID)` give a Craftsman's Writ's quest's objectives before the quest is taken, and does the item objective's text hold the item's name and `numRequired` the count (200 for Crafted Solid Shot, by a guide)? The count isn't in the client's tables: wago.tools has no QuestObjective table for `wowf` (2026-11-21). (Professions' Cost to Fill Craftsman's Writs.)
 - [ ] Does `BuyTrainerService(index)` work from `TRAINER_UPDATE` after one click, and is `GetTrainerServiceInfo`'s second value "available" for a skill that can be learned? (Train All.)
 - [ ] Do `C_Spell.PickupSpell(id)` and `PlaceAction(slot)` swap a spell on the bars from an event, out of combat? (Spell Ranks' Use Highest Rank.)
 - [ ] Does a chat tab keep a scale of 0.01, and do the tabs after it move up? Do the chat buttons fade with `FCF_FadeInChatFrame` and `FCF_FadeOutChatFrame` for `ChatFrame1`? (Hide Combat Log Tab, Hide Chat Buttons.)

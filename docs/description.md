@@ -62,7 +62,7 @@ Everything is on by default except where noted. Each module can be turned off, a
   - **Recipe Colors**: recipes colored by skill-up chance.
   - **Skill-Ups Left**: how many skill-ups before a recipe turns gray.
   - **Skill Bar**: the levels a recipe turns yellow, green, and gray at, with your skill marked.
-  - **Crafting Costs**: reagent cost, value, and profit, from auction prices, and what a recipe costs to craft on its tooltip.
+  - **Crafting Costs**: reagent cost, value, and profit, from auction prices, what a recipe costs to craft on its tooltip, and what a Craftsman's Writ costs to fill on its own.
   - **Unlearned Recipes**: the recipes you don't know yet in the list, with the skill each takes and the item that teaches it.
 - **Macro Icon Search**: Adds a search box to the macro icon picker, over the icons of the spells you know and the items you carry.
 
