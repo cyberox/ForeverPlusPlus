@@ -24,6 +24,10 @@ ns.changelog = {
                 { L.PROFESSIONS_TITLE, "Cost to Fill Craftsman's Writs (on by default) shows on a "
                     .. "Craftsman's Writ's tooltip what the item it asks for costs to craft, and to "
                     .. "buy at auction." },
+                { L.CONTROLLERMODE_TITLE, "A new page in Settings that keeps a setup for the controller "
+                    .. "interface and one for keyboard and mouse: a Forever++ profile, an Edit Mode "
+                    .. "layout, and a set of addons each. Logging in on the other interface switches to "
+                    .. "its profile and layout, and asks to reload only when the addons loaded aren't its set." },
                 { L.QUESTPINS_TITLE, "Hide in Unexplored Areas (off by default) leaves out the pins in "
                     .. "parts of a zone your character hasn't explored yet." },
                 { L.AUCTIONTOTALS_TITLE, "A new module that shows, next to Cancel Auction on the "

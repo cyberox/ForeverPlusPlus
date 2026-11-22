@@ -133,7 +133,7 @@ Generated files, in `Lib/Generated/` (never edited by hand; see Generated data):
 
 ### `AddOns.lua`
 
-- `ns.AddOns`: wait for a load-on-demand addon.
+- `ns.AddOns`: wait for a load-on-demand addon. And this character's addons as a set by name: which are on (`States`), what a saved set would turn on and off now (`Changes`, leaving alone an addon the set doesn't name and never turning off Forever++), and doing that (`Apply`, which needs a reload to show).
 
 ### `Errors.lua`
 
@@ -236,7 +236,7 @@ Generated files, in `Lib/Generated/` (never edited by hand; see Generated data):
 
 ### `EditMode.lua`
 
-- `ns.EditMode`: our own frames in Blizzard's Edit Mode, looking and working like Blizzard's: a selection box that turns gold when clicked, dragging with snapping, arrow-key nudging, and a settings dialog and right-click menu with scale, the frame's own settings (dropdowns, sliders, checkboxes), and reset position, and `RegisterModule` for a frame placed from its module's x, y, and scale settings, whose options marked `editMode = true` are those settings.
+- `ns.EditMode`: our own frames in Blizzard's Edit Mode, looking and working like Blizzard's: a selection box that turns gold when clicked, dragging with snapping, arrow-key nudging, and a settings dialog and right-click menu with scale, the frame's own settings (dropdowns, sliders, checkboxes), and reset position, and `RegisterModule` for a frame placed from its module's x, y, and scale settings, whose options marked `editMode = true` are those settings. Also Blizzard's own layouts: the list with the one in use (`Layouts`, each known by its kind and name and marked when it's made for the controller interface) and putting one in use out of combat (`SetLayout`).
 
 ### `Chat.lua`
 
@@ -253,7 +253,7 @@ Generated files, in `Lib/Generated/` (never edited by hand; see Generated data):
 
 ### `SettingsKit.lua`
 
-- `ns.SettingsKit`: what a drawn Settings page is made of, for the Settings pages and a tool's `BuildPage`: the module categories in the Modules page's order (`CATEGORIES`, `CategoryOf`), the page title, checkboxes, buttons, undo arrows (`NewResetButton`), tooltips, stacks, a split list and pane, and the search box.
+- `ns.SettingsKit`: what a drawn Settings page is made of, for the Settings pages and a tool's `BuildPage`: the module categories in the Modules page's order (`CATEGORIES`, `CategoryOf`), the page title, checkboxes, buttons, dropdowns (`NewDropdown`), undo arrows (`NewResetButton`), tooltips, stacks, a split list and pane, and the search box.
 
 ### `ItemStats.lua`
 
@@ -325,6 +325,7 @@ What each module is, in the code's terms (what it does for players is in `README
 - **Gear Probe**: a Debug button and `/fpp gearprobe`, no toggle: what the client says about gear, item comparison, talent tabs, and stats, saved for the upgrade arrows work.
 - **Screenshots**: a Debug button and `/fpp shots`, no toggle: gallery screenshots of real windows; a module adds its own scene with `module.screenshot`.
 - **CPU Profiler**: `Profiler`: a tool page, off by default.
+- **Controller Mode**: `ControllerMode`: an always-on tool page, since its choices are the account's and not a profile's (it changes the profile). A setup for the controller interface and one for keyboard and mouse (`modes`: a profile, an Edit Mode layout, a set of addons), set up once when the character enters the world on the other interface than last time (`applied`, per character); the addons only after a reload the player agrees to.
 - **Fast Loot**
 - **Auto Repair**
 - **Auto Sell Junk**

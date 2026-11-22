@@ -862,3 +862,82 @@ function EditMode.Unregister(frame)
         call(info.onChange, false)
     end
 end
+
+-- Blizzard's layouts -----------------------------------------------------------------------------
+-- The layouts in Edit Mode's own dropdown, to see which is in use and pick another. The game
+-- numbers them with its presets first, then the saved ones (EditModeManagerFrameMixin's
+-- UpdateLayoutInfo), and on Forever each is for the controller interface or for keyboard and
+-- mouse (`interfaceStyle`). A layout is known here by its kind and name, since its number moves
+-- when another is made or deleted.
+
+---Blizzard's Edit Mode layouts in the game's order, each `{ key, name, index, gamepad }`
+---(`gamepad` true for one made for the controller interface), and the key of the one in use.
+---Empty on a client without them.
+---@return table[] layouts
+---@return string? active
+function EditMode.Layouts()
+    local list = {}
+    local C, presets = _G.C_EditMode, _G.EditModePresetLayoutManager
+    if not (C and C.GetLayouts and presets and presets.GetCopyOfPresetLayouts) then
+        return list, nil
+    end
+    -- Blizzard's own copy of its presets: it only copies a table, and the copy is ours.
+    local preset = presets:GetCopyOfPresetLayouts()
+    local saved = C.GetLayouts()
+    if not (type(preset) == "table" and type(saved) == "table" and type(saved.layouts) == "table") then
+        return list, nil
+    end
+    local styles = _G.Enum and _G.Enum.InputDeviceInterfaceType
+    local function add(layouts)
+        for _, layout in ipairs(layouts) do
+            local name = layout.layoutName
+            if type(name) == "string" then
+                local index = #list + 1
+                list[index] = {
+                    key = format("%s:%s", tostring(layout.layoutType), name), name = name, index = index,
+                    gamepad = styles ~= nil and styles.Gamepad ~= nil and layout.interfaceStyle == styles.Gamepad,
+                }
+            else
+                list[#list + 1] = { index = #list + 1 } -- keeps the numbers after it right
+            end
+        end
+    end
+    add(preset)
+    add(saved.layouts)
+    local active = list[saved.activeLayout]
+    return list, active and active.key
+end
+
+---Makes one of Blizzard's Edit Mode layouts the one in use, as picking it in Edit Mode does, out
+---of combat. True when it's in use already or is now, false when it waits for combat to end, nil
+---when there's no such layout.
+---@param key string from EditMode.Layouts
+---@return boolean?
+function EditMode.SetLayout(key)
+    local layouts, active = EditMode.Layouts()
+    if active == key then
+        return true
+    end
+    local found
+    for _, layout in ipairs(layouts) do
+        if layout.key == key then
+            found = layout
+            break
+        end
+    end
+    if not found then
+        return nil
+    end
+    local now = not InCombatLockdown()
+    ns.AfterCombat(function()
+        -- Looked up again: the layouts may have changed while it waited.
+        local list, current = EditMode.Layouts()
+        for _, layout in ipairs(list) do
+            if layout.key == key and current ~= key then
+                _G.C_EditMode.SetActiveLayout(layout.index)
+                break
+            end
+        end
+    end)
+    return now
+end

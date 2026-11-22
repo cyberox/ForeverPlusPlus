@@ -228,6 +228,37 @@ L.SCREENSHOTS_SCENE_MINIMAP = "Minimap Button"
 L.SCREENSHOTS_SCENE_SCREEN = "Screen"
 
 -- Profiler
+L.CONTROLLERMODE_TITLE = "Controller Mode"
+L.CONTROLLERMODE_DESC = "Keep one setup for the controller interface and one for keyboard and mouse: a "
+    .. "Forever++ profile, an Edit Mode layout, and a set of addons each."
+L.CONTROLLERMODE_NOTE = "Pick what each interface uses. When this character logs in on the other one, "
+    .. "Forever++ switches to its profile and Edit Mode layout, and asks to reload only when the addons "
+    .. "loaded aren't its set. What you change by hand stays until the interface changes again."
+L.CONTROLLERMODE_NOW = "The game is showing: %s" -- Controller, or Keyboard and Mouse
+L.CONTROLLERMODE_GAMEPAD = "Controller"
+L.CONTROLLERMODE_MKB = "Keyboard and Mouse"
+L.CONTROLLERMODE_NO_CHANGE = "Don't Change"
+L.CONTROLLERMODE_PROFILE = "Forever++ Profile"
+L.CONTROLLERMODE_PROFILE_DESC = "The profile this character switches to on this interface."
+L.CONTROLLERMODE_LAYOUT = "Edit Mode Layout"
+L.CONTROLLERMODE_LAYOUT_DESC = "The Edit Mode layout to use on this interface. The game offers a layout "
+    .. "only on the interface it was made for."
+L.CONTROLLERMODE_ADDONS = "AddOns"
+L.CONTROLLERMODE_ADDONS_NONE = "Don't Change"
+L.CONTROLLERMODE_ADDONS_SAVED = "%d addons on" -- number of addons
+L.CONTROLLERMODE_ADDONS_SAVE = "Use Current"
+L.CONTROLLERMODE_ADDONS_SAVE_DESC = "Save which addons this character has on now as this interface's "
+    .. "set. An addon you install later is left alone until you save again."
+L.CONTROLLERMODE_ADDONS_CLEAR = "Clear"
+L.CONTROLLERMODE_ADDONS_CLEAR_DESC = "Forget this interface's set, so its addons are left alone."
+L.CONTROLLERMODE_APPLY = "Set Up Now"
+L.CONTROLLERMODE_APPLY_DESC = "Switch to the setup of the interface the game is showing now."
+L.CONTROLLERMODE_NOTHING = "Nothing to change for %s." -- Controller, or Keyboard and Mouse
+L.CONTROLLERMODE_RELOAD = "Forever++ Controller Mode: your addons aren't the set saved for %s." -- interface
+L.CONTROLLERMODE_RELOAD_ON = "Turn on: %s" -- addon names
+L.CONTROLLERMODE_RELOAD_OFF = "Turn off: %s" -- addon names
+L.CONTROLLERMODE_RELOAD_ASK = "Change them and reload now?"
+L.CONTROLLERMODE_AND_MORE = "%s, and %d more" -- addon names, number of addons
 L.PROFILER_TITLE = "CPU Profiler"
 L.PROFILER_DESC = "See how much CPU each module takes, on a page in Settings, to find what's slow."
 L.PROFILER_COMMAND = "open the Profiler page"

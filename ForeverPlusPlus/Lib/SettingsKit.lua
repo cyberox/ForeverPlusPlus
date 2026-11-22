@@ -188,6 +188,37 @@ function Kit.NewButton(parent, text, width, fn)
     return ns.Frames.Button(parent, text, width, fn)
 end
 
+---Blizzard's menu dropdown of what `list()` gives, `{ value, text }` each, asked every time it
+---opens. `get()` is the value chosen and `set(value)` chooses one; call the dropdown's
+---`GenerateMenu` after the choice changes some other way. Probe: Mainline's; nil without it.
+---@param parent table
+---@param width number
+---@param list fun(): table[]
+---@param get fun(): any
+---@param set fun(value: any)
+---@return table? dropdown
+function Kit.NewDropdown(parent, width, list, get, set)
+    if not _G.WowStyle1DropdownMixin then
+        return nil
+    end
+    local ok, dropdown = pcall(CreateFrame, "DropdownButton", nil, parent, "WowStyle1DropdownTemplate")
+    if not (ok and dropdown and dropdown.SetupMenu) then
+        return nil
+    end
+    dropdown:SetWidth(width)
+    ns.Menus.SetupDropdown(dropdown, function(_, root)
+        for _, entry in ipairs(list()) do
+            root:CreateRadio(entry[2], function(value)
+                return get() == value
+            end, function(value)
+                set(value)
+            end, entry[1])
+        end
+    end)
+    ---@cast dropdown table
+    return dropdown
+end
+
 ---The undo arrow at the right end of a row, `size` square, calling `onClick()` with the checkbox
 ---sound: like the undo buttons on Blizzard's Talents and Transmog windows, pressed in a pixel
 ---while enabled. The caller adds its tooltip. Probe: the atlases are Mainline's; without one, nil.

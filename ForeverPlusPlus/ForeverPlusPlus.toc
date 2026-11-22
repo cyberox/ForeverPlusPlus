@@ -105,6 +105,7 @@ Modules\Tools\ConsoleVariables\Locks.lua
 Modules\Tools\SelfTest.lua
 Modules\Tools\GearProbe.lua
 Modules\Tools\Profiler.lua
+Modules\Tools\ControllerMode.lua
 Modules\Tools\Screenshots.lua
 Modules\Automation\FastLoot.lua
 Modules\Automation\AutoRepair.lua

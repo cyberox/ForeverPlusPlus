@@ -149,6 +149,7 @@ Everything is on by default except where noted. Each module can be turned off, a
 - **Slash Commands**: Adds `/rl` to reload the UI and `/clear` to empty the chat window, each with its own checkbox.
 - **Console Variables**: A Settings page to browse and change the game's console variables, with a Popular group, favorites, and a padlock that keeps one at its value. Off by default.
 - **Debug**: Every module's debug options and the testing tools, on a Debug page in Settings. Off by default.
+- **Controller Mode**: A Settings page that keeps a setup for the controller interface and one for keyboard and mouse: a Forever++ profile, an Edit Mode layout, and a set of addons each. Logging in on the other interface switches to its profile and layout, and asks to reload only when the addons loaded aren't its set.
 - **CPU Profiler**: A Settings page that records how much CPU each module takes, with the worst frames listed as spikes. Nothing is timed until you press Record. Off by default.
 
 ### Units

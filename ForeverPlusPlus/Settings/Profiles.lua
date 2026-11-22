@@ -8,7 +8,7 @@
 -- something about the profiles changes.
 local _, ns = ...
 
-local ipairs, format, concat, max, pcall = ipairs, string.format, table.concat, math.max, pcall
+local ipairs, format, concat, max = ipairs, string.format, table.concat, math.max
 local CreateFrame = CreateFrame
 local L = ns.L
 local S = ns.SettingsUI
@@ -60,27 +60,7 @@ local function switched(now, id)
     end
 end
 
--- Blizzard's menu dropdown of what `list()` gives, { value, text } each. Probe: Mainline's.
-local function newDropdown(parent, width, list, get, set)
-    if not WowStyle1DropdownMixin then
-        return
-    end
-    local ok, dropdown = pcall(CreateFrame, "DropdownButton", nil, parent, "WowStyle1DropdownTemplate")
-    if not (ok and dropdown and dropdown.SetupMenu) then
-        return
-    end
-    dropdown:SetWidth(width)
-    ns.Menus.SetupDropdown(dropdown, function(_, root)
-        for _, entry in ipairs(list()) do
-            root:CreateRadio(entry[2], function(value)
-                return get() == value
-            end, function(value)
-                set(value)
-            end, entry[1])
-        end
-    end)
-    return dropdown
-end
+local newDropdown = Kit.NewDropdown
 
 -- Every profile, for a dropdown.
 local function profileChoices()
