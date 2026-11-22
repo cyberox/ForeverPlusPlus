@@ -227,13 +227,15 @@ L.SCREENSHOTS_SCENE_WHISPERS = "Whisper Window"
 L.SCREENSHOTS_SCENE_MINIMAP = "Minimap Button"
 L.SCREENSHOTS_SCENE_SCREEN = "Screen"
 
--- Profiler
+-- Controller Mode
 L.CONTROLLERMODE_TITLE = "Controller Mode"
 L.CONTROLLERMODE_DESC = "Keep one setup for the controller interface and one for keyboard and mouse: a "
-    .. "Forever++ profile, an Edit Mode layout, and a set of addons each."
+    .. "Forever++ profile, an Edit Mode layout, and a set of addons each. Logging in on the other "
+    .. "interface switches to its setup."
 L.CONTROLLERMODE_NOTE = "Pick what each interface uses. When this character logs in on the other one, "
     .. "Forever++ switches to its profile and Edit Mode layout, and asks to reload only when the addons "
-    .. "loaded aren't its set. What you change by hand stays until the interface changes again."
+    .. "loaded aren't its set. What you change by hand stays until the interface changes again. These "
+    .. "choices are shared by every profile, and a profile picked here has Controller Mode turned on."
 L.CONTROLLERMODE_NOW = "The game is showing: %s" -- Controller, or Keyboard and Mouse
 L.CONTROLLERMODE_GAMEPAD = "Controller"
 L.CONTROLLERMODE_MKB = "Keyboard and Mouse"
@@ -259,6 +261,8 @@ L.CONTROLLERMODE_RELOAD_ON = "Turn on: %s" -- addon names
 L.CONTROLLERMODE_RELOAD_OFF = "Turn off: %s" -- addon names
 L.CONTROLLERMODE_RELOAD_ASK = "Change them and reload now?"
 L.CONTROLLERMODE_AND_MORE = "%s, and %d more" -- addon names, number of addons
+
+-- Profiler
 L.PROFILER_TITLE = "CPU Profiler"
 L.PROFILER_DESC = "See how much CPU each module takes, on a page in Settings, to find what's slow."
 L.PROFILER_COMMAND = "open the Profiler page"

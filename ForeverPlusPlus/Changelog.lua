@@ -24,7 +24,7 @@ ns.changelog = {
                 { L.PROFESSIONS_TITLE, "Cost to Fill Craftsman's Writs (on by default) shows on a "
                     .. "Craftsman's Writ's tooltip what the item it asks for costs to craft, and to "
                     .. "buy at auction." },
-                { L.CONTROLLERMODE_TITLE, "A new page in Settings that keeps a setup for the controller "
+                { L.CONTROLLERMODE_TITLE, "A new module (off by default) with a page in Settings that keeps a setup for the controller "
                     .. "interface and one for keyboard and mouse: a Forever++ profile, an Edit Mode "
                     .. "layout, and a set of addons each. Logging in on the other interface switches to "
                     .. "its profile and layout, and asks to reload only when the addons loaded aren't its set." },

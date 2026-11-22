@@ -325,7 +325,7 @@ What each module is, in the code's terms (what it does for players is in `README
 - **Gear Probe**: a Debug button and `/fpp gearprobe`, no toggle: what the client says about gear, item comparison, talent tabs, and stats, saved for the upgrade arrows work.
 - **Screenshots**: a Debug button and `/fpp shots`, no toggle: gallery screenshots of real windows; a module adds its own scene with `module.screenshot`.
 - **CPU Profiler**: `Profiler`: a tool page, off by default.
-- **Controller Mode**: `ControllerMode`: an always-on tool page, since its choices are the account's and not a profile's (it changes the profile). A setup for the controller interface and one for keyboard and mouse (`modes`: a profile, an Edit Mode layout, a set of addons), set up once when the character enters the world on the other interface than last time (`applied`, per character); the addons only after a reload the player agrees to.
+- **Controller Mode**: `ControllerMode`: a module with a tool page, off by default. Its setups are the account's and not a profile's (it changes the profile); only whether it's on is a profile's, so a profile it switches to has it turned on. A setup for the controller interface and one for keyboard and mouse (`modes`: a profile, an Edit Mode layout, a set of addons), set up once when the character enters the world on the other interface than last time (`applied`, per character); the addons only after a reload the player agrees to.
 - **Fast Loot**
 - **Auto Repair**
 - **Auto Sell Junk**

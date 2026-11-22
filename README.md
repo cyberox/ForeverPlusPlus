@@ -104,7 +104,7 @@ Everything is on by default except where noted. Each module can be turned off, a
 | Slash Commands | Adds `/rl` to reload the UI and `/clear` to empty the chat window, each with its own checkbox. |
 | Console Variables | A Settings page to browse and change the game's console variables, with a Popular group, favorites, and a padlock that keeps one at its value. Off by default. |
 | Debug | Every module's debug options and the testing tools, on a Debug page in Settings. Off by default. |
-| Controller Mode | A Settings page that keeps a setup for the controller interface and one for keyboard and mouse: a Forever++ profile, an Edit Mode layout, and a set of addons each. Logging in on the other interface switches to its profile and layout, and asks to reload only when the addons loaded aren't its set. Always there; nothing changes until you pick something. |
+| Controller Mode | A Settings page that keeps a setup for the controller interface and one for keyboard and mouse: a Forever++ profile, an Edit Mode layout, and a set of addons each. Logging in on the other interface switches to its profile and layout, and asks to reload only when the addons loaded aren't its set. Off by default. |
 | CPU Profiler | A Settings page that records how much CPU each module takes, with the worst frames listed as spikes. Nothing is timed until you press Record. Off by default. |
 | **Units** | |
 | Class Colors | Colors players' health bars, and optionally names, by class on the unit frames, NPCs' bars by reaction, and names in the friends and who lists by class. |
@@ -126,8 +126,7 @@ Open Game Menu > Options > AddOns > Forever++, or type `/fpp`. The pages:
 
 - **Modules**: every module with a checkbox, grouped by category. The search box narrows the list, and New shows only what's marked NEW. Click a module for what it does and its options.
 - **Profiles**: sets of settings for different characters. Everyone starts on Default. A profile holds which modules are on, their settings, where you put frames and windows, and the Minimap Button's quick toggles, but not collected data such as auction prices and gathering nodes. Pick the profile this character and new characters use, and Export or Import one as a line of text. Switching is live and waits for combat to end.
-- **Console Variables**, **CPU Profiler**, **Debug**, **Gathering Map**, and Upgrade Arrows' **Stat Weights**: pages of their own, each while its module is on.
-- **Controller Mode**: a page of its own, always there (see the module list).
+- **Console Variables**, **Controller Mode**, **CPU Profiler**, **Debug**, **Gathering Map**, and Upgrade Arrows' **Stat Weights**: pages of their own, each while its module is on.
 - **Changelog**: what changed in each release (also in [CHANGELOG.md](CHANGELOG.md)).
 - **About**: the version, links, and commands.
 

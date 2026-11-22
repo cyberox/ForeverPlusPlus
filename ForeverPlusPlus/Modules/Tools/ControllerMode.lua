@@ -5,10 +5,11 @@
 -- one's set. Nothing happens while the interface is the one it last set up for, so a profile or
 -- layout picked by hand stays, and nothing asks to reload when the addons already match.
 --
--- Its choices are kept for the account and not in a profile, since it changes the profile; that's
--- why it is a tool with a page and not a module in the list. Which of the two it last set up for
--- is kept for each character. A setup with nothing chosen changes nothing, so the tool costs one
--- check at login until something is.
+-- Its setups are kept for the account and not in a profile, since it changes the profile; only
+-- whether it is on is a profile's, as for any module. So a profile it switches to has it turned
+-- on, or it could never switch back. Which of the two it last set up for is kept for each
+-- character. A setup with nothing chosen changes nothing, so it costs one check at login until
+-- something is. Off by default: while it's off its page is gone and nothing is checked.
 --
 -- Forever only: the controller interface is this client's (Lib/Gamepad.lua).
 local _, ns = ...
@@ -20,7 +21,7 @@ local L = ns.L
 local Gamepad, Profiles, AddOns, EditMode = ns.Gamepad, ns.Profiles, ns.AddOns, ns.EditMode
 
 local module = ns.NewModule("ControllerMode", L.CONTROLLERMODE_DESC, {
-    enabled = true,
+    enabled = false,
     -- What each interface uses, for the account: `profile` (a profile's id), `layout` (a key of
     -- EditMode.Layouts), and `addons` (a set of AddOns.States), each nil to leave it alone.
     modes = { gamepad = {}, mkb = {} },
@@ -30,7 +31,7 @@ local module = ns.NewModule("ControllerMode", L.CONTROLLERMODE_DESC, {
 module.perCharacter = { applied = true }
 module.title = L.CONTROLLERMODE_TITLE
 module.category = "system"
-module.alwaysOn = true -- its setups are the account's, not a profile's
+module.added = "1.9.0"
 
 local MODES = {
     { key = "gamepad", name = L.CONTROLLERMODE_GAMEPAD },
@@ -92,6 +93,13 @@ local function apply(mode)
     local profile = setup.profile
     if profile and Profiles.Exists(profile) and Profiles.Current() ~= profile then
         Profiles.SwitchAndSay(profile)
+        -- After the switch, which waits for combat too: on in the profile it switched to, or
+        -- this character would stay on that profile whatever interface it logs in on next.
+        ns.AfterCombat(function()
+            if Profiles.Current() == profile and not module.enabled then
+                ns.SetEnabled(module.name, true)
+            end
+        end)
         changed = true
     end
     if setup.layout then
@@ -142,6 +150,15 @@ end
 function module:OnEnable()
     self:On("PLAYER_ENTERING_WORLD", onWorld)
 end
+
+-- Turned on while playing, not at login: the interface in use counts as seen, so nothing is set
+-- up at the next loading screen. Set Up Now does it when the player wants it.
+ns.OnModuleChanged(function(name, key)
+    if name == module.name and key == nil and module.enabled then
+        checked = true
+        module.db.applied.mode = current()
+    end
+end)
 
 -- The page ----------------------------------------------------------------------------------------
 
