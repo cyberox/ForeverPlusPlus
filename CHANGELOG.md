@@ -11,6 +11,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - For addon authors: the plugin kit's `QuestieDB.Quest` has a quest's `children`, `parent`, and the game's quest `tag`, and `QuestsUnlockedBy` and `QuestsLeadingTo` find the quests that come after or before one.
 - **Professions**: Cost to Craft on Recipes (on by default) shows what crafting a recipe costs on its Plans, Pattern, or Formula's tooltip, before you learn it.
 - **Professions**: Cost to Fill Craftsman's Writs (on by default) shows on a Craftsman's Writ's tooltip what the item it asks for costs to craft, and to buy at auction.
+- **Quest Pins**: Hide in Unexplored Areas (off by default) leaves out the pins in parts of a zone your character hasn't explored yet.
 - **Auction Totals**: a new module that shows, next to Cancel Auction on the auction house's Auctions page, what your auctions are listed for in all and how much has sold.
 - **Item Tooltips**: Short Stat Text (on by default) writes an Equip: bonus that is a plain stat the way the game writes a stat, like "+29 Spell Power", "+2% Hit", "+14 Fire Damage", or "+20 Spell Healing and +7 Spell Damage". Four checkboxes pick which kinds it shortens: Attack and Defense, Spells and Healing, Mana and Health Regen, and Skills.
 - **Item Tooltips**: Show New in Forever (off by default) says "New in Forever" on an item Classic never had.

@@ -321,6 +321,28 @@ function WorldMap.PlayerZonePosition()
     return mapID, x, y
 end
 
+local spot -- one vector for every Explored call, made at the first
+
+---Whether this character has explored a spot of a map (`x`, `y` from 0 to 1). True on a map with
+---nothing to explore, as a city's or a dungeon's (Lib/Generated/ExplorableMaps.lua), and where
+---the game can't say.
+---@param mapID number
+---@param x number
+---@param y number
+---@return boolean
+function WorldMap.Explored(mapID, x, y)
+    local at = C_MapExplorationInfo and C_MapExplorationInfo.GetExploredAreaIDsAtPosition
+    local art = at and mapID and C_Map and C_Map.GetMapArtID and C_Map.GetMapArtID(mapID)
+    local explorable = ns.TableData and ns.TableData.explorableMaps
+    if not (art and explorable and explorable[art]) then
+        return true
+    end
+    spot = spot or CreateVector2D(0, 0)
+    spot:SetXY(x, y)
+    local areas = at(mapID, spot)
+    return type(areas) == "table" and #areas > 0
+end
+
 local sizes = {} -- mapID -> { width, height } in yards, or false: a map's size never changes
 
 ---A map's size in yards (C_Map.GetMapWorldSize), or nil when the game can't say, as for a map

@@ -149,6 +149,26 @@ near(fromAngle, 0, "FromPlayer: north")
 eq(WorldMap.FromPlayer({ uiMapID = 1413, position = { x = 0.5, y = 0.5 } }), nil,
     "FromPlayer: a map the player isn't on")
 eq(WorldMap.FromPlayer(nil), nil, "FromPlayer: no point")
+-- Explored: Durotar's art has areas to explore, a city's has none.
+do
+    local savedTable, savedVector = ns.TableData, CreateVector2D
+    ns.TableData = { explorableMaps = { [2169] = true } }
+    C_Map.GetMapArtID = function(id)
+        return id == 1411 and 2169 or id == 1454 and 2200 or nil
+    end
+    CreateVector2D = function(x, y)
+        return { x = x, y = y, SetXY = function(self, nx, ny) self.x, self.y = nx, ny end }
+    end
+    eq(WorldMap.Explored(1411, 0.5, 0.5), true, "Explored: the game can't say")
+    C_MapExplorationInfo = { GetExploredAreaIDsAtPosition = function(_, at)
+        return at.x < 0.5 and { 14 } or nil
+    end }
+    eq(WorldMap.Explored(1411, 0.2, 0.5), true, "Explored: an area the game lists")
+    eq(WorldMap.Explored(1411, 0.8, 0.5), false, "Explored: nothing listed there")
+    eq(WorldMap.Explored(1454, 0.8, 0.5), true, "Explored: a city has nothing to explore")
+    eq(WorldMap.Explored(9001, 0.8, 0.5), true, "Explored: a map with no art")
+    C_MapExplorationInfo, CreateVector2D, ns.TableData = nil, savedVector, savedTable
+end
 UiMapPoint = nil
 C_Map = nil
 eq(WorldMap.PlayerSide(), "H", "Horde side")

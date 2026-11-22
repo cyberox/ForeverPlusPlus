@@ -62,6 +62,7 @@ Lib\Generated\LockboxSkills.lua
 Lib\Generated\ComprehendScrolls.lua
 Lib\Generated\WeaponBuffs.lua
 Lib\Generated\NewItems.lua
+Lib\Generated\ExplorableMaps.lua
 Lib\NewItems.lua
 Lib\PlateLabel.lua
 Lib\FriendlyPlates.lua

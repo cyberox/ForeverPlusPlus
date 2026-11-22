@@ -183,7 +183,7 @@ One line here says what each file is for. [docs/architecture.md](docs/architectu
 | `Quests.lua` | `Quests` | Which quest Blizzard's quest windows show, a quest's level and tag, and whether it's a group quest. |
 | `QuestieDB.lua` | `QuestieDB` | The one place we read the separate QuestieDB addon, at run time (`Require` for a module that needs it). |
 
-**Generated**, in `Lib/Generated/` (never edit by hand): `InstanceLevels.lua`, `DisenchantBrackets.lua`, `LockboxSkills.lua`, `ComprehendScrolls.lua`, `WeaponBuffs.lua`, `TaxiRoutes.lua`, `NewItems.lua`.
+**Generated**, in `Lib/Generated/` (never edit by hand): `InstanceLevels.lua`, `DisenchantBrackets.lua`, `LockboxSkills.lua`, `ComprehendScrolls.lua`, `WeaponBuffs.lua`, `TaxiRoutes.lua`, `NewItems.lua`, `ExplorableMaps.lua`.
 
 ### Modules
 
@@ -211,7 +211,7 @@ One line here says what each file is for. [docs/architecture.md](docs/architectu
 
 ### Generated data
 
-`lua5.1 tools/datagen/generate.lua [build]` downloads the tables a `wowf` build needs from wago.tools and writes every generated file: Unexplored Areas' and Professions' `Data.lua`, the seven files in `Lib/Generated/`, and `Reference.txt` (what the tables say about data kept by hand, so a new build's diff shows what to check). [docs/architecture.md](docs/architecture.md#generated-data-toolsdatagen) has what each comes from, `summary.lua` and `survey.lua`, and the `table-data.yml` workflow that regenerates for a new build and opens a pull request.
+`lua5.1 tools/datagen/generate.lua [build]` downloads the tables a `wowf` build needs from wago.tools and writes every generated file: Unexplored Areas' and Professions' `Data.lua`, the eight files in `Lib/Generated/`, and `Reference.txt` (what the tables say about data kept by hand, so a new build's diff shows what to check). [docs/architecture.md](docs/architecture.md#generated-data-toolsdatagen) has what each comes from, `summary.lua` and `survey.lua`, and the `table-data.yml` workflow that regenerates for a new build and opens a pull request.
 
 - **Never edit a generated file by hand.** Change the generator (one module per file, listed in `generators.lua`) and run it again.
 - `BUILD` is the build they came from. Output is sorted, so the same build gives the same bytes.

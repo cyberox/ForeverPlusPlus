@@ -3,6 +3,7 @@
 -- those tables in `classic`, and reads each as `tables["Classic.<name>"]`.
 return {
     require("unexplored"),
+    require("explorable"),
     require("skilllevels"),
     require("taxiroutes"),
     require("reference"),

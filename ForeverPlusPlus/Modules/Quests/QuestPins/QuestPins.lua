@@ -25,6 +25,7 @@ local module = ns.NewModule("QuestPins", L.QUESTPINS_DESC, {
     size = 60, -- percent of PIN_PIXELS
     color = "kind", -- "kind", "difficulty", or "plain"
     alpha = 100, -- percent
+    explored = false, -- only pins in the parts of a zone this character has explored
     fadeAlpha = 50, -- percent, for a pin of only upcoming or low-level quests
     holiday = false,
     upcoming = true, -- quests the player is upcomingLevels or fewer levels short of
@@ -83,6 +84,8 @@ module.options = {
         section = PINS,
     },
     ns.MapPins.OpacityOption("alpha", PINS, { requires = "pins", description = L.QUESTPINS_ALPHA_DESC }),
+    { key = "explored", name = L.QUESTPINS_EXPLORED, description = L.QUESTPINS_EXPLORED_DESC,
+        requires = "pins", section = PINS, added = "1.9.0" },
 
     { key = "normal", name = L.QUESTPINS_NORMAL, description = L.QUESTPINS_NORMAL_DESC, requires = "pins",
         section = KINDS },
@@ -303,6 +306,11 @@ module:OnWhile("pins", {
     PLAYER_LEVEL_UP = onChanged,
     SKILL_LINES_CHANGED = onChanged,
 })
+
+-- A newly explored area shows its pins.
+module:OnWhile(function(db)
+    return db.pins and db.explored
+end, { MAP_EXPLORATION_UPDATED = changedSoon })
 
 -- Starting and stopping -----------------------------------------------------------------------------
 

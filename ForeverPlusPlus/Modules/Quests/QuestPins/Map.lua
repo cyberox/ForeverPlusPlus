@@ -277,7 +277,10 @@ local function fill(mapID, add)
                 local points = {}
                 for i = 1, #source.xs do
                     local x, y = source.xs[i], source.ys[i]
-                    if zone ~= mapID then
+                    -- Asked of the spawn's own zone map, so a continent map hides the same ones.
+                    if db.explored and not WorldMap.Explored(zone, x, y) then
+                        x = nil
+                    elseif zone ~= mapID then
                         x, y = MapPins.Translate(zone, mapID, x, y)
                     end
                     if x then
