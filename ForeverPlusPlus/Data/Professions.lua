@@ -143,6 +143,18 @@ ns.Data.professionTools = {
     [6219] = ENGINEERING, -- Arclight Spanner
 }
 
+-- Beast families that aren't skinned, by creature family ID (UnitCreatureFamily's second value):
+-- whether a creature can be skinned is the server's loot data and in none of the client's
+-- tables, so a living beast is guessed from its family, and a corpse teaches the rest
+-- (Professions.LearnSkinnable). Spiders from a player's report (issue 22, a Deepmoss Webspinner);
+-- birds from the Warcraft Wiki's Skinning page ("most birds cannot be skinned"). The IDs are
+-- Classic's CreatureFamily rows, unverified on Forever.
+ns.Data.unskinnedFamilies = {
+    [3] = true, -- Spider
+    [7] = true, -- Carrion Bird
+    [26] = true, -- Owl
+}
+
 -- Blacksmiths make skeleton keys that open locks like Lockpicking: item ID, the skill it opens
 -- up to, and the Blacksmithing skill that makes it. Classic's values, unverified on Forever.
 ns.Data.skeletonKeys = {

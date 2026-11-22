@@ -68,6 +68,9 @@ ns.changelog = {
                     .. "caused it." },
             } },
             { L.CHANGELOG_FIXED, {
+                { L.PROFTOOLTIPS_TITLE, "Spiders and birds no longer show a Skinning skill, since "
+                    .. "they can't be skinned, and the corpses you look at teach which other "
+                    .. "creatures can and can't be." },
                 { L.CHATHISTORY_TITLE, "With another chat addon that rewrites chat lines, such as "
                     .. "vChat, saved lines no longer get its changes added again at every login. A "
                     .. "line with a web address doubled in size each time until the saved file was "

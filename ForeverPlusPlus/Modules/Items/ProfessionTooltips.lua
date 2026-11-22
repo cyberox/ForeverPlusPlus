@@ -5,6 +5,10 @@
 -- (red without it); Lockpicking only for characters who can pick locks. Ideas from
 -- GatherSkillTooltip; none of its code.
 --
+-- Which creatures can be skinned is the server's loot data, in none of the client's tables: a
+-- living Beast or Dragonkin is taken to be, except a family that never is (spiders, birds), and
+-- the corpses the player looks at teach each kind for sure, over that guess.
+--
 -- Fishing isn't here: in Classic what a pool or a fish needs depends on the zone, not on it.
 -- Herb and vein names start in English (Lib/Professions); a name in another language, or one a
 -- patch changed, is learned from Blizzard's "Requires Herbalism (N)" line the first time its
@@ -17,11 +21,13 @@ local format = string.format
 local TooltipDataProcessor, Enum = TooltipDataProcessor, Enum
 local UnitIsPlayer, UnitPlayerControlled, UnitCreatureType = UnitIsPlayer, UnitPlayerControlled, UnitCreatureType
 local UnitLevel, UnitIsDead, UnitCanAttack = UnitLevel, UnitIsDead, UnitCanAttack
+local UnitGUID, UnitCreatureFamily, UnitIsTapDenied = UnitGUID, UnitCreatureFamily, UnitIsTapDenied
+local CanLootUnit, UNIT_SKINNABLE_LEATHER = CanLootUnit, UNIT_SKINNABLE_LEATHER
 
 local L = ns.L
 local Colors = ns.Colors
 local readable = ns.IsReadable
-local Professions = ns.Professions
+local Professions, Units = ns.Professions, ns.Units
 local ItemTooltip = ns.ItemTooltip
 
 local HERB, MINE, SKIN = Professions.HERBALISM, Professions.MINING, Professions.SKINNING
@@ -375,21 +381,83 @@ end
 -- Unit state can be secret; then it counts as no (ns.IsTrue).
 local yes = ns.IsTrue
 
+-- A creature's NPC ID and creature family ID, each nil when the game hides it.
+local function creature(unit)
+    local family
+    if UnitCreatureFamily then
+        local _, id = UnitCreatureFamily(unit)
+        family = ns.IsNumber(id) and id or nil
+    end
+    return Units.NpcID(UnitGUID(unit)), family
+end
+
+-- Whether a creature can be skinned is the server's to know. What a corpse of it showed comes
+-- first (Professions.Skinnable), then its family (no spiders), and only then the guess that a
+-- Beast or Dragonkin can be.
 local function canSkin(unit)
     if yes(UnitIsPlayer(unit)) or yes(UnitPlayerControlled(unit)) then
         return false
     end
-    -- Probe: the type's ID is a second value on Mainline; without it, the name the game shows.
-    local name, kind = UnitCreatureType(unit)
-    if ns.IsNumber(kind) then
-        if not SKINNABLE_TYPES[kind] then
+    local known = Professions.Skinnable(creature(unit))
+    if known == false then
+        return false
+    end
+    if known == nil then
+        -- Probe: the type's ID is a second value on Mainline; without it, the name the game shows.
+        local name, kind = UnitCreatureType(unit)
+        if ns.IsNumber(kind) then
+            if not SKINNABLE_TYPES[kind] then
+                return false
+            end
+        elseif not (readable(name) and SKINNABLE_NAMES[name]) then
             return false
         end
-    elseif not (readable(name) and SKINNABLE_NAMES[name]) then
-        return false
     end
     -- Dead ones, or ones you could fight: not a friendly flight master's gryphon.
     return yes(UnitIsDead(unit)) or yes(UnitCanAttack("player", unit))
+end
+
+-- Whether the tooltip's lines say the corpse can be skinned: Blizzard's "Skinnable", or its
+-- "Requires Skinning (N)".
+local function saysSkinnable(data)
+    local lines = data and data.lines
+    if not (readable(lines) and type(lines) == "table") then
+        return false
+    end
+    local skill = ns.GameData.TooltipRequires(data)
+    if skill and isProfessionName(skill, SKIN) then
+        return true
+    end
+    for i = 2, #lines do
+        local text = lines[i] and lines[i].leftText
+        if UNIT_SKINNABLE_LEATHER and ns.IsText(text) and clean(text) == UNIT_SKINNABLE_LEATHER then
+            return true
+        end
+    end
+    return false
+end
+
+-- A corpse teaches whether its kind can be skinned: one that says so can. One that doesn't and
+-- has nothing left to loot can't, counted only for a kill that was the player's to loot, since
+-- another player's corpse doesn't say until they've looted it.
+local function learnFromCorpse(unit, data)
+    if not yes(UnitIsDead(unit)) or yes(UnitIsPlayer(unit)) or yes(UnitPlayerControlled(unit)) then
+        return
+    end
+    local guid = UnitGUID(unit)
+    local npc = Units.NpcID(guid)
+    if not (npc and ns.IsText(guid)) then
+        return
+    end
+    if saysSkinnable(data) then
+        Professions.LearnSkinnable(npc, true)
+    elseif CanLootUnit and UnitIsTapDenied then
+        local denied = UnitIsTapDenied(unit)
+        local hasLoot = CanLootUnit(guid)
+        if readable(denied) and readable(hasLoot) and denied == false and hasLoot == false then
+            Professions.LearnSkinnable(npc, false)
+        end
+    end
 end
 
 local unitData = setmetatable({}, { __mode = "k" }) -- tooltip -> the unit's tooltip data
@@ -399,11 +467,15 @@ local function addSkinLine(tooltip)
         return
     end
     local _, unit = tooltip:GetUnit()
-    if not ns.IsText(unit) or not canSkin(unit) then
+    if not ns.IsText(unit) then
+        return
+    end
+    local data = unitData[tooltip]
+    learnFromCorpse(unit, data)
+    if not canSkin(unit) then
         return
     end
     -- Blizzard already says what it needs: recolor that once it's drawn, don't add another.
-    local data = unitData[tooltip]
     local index = data and findRequires(data)
     if index then
         restyling[tooltip] = { index, SKIN, data.lines[index].leftText, findNameLine(data, index, SKIN) }

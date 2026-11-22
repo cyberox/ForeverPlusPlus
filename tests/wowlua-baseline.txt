@@ -94,3 +94,6 @@
 
 # Not sorted yet: move each under the comment that says why it stays, or fix it.
 1	ForeverPlusPlus/Modules/Chat/MovableCombatLogTab.lua: warning[undefined-field] undefined field 'GENERAL_CHAT_DOCK' on class '_G'
+
+# Not sorted yet: move each under the comment that says why it stays, or fix it.
+1	ForeverPlusPlus/Modules/Items/ProfessionTooltips.lua: warning[secret-argument] `CanLootUnit` does not accept secret values from addon code, but this value from `UnitGUID` may be secret; guard with `canaccessvalue`

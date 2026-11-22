@@ -440,6 +440,39 @@ function Professions.SkinningNeed(level)
     return level * 5
 end
 
+-- Which creatures can be skinned isn't in the client: NPC ID -> true or false, learned from the
+-- corpses the player looks at. Nothing is seeded; a family that's never skinned is in
+-- Data/Professions.lua.
+local SKINNED = ns.GameData.New("skinnedCreatures", {}, { label = "Skinnable creatures" })
+local UNSKINNED_FAMILIES = Data.unskinnedFamilies
+
+---Whether a creature can be skinned, as far as we know: what a corpse of it taught, else false
+---for a family that never is, else nil (not known; the caller guesses from its type).
+---@param npc number? its NPC ID
+---@param family number? its creature family's ID
+---@return boolean?
+function Professions.Skinnable(npc, family)
+    local known = npc and SKINNED:Get(npc)
+    if known ~= nil then
+        return known
+    end
+    if family and UNSKINNED_FAMILIES[family] then
+        return false
+    end
+    return nil
+end
+
+---Remembers whether a creature can be skinned. Seeing that one can is sure and stays; seeing no
+---sign of it (a looted corpse that doesn't say Skinnable) can be wrong, so it never replaces
+---what's already known.
+---@param npc number? its NPC ID
+---@param skinnable boolean
+function Professions.LearnSkinnable(npc, skinnable)
+    if npc and (skinnable or SKINNED:Get(npc) == nil) then
+        SKINNED:Learn(npc, skinnable and true or false)
+    end
+end
+
 -- A recipe's colors by skill ---------------------------------------------------------------------
 -- A recipe is orange (a skill-up every time) below its yellow level, yellow (usually) from there,
 -- green (sometimes) from halfway to gray, and gray (never) from its gray level on. The game's

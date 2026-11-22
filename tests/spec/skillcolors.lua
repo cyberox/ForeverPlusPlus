@@ -42,6 +42,19 @@ for i, each in ipairs(all) do
         "difficulty: color " .. i .. " has r, g, and b")
 end
 
+-- Which creatures can be skinned: a family that never is, then what a corpse taught.
+eq(Professions.Skinnable(4006, 3), false, "skinnable: a spider isn't")
+eq(Professions.Skinnable(4006, 1), nil, "skinnable: a wolf isn't known either way")
+eq(Professions.Skinnable(nil, nil), nil, "skinnable: nothing to go on")
+Professions.LearnSkinnable(100, false)
+eq(Professions.Skinnable(100, 1), false, "skinnable: a looted corpse that didn't say so")
+Professions.LearnSkinnable(100, true)
+eq(Professions.Skinnable(100, 1), true, "skinnable: a corpse that says so wins")
+Professions.LearnSkinnable(100, false)
+eq(Professions.Skinnable(100, 1), true, "skinnable: and stays, whatever a later corpse lacks")
+Professions.LearnSkinnable(4006, true)
+eq(Professions.Skinnable(4006, 3), true, "skinnable: a corpse beats the family")
+
 -- Skinning: 1 through level 10, then ten a level to 20, then five times the level.
 local need = Professions.SkinningNeed
 eq(need(1), 1, "skinning: level 1")

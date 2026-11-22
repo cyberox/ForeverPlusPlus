@@ -29,7 +29,7 @@ The detail behind `AGENTS.md`'s project map: what each part of the addon holds, 
 Game data kept by hand, loaded after the locales and before `Lib/`: plain tables on `ns.Data` and nothing else, each with a comment saying where it came from. The Lib file or module that uses a table makes the `ns.GameData` set from it, so play still teaches over it and Self Test still checks its IDs. A patch's change is an edit here.
 
 - `Instances.lua`: `instances` (each dungeon and raid: instance ID, English name, lowest and highest level, raid flag, by a short key; `Lib/Instances.lua`) and `dungeonArt` (the old map textures of each, by the same key, with Dire Maul's and Scarlet Monastery's wings; `Lib/DungeonMaps.lua`).
-- `Professions.lua`: `professionNodes` (herbs and veins: skill line, skill, item), `miningStones`, `sharedSpawns`, `treasureNodes` (chests), `fishingPools`, `fishingBobbers`, `professionTools` (`Lib/Professions.lua`, `Lib/Gathering.lua`), and `skeletonKeys` (Gathering Skill Tooltips).
+- `Professions.lua`: `professionNodes` (herbs and veins: skill line, skill, item), `miningStones`, `sharedSpawns`, `treasureNodes` (chests), `fishingPools`, `fishingBobbers`, `professionTools`, `unskinnedFamilies` (beast families never skinned; `Professions.Skinnable`, with `LearnSkinnable` for what corpses teach) (`Lib/Professions.lua`, `Lib/Gathering.lua`), and `skeletonKeys` (Gathering Skill Tooltips).
 - `Spells.lua`: `spells`, the spell IDs more than one file uses, read with `ns.Data.Spell("FISHING")`, which registers the ID for Self Test.
 - `Items.lua`: `autoOpenKept` (Auto Open Containers).
 - `Buffs.lua`: `smartBuffs` (each class's buffs), `smartBuffStronger`, `smartBuffLevels` (Macros' Smart Buff).
