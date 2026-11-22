@@ -4,7 +4,7 @@
 local _, ns = ...
 
 local ipairs, GetGuildInfo, format = ipairs, GetGuildInfo, format
-local UnitClass, UnitIsUnit = UnitClass, UnitIsUnit
+local UnitClass, UnitIsUnit, UnitPVPName = UnitClass, UnitIsUnit, UnitPVPName
 
 local L = ns.L
 local readable = ns.IsReadable
@@ -13,6 +13,7 @@ local Units = ns.Units
 local module = ns.NewModule("PlayerNameplates", L.PLAYERNAMEPLATES_DESC, ns.FriendlyPlates.Defaults({
     nameColor = "class", -- "class" or "white"
     lightRogue = false, -- rogues in a pale yellow, apart from neutral NPCs' yellow
+    titles = false, -- the title a player chose, with their name
     roleplayName = true, -- the name Total RP 3 gives a player, with that addon loaded
     roleplayColor = true, -- the name color Total RP 3 gives a player, with that addon loaded
     roleplayIcon = true, -- the profile icon Total RP 3 gives a player, with that addon loaded
@@ -66,6 +67,10 @@ module.options = ns.FriendlyPlates.Options(L.PLAYERNAMEPLATES_HEALTH_BAR_DESC, {
         key = "lightRogue", name = L.PLAYERNAMEPLATES_LIGHT_ROGUE, description = L.PLAYERNAMEPLATES_LIGHT_ROGUE_DESC,
         section = L.PLATES_SECTION_NAME, added = "1.0.1",
         shown = function(db) return db.nameColor == "class" and ns.FriendlyPlates.HasNameView(db) end,
+    },
+    {
+        key = "titles", name = L.PLAYERNAMEPLATES_TITLES, description = L.PLAYERNAMEPLATES_TITLES_DESC,
+        section = L.PLATES_SECTION_NAME, added = "1.9.0",
     },
     {
         key = "roleplayName", name = L.PLAYERNAMEPLATES_ROLEPLAY_NAME,
@@ -241,9 +246,19 @@ function style.NameColor(unit)
     return 1, 1, 1
 end
 
--- Total RP 3 Names: the roleplay name, with its out of character mark.
+-- Total RP 3 Names: the roleplay name, with its out of character mark. Else, with Titles, the name
+-- as the game writes it with the player's chosen title ("Name, Master Angler"); a secret one, in
+-- an instance or combat, leaves Blizzard's plain name.
 function style.Name(unit)
-    return module.db.roleplayName and ns.FriendlyPlates.RoleplayName(unit) or nil
+    local db = module.db
+    local name = db.roleplayName and ns.FriendlyPlates.RoleplayName(unit)
+    if not name and db.titles and UnitPVPName then
+        local titled = UnitPVPName(unit)
+        if ns.IsText(titled, true) then
+            name = titled
+        end
+    end
+    return name or nil
 end
 
 -- Total RP 3 Icons: the profile icon, drawn with our other icons in place of that addon's own.

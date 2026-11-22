@@ -28,6 +28,8 @@ ns.changelog = {
                     .. "interface and one for keyboard and mouse: a Forever++ profile, an Edit Mode "
                     .. "layout, and a set of addons each. Logging in on the other interface switches to "
                     .. "its profile and layout, and asks to reload only when the addons loaded aren't its set." },
+                { L.PLAYERNAMEPLATES_TITLE, "Titles (off by default) writes a player's name with the "
+                    .. "title they chose, like \"Name, Master Angler\"." },
                 { L.QUESTPINS_TITLE, "Hide in Unexplored Areas (off by default) leaves out the pins in "
                     .. "parts of a zone your character hasn't explored yet." },
                 { L.AUCTIONTOTALS_TITLE, "A new module that shows, next to Cancel Auction on the "
