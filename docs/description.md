@@ -157,7 +157,7 @@ Everything is on by default except where noted. Each module can be turned off, a
 - **Class Colors**: Colors players' health bars, and optionally names, by class on the unit frames, NPCs' bars by reaction, and names in the friends and who lists by class.
 - **Druid Mana Bar**: Druids only: shows your mana under the energy or rage bar while in Cat or Bear Form.
 - **NPC Nameplates**: Always shows friendly NPCs' names and titles, with the health bar only when they're hurt or in combat. Options for sizes, a level badge, and where buffs sit.
-- **Player Nameplates**: Always shows friendly players' names and guilds, with the health bar only when they're hurt or in combat. Options for sizes, a level badge, class icons, dimming players outside your group, guild, and friends, and a name color for group members and for enemy players. In dungeons and raids the game keeps Blizzard's own friendly plates.
+- **Player Nameplates**: Always shows friendly players' names and guilds, with the health bar only when they're hurt or in combat. Options for sizes, a level badge, class icons, dimming players outside your group, guild, and friends, and a name and health bar color for group members and for enemy players. In dungeons and raids the game keeps Blizzard's own friendly plates.
 - **Simplified Dungeon Nameplates**: Turns on the game's Simplified nameplates only inside dungeons and raids, for the kinds you pick. Off by default.
 - **Target Markers**: Hold a key and a ring of raid icons opens at your mouse, like the ping wheel: point at one and let go to mark your target, or hold Shift for a world marker. Works in combat. Off by default.
 

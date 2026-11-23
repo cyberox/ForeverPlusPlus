@@ -31,9 +31,11 @@ ns.changelog = {
                 { L.PLAYERNAMEPLATES_TITLE, "Titles (off by default) writes a player's name with the "
                     .. "title they chose, like \"Name, Master Angler\"." },
                 { L.PLAYERNAMEPLATES_TITLE, "Group Member Names (off by default) shows the names of "
-                    .. "players in your party or raid in a color you pick, like purple." },
+                    .. "players in your party or raid in a color you pick, like purple, or their "
+                    .. "class color. Health Bar Too colors their health bars the same way." },
                 { L.PLAYERNAMEPLATES_TITLE, "Enemy Player Names (off by default) shows enemy "
-                    .. "players' names on their nameplates in a color you pick, like red." },
+                    .. "players' names on their nameplates in a color you pick, like red, or their "
+                    .. "class color. Health Bar Too colors their health bars the same way." },
                 { L.QUESTPINS_TITLE, "Hide in Unexplored Areas (off by default) leaves out the pins in "
                     .. "parts of a zone your character hasn't explored yet." },
                 { L.AUCTIONTOTALS_TITLE, "A new module that shows, next to Cancel Auction on the "
