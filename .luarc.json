@@ -55,6 +55,7 @@
     "UnitHealthMax",
     "UnitHealthPercent",
     "UnitIsPlayer",
+    "UnitIsPVP",
     "UnitIsConnected",
     "UnitIsFriend",
     "UnitIsUnit",

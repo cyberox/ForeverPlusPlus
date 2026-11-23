@@ -482,6 +482,91 @@ local function matchLevelFont(label, levelFrame, scale)
     return label.levelSize or size
 end
 
+-- Class icons on plates that aren't ours ----------------------------------------------------------
+-- A plate Blizzard draws whole (an enemy player's) can still get the class icon, beside
+-- Blizzard's own name: a texture of ours on a frame of ours over the plate.
+
+local plateIcons = setmetatable({}, { __mode = "k" }) -- Blizzard unit frame -> our icon's frame
+
+-- Puts `icon` beside the text Blizzard's name shows, not the font string's edge: the string can be
+-- as wide as the bar with a short name at one end of it. Without a width Lua can read (a secret
+-- name), it goes at the string's edge.
+local function besideText(icon, name, left, gap)
+    local width, justify = name:GetStringWidth(), name:GetJustifyH()
+    icon:ClearAllPoints()
+    local known = readable(width) and readable(justify) and width and width > 0
+    if known and justify == "CENTER" then
+        local reach = width / 2 + gap
+        if left then
+            icon:SetPoint("RIGHT", name, "CENTER", -reach, 0)
+        else
+            icon:SetPoint("LEFT", name, "CENTER", reach, 0)
+        end
+    elseif known and justify == "RIGHT" and left then
+        icon:SetPoint("RIGHT", name, "RIGHT", -(width + gap), 0)
+    elseif known and justify == "LEFT" and not left then
+        icon:SetPoint("LEFT", name, "LEFT", width + gap, 0)
+    elseif left then
+        icon:SetPoint("RIGHT", name, "LEFT", -gap, 0)
+    else
+        icon:SetPoint("LEFT", name, "RIGHT", gap, 0)
+    end
+end
+
+---Shows the unit's class icon beside Blizzard's own name on a plate we don't draw, on the side,
+---in the look, and at the size the module's class icon settings say (`classIcon`,
+---`classIconStyle`, `iconSize`). A class that can't be read keeps the icon this plate had.
+---Call it again after the name's text or a setting changes, and HideClassIcon as the plate leaves.
+---@param frame table plate.UnitFrame
+---@param name table Blizzard's name font string on it
+---@param unit string
+---@param db table the module's settings
+---@return boolean shown
+function PlateLabel.ShowClassIcon(frame, name, unit, db)
+    local holder = plateIcons[frame]
+    local where = db.classIcon
+    local atlas = where ~= "off" and classAtlas(unit, db.classIconStyle) or nil
+    if not atlas and where ~= "off" and holder and holder.unit == unit then
+        atlas = holder.atlas
+    end
+    if not atlas then
+        if holder then
+            holder:Hide()
+        end
+        return false
+    end
+    if not holder then
+        holder = CreateFrame("Frame", nil, frame)
+        holder:SetAllPoints(frame)
+        holder.icon = newClassIcon(holder)
+        plateIcons[frame] = holder
+    end
+    holder.unit, holder.atlas = unit, atlas
+    local _, fontSize = name:GetFont()
+    if readable(fontSize) and fontSize and fontSize > fullSize then
+        fullSize = fontSize
+    end
+    local base = fullSize > 0 and fullSize or 12
+    local gap = base * GAP_SCALE
+    gap = floor((gap > GAP and gap or GAP) + 0.5)
+    local size = base * ICON_SCALE * (db.iconSize or 100) / 100 * (CLASS_SCALE[db.classIconStyle] or 1)
+    local left = where == "before"
+    placeClass(holder.icon, name, left, size, gap, atlas, db.classIconStyle == "round")
+    besideText(holder.icon, name, left, gap)
+    holder:Show()
+    return true
+end
+
+---Hides the class icon ShowClassIcon put on a plate, as it leaves or the setting turns off.
+---@param frame table plate.UnitFrame
+function PlateLabel.HideClassIcon(frame)
+    local holder = plateIcons[frame]
+    if holder then
+        holder.unit, holder.atlas = nil, nil
+        holder:Hide()
+    end
+end
+
 -- Level Frame: what the number sits in, each sized against the number's font size: `height`
 -- tall and `wide` times that across, growing for a wide number to its width plus `pad`, and
 -- the number moved by `nudge` (x, y) to sit in the art's middle (digits sit low in their line
