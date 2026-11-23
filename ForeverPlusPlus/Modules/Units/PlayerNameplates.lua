@@ -1,10 +1,13 @@
 -- Player Nameplates: friendly players always show their name, with their guild, level, and group
 -- and friend icons beside it, and the health bar only shows while they're hurt or in combat.
 -- The plates themselves are ns.FriendlyPlates; this module picks the colors and the guild line.
+-- Enemy Player Names is the one thing it does to a plate that isn't friendly: Blizzard's own name
+-- there, in one color.
 local _, ns = ...
 
-local ipairs, GetGuildInfo, format = ipairs, GetGuildInfo, format
+local ipairs, GetGuildInfo, format, setmetatable = ipairs, GetGuildInfo, format, setmetatable
 local UnitClass, UnitIsUnit, UnitPVPName = UnitClass, UnitIsUnit, UnitPVPName
+local UnitIsPlayer, UnitIsFriend = UnitIsPlayer, UnitIsFriend
 
 local L = ns.L
 local readable = ns.IsReadable
@@ -24,6 +27,8 @@ local module = ns.NewModule("PlayerNameplates", L.PLAYERNAMEPLATES_DESC, ns.Frie
     classIconStyle = "ring", -- "ring", "round", or "square"
     classIconOrder = "inside", -- with the level on the same side: "inside" it, or "outside" past it
     recentAllies = "icon", -- "off", "color" (light blue name), or "icon"
+    groupColor = "off", -- "off", or one of NAME_COLORS for party and raid members' names
+    enemyColor = "off", -- "off", or one of NAME_COLORS for enemy players' names
     guildNames = "always", -- "always", "hidden" (only without the bar), or "off"
     guildColor = "gray", -- "gray" or "green"
     guildHighlight = true,
@@ -49,6 +54,34 @@ ns.Migrate(5, function(db)
     end
     ns.FriendlyPlates.MigrateHealthBar(saved)
 end)
+
+-- The colors Group Member Names and Enemy Player Names offer: our own, light enough to read over
+-- the world with the name's outline.
+local NAME_COLORS = {
+    red = { 1, 0.25, 0.25 },
+    orange = { 1, 0.6, 0.2 },
+    yellow = { 1, 0.9, 0.3 },
+    green = { 0.4, 1, 0.4 },
+    blue = { 0.4, 0.7, 1 },
+    purple = { 0.75, 0.5, 1 },
+    pink = { 1, 0.55, 0.8 },
+    white = { 1, 1, 1 },
+}
+
+-- A new list each call, so each option has its own.
+local function nameColorChoices()
+    return {
+        { "off", L.PLAYERNAMEPLATES_COLOR_OFF },
+        { "red", L.PLATES_COLOR_RED },
+        { "orange", L.PLATES_COLOR_ORANGE },
+        { "yellow", L.PLATES_COLOR_YELLOW },
+        { "green", L.PLATES_COLOR_GREEN },
+        { "blue", L.PLATES_COLOR_BLUE },
+        { "purple", L.PLATES_COLOR_PURPLE },
+        { "pink", L.PLATES_COLOR_PINK },
+        { "white", L.PLATES_COLOR_WHITE },
+    }
+end
 
 -- General first, then the name, the guild line, and the icons beside the name.
 module.options = ns.FriendlyPlates.Options(L.PLAYERNAMEPLATES_HEALTH_BAR_DESC, {
@@ -101,6 +134,16 @@ module.options = ns.FriendlyPlates.Options(L.PLAYERNAMEPLATES_HEALTH_BAR_DESC, {
             { "icon", L.PLAYERNAMEPLATES_RECENT_ALLIES_ICON },
         },
         section = L.PLATES_SECTION_NAME,
+    },
+    {
+        key = "groupColor", name = L.PLAYERNAMEPLATES_GROUP_COLOR,
+        description = L.PLAYERNAMEPLATES_GROUP_COLOR_DESC,
+        choices = nameColorChoices(), section = L.PLATES_SECTION_NAME, added = "1.9.0",
+    },
+    {
+        key = "enemyColor", name = L.PLAYERNAMEPLATES_ENEMY_COLOR,
+        description = L.PLAYERNAMEPLATES_ENEMY_COLOR_DESC,
+        choices = nameColorChoices(), section = L.PLATES_SECTION_NAME, added = "1.9.0",
     },
     {
         key = "guildNames", name = L.PLAYERNAMEPLATES_GUILD_NAMES, description = L.PLAYERNAMEPLATES_GUILD_NAMES_DESC,
@@ -224,7 +267,21 @@ function style.ShowAllyIcon(unit)
     return isRecentAlly(unit, "icon")
 end
 
+-- Group Member Names: the color picked for someone in your party or raid, or nil. It comes before
+-- every other name color: a group member is nearly always a recent ally too, and it's the one the
+-- player asked to tell apart at a glance.
+local function groupColor(unit)
+    local color = NAME_COLORS[module.db.groupColor]
+    if color and Units.InGroup(unit) then
+        return color
+    end
+end
+
 function style.NameColor(unit)
+    local group = groupColor(unit)
+    if group then
+        return group[1], group[2], group[3]
+    end
     if isRecentAlly(unit, "color") then
         return RECENT_ALLY[1], RECENT_ALLY[2], RECENT_ALLY[3]
     end
@@ -288,8 +345,13 @@ function style.Alpha(unit)
     return 1
 end
 
--- With the bar up, the name is plain white, as Blizzard draws it, except a colored recent ally's.
+-- With the bar up, the name is plain white, as Blizzard draws it, except a group member's or a
+-- recent ally's with a color of its own.
 function style.BarNameColor(unit)
+    local group = groupColor(unit)
+    if group then
+        return group[1], group[2], group[3]
+    end
     if isRecentAlly(unit, "color") then
         return RECENT_ALLY[1], RECENT_ALLY[2], RECENT_ALLY[3]
     end
@@ -350,6 +412,124 @@ local function onRecentAllies()
     end
 end
 
+-- Enemy Player Names ----------------------------------------------------------------------------
+-- A player whose plate isn't friendly (the other faction, a duel) keeps Blizzard's plate, and its
+-- name gets the color picked. Blizzard colors the name itself (CompactUnitFrame_UpdateName,
+-- SetVertexColor) whenever it updates the plate, so each color it sets is remembered and painted
+-- over again, and put back as the plate leaves or the option turns off.
+local weak = { __mode = "k" }
+local enemyUnits = setmetatable({}, weak) -- Blizzard's name -> its plate's unit, while on screen
+local enemyKnown = setmetatable({}, weak) -- Blizzard's name -> whether that unit is an enemy player
+local blizzardColor = setmetatable({}, weak) -- Blizzard's name -> { r, g, b } Blizzard last set
+local enemyPainted = setmetatable({}, weak) -- Blizzard's name -> true while in our color
+local paintingEnemy = false
+-- The key ns.Nameplates knows this by; the Profiler charges it to the module.
+local enemyOwner = { module = module }
+
+-- Whether the plate's unit is an enemy player. Who a unit is can be secret (in combat, an
+-- instance): then the last answer for this plate stands, and none yet counts as no.
+local function isEnemyPlayer(text, unit)
+    local isPlayer, isFriend = UnitIsPlayer(unit), UnitIsFriend("player", unit)
+    if readable(isPlayer) and readable(isFriend) then
+        enemyKnown[text] = (isPlayer and not isFriend) and true or false
+    end
+    return enemyKnown[text] or false
+end
+
+-- Blizzard's color back. Its values may be secret, so they're only ever passed on. Three numbers,
+-- never an alpha: that would show a name the friendly plates hid.
+local function restoreEnemyName(text)
+    local old = blizzardColor[text]
+    enemyPainted[text] = nil
+    if old then
+        paintingEnemy = true
+        text:SetVertexColor(old[1], old[2], old[3])
+        paintingEnemy = false
+    end
+end
+
+local function paintEnemyName(text)
+    local unit = enemyUnits[text]
+    local color = unit and NAME_COLORS[module.db.enemyColor]
+    if not (color and isEnemyPlayer(text, unit)) then
+        if enemyPainted[text] then
+            restoreEnemyName(text)
+        end
+        return
+    end
+    -- Blizzard colored it before our hook saw: keep what it shows now to put back.
+    if not blizzardColor[text] then
+        local r, g, b = text:GetVertexColor()
+        blizzardColor[text] = { r, g, b }
+    end
+    paintingEnemy = true
+    text:SetVertexColor(color[1], color[2], color[3])
+    paintingEnemy = false
+    enemyPainted[text] = true
+end
+
+-- Remember what Blizzard sets, then paint over it again.
+local function onEnemyNameColored(text, r, g, b)
+    if paintingEnemy or not enemyUnits[text] then
+        return
+    end
+    blizzardColor[text] = { r, g, b }
+    paintEnemyName(text)
+end
+
+local function enemyNameOf(frame)
+    local text = ns.Nameplates.Parts(frame).name
+    return text and text.SetVertexColor and text or nil
+end
+
+local enemyHandlers = {
+    OnAdded = function(unit, frame)
+        local text = enemyNameOf(frame)
+        if text then
+            enemyUnits[text], enemyKnown[text] = unit, nil
+            module:Hook(text, "SetVertexColor", onEnemyNameColored)
+            paintEnemyName(text)
+        end
+    end,
+    -- Plates are pooled: the next unit's name starts from Blizzard's color.
+    OnRemoved = function(_, frame)
+        local text = enemyNameOf(frame)
+        if text then
+            if enemyPainted[text] then
+                restoreEnemyName(text)
+            end
+            enemyUnits[text], enemyKnown[text], blizzardColor[text] = nil, nil, nil
+        end
+    end,
+}
+
+-- Watches the plates only while the option has a color, so it costs nothing otherwise.
+local function syncEnemyNames(on)
+    if on and NAME_COLORS[module.db.enemyColor] then
+        ns.Nameplates.Register(enemyOwner, enemyHandlers)
+        -- Already watching: the color may have changed.
+        ns.Nameplates.ForEach(function(_, frame)
+            local text = enemyNameOf(frame)
+            if text then
+                paintEnemyName(text)
+            end
+        end)
+    else
+        ns.Nameplates.Unregister(enemyOwner)
+    end
+end
+
+-- A duel starts or ends, or a player flags, with the plate still up.
+module:OnWhile("enemyColor", {
+    UNIT_FACTION = function(_, unit)
+        local frame = unit and ns.Nameplates.FrameFor(unit)
+        local text = frame and enemyNameOf(frame)
+        if text and enemyUnits[text] then
+            paintEnemyName(text)
+        end
+    end,
+})
+
 plates = ns.FriendlyPlates.New(module, {
     players = true,
     cvars = {
@@ -370,6 +550,13 @@ plates = ns.FriendlyPlates.New(module, {
                 self:On(event, onRecentAllies)
             end
         end
+        syncEnemyNames(true)
+    end,
+    OnDisable = function()
+        syncEnemyNames(false)
+    end,
+    OnOptionChanged = function()
+        syncEnemyNames(true)
     end,
 })
 

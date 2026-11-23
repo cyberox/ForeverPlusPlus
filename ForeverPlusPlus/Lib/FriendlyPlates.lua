@@ -11,6 +11,8 @@
 --       -- and optionally style.Name, style.RoleplayIcon and style.OwnsRoleplayIcon (see
 --       -- ns.PlateLabel)
 --       OnEnable = fn(module), -- optional: more to do when the module turns on
+--       OnDisable = fn(module), -- optional: and when it turns off
+--       OnOptionChanged = fn(module, key), -- optional: and when an option changes while it's on
 --       Skip = fn(unit),       -- optional: true leaves this unit's plate to Blizzard
 --       Roleplay = fn(db),     -- optional: true while its settings use Total RP 3's plate data
 --   })
@@ -476,7 +478,7 @@ end
 
 ---Friendly plates for one module (see the top of this file).
 ---@param module table
----@param spec table players, cvars, style, and optional OnEnable and Skip
+---@param spec table players, cvars, style, and optional OnEnable, OnDisable, OnOptionChanged and Skip
 ---@return table plates
 function FriendlyPlates.New(module, spec)
     local self = setmetatable({ module = module, spec = spec, style = spec.style, records = {} }, Plates)
@@ -527,15 +529,21 @@ function FriendlyPlates.New(module, spec)
             spec.OnEnable(mod)
         end
     end
-    module.OnDisable = module.OnDisable or function()
+    module.OnDisable = module.OnDisable or function(mod)
         self:Disable()
+        if spec.OnDisable then
+            spec.OnDisable(mod)
+        end
     end
-    module.OnOptionChanged = module.OnOptionChanged or function(mod)
+    module.OnOptionChanged = module.OnOptionChanged or function(mod, key)
         if mod.enabled then
             self:SyncRoleplay()
             self:ApplyCVars(true)
             self:Recheck()
             self:Refresh()
+            if spec.OnOptionChanged then
+                spec.OnOptionChanged(mod, key)
+            end
         end
     end
     return self

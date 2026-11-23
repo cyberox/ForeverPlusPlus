@@ -30,6 +30,10 @@ ns.changelog = {
                     .. "its profile and layout, and asks to reload only when the addons loaded aren't its set." },
                 { L.PLAYERNAMEPLATES_TITLE, "Titles (off by default) writes a player's name with the "
                     .. "title they chose, like \"Name, Master Angler\"." },
+                { L.PLAYERNAMEPLATES_TITLE, "Group Member Names (off by default) shows the names of "
+                    .. "players in your party or raid in a color you pick, like purple." },
+                { L.PLAYERNAMEPLATES_TITLE, "Enemy Player Names (off by default) shows enemy "
+                    .. "players' names on their nameplates in a color you pick, like red." },
                 { L.QUESTPINS_TITLE, "Hide in Unexplored Areas (off by default) leaves out the pins in "
                     .. "parts of a zone your character hasn't explored yet." },
                 { L.AUCTIONTOTALS_TITLE, "A new module that shows, next to Cancel Auction on the "
