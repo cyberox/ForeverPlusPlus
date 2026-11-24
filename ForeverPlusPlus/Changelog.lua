@@ -32,6 +32,8 @@ ns.changelog = {
                     .. "title they chose, like \"Name, Master Angler\"." },
                 { L.QUESTPINS_TITLE, "Hide in Unexplored Areas (off by default) leaves out the pins in "
                     .. "parts of a zone your character hasn't explored yet." },
+                { L.QUESTTRACKER_TITLE, "Hide Completed Quests (off by default) takes a quest off "
+                    .. "the tracker once it's ready to turn in, and puts it back when turned off." },
                 { L.AUCTIONTOTALS_TITLE, "A new module that shows, next to Cancel Auction on the "
                     .. "auction house's Auctions page, what your auctions are listed for in all and how much has sold." },
                 { L.ITEMTOOLTIPS_TITLE, "Short Stat Text (on by default) writes an Equip: bonus that is "

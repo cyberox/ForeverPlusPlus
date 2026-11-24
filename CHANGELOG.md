@@ -14,6 +14,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Controller Mode**: a new module (off by default) with a page in Settings that keeps a setup for the controller interface and one for keyboard and mouse: a Forever++ profile, an Edit Mode layout, and a set of addons each. Logging in on the other interface switches to its profile and layout, and asks to reload only when the addons loaded aren't its set.
 - **Player Nameplates**: Titles (off by default) writes a player's name with the title they chose, like "Name, Master Angler" (#23).
 - **Quest Pins**: Hide in Unexplored Areas (off by default) leaves out the pins in parts of a zone your character hasn't explored yet.
+- **Quest Tracker**: Hide Completed Quests (off by default) takes a quest off the tracker once it's ready to turn in, and puts it back when turned off.
 - **Auction Totals**: a new module that shows, next to Cancel Auction on the auction house's Auctions page, what your auctions are listed for in all and how much has sold.
 - **Item Tooltips**: Short Stat Text (on by default) writes an Equip: bonus that is a plain stat the way the game writes a stat, like "+29 Spell Power", "+2% Hit", "+14 Fire Damage", or "+20 Spell Healing and +7 Spell Damage". Four checkboxes pick which kinds it shortens: Attack and Defense, Spells and Healing, Mana and Health Regen, and Skills.
 - **Item Tooltips**: Show New in Forever (off by default) says "New in Forever" on an item Classic never had.
