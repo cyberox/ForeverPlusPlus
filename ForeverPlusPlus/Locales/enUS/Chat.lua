@@ -131,15 +131,39 @@ L.CHATFONT_INPUT_DESC = "Use the font for the text you type into the chat box to
 -- ChatBorder
 L.CHATBORDER_TITLE = "Chat Border"
 L.CHATBORDER_DESC = "Draw a border around each chat window, in the game's own frame art. Unlike "
-    .. "the chat window's own faint border, it doesn't fade with the window's background. Turning "
-    .. "this off takes it away."
+    .. "the chat window's own faint border, it shows whatever the window's background is set to. "
+    .. "Turning this off takes it away."
 L.CHATBORDER_STYLE = "Border"
 L.CHATBORDER_STYLE_DESC = "The border around the chat windows, in Blizzard's own art."
 L.CHATBORDER_STYLE_THIN = "Thin" -- the tooltip border
 L.CHATBORDER_STYLE_STONE = "Stone" -- the dialog border
 L.CHATBORDER_STYLE_GOLD = "Gold" -- the gold dialog border
+L.CHATBORDER_COLOR = "Color"
+L.CHATBORDER_COLOR_DESC = "The border's color. Default leaves the art as the game draws it."
+L.CHATBORDER_COLOR_DEFAULT = "Default"
+L.CHATBORDER_COLOR_CLASS = "Class Color"
+L.CHATBORDER_COLOR_GOLD = "Gold"
+L.CHATBORDER_COLOR_GRAY = "Gray"
+L.CHATBORDER_COLOR_BLACK = "Black"
+L.CHATBORDER_COLOR_BLUE = "Blue"
+L.CHATBORDER_COLOR_GREEN = "Green"
+L.CHATBORDER_COLOR_RED = "Red"
 L.CHATBORDER_OPACITY = "Opacity"
 L.CHATBORDER_OPACITY_DESC = "How solid the border is."
+L.CHATBORDER_FADE = "Fade with Chat"
+L.CHATBORDER_FADE_DESC = "Fade the border when the mouse leaves the chat window, as the game fades "
+    .. "the window's tabs, and bring it back when the mouse comes over the chat again."
+L.CHATBORDER_SECTION_EDITBOX = "Edit Box"
+L.CHATBORDER_EDITBOX = "Include Edit Box"
+L.CHATBORDER_EDITBOX_DESC = "Draw the box you type chat in with the same border, joined to the "
+    .. "chat window's, in place of the game's own box."
+L.CHATBORDER_EDITBOX_CHANNEL = "Chat Color While Typing"
+L.CHATBORDER_EDITBOX_CHANNEL_DESC = "While you type, color the edit box's border for the chat you're "
+    .. "typing in, such as green for guild and pink for a whisper, as the game lights its own box."
+L.CHATBORDER_FADE_OPACITY = "Faded Opacity"
+L.CHATBORDER_FADE_OPACITY_DESC = "How much of the border is left while the mouse is away from the "
+    .. "chat window. The game leaves 40% of the tab in front, and at 0% the border can't be seen "
+    .. "until the mouse is over the chat."
 
 -- PersistentChat
 L.PERSISTENTCHAT_TITLE = "Keep Chat Visible" -- Persistent Chat up to 1.4.0
@@ -160,6 +184,17 @@ L.MOVABLECOMBATLOGTAB_DESC = "Let the Combat Log's tab be dragged anywhere among
 L.HIDECHATBUTTONS_TITLE = "Hide Chat Buttons"
 L.HIDECHATBUTTONS_DESC = "Hide the buttons beside the chat window until the mouse is over the "
     .. "chat, fading in and out with its tabs."
+
+-- HideChatTabs
+L.HIDECHATTABS_TITLE = "Hide Chat Tabs"
+L.HIDECHATTABS_DESC = "Hide the chat windows' tabs until the mouse is over the chat, fading in and "
+    .. "out as the game dims them. A tab with a new message still flashes, and a hidden tab still "
+    .. "takes clicks."
+
+-- EditBoxOnTop
+L.EDITBOXONTOP_TITLE = "Edit Box on Top"
+L.EDITBOXONTOP_DESC = "Put the box you type chat in above the chat window's tabs instead of under "
+    .. "the window. Turning this off puts it back."
 
 -- WhisperWindow
 L.WHISPERWINDOW_TITLE = "Whisper Window"

@@ -33,10 +33,12 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **World Map**: Points of Interest shows the entrances of Krol'dok Stronghold, in the Riverglades, and Alcaz Prison, off Dustwallow Marsh.
 - **Movable Combat Log Tab**: a new module, off by default, that lets you drag the Combat Log's tab anywhere among your chat tabs, even after the ones you made.
 - **Quest Reputation**: a new module, off by default, that shows the reputation a quest gives, and with which faction, in its Rewards in the quest log, or at the bottom of its description. Thanks to cyberox.
-- **Chat Border**: a new module, off by default, that draws a border around each chat window in the game's own frame art (Thin, Stone, or Gold), with its own opacity. It stays visible whatever the window's background is set to.
+- **Chat Border**: a new module, off by default, that draws a border around each chat window in the game's own frame art (Thin, Stone, or Gold), with its own color (the art's own, your class color, or one of a few of the game's colors) and opacity. It shows whatever the window's background is set to, and Fade with Chat (on by default) fades it when the mouse leaves the chat, as the game fades the tabs, with a slider for how much is left. Include Edit Box (on by default) draws the box you type in with the same border, joined to the window's, and Chat Color While Typing (on by default) colors it for the chat you're typing in.
 - **Tooltips**: Quest Item Drop Chance (on by default, needs the QuestieDB addon) shows the chance a creature drops a quest's item after its line on the creature's tooltip, like "0/1 Intact Hailstrider Beak (35%)".
 - **Chat Sounds**: a new module, off by default, that plays a sound when someone else writes in guild chat, and in officer, party, or raid chat if you turn those on. Each has its own sound.
 - **Waypoints**: Show Time to Arrive (off by default) shows how long until you reach what the arrow points to, after the distance, like "120 yds, 0:45". It goes by how fast you're closing in, so it works on a mount, and shows nothing while you aren't getting closer.
+- **Hide Chat Tabs**: a new module, off by default, that hides the chat windows' tabs until the mouse is over the chat, fading in and out as the game dims them. A tab with a new message still flashes.
+- **Edit Box on Top**: a new module, off by default, that puts the box you type chat in above the chat window's tabs instead of under the window.
 
 ### Changed
 

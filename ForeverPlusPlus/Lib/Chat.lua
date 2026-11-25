@@ -7,7 +7,7 @@ local _G, ipairs, type, tonumber, gsub, format = _G, ipairs, type, tonumber, str
 local select, pairs = select, pairs
 local setmetatable, CreateFrame, UIParent = setmetatable, CreateFrame, UIParent
 local byte, find, match, sub = string.byte, string.find, string.match, string.sub
-local min, concat = math.min, table.concat
+local min, max, concat = math.min, math.max, table.concat
 
 local Chat = {}
 ns.Chat = Chat
@@ -63,6 +63,126 @@ function Chat.EachWindow(module, fn)
             end
         end)
     end
+end
+
+-- Blizzard's fade --------------------------------------------------------------------------------
+-- Blizzard fades a chat window's tabs, background, and scroll bar in as the mouse comes over it
+-- and out again a second after it leaves: FCF_OnUpdate calls FCF_FadeInChatFrame and
+-- FCF_FadeOutChatFrame, for every docked window when the one in front fades, and keeps
+-- `hasBeenFaded` on the window while it's faded in (FloatingChatFrame.lua, wow-ui-source's
+-- `forever` branch). Something of ours that should fade along follows those two calls here,
+-- with a step of our own at Blizzard's two speeds: its own fades run on Blizzard's frames in
+-- UIFrameFade, which nothing of ours can join.
+
+local fadeFns = setmetatable({}, { __mode = "k" }) -- module -> its fn for Chat.OnFade
+local fades = setmetatable({}, { __mode = "k" }) -- window -> { value, goal }, 0 faded out to 1 in
+local fadeDriver -- our frame whose OnUpdate runs the fades; hidden between them
+
+---One step of a fade: `value` moved toward `goal` by `elapsed` seconds, a whole fade in taking
+---`fadeIn` seconds and a whole fade out `fadeOut`. A time of 0 gets there at once.
+---@param value number 0 to 1
+---@param goal number 0 or 1
+---@param elapsed number
+---@param fadeIn number
+---@param fadeOut number
+---@return number
+function Chat.FadeStep(value, goal, elapsed, fadeIn, fadeOut)
+    if goal > value then
+        return fadeIn > 0 and min(value + elapsed / fadeIn, goal) or goal
+    elseif goal < value then
+        return fadeOut > 0 and max(value - elapsed / fadeOut, goal) or goal
+    end
+    return value
+end
+
+local function fadeState(frame)
+    local state = fades[frame]
+    if not state then
+        -- Blizzard's own note of whether the window is faded in now.
+        local now = frame.hasBeenFaded and 1 or 0
+        state = { value = now, goal = now }
+        fades[frame] = state
+    end
+    return state
+end
+
+local function fadeNotify(frame, value)
+    for module, fn in pairs(fadeFns) do
+        if module.enabled then
+            fn(frame, value)
+        end
+    end
+end
+
+local function fadeUpdate(self, elapsed)
+    -- Blizzard's times, read each step: the No Mouseover Delay setting makes the fade in instant
+    -- (SetChatMouseOverDelay).
+    local fadeIn, fadeOut = _G.CHAT_FRAME_FADE_TIME, _G.CHAT_FRAME_FADE_OUT_TIME
+    fadeIn = type(fadeIn) == "number" and fadeIn or 0.15
+    fadeOut = type(fadeOut) == "number" and fadeOut or 2
+    local running = false
+    for frame, state in pairs(fades) do
+        if state.value ~= state.goal then
+            state.value = Chat.FadeStep(state.value, state.goal, elapsed, fadeIn, fadeOut)
+            fadeNotify(frame, state.value)
+            running = running or state.value ~= state.goal
+        end
+    end
+    if not running then
+        self:Hide()
+    end
+end
+
+local function fadeTo(frame, goal)
+    local state = fadeState(frame)
+    state.goal = goal
+    if state.value ~= goal then
+        fadeDriver:Show()
+    end
+end
+
+local function onFadeIn(frame)
+    fadeTo(frame, 1)
+end
+
+local function onFadeOut(frame)
+    fadeTo(frame, 0)
+end
+
+---How far a chat window is faded in right now: 0 while the mouse is away, 1 while it's over the
+---window, and between the two during a fade. Only moves while a module follows the fade
+---(`Chat.OnFade`).
+---@param frame table a chat window
+---@return number
+function Chat.FadeAmount(frame)
+    return fadeState(frame).value
+end
+
+---Calls `fn(frame, amount)` as Blizzard fades a chat window in and out, while the module is on:
+---`amount` goes from 0 (the mouse away) to 1 (over the window) at Blizzard's own speeds, and `fn`
+---runs at every step of it. Call it from `OnEnable`, once: a second call replaces the module's
+---`fn`. A window met later reads where it is with `Chat.FadeAmount`.
+---@param module table
+---@param fn fun(frame: table, amount: number)
+function Chat.OnFade(module, fn)
+    if not fadeDriver then
+        fadeDriver = CreateFrame("Frame")
+        fadeDriver:Hide()
+        fadeDriver:SetScript("OnUpdate", fadeUpdate)
+    end
+    -- With nobody following, the two calls went unheard, so what's remembered may be out of date.
+    local following = false
+    for other in pairs(fadeFns) do
+        following = following or (other ~= module and other.enabled == true)
+    end
+    if not following then
+        for frame in pairs(fades) do
+            fades[frame] = nil
+        end
+    end
+    fadeFns[module] = fn
+    module:Hook("FCF_FadeInChatFrame", onFadeIn)
+    module:Hook("FCF_FadeOutChatFrame", onFadeOut)
 end
 
 local readers = setmetatable({}, { __mode = "k" }) -- fn -> its hook, so each is hooked once

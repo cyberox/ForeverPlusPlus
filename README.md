@@ -49,12 +49,14 @@ Everything is on by default except where noted. Each module can be turned off, a
 | Quest Links | Turns the plain-text quests Questie users link in chat into clickable Blizzard quest links. |
 | Short Channel Names | Shortens chat channels to [1], [G], or [LFG], and [Guild], [Party], [Raid] to [GD], [P], [R]. Off by default. |
 | Chat Font | Draws chat in another of the game's fonts, keeping its size. Not on Korean, Chinese, and Russian clients. |
-| Chat Border | Draws a border around each chat window, in the game's own frame art: Thin, Stone, or Gold. Off by default. |
+| Chat Border | Draws a border around each chat window and the box you type in, in the game's own frame art: Thin, Stone, or Gold, in a color you pick, fading with the chat's tabs. Off by default. |
+| Edit Box on Top | Puts the box you type chat in above the chat window's tabs instead of under the window. Off by default. |
 | Keep Chat Visible | Keeps chat text on screen instead of fading it out after a while. |
 | Chat History | Shows each chat window's latest lines again after a login or reload, except whispers. |
 | Chat Arrow Keys | Up and Down in the chat box bring back what you sent, and Left and Right move through the text, without holding Alt. |
 | Social Button | Moves the social (Quick Join) button down beside the chat window's other buttons. |
 | Hide Chat Buttons | Hides the buttons beside the chat window until the mouse is over the chat. Off by default. |
+| Hide Chat Tabs | Hides the chat windows' tabs until the mouse is over the chat. A tab with a new message still flashes. Off by default. |
 | Hide Combat Log Tab | Takes the Combat Log's tab off the chat window. Off by default. |
 | Movable Combat Log Tab | Lets you drag the Combat Log's tab anywhere among your chat tabs, not only right after General. Off by default. |
 | Whisper Window | Keeps whispers in a window like a messenger: conversations with unread counts on the left, the one you pick on the right, and a box to reply in. Opens from a chat button or `/fpp whispers`, and can hide whispers from chat. Off by default. |

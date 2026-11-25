@@ -208,11 +208,13 @@ Modules\Chat\ChatSounds.lua
 Modules\Chat\QuestLinks.lua
 Modules\Chat\ChatFont.lua
 Modules\Chat\ChatBorder.lua
+Modules\Chat\EditBoxOnTop.lua
 Modules\Chat\PersistentChat.lua
 Modules\Chat\ChatHistory.lua
 Modules\Chat\ChatArrowKeys.lua
 Modules\Chat\SocialButton.lua
 Modules\Chat\HideChatButtons.lua
+Modules\Chat\HideChatTabs.lua
 Modules\Chat\HideCombatLogTab.lua
 Modules\Chat\MovableCombatLogTab.lua
 Modules\Chat\WhisperWindow\WhisperWindow.lua
