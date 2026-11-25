@@ -310,6 +310,10 @@ Generated files, in `Lib/Generated/` (never edited by hand; see Generated data):
 
 - `ns.RealmTime`: how far the player's clock is from the realm's, in quarter hours (`Offset`), and a realm time moved to the player's clock, with the days it moved (`Clock` for an hour and minute, `Date` for a CalendarTime), and `IsToday`.
 
+### `Arrival.lua`
+
+- `ns.Arrival`: an estimator (`New`) fed the distance to a target as often as its owner likes (`Add(now, yards)`, which keeps a sample every quarter second over the last four), answering with the seconds left at the rate the distance has been closing, or nil while there's too little to go on, the player isn't getting closer, or the rate differs too much between the two halves of the window. A gap in the samples or a jump no travel explains starts it over, as `Reset` does. `Round` steadies an estimate for showing. No frames or game calls; Waypoints' Show Time to Arrive uses it.
+
 ## Modules
 
 - One change each (see "Add a module" in `README.md`), in a folder for its category: `Automation`, `Character`, `Chat`, `Interface`, `Items`, `Map`, `Quests`, `System`, `Units`, and `Tools`.
@@ -372,7 +376,7 @@ What each module is, in the code's terms (what it does for players is in `README
 - **Flight Timer**
 - **Hide Filter Reset**
 - **Square Minimap**: a square mask and border in place of the round frame, saying so through `GetMinimapShape`.
-- **Waypoints**: `/way` and a waypoint arrow.
+- **Waypoints**: `/way` and a waypoint arrow, with the time to arrive from `ns.Arrival`.
 - **Compass Bar**: a compass across the top of the screen, sized in Edit Mode, with the selected quest, the map pin, the corpse, the group, and, as the player picks, quests on the map, flight masters, Gathering Map's nodes through its provider, and rares on it.
 - **Gathering Map**: a folder: the module, which remembers each herb, vein, chest, and fishing pool gathered for the account, its world map and minimap icons, its kinds in the world map's filter menu (`Filter.lua`), and its page of nodes to show or hide for each character.
 - **Combat Alert**

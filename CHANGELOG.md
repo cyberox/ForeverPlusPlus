@@ -23,6 +23,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Movable Combat Log Tab**: a new module, off by default, that lets you drag the Combat Log's tab anywhere among your chat tabs, even after the ones you made.
 - **Quest Reputation**: a new module, off by default, that shows the reputation a quest gives, and with which faction, in its Rewards in the quest log, or at the bottom of its description. Thanks to cyberox.
 - **Tooltips**: Quest Item Drop Chance (on by default, needs the QuestieDB addon) shows the chance a creature drops a quest's item after its line on the creature's tooltip, like "0/1 Intact Hailstrider Beak (35%)".
+- **Waypoints**: Show Time to Arrive (off by default) shows how long until you reach what the arrow points to, after the distance, like "120 yds, 0:45". It goes by how fast you're closing in, so it works on a mount, and shows nothing while you aren't getting closer.
 
 ### Changed
 

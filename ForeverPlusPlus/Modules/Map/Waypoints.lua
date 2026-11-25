@@ -5,8 +5,9 @@
 -- by clicking the map, or with Follow Selected Quest, for the quest selected on the map, or with
 -- Point to Corpse, for the player's corpse while they're a ghost. It reads only the player's own
 -- position and facing, never another unit's. Clear Pin on Arrival takes the pin away once the
--- arrow says the player has reached it. Text after /way's coordinates is the pin's note, shown
--- under the arrow, and /way share puts the pin's link in the chat box.
+-- arrow says the player has reached it. Show Time to Arrive adds the time left after the distance,
+-- from how fast the distance is closing (Lib/Arrival). Text after /way's coordinates is the pin's
+-- note, shown under the arrow, and /way share puts the pin's link in the chat box.
 local _, ns = ...
 
 local tonumber, format, floor = tonumber, string.format, math.floor
@@ -26,6 +27,7 @@ local module = ns.NewModule("Waypoints", L.WAYPOINTS_DESC, {
     questName = true,
     corpse = true,
     clearOnArrival = true,
+    eta = false,
     scale = 100, -- percent
     x = 0, -- the arrow's offset from the center of the screen
     y = 296, -- near the top, under the Compass Bar's spot
@@ -55,6 +57,8 @@ module.options = {
     { key = "clearOnArrival", name = L.WAYPOINTS_CLEAR_ON_ARRIVAL,
         description = L.WAYPOINTS_CLEAR_ON_ARRIVAL_DESC, requires = "arrow", added = "0.9.0",
         changed = "1.1.0" }, -- on by default
+    { key = "eta", name = L.WAYPOINTS_ETA, description = L.WAYPOINTS_ETA_DESC,
+        requires = "arrow", added = "1.9.0" },
 }
 
 -- /way ----------------------------------------------------------------------------------------
@@ -285,8 +289,20 @@ local function place()
     ns.EditMode.Place(frame, module.db.x, module.db.y)
 end
 
+-- Show Time to Arrive: the time left at the rate the distance is closing (Lib/Arrival), after the
+-- distance, "120 yds, 0:45". Nothing while there's no steady rate to go by.
+local arrival = ns.Arrival.New()
+
+-- The distance line: the yards, with the seconds left after them when there's an estimate.
+local function distanceLine(yards, seconds)
+    if seconds then
+        return format(L.WAYPOINTS_ETA_FORMAT, distanceText(yards), ns.Text.Clock(seconds))
+    end
+    return distanceText(yards)
+end
+
 -- What the arrow's two lines say now, so they're only set when that changes.
-local shownYards, shownTitle
+local shownYards, shownSeconds, shownTitle
 
 -- Whether the arrow has pointed to the map pin from farther than ARRIVED since it was set, so
 -- Clear Pin on Arrival doesn't take away a pin dropped where the player stands.
@@ -315,9 +331,13 @@ local function update()
     end
     frame.arrow:SetRotation(angle - facing)
     local rounded = floor(yards + 0.5)
-    if rounded ~= shownYards then
-        shownYards = rounded
-        frame.distance:SetText(distanceText(yards))
+    -- Fed every turn; the estimator keeps a sample a few times a second and forgets the old ones
+    -- by itself when the arrow was down a while or the target jumped.
+    local seconds = module.db.eta and arrival:Add(GetTime(), yards) or nil
+    seconds = seconds and ns.Arrival.Round(seconds) or nil
+    if rounded ~= shownYards or seconds ~= shownSeconds then
+        shownYards, shownSeconds = rounded, seconds
+        frame.distance:SetText(distanceLine(yards, seconds))
     end
     title = title or ""
     if title ~= shownTitle then
@@ -343,7 +363,8 @@ local function refresh()
     cachedQuest = nil -- look the quest up again: the selection or the quest may have changed
     corpseCheckedAt = nil -- and the corpse
     waypointRead = false -- and the map pin
-    shownYards, shownTitle = nil, nil
+    shownYards, shownSeconds, shownTitle = nil, nil, nil
+    arrival:Reset() -- what it points at may be somewhere else now
     if arrowWanted() then
         watcher:Show()
         update()
@@ -365,10 +386,10 @@ end
 
 -- In Edit Mode the arrow shows pointing ahead, so it can be placed.
 local function sample(active)
-    shownYards, shownTitle = nil, nil -- the sample's text replaces what update set
+    shownYards, shownSeconds, shownTitle = nil, nil, nil -- the sample's text replaces update's
     if active then
         frame.arrow:SetRotation(0)
-        frame.distance:SetText(distanceText(120))
+        frame.distance:SetText(distanceLine(120, module.db.eta and 45 or nil))
         frame.quest:SetText(module.db.quest and module.db.questName and L.WAYPOINTS_QUEST_NAME_SAMPLE
             or "")
         frame:Show()
@@ -442,5 +463,11 @@ function module:OnOptionChanged(option)
         syncWay()
     elseif option == "arrow" or option == "quest" or option == "corpse" then
         syncArrow()
+    elseif option == "eta" and frame then
+        if ns.EditMode.IsActive() then
+            sample(true) -- the sample shows the time, or stops showing it
+        else
+            refresh()
+        end
     end
 end

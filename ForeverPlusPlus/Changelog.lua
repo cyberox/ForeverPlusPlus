@@ -62,6 +62,10 @@ ns.changelog = {
                 { L.TOOLTIPS_TITLE, "Quest Item Drop Chance (on by default, needs the QuestieDB addon) "
                     .. "shows the chance a creature drops a quest's item after its line on the "
                     .. "creature's tooltip, like \"0/1 Intact Hailstrider Beak (35%)\"." },
+                { L.WAYPOINTS_TITLE, "Show Time to Arrive (off by default) shows how long until you "
+                    .. "reach what the arrow points to, after the distance, like \"120 yds, 0:45\". "
+                    .. "It goes by how fast you're closing in, so it works on a mount, and shows "
+                    .. "nothing while you aren't getting closer." },
             } },
             { L.CHANGELOG_CHANGED, {
                 { L.PROFTOOLTIPS_TITLE, "The game's minimap dots no longer get the skill line: since "

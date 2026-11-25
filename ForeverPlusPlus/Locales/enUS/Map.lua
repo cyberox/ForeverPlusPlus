@@ -370,6 +370,11 @@ L.WAYPOINTS_CORPSE_LABEL = "Your Corpse" -- shown under the arrow while it point
 L.WAYPOINTS_CLEAR_ON_ARRIVAL = "Clear Pin on Arrival"
 L.WAYPOINTS_CLEAR_ON_ARRIVAL_DESC = "Takes your map pin away once you reach it. Quests and your "
     .. "corpse are left alone."
+L.WAYPOINTS_ETA = "Show Time to Arrive"
+L.WAYPOINTS_ETA_DESC = "Show how long until you get there after the distance, like \"120 yds, "
+    .. "0:45\". It goes by how fast you're closing in, so it's right on a mount or a winding "
+    .. "road, and shows nothing while you aren't getting closer."
+L.WAYPOINTS_ETA_FORMAT = "%s, %s" -- the distance, the time left: "120 yds, 0:45"
 L.WAYPOINTS_USAGE = "/way [zone] x y [note], such as /way 45.2 67.8 or /way Elwynn Forest 45 67 "
     .. "Hogger. /way share puts the pin's link in chat, and /way clear takes the pin away."
 L.WAYPOINTS_SET = "Waypoint set in %s at %.1f, %.1f." -- zone, x, y
