@@ -70,6 +70,7 @@ Everything is on by default except where noted. Each module can be turned off, a
 
 - **Chat Copy**: Adds a button beside the chat window that opens the chat as text you can copy. Click Timestamps (off by default) copies a single line.
 - **Chat Levels**: Shows each player's level before their name in chat, [60:Name], colored like a quest of that level. Uses the last level Forever++ saw them at. Off by default.
+- **Chat Sounds**: Plays a sound when someone writes in guild, officer, party, or raid chat, each with its own checkbox and sound. Off by default.
 - **Quest Links**: Turns the plain-text quests Questie users link in chat into clickable Blizzard quest links.
 - **Short Channel Names**: Shortens chat channels to [1], [G], or [LFG], and [Guild], [Party], [Raid] to [GD], [P], [R]. Off by default.
 - **Chat Font**: Draws chat in another of the game's fonts, keeping its size. Not on Korean, Chinese, and Russian clients.
