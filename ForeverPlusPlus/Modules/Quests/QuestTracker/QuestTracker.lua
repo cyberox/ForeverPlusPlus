@@ -12,6 +12,7 @@ local _, ns = ...
 local pairs, ipairs, next, type, min, max = pairs, ipairs, next, type, math.min, math.max
 local setmetatable, sort, select, huge = setmetatable, table.sort, select, math.huge
 local InCombatLockdown, C_Timer, C_QuestLog, C_Map = InCombatLockdown, C_Timer, C_QuestLog, C_Map
+local C_CVar = C_CVar
 local GetRealZoneText = GetRealZoneText
 local GetQuestUiMapID, Enum = GetQuestUiMapID, Enum
 
@@ -34,6 +35,7 @@ local module = ns.NewModule("QuestTracker", L.QUESTTRACKER_DESC, {
     dim = false, -- fade the text of finished objectives
     dimOpacity = 40, -- percent: how visible a finished objective stays with Dim Finished Objectives
     progress = false, -- color a counted objective's text by how far along it is
+    difficulty = false, -- Blizzard's own CVar, shown here; nothing of ours is saved
     collapse = false, -- collapse the tracker once at login and after a reload
     count = false, -- the quest log's count on the Quests header (Header.lua)
     zones = false, -- a click on the Quests header opens a menu of the quest log's zones (Header.lua)
@@ -65,6 +67,7 @@ end)
 local QUESTS, TEXT, BOX, COMBAT = L.QUESTTRACKER_SECTION_QUESTS, L.QUESTTRACKER_SECTION_TEXT,
     L.QUESTTRACKER_SECTION_BOX, L.QUESTTRACKER_SECTION_COMBAT
 local HEADER, OBJECTIVES = L.QUESTTRACKER_SECTION_HEADER, L.QUESTTRACKER_SECTION_OBJECTIVES
+local DIFFICULTY_CVAR = "showQuestDifficultyColor"
 module.options = {
     {
         key = "sort",
@@ -92,6 +95,19 @@ module.options = {
         name = L.QUESTTRACKER_COMPLETED,
         description = L.QUESTTRACKER_COMPLETED_DESC,
         section = QUESTS,
+        added = "1.9.0",
+    },
+    {
+        -- Blizzard's own setting, which Forever's tracker and quest log read for a quest's title
+        -- (QuestUtilsOverrides.GetQuestTitleDifficultyColor and ObjectiveTrackerBlockMixin's
+        -- UpdateHighlight, on the forever branch). Titles change at the tracker's next update.
+        key = "difficulty",
+        name = L.QUESTTRACKER_DIFFICULTY,
+        description = L.QUESTTRACKER_DIFFICULTY_DESC,
+        section = QUESTS,
+        cvar = DIFFICULTY_CVAR,
+        available = function() return C_CVar.GetCVar(DIFFICULTY_CVAR) ~= nil end,
+        needs = L.SETTINGS_NEEDS_CLIENT,
         added = "1.9.0",
     },
     {
