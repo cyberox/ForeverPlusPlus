@@ -99,6 +99,8 @@ ns.changelog = {
                 { L.HIDECHATTABS_TITLE, "A new module, off by default, that hides the chat windows' "
                     .. "tabs until the mouse is over the chat, fading in and out as the game dims "
                     .. "them. A tab with a new message still flashes." },
+                { L.EDITBOXONTOP_TITLE, "A new module, off by default, that puts the box you type "
+                    .. "chat in above the chat window's tabs instead of under the window." },
             } },
             { L.CHANGELOG_CHANGED, {
                 { L.PROFTOOLTIPS_TITLE, "The game's minimap dots no longer get the skill line: since "

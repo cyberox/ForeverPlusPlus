@@ -413,6 +413,7 @@ What each module is, in the code's terms (what it does for players is in `README
 - **Quest Links**: Questie's plain-text quests in chat made Blizzard quest links.
 - **Chat Font**
 - **Chat Border**: a backdrop frame of ours in each chat window, around the window's `Background` texture, its alpha following Blizzard's fade of the window through `ns.Chat.OnFade`. With Include Edit Box, a second one as a child of the window's edit box and a dark texture of ours in it, Blizzard's six art textures there made see-through while it's on, and the border colored after the edit box's own focus calls (`SetFocusRegionsShown`, `SetFocusRegionVertexColors`).
+- **Edit Box on Top**: each window's edit box anchored above the window's `Background`, past the tabs, and the anchors it had (`ns.Frames.GetPoints`) put back when off.
 - **Keep Chat Visible**: `PersistentChat`: chat doesn't fade.
 - **Chat History**
 - **Chat Arrow Keys**: Up and Down in the chat box recall what was sent, without Alt.

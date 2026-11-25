@@ -207,6 +207,7 @@ Modules\Chat\ChatSounds.lua
 Modules\Chat\QuestLinks.lua
 Modules\Chat\ChatFont.lua
 Modules\Chat\ChatBorder.lua
+Modules\Chat\EditBoxOnTop.lua
 Modules\Chat\PersistentChat.lua
 Modules\Chat\ChatHistory.lua
 Modules\Chat\ChatArrowKeys.lua

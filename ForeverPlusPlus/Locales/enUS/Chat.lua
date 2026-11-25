@@ -191,6 +191,11 @@ L.HIDECHATTABS_DESC = "Hide the chat windows' tabs until the mouse is over the c
     .. "out as the game dims them. A tab with a new message still flashes, and a hidden tab still "
     .. "takes clicks."
 
+-- EditBoxOnTop
+L.EDITBOXONTOP_TITLE = "Edit Box on Top"
+L.EDITBOXONTOP_DESC = "Put the box you type chat in above the chat window's tabs instead of under "
+    .. "the window. Turning this off puts it back."
+
 -- WhisperWindow
 L.WHISPERWINDOW_TITLE = "Whisper Window"
 L.WHISPERWINDOW_DESC = "Keep whispers in a window of their own, a conversation per person, with a "

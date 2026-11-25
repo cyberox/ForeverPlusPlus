@@ -33,6 +33,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Chat Sounds**: a new module, off by default, that plays a sound when someone else writes in guild chat, and in officer, party, or raid chat if you turn those on. Each has its own sound.
 - **Waypoints**: Show Time to Arrive (off by default) shows how long until you reach what the arrow points to, after the distance, like "120 yds, 0:45". It goes by how fast you're closing in, so it works on a mount, and shows nothing while you aren't getting closer.
 - **Hide Chat Tabs**: a new module, off by default, that hides the chat windows' tabs until the mouse is over the chat, fading in and out as the game dims them. A tab with a new message still flashes.
+- **Edit Box on Top**: a new module, off by default, that puts the box you type chat in above the chat window's tabs instead of under the window.
 
 ### Changed
 
