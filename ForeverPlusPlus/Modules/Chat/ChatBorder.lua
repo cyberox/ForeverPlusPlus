@@ -25,6 +25,8 @@ local module = ns.NewModule("ChatBorder", L.CHATBORDER_DESC, {
     opacity = 100,
     fade = true,
     fadeOpacity = 40, -- as Blizzard's tab in front: CHAT_FRAME_TAB_SELECTED_NOMOUSE_ALPHA is 0.4
+    editBox = true,
+    editBoxChannel = true,
 })
 module.title = L.CHATBORDER_TITLE
 module.category = "chat"
@@ -129,6 +131,19 @@ module.options = {
         requires = "fade",
         min = 0, max = 100, step = 5, format = "%d%%",
     },
+    {
+        key = "editBox",
+        name = L.CHATBORDER_EDITBOX,
+        description = L.CHATBORDER_EDITBOX_DESC,
+        section = L.CHATBORDER_SECTION_EDITBOX,
+    },
+    {
+        key = "editBoxChannel",
+        name = L.CHATBORDER_EDITBOX_CHANNEL,
+        description = L.CHATBORDER_EDITBOX_CHANNEL_DESC,
+        section = L.CHATBORDER_SECTION_EDITBOX,
+        requires = "editBox",
+    },
 }
 
 -- Our border frame in each chat window. Weak, so a window that goes takes its border with it.
@@ -189,6 +204,139 @@ local function apply(frame)
     border:Show()
 end
 
+-- The edit box -------------------------------------------------------------------------------------
+-- The box a window's chat is typed in (`frame.editBox`, ChatFrameEditBoxTemplate) is 32 high and
+-- hangs under its window: its top 2 under the window's bottom, its left 5 left of the window's,
+-- its right 8 past the scroll bar's (FloatingChatFrame.xml). Its own art, three textures
+-- (ChatFrameNEditBoxLeft, Mid, Right) and three more that light up in the chat's color while it
+-- has focus (`focusLeft`, `focusMid`, `focusRight`), draws a box of another shape, so with Include
+-- Edit Box those are made see-through and ours drawn instead: a dark texture of ours in the box,
+-- and a border frame that is a child of it, so both show, hide, and dim with the box (the game
+-- dims a box left on screen to 0.35, ChatFrameEditBoxMixin:Deactivate).
+--
+-- The border is as wide as the window's and its top line lies on the window's bottom line, so the
+-- two read as one frame with a line between. Its place is given from the box, by the numbers
+-- above, so it follows a box that something has moved.
+
+local boxes = setmetatable({}, { __mode = "k" }) -- edit box -> { border, fill, focused, r, g, b }
+local FILL_ALPHA = 0.5
+
+---The regions of Blizzard's art on an edit box.
+---@param box table
+---@return table[]
+local function boxArt(box)
+    local art = { box.focusLeft, box.focusMid, box.focusRight }
+    local name = box.GetName and box:GetName()
+    if name then
+        art[#art + 1] = _G[name .. "Left"]
+        art[#art + 1] = _G[name .. "Mid"]
+        art[#art + 1] = _G[name .. "Right"]
+    end
+    return art
+end
+
+---Colors an edit box's border: the chat's color while it's typed in, with the option, and the
+---border's own otherwise.
+---@param box table
+local function colorBox(box)
+    local state = boxes[box]
+    if not (state and state.border) then
+        return
+    end
+    if module.db.editBoxChannel and state.focused and state.r then
+        state.border:SetBackdropBorderColor(state.r, state.g, state.b)
+    else
+        state.border:SetBackdropBorderColor(borderColor())
+    end
+end
+
+-- Blizzard shows and hides the focus art with the box's focus (SetFocusRegionsShown), and colors
+-- it for the chat the box is set to (SetFocusRegionVertexColors, from UpdateHeader, with that
+-- chat's ChatTypeInfo). Ours follows the same two calls.
+local function onFocusShown(box, shown)
+    local state = boxes[box]
+    if state then
+        state.focused = shown and true or false
+        colorBox(box)
+    end
+end
+
+local function onFocusColor(box, color)
+    local state = boxes[box]
+    if state and type(color) == "table" then
+        state.r, state.g, state.b = color.r, color.g, color.b
+        colorBox(box)
+    end
+end
+
+---Takes our border off an edit box and gives Blizzard's art back.
+---@param box table
+local function clearBox(box)
+    local state = boxes[box]
+    if not (state and state.shown) then
+        return
+    end
+    -- The focus calls go unheard while this is off, so what was heard is forgotten.
+    state.shown, state.focused = false, false
+    state.border:Hide()
+    state.fill:Hide()
+    for _, region in ipairs(boxArt(box)) do
+        region:SetAlpha(1)
+    end
+end
+
+---Draws a window's edit box in the chosen style, or gives Blizzard's back without the option.
+---@param frame table a chat window
+local function applyBox(frame)
+    local box = frame.editBox
+    if not (box and box.CreateTexture) then
+        return
+    end
+    local style = STYLES[module.db.style]
+    if not (style and module.db.editBox) then
+        clearBox(box)
+        return
+    end
+    local state = boxes[box]
+    if not state then
+        local border = CreateFrame("Frame", nil, box, "BackdropTemplate")
+        if not border.SetBackdrop then
+            return
+        end
+        -- Under the box's text, which is in a higher layer of the same frame.
+        local fill = box:CreateTexture(nil, "BACKGROUND", nil, -8)
+        fill:SetColorTexture(0, 0, 0, FILL_ALPHA)
+        fill:SetPoint("TOPLEFT", box, "TOPLEFT", 2, -3)
+        fill:SetPoint("BOTTOMRIGHT", box, "BOTTOMRIGHT", 0, 1)
+        state = { border = border, fill = fill }
+        boxes[box] = state
+        module:Hook(box, "SetFocusRegionsShown", onFocusShown)
+        module:Hook(box, "SetFocusRegionVertexColors", onFocusColor)
+    end
+    local border, outset = state.border, style.outset
+    local backdrop = _G[style.backdrop]
+    border:SetBackdrop({
+        edgeFile = type(backdrop) == "table" and backdrop.edgeFile or style.file,
+        edgeSize = style.size,
+    })
+    border:ClearAllPoints()
+    border:SetPoint("TOPLEFT", box, "TOPLEFT", 3 - outset, outset - 4)
+    border:SetPoint("BOTTOMRIGHT", box, "BOTTOMRIGHT", outset - 1, 2 - outset)
+    border:SetAlpha(module.db.opacity / 100)
+    for _, region in ipairs(boxArt(box)) do
+        region:SetAlpha(0)
+    end
+    state.shown = true
+    colorBox(box)
+    border:Show()
+    state.fill:Show()
+end
+
+local function applyAll(frame)
+    apply(frame)
+    applyBox(frame)
+end
+
 function module:IsAvailable()
     return _G.ChatFrame1 ~= nil and CHOICES[1] ~= nil
 end
@@ -197,7 +345,7 @@ function module:OnEnable()
     -- Before the borders are drawn, so each starts as faded as its window is now.
     Chat.OnFade(self, fade)
     -- Also a window added later: one made for a whisper, or one a reset brings back.
-    Chat.EachWindow(self, apply)
+    Chat.EachWindow(self, applyAll)
 end
 
 function module:OnDisable()
@@ -206,13 +354,16 @@ function module:OnDisable()
         if border then
             border:Hide()
         end
+        if frame.editBox then
+            clearBox(frame.editBox)
+        end
     end
 end
 
 function module:OnOptionChanged()
     if self.enabled then
         for _, frame in ipairs(Chat.Frames()) do
-            apply(frame)
+            applyAll(frame)
         end
     end
 end

@@ -412,7 +412,7 @@ What each module is, in the code's terms (what it does for players is in `README
 - **Chat Sounds**: a sound from `ns.Sounds` on `CHAT_MSG_GUILD`, `_OFFICER`, `_PARTY`, and `_RAID` lines that aren't the player's own, each kind heard only while its checkbox is on, one sound to a burst.
 - **Quest Links**: Questie's plain-text quests in chat made Blizzard quest links.
 - **Chat Font**
-- **Chat Border**: a backdrop frame of ours in each chat window, around the window's `Background` texture, its alpha following Blizzard's fade of the window through `ns.Chat.OnFade`.
+- **Chat Border**: a backdrop frame of ours in each chat window, around the window's `Background` texture, its alpha following Blizzard's fade of the window through `ns.Chat.OnFade`. With Include Edit Box, a second one as a child of the window's edit box and a dark texture of ours in it, Blizzard's six art textures there made see-through while it's on, and the border colored after the edit box's own focus calls (`SetFocusRegionsShown`, `SetFocusRegionVertexColors`).
 - **Keep Chat Visible**: `PersistentChat`: chat doesn't fade.
 - **Chat History**
 - **Chat Arrow Keys**: Up and Down in the chat box recall what was sent, without Alt.

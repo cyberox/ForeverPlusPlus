@@ -82,7 +82,10 @@ ns.changelog = {
                     .. "color (the art's own, your class color, or one of a few of the game's "
                     .. "colors) and opacity. It shows whatever the window's background is set to, and Fade with "
                     .. "Chat (on by default) fades it when the mouse leaves the chat, as the game "
-                    .. "fades the tabs, with a slider for how much is left." },
+                    .. "fades the tabs, with a slider for how much is left. Include Edit Box (on by "
+                    .. "default) draws the box you type in with the same border, joined to the "
+                    .. "window's, and Chat Color While Typing (on by default) colors it for the "
+                    .. "chat you're typing in." },
                 { L.TOOLTIPS_TITLE, "Quest Item Drop Chance (on by default, needs the QuestieDB addon) "
                     .. "shows the chance a creature drops a quest's item after its line on the "
                     .. "creature's tooltip, like \"0/1 Intact Hailstrider Beak (35%)\"." },
