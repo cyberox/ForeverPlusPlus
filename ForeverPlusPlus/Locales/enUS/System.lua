@@ -42,6 +42,7 @@ L.ERRORCATCHER_NONE = "No errors caught."
 L.ERRORCATCHER_KIND_ERROR = "Lua Error"
 L.ERRORCATCHER_KIND_BLOCKED = "Blocked Action"
 L.ERRORCATCHER_KIND_WARNING = "Lua Warning"
+L.ERRORCATCHER_KIND_TAINT = "Taint"
 L.ERRORCATCHER_POSITION = "%d of %d" -- this one, how many
 L.ERRORCATCHER_ROW_INFO = "%dx, %s" -- times seen, how long ago ("12m ago")
 -- times, session, first and last time it happened, how long ago ("12m ago")

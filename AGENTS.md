@@ -121,7 +121,8 @@ One line here says what each file is for. [docs/architecture.md](docs/architectu
 | `RealmTime.lua` | `RealmTime` | Realm time moved to the player's clock. |
 | `Slash.lua` | `Slash` | Slash commands a module adds and takes away live. |
 | `Profiler.lua` | `Profiler` | Times calls into each module's code while the Profiler page records. |
-| `Errors.lua` | `Errors` | Error Catcher's counts and window, for the minimap button. |
+| `Errors.lua` | `Errors` | Error Catcher's counts and window, for the minimap button, and an entry of another kind added to its list (`Report`). |
+| `Taint.lua` | `Taint` | Which of Blizzard's stored values an addon wrote: a watcher over a list of tables that notes each one the first time it's seen (`New`, `Check`), for Error Catcher and Taint Watcher. |
 | `AddOns.lua` | `AddOns` | Waiting for a load-on-demand addon, and this character's addons as a set to save and put back (`States`, `Changes`, `Apply`). |
 
 **Frames and windows**

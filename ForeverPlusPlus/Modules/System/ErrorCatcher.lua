@@ -14,8 +14,7 @@ local _, ns = ...
 
 local format, tostring, pcall, select, ipairs, type = string.format, tostring, pcall, select, ipairs, type
 local min = math.min
-local pairs, setmetatable, issecurevariable, _G = pairs, setmetatable, issecurevariable, _G
-local rawget = rawget
+local _G = _G
 local concat, tremove, wipe, time, date = table.concat, table.remove, wipe, time, date
 local CreateFrame, GetTime = CreateFrame, GetTime
 local C_Timer, error = C_Timer, error
@@ -276,9 +275,8 @@ local gamepadUI = ns.Gamepad.On
 -- so while the controller interface is on these tables are checked twice a second, and the first
 -- time a value carries an addon's name it's noted with the time and the windows open then, for
 -- the bug report. issecurevariable only asks who wrote a value: nothing is called or written.
+-- The checking itself is ns.Taint's, which Taint Watcher uses for the game's other windows.
 local WATCH_EVERY = 0.5 -- seconds
-local WATCH_KEYS = 6000 -- values asked about in one check at most
-local WATCH_NOTES = 300 -- notes kept; the report groups them
 local WATCH_ROOTS = { -- a global's name, and how many tables deep to look
     { "GamepadMode", 3 },
     { "SmartNavigation", 2 },
@@ -293,12 +291,6 @@ local WATCH_ROOTS = { -- a global's name, and how many tables deep to look
     { "ChatFrame1", 1 },
     { "ChatFrame2", 1 },
 }
-
-local watchingSince -- time() of the first check, since a value found then was written before it
-
-local stateNotes = {} -- { path, by, time, windows }, in the order found
-local noted = setmetatable({}, { __mode = "k" }) -- table -> the keys of it already noted
-local visited, trail, asked = {}, {}, 0
 
 -- The windows the controller's focus manager has open, by name.
 local function controllerWindows()
@@ -319,75 +311,14 @@ local function controllerWindows()
     return #names > 0 and concat(names, ", ") or nil
 end
 
-local function noteState(tbl, key, by, depth)
-    local keys = noted[tbl]
-    if not keys then
-        keys = {}
-        noted[tbl] = keys
-    end
-    if keys[key] or #stateNotes >= WATCH_NOTES then
-        return
-    end
-    keys[key] = true
-    trail[depth] = tostring(key)
-    -- A binding set or binding says whose it is in its `name` ("TabIndicatorBindings").
-    local name = rawget(tbl, "name")
-    local path = concat(trail, ".", 1, depth)
-    if type(name) == "string" and ns.IsReadable(name) then
-        path = path .. " [" .. name .. "]"
-    end
-    stateNotes[#stateNotes + 1] = {
-        path = path,
-        by = readable(by, L.ERRORCATCHER_UNKNOWN),
-        time = time(),
-        windows = controllerWindows(),
-    }
-end
-
-local function scanState(tbl, depth, deepest)
-    if visited[tbl] then
-        return
-    end
-    visited[tbl] = true
-    for key, value in pairs(tbl) do
-        if asked >= WATCH_KEYS then
-            return
-        end
-        local kind = type(key)
-        if kind == "string" or kind == "number" then
-            asked = asked + 1
-            -- It takes a name, so a list's own entries can't be asked about; the list can.
-            if kind == "string" then
-                local ok, secure, by = pcall(issecurevariable, tbl, key)
-                if ok and secure == false then
-                    noteState(tbl, key, by, depth)
-                end
-            end
-            -- Not into a frame: its fields are its children, which is most of the interface.
-            if depth < deepest and type(value) == "table" and not value.GetObjectType then
-                trail[depth] = tostring(key)
-                scanState(value, depth + 1, deepest)
-            end
-        end
-    end
-end
+-- Each note keeps the windows open when it was found.
+local stateWatcher = ns.Taint.New(WATCH_ROOTS, { context = controllerWindows })
 
 -- Notes every value in the controller's tables that an addon wrote and wasn't noted before.
 local function checkControllerState()
-    if not (issecurevariable and gamepadUI()) then
-        return
+    if gamepadUI() then
+        stateWatcher:Check()
     end
-    wipe(visited)
-    asked = 0
-    watchingSince = watchingSince or time()
-    for _, root in ipairs(WATCH_ROOTS) do
-        local tbl = _G[root[1]]
-        if type(tbl) == "table" then
-            trail[1] = root[1]
-            pcall(scanState, tbl, 2, root[2] + 1)
-        end
-    end
-    wipe(visited)
 end
 
 local stateTimer = ns.Frames.Timer(module)
@@ -400,32 +331,20 @@ end
 -- The notes as the report's lines, or "none".
 local function controllerState()
     checkControllerState()
-    if #stateNotes == 0 then
+    local notes = stateWatcher.notes
+    if #notes == 0 then
         return L.ERRORCATCHER_CONTEXT_NONE
     end
-    local lines = { format(L.ERRORCATCHER_CONTEXT_STATE_SINCE, date("%H:%M:%S", watchingSince)) }
+    local lines = { format(L.ERRORCATCHER_CONTEXT_STATE_SINCE, date("%H:%M:%S", stateWatcher.since)) }
     -- A table whose every entry was written at once (the binding stack's forty buttons) is one
     -- line: its first entry, and how many more.
-    local groups, order = {}, {}
-    for _, note in ipairs(stateNotes) do
-        local parent = note.path:match("^(.*)%.[^.]*$") or note.path
-        parent = parent .. (note.path:match("( %[.*%])$") or "")
-        local id = concat({ parent, note.by, note.time, note.windows or "" }, "\1")
-        local group = groups[id]
-        if group then
-            group.more = group.more + 1
-        else
-            group = { note = note, more = 0 }
-            groups[id] = group
-            order[#order + 1] = group
-        end
-    end
-    for _, group in ipairs(order) do
+    for _, group in ipairs(ns.Taint.Groups(notes)) do
         local note = group.note
         local path = group.more > 0 and format(L.ERRORCATCHER_CONTEXT_STATE_MORE, note.path, group.more)
             or note.path
-        lines[#lines + 1] = format(L.ERRORCATCHER_CONTEXT_STATE_LINE, path, note.by,
-            date("%H:%M:%S", note.time), note.windows or L.ERRORCATCHER_CONTEXT_NONE)
+        lines[#lines + 1] = format(L.ERRORCATCHER_CONTEXT_STATE_LINE, path,
+            note.by or L.ERRORCATCHER_UNKNOWN, date("%H:%M:%S", note.time),
+            note.context or L.ERRORCATCHER_CONTEXT_NONE)
     end
     return "\n" .. concat(lines, "\n")
 end
@@ -609,6 +528,7 @@ local KINDS = {
     error = { name = L.ERRORCATCHER_KIND_ERROR, r = 1, g = 0.25, b = 0.25 },
     blocked = { name = L.ERRORCATCHER_KIND_BLOCKED, r = 1, g = 0.5, b = 0.1 },
     warning = { name = L.ERRORCATCHER_KIND_WARNING, r = 1, g = 0.82, b = 0 },
+    taint = { name = L.ERRORCATCHER_KIND_TAINT, r = 0.6, g = 0.8, b = 1 },
 }
 
 local function kindOf(entry)
@@ -1058,6 +978,14 @@ local provider = {
     toggle = toggleWindow,
     clearSession = clearSession,
     clearAll = confirmClear,
+    -- What Taint Watcher found: an entry like a blocked action's, with what was going on.
+    report = function(message)
+        if not allowed() then
+            return
+        end
+        local ok, context = pcall(blockedContext)
+        catch({ kind = "taint", message = message, context = ok and context or nil, time = time() })
+    end,
 }
 
 module.options = {

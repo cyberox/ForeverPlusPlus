@@ -262,6 +262,31 @@ L.CONTROLLERMODE_RELOAD_OFF = "Turn off: %s" -- addon names
 L.CONTROLLERMODE_RELOAD_ASK = "Change them and reload now?"
 L.CONTROLLERMODE_AND_MORE = "%s, and %d more" -- addon names, number of addons
 
+-- Taint Watcher
+L.TAINTWATCHER_TITLE = "Taint Watcher"
+L.TAINTWATCHER_DESC = "Watch the quest tracker, quest log, world map, and the game's list of windows "
+    .. "for values an addon wrote into them, which is what later makes the game say \"Interface "
+    .. "action failed because of an AddOn\". Each one found is listed in Error Catcher and by "
+    .. "/fpp taint, with the time. For finding what broke something."
+L.TAINTWATCHER_NOTICE = "It says when a value was first seen, not what wrote it."
+L.TAINTWATCHER_NOTICE_DESC = "Values are checked twice a second, so the cause is what happened just "
+    .. "before one is found."
+L.TAINTWATCHER_OTHERS = "Other AddOns"
+L.TAINTWATCHER_OTHERS_DESC = "Also note the values other addons wrote, not only Forever++'s."
+L.TAINTWATCHER_CHAT_DESC = "Say in chat when a value is found."
+L.TAINTWATCHER_LIST = "Found This Session"
+L.TAINTWATCHER_LIST_BUTTON = "List"
+L.TAINTWATCHER_LIST_DESC = "List in chat the values found since logging in or reloading."
+L.TAINTWATCHER_COMMAND = "list the values Taint Watcher found"
+L.TAINTWATCHER_LINE = "%s, written by %s" -- the value's path, such as QuestMapFrame.questID; an addon
+L.TAINTWATCHER_MORE = "%s (and %d more beside it)"
+L.TAINTWATCHER_UNKNOWN = "an addon the game doesn't name"
+L.TAINTWATCHER_FOUND = "Tainted: %s." -- a TAINTWATCHER_LINE
+L.TAINTWATCHER_FOUND_MORE = "And %d more. Type /fpp taint to list them."
+L.TAINTWATCHER_ALREADY = "%d values were already tainted when watching began. Type /fpp taint to list them."
+L.TAINTWATCHER_REPORT = "Tainted: %s." -- Error Catcher's entry; a TAINTWATCHER_LINE
+L.TAINTWATCHER_NONE = "No tainted values found."
+L.TAINTWATCHER_LIST_LINE = "%s  %s" -- the time found, a TAINTWATCHER_LINE
 -- Profiler
 L.PROFILER_TITLE = "CPU Profiler"
 L.PROFILER_DESC = "See how much CPU each module takes, on a page in Settings, to find what's slow."

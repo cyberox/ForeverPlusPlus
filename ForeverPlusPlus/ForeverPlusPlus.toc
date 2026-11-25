@@ -68,6 +68,7 @@ Lib\PlateLabel.lua
 Lib\FriendlyPlates.lua
 Lib\AddOns.lua
 Lib\Errors.lua
+Lib\Taint.lua
 Lib\WorldMap.lua
 Lib\MapTooltip.lua
 Lib\Generated\InstanceLevels.lua
@@ -106,6 +107,7 @@ Modules\Tools\SelfTest.lua
 Modules\Tools\GearProbe.lua
 Modules\Tools\Profiler.lua
 Modules\Tools\ControllerMode.lua
+Modules\Tools\TaintWatcher.lua
 Modules\Tools\Screenshots.lua
 Modules\Automation\FastLoot.lua
 Modules\Automation\AutoRepair.lua

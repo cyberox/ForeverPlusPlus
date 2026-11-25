@@ -106,6 +106,7 @@ Everything is on by default except where noted. Each module can be turned off, a
 | Debug | Every module's debug options and the testing tools, on a Debug page in Settings. Off by default. |
 | Controller Mode | A Settings page that keeps a setup for the controller interface and one for keyboard and mouse: a Forever++ profile, an Edit Mode layout, and a set of addons each. Logging in on the other interface switches to its profile and layout, and asks to reload only when the addons loaded aren't its set. Off by default. |
 | CPU Profiler | A Settings page that records how much CPU each module takes, with the worst frames listed as spikes. Nothing is timed until you press Record. Off by default. |
+| Taint Watcher | Watches the quest tracker, quest log, world map, and the game's list of windows for values an addon wrote into them, which is what later makes the game block an action. `/fpp taint` lists what it found, and Error Catcher keeps each one. Off by default. |
 | **Units** | |
 | Class Colors | Colors players' health bars, and optionally names, by class on the unit frames, NPCs' bars by reaction, and names in the friends and who lists by class. |
 | Druid Mana Bar | Druids only: shows your mana under the energy or rage bar while in Cat or Bear Form. |
@@ -152,6 +153,7 @@ A setting you change stays changed, even if a later update changes its default; 
 | `/fpp resetprices` | Forgets the saved auction prices. |
 | `/fpp cvar [search]` | Opens Console Variables. |
 | `/fpp profiler` | Opens the CPU Profiler. |
+| `/fpp taint` | Lists the values Taint Watcher found. |
 | `/fpp buffs` | Shows how Macros' Smart Buff judges your target (while Macros is on). |
 
 For developers, while Debug is on (each is also a button on the Debug page):

@@ -137,7 +137,12 @@ Generated files, in `Lib/Generated/` (never edited by hand; see Generated data):
 
 ### `Errors.lua`
 
-- `ns.Errors`: Error Catcher's counts and window, for the minimap button.
+- `ns.Errors`: Error Catcher's counts and window, for the minimap button. `Report(message)` adds an entry that isn't a Lua error (Taint Watcher's finds), and says whether Error Catcher was on to keep it.
+
+### `Taint.lua`
+
+- `ns.Taint`: which of Blizzard's stored values an addon wrote. `New(roots, opts)` makes a watcher over a list of tables (a global's name and how deep to look, or `tables` for ones that aren't globals), and `watcher:Check()` notes each value the first time `issecurevariable` names an addon for it, with the path, the addon, the time, and `opts.context()`. `opts.only` (and `watcher:Reset(only)`) keeps one addon's. `Groups(notes, from)` folds the values of one table written at once into one line.
+- It only asks who wrote a value: nothing of Blizzard's is called, hooked, or written, and a frame found inside another table isn't gone into.
 
 ### `CVars.lua`
 
@@ -326,6 +331,7 @@ What each module is, in the code's terms (what it does for players is in `README
 - **Screenshots**: a Debug button and `/fpp shots`, no toggle: gallery screenshots of real windows; a module adds its own scene with `module.screenshot`.
 - **CPU Profiler**: `Profiler`: a tool page, off by default.
 - **Controller Mode**: `ControllerMode`: a module with a tool page, off by default. Its setups are the account's and not a profile's (it changes the profile); only whether it's on is a profile's, so a profile it switches to has it turned on. A setup for the controller interface and one for keyboard and mouse (`modes`: a profile, an Edit Mode layout, a set of addons), set up once when the character enters the world on the other interface than last time (`applied`, per character); the addons only after a reload the player agrees to.
+- **Taint Watcher**: `TaintWatcher`: off by default, on in Developer's Defaults. An `ns.Taint` watcher over the objective tracker and its parts, the quest log, the world map, and `UIPanelWindows` (its `ROOTS`, which grows with each bug), checked twice a second. The first check's finds were written before it began and are only counted in chat; later ones are said, and each is an Error Catcher entry (`ns.Errors.Report`, kind `taint`). `/fpp taint` lists the session's.
 - **Fast Loot**
 - **Auto Repair**
 - **Auto Sell Junk**
@@ -382,7 +388,7 @@ What each module is, in the code's terms (what it does for players is in `README
 - **XP Bar Text**
 - **Reputation Bar Text**: `RepBarText`: our text over each container's reputation bar as XP Bar Text does it (`StatusBars.Texts`), a tooltip of our own, and the watched faction moved to the one that last gained.
 - **AddOns List**
-- **Error Catcher**: while the controller interface is on it also checks the controller navigation's tables (`GamepadMode`, `SmartNavigation`) twice a second with `issecurevariable`, and notes each value an addon wrote for a blocked action's report.
+- **Error Catcher**: while the controller interface is on it also checks the controller navigation's tables (`GamepadMode`, `SmartNavigation`) twice a second with an `ns.Taint` watcher, and notes each value an addon wrote for a blocked action's report.
 - **Minimap Button**: its menu of quick toggles, picked by the player with the Customize button in its settings.
 - **Currency Bar**
 - **Character Window**: a folder: the module, its durability bars, and equipped weapon skill colors.

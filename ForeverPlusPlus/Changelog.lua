@@ -28,6 +28,11 @@ ns.changelog = {
                     .. "interface and one for keyboard and mouse: a Forever++ profile, an Edit Mode "
                     .. "layout, and a set of addons each. Logging in on the other interface switches to "
                     .. "its profile and layout, and asks to reload only when the addons loaded aren't its set." },
+                { L.TAINTWATCHER_TITLE, "A new module (off by default) that watches the quest tracker, "
+                    .. "quest log, world map, and the game's list of windows for values an addon wrote "
+                    .. "into them, which is what later makes the game say \"Interface action failed "
+                    .. "because of an AddOn\". /fpp taint lists what it found, and Error Catcher keeps "
+                    .. "each one with what was going on." },
                 { L.PLAYERNAMEPLATES_TITLE, "Titles (off by default) writes a player's name with the "
                     .. "title they chose, like \"Name, Master Angler\"." },
                 { L.QUESTPINS_TITLE, "Hide in Unexplored Areas (off by default) leaves out the pins in "

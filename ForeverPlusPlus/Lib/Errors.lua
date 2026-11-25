@@ -21,7 +21,7 @@ function Errors.Changed()
 end
 
 ---Error Catcher's side: its counts and window while it's on, or nil when it turns off.
----@param provider? { session: (fun(): number), saved: (fun(): number), toggle: fun(), clearSession: fun(), clearAll: fun() }
+---@param provider? { session: (fun(): number), saved: (fun(): number), toggle: fun(), clearSession: fun(), clearAll: fun(), report: (fun(message: string))? }
 function Errors.Provide(provider)
     source = provider
     Errors.Changed()
@@ -65,6 +65,18 @@ function Errors.ClearAll()
     if source then
         source.clearAll()
     end
+end
+
+---Adds an entry to Error Catcher's list that isn't a Lua error: a value of Blizzard's an addon
+---wrote, from Taint Watcher. Error Catcher adds what was going on.
+---@param message string
+---@return boolean kept false with Error Catcher off
+function Errors.Report(message)
+    if source and source.report then
+        source.report(message)
+        return true
+    end
+    return false
 end
 
 ---Calls `fn()` whenever the counts change or Error Catcher turns on or off. Add it once.
