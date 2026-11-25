@@ -107,6 +107,9 @@ ns.changelog = {
                     .. "also lists what an addon has written into the controller's own state, with "
                     .. "the time it was first seen and the windows open then, to help find what "
                     .. "caused it." },
+                { L.QUESTTRACKER_TITLE, "Sort by Level is now Sort Quests, and has a third order, "
+                    .. "Current Zone First: the quests of the zone you're in, then the rest grouped "
+                    .. "by zone, each lowest level first." },
             } },
             { L.CHANGELOG_FIXED, {
                 { L.PROFTOOLTIPS_TITLE, "Spiders and birds no longer show a Skinning skill, since "

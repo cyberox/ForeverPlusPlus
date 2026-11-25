@@ -10,7 +10,7 @@
 local _, ns = ...
 
 local pairs, ipairs, next, type, min, max = pairs, ipairs, next, type, math.min, math.max
-local setmetatable, sort, select = setmetatable, table.sort, select
+local setmetatable, sort, select, huge = setmetatable, table.sort, select, math.huge
 local InCombatLockdown, C_Timer, C_QuestLog, C_Map = InCombatLockdown, C_Timer, C_QuestLog, C_Map
 local GetRealZoneText = GetRealZoneText
 local GetQuestUiMapID, Enum = GetQuestUiMapID, Enum
@@ -71,10 +71,12 @@ module.options = {
         description = L.QUESTTRACKER_SORT_DESC,
         section = QUESTS,
         added = "0.8.2",
+        changed = "1.9.0",
         choices = {
             { "off", L.QUESTTRACKER_SORT_OFF },
             { "low", L.QUESTTRACKER_SORT_LOW },
             { "high", L.QUESTTRACKER_SORT_HIGH },
+            { "zone", L.QUESTTRACKER_SORT_ZONE },
         },
     },
     {
@@ -589,7 +591,7 @@ end
 
 -- Sorting -----------------------------------------------------------------------------------------
 -- The tracker lists quests in watch list order (after callings and quests that set their own
--- place) and has no sort of its own, and the comparison is a local in its code. So Sort by Level
+-- place) and has no sort of its own, and the comparison is a local in its code. So Sort Quests
 -- reorders the watch list: it untracks the quests out of place and tracks them again in level
 -- order. These are plain C_QuestLog calls, not the tracker's code; the tracker only marks itself
 -- dirty on QUEST_WATCH_LIST_CHANGED and redraws on its own next frame, and since the blocks still
@@ -618,6 +620,7 @@ local function watchesMatch(ids)
 end
 
 local requestSort
+local questHeaders -- under Current zone, below
 
 local function sortWatches()
     local order = module.db.sort
@@ -628,6 +631,15 @@ local function sortWatches()
         sortAfterCombat = true
         return
     end
+    -- Current Zone First: each quest's zone is its quest log header, as Current Zone Only reads
+    -- it. The zone you're in is group 0, the rest follow in the quest log's order, and a quest
+    -- under no header (or a collapsed one) goes last.
+    local headers, zoneOrder, here
+    if order == "zone" then
+        headers, zoneOrder = questHeaders()
+        here = GetRealZoneText()
+        here = type(here) == "string" and here:lower() or nil
+    end
     local watched = {}
     for i = 1, C_QuestLog.GetNumQuestWatches() do
         local questID = C_QuestLog.GetQuestIDForQuestWatchIndex(i)
@@ -635,7 +647,16 @@ local function sortWatches()
         if not level then
             return -- the quest log isn't ready; its next update sorts again
         end
-        watched[i] = { id = questID, level = level, index = i }
+        local group = 0
+        if headers then
+            local header = headers[questID]
+            if not header then
+                group = huge
+            elseif header:lower() ~= here then
+                group = zoneOrder[header] or huge
+            end
+        end
+        watched[i] = { id = questID, level = level, index = i, group = group }
     end
     local sorted = {}
     for i, quest in ipairs(watched) do
@@ -644,6 +665,9 @@ local function sortWatches()
     -- Same level keeps the order they were tracked in.
     local highFirst = order == "high"
     sort(sorted, function(a, b)
+        if a.group ~= b.group then
+            return a.group < b.group
+        end
         if a.level ~= b.level then
             if highFirst then
                 return a.level > b.level
@@ -712,10 +736,13 @@ local function onCombatEnd()
     end
 end
 
--- Listens for new quests and tracking only while Sort by Level is on.
+-- Listens for new quests and tracking only while Sort Quests is on. A new zone matters to Current
+-- Zone First, and Blizzard's tracker reorders the watch list itself then
+-- (ObjectiveTrackerFrameMixin:OnEvent, C_QuestLog.SortQuestWatches).
 module:OnWhile("sort", {
     QUEST_WATCH_LIST_CHANGED = requestSort,
     QUEST_LOG_UPDATE = requestSort,
+    ZONE_CHANGED_NEW_AREA = requestSort,
     PLAYER_REGEN_ENABLED = onCombatEnd,
 })
 
@@ -735,7 +762,7 @@ end
 -- that names no map or instance (a class, a profession, a holiday) goes by the zone of the quest's
 -- objective on the map instead, and shows when the map doesn't know it. The quest the map and
 -- arrow follow always shows. It filters once each time you arrive in a zone, so a quest tracked
--- by hand stays until you leave. Out of combat only, like sorting; Sort by Level then sorts
+-- by hand stays until you leave. Out of combat only, like sorting; Sort Quests then sorts
 -- what's left as the watch list changes.
 
 local AZEROTH = ns.WorldMap.AZEROTH -- Forever's Azeroth map, over every zone and instance
@@ -789,18 +816,23 @@ local function zoneMap(mapID)
     return info and info.mapType == ZONE_MAP and info.mapID or nil
 end
 
--- Each quest in the log by ID -> the title of the header it's under.
-local function questHeaders()
-    local headers, header = {}, nil
+-- Each quest in the log by ID -> the title of the header it's under, and each header's title ->
+-- its place among the headers.
+function questHeaders()
+    local headers, order, header, count = {}, {}, nil, 0
     for i = 1, (C_QuestLog.GetNumQuestLogEntries()) do
         local info = C_QuestLog.GetInfo(i)
         if info and info.isHeader then
             header = info.title
+            if type(header) == "string" and not order[header] then
+                count = count + 1
+                order[header] = count
+            end
         elseif info and info.questID and type(header) == "string" then
             headers[info.questID] = header
         end
     end
-    return headers
+    return headers, order
 end
 
 -- The watch list as questID -> true.
