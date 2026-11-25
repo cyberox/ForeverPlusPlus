@@ -10,7 +10,7 @@ local L = ns.L
 
 ns.changelog = {
     {
-        version = L.CHANGELOG_UNRELEASED,
+        version = "1.9.0", date = "2026-11-24",
         sections = {
             { L.CHANGELOG_ADDED, {
                 { L.AUTOOPEN_TITLE, "Pick Locks on Right Click (off by default), for Rogues, casts "
