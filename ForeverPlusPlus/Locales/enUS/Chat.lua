@@ -185,6 +185,12 @@ L.HIDECHATBUTTONS_TITLE = "Hide Chat Buttons"
 L.HIDECHATBUTTONS_DESC = "Hide the buttons beside the chat window until the mouse is over the "
     .. "chat, fading in and out with its tabs."
 
+-- HideChatTabs
+L.HIDECHATTABS_TITLE = "Hide Chat Tabs"
+L.HIDECHATTABS_DESC = "Hide the chat windows' tabs until the mouse is over the chat, fading in and "
+    .. "out as the game dims them. A tab with a new message still flashes, and a hidden tab still "
+    .. "takes clicks."
+
 -- WhisperWindow
 L.WHISPERWINDOW_TITLE = "Whisper Window"
 L.WHISPERWINDOW_DESC = "Keep whispers in a window of their own, a conversation per person, with a "

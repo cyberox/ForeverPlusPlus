@@ -80,6 +80,7 @@ Everything is on by default except where noted. Each module can be turned off, a
 - **Chat Arrow Keys**: Up and Down in the chat box bring back what you sent, and Left and Right move through the text, without holding Alt.
 - **Social Button**: Moves the social (Quick Join) button down beside the chat window's other buttons.
 - **Hide Chat Buttons**: Hides the buttons beside the chat window until the mouse is over the chat. Off by default.
+- **Hide Chat Tabs**: Hides the chat windows' tabs until the mouse is over the chat. A tab with a new message still flashes. Off by default.
 - **Hide Combat Log Tab**: Takes the Combat Log's tab off the chat window. Off by default.
 - **Movable Combat Log Tab**: Lets you drag the Combat Log's tab anywhere among your chat tabs, not only right after General. Off by default.
 - **Whisper Window**: Keeps whispers in a window like a messenger: conversations with unread counts on the left, the one you pick on the right, and a box to reply in. Opens from a chat button or `/fpp whispers`, and can hide whispers from chat. Off by default.

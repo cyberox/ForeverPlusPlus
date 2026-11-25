@@ -418,6 +418,7 @@ What each module is, in the code's terms (what it does for players is in `README
 - **Chat Arrow Keys**: Up and Down in the chat box recall what was sent, without Alt.
 - **Social Button**
 - **Hide Chat Buttons**: an alpha on each chat button, faded after Blizzard's own fade calls for the chat window.
+- **Hide Chat Tabs**: an alpha on the art and name regions of each window's tab, following Blizzard's fade through `ns.Chat.OnFade`; the new-message glow is left alone.
 - **Hide Combat Log Tab**: the tab scaled to almost nothing while the log is docked.
 - **Movable Combat Log Tab**: clears the log window's `isStaticDocked`, so its tab is drawn among the other windows' in the dock's saved order. The one field written on a Blizzard frame.
 - **Whisper Window**: a folder: the module and its window.

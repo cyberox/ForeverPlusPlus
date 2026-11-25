@@ -96,6 +96,9 @@ ns.changelog = {
                     .. "reach what the arrow points to, after the distance, like \"120 yds, 0:45\". "
                     .. "It goes by how fast you're closing in, so it works on a mount, and shows "
                     .. "nothing while you aren't getting closer." },
+                { L.HIDECHATTABS_TITLE, "A new module, off by default, that hides the chat windows' "
+                    .. "tabs until the mouse is over the chat, fading in and out as the game dims "
+                    .. "them. A tab with a new message still flashes." },
             } },
             { L.CHANGELOG_CHANGED, {
                 { L.PROFTOOLTIPS_TITLE, "The game's minimap dots no longer get the skill line: since "
