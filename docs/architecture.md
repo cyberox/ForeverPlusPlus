@@ -70,7 +70,7 @@ Generated files, in `Lib/Generated/` (never edited by hand; see Generated data):
 
 ### `Colors.lua`
 
-- `ns.Colors`: colors modules share, `Colors.Code` for color codes in text, `Colors.Class` for a unit's class color, `Colors.LevelRange` for a level range against the player's, and `Colors.Faction` for Horde red and Alliance blue, and `Colors.STATS`, a color for each stat.
+- `ns.Colors`: colors modules share, `Colors.Code` for color codes in text, `Colors.Class` for a unit's class color, `Colors.LevelRange` for a level range against the player's, `Colors.Difficulty` for one level's difficulty color (a skull level the hardest), and `Colors.Faction` for Horde red and Alliance blue, and `Colors.STATS`, a color for each stat.
 
 ### `Secret.lua`
 
@@ -154,7 +154,7 @@ Generated files, in `Lib/Generated/` (never edited by hand; see Generated data):
 
 ### `PlateLabel.lua` and `FriendlyPlates.lua`
 
-- `ns.PlateLabel`, `ns.FriendlyPlates`: the name-only friendly plates Player Nameplates and NPC Nameplates share. With the Total RP 3 addon loaded (`HasRoleplay`), the plates listen to its nameplate core (`TRP3_NamePlates`, as its own Plater support does) while a module's `spec.Roleplay(db)` says its settings use it, so nothing depends on its Blizzard Nameplates module: `RoleplayName(unit)` gives the roleplay name with its out of character mark, `RoleplayColor(unit)` the name color, and `RoleplayIcon(unit, texture)` sets a texture to the profile icon. With that module on, the plates also keep Blizzard's name hidden when it recolors it.
+- `ns.PlateLabel`, `ns.FriendlyPlates`: the name-only friendly plates Player Nameplates and NPC Nameplates share. A module adds to the turning on and off and the option changes the plates give it with `spec.OnEnable`, `spec.OnDisable`, and `spec.OnOptionChanged`. `PlateLabel.ShowClassIcon(frame, name, unit, db)` and `HideClassIcon(frame)` put the same class icon beside Blizzard's own name on a plate the modules don't draw (an enemy player's). With the Total RP 3 addon loaded (`HasRoleplay`), the plates listen to its nameplate core (`TRP3_NamePlates`, as its own Plater support does) while a module's `spec.Roleplay(db)` says its settings use it, so nothing depends on its Blizzard Nameplates module: `RoleplayName(unit)` gives the roleplay name with its out of character mark, `RoleplayColor(unit)` the name color, and `RoleplayIcon(unit, texture)` sets a texture to the profile icon. With that module on, the plates also keep Blizzard's name hidden when it recolors it.
 
 ### `Units.lua`
 

@@ -6,7 +6,7 @@ local format, floor, max = string.format, math.floor, math.max
 local UnitLevel, GetQuestDifficultyColor, QuestDifficultyColors =
     UnitLevel, GetQuestDifficultyColor, QuestDifficultyColors
 local RECENT_ALLY_FONT_COLOR, UnitClass, C_ClassColor = RECENT_ALLY_FONT_COLOR, UnitClass, C_ClassColor
-local UnitIsPlayer = UnitIsPlayer
+local UnitIsPlayer, GetCreatureDifficultyColor = UnitIsPlayer, GetCreatureDifficultyColor
 local PLAYER_FACTION_COLORS = PLAYER_FACTION_COLORS
 
 local readable = ns.IsReadable
@@ -66,6 +66,20 @@ function Colors.LevelRange(low, high)
         return GetQuestDifficultyColor(max(low, high - 2))
     end
     return QuestDifficultyColors.difficult
+end
+
+---The game's difficulty color for a unit of this level against the player's: gray, green, yellow,
+---orange, or red, as it colors a level on the target frame. A level the game hides (a skull, which
+---reads as 0 or less) gets the hardest. Nil without Blizzard's colors. Probe: they're FrameXML's,
+---and GetCreatureDifficultyColor is Mainline's.
+---@param level number a level Lua can read
+---@return table? color with r, g, b
+function Colors.Difficulty(level)
+    if level <= 0 then
+        return QuestDifficultyColors and QuestDifficultyColors.impossible or nil
+    end
+    local get = GetCreatureDifficultyColor or GetQuestDifficultyColor
+    return get and get(level) or nil
 end
 
 -- Blizzard's faction colors (Horde red, Alliance blue, from its PLAYER_FACTION_COLORS), with

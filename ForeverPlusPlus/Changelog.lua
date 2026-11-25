@@ -35,6 +35,19 @@ ns.changelog = {
                     .. "each one with what was going on." },
                 { L.PLAYERNAMEPLATES_TITLE, "Titles (off by default) writes a player's name with the "
                     .. "title they chose, like \"Name, Master Angler\"." },
+                { L.PLAYERNAMEPLATES_TITLE, "Group Member Names (off by default) shows the names of "
+                    .. "players in your party or raid in a color you pick, like purple, or their "
+                    .. "class color. Health Bar Too colors their health bars the same way." },
+                { L.PLAYERNAMEPLATES_TITLE, "Enemy Player Names (off by default) shows enemy "
+                    .. "players' names on their nameplates in a color you pick, like red, their "
+                    .. "class color, or the color of their level against yours. Health Bar Too "
+                    .. "colors their health bars the same way, and Only Flagged Enemies keeps it to "
+                    .. "players flagged for PvP." },
+                { L.PLAYERNAMEPLATES_TITLE, "Friend Names (off by default) shows the names of your "
+                    .. "friends and Battle.net friends in a color you pick, or their class color, "
+                    .. "with Health Bar Too for their health bars." },
+                { L.PLAYERNAMEPLATES_TITLE, "On Enemy Players Too (off by default), under Class "
+                    .. "Icon, shows the class icon beside enemy players' names too." },
                 { L.QUESTPINS_TITLE, "Hide in Unexplored Areas (off by default) leaves out the pins in "
                     .. "parts of a zone your character hasn't explored yet." },
                 { L.AUCTIONTOTALS_TITLE, "A new module that shows, next to Cancel Auction on the "

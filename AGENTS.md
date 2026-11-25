@@ -111,7 +111,7 @@ One line here says what each file is for. [docs/architecture.md](docs/architectu
 | File | `ns` | For |
 | --- | --- | --- |
 | `Secret.lua` | `IsReadable`, `IsText`, `IsNumber`, `IsTrue`, `IsTrueOrSecret`, `AurasReadable`, `EachAura`, `HealthStepCurve` | Guards for values that may be secret, and a curve that turns secret health into a widget value. |
-| `Colors.lua` | `Colors` | Shared colors: color codes, class, level range, faction, and one per stat. |
+| `Colors.lua` | `Colors` | Shared colors: color codes, class, level range, a level's difficulty (`Difficulty`), faction, and one per stat. |
 | `Text.lua` | `Text` | Numbers, durations ("3 Seconds", "12m ago"), yards, version compare, and stripping escape codes. |
 | `Money.lua` | `Money`, `MoneyShort` | Copper as coin text. |
 | `Fonts.lua` | `Fonts` | The game's fonts a font dropdown offers. |
