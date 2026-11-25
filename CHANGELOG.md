@@ -21,6 +21,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Quest Pins**: Hide in Unexplored Areas (off by default) leaves out the pins in parts of a zone your character hasn't explored yet.
 - **Quest Tracker**: Hide Completed Quests (off by default) takes a quest off the tracker once it's ready to turn in, and puts it back when turned off.
 - **Quest Tracker**: Dim Finished Objectives (off by default) fades the text of a quest's finished objectives, so the ones left stand out, with a slider for how faint.
+- **Quest Tracker**: Color Objectives by Progress (off by default) colors an objective that counts, like "3/8", by how far along it is: gray until it's started, yellow at half, green as it nears done.
 - **Quest Tracker**: Quest Count (off by default) shows how many quests are in your quest log, and how many it holds, on the tracker's Quests header, like "12/25".
 - **Quest Tracker**: Zone Menu (off by default) opens a menu of your quest log's zones when you click the tracker's Quests header, to track or untrack all of a zone's quests at once.
 - **Auction Totals**: a new module that shows, next to Cancel Auction on the auction house's Auctions page, what your auctions are listed for in all and how much has sold.

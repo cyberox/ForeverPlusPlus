@@ -55,6 +55,9 @@ ns.changelog = {
                 { L.QUESTTRACKER_TITLE, "Dim Finished Objectives (off by default) fades the text of a "
                     .. "quest's finished objectives, so the ones left stand out, with a slider for "
                     .. "how faint." },
+                { L.QUESTTRACKER_TITLE, "Color Objectives by Progress (off by default) colors an "
+                    .. "objective that counts, like \"3/8\", by how far along it is: gray until "
+                    .. "it's started, yellow at half, green as it nears done." },
                 { L.QUESTTRACKER_TITLE, "Quest Count (off by default) shows how many quests are in "
                     .. "your quest log, and how many it holds, on the tracker's Quests header, like "
                     .. "\"12/25\"." },

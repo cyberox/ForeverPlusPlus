@@ -33,6 +33,7 @@ local module = ns.NewModule("QuestTracker", L.QUESTTRACKER_DESC, {
     completed = false, -- untrack quests once they're ready to turn in
     dim = false, -- fade the text of finished objectives
     dimOpacity = 40, -- percent: how visible a finished objective stays with Dim Finished Objectives
+    progress = false, -- color a counted objective's text by how far along it is
     collapse = false, -- collapse the tracker once at login and after a reload
     count = false, -- the quest log's count on the Quests header (Header.lua)
     zones = false, -- a click on the Quests header opens a menu of the quest log's zones (Header.lua)
@@ -63,7 +64,7 @@ end)
 -- Which quests and in what order, the Quests header, then the text, the box behind it, and combat.
 local QUESTS, TEXT, BOX, COMBAT = L.QUESTTRACKER_SECTION_QUESTS, L.QUESTTRACKER_SECTION_TEXT,
     L.QUESTTRACKER_SECTION_BOX, L.QUESTTRACKER_SECTION_COMBAT
-local HEADER = L.QUESTTRACKER_SECTION_HEADER
+local HEADER, OBJECTIVES = L.QUESTTRACKER_SECTION_HEADER, L.QUESTTRACKER_SECTION_OBJECTIVES
 module.options = {
     {
         key = "sort",
@@ -94,10 +95,24 @@ module.options = {
         added = "1.9.0",
     },
     {
+        key = "collapse",
+        name = L.QUESTTRACKER_COLLAPSE,
+        description = L.QUESTTRACKER_COLLAPSE_DESC,
+        section = QUESTS,
+        added = "1.8.0",
+    },
+    {
+        key = "progress",
+        name = L.QUESTTRACKER_PROGRESS,
+        description = L.QUESTTRACKER_PROGRESS_DESC,
+        section = OBJECTIVES,
+        added = "1.9.0",
+    },
+    {
         key = "dim",
         name = L.QUESTTRACKER_DIM,
         description = L.QUESTTRACKER_DIM_DESC,
-        section = QUESTS,
+        section = OBJECTIVES,
         slider = "dimOpacity",
         added = "1.9.0",
     },
@@ -105,17 +120,10 @@ module.options = {
         key = "dimOpacity",
         name = L.QUESTTRACKER_DIM_OPACITY,
         description = L.QUESTTRACKER_DIM_OPACITY_DESC,
-        section = QUESTS,
+        section = OBJECTIVES,
         requires = "dim",
         added = "1.9.0",
         min = 10, max = 80, step = 5, format = "%d%%",
-    },
-    {
-        key = "collapse",
-        name = L.QUESTTRACKER_COLLAPSE,
-        description = L.QUESTTRACKER_COLLAPSE_DESC,
-        section = QUESTS,
-        added = "1.8.0",
     },
     {
         key = "count",
@@ -476,19 +484,36 @@ end
 -- Lines are pooled and reused for other objectives, so every line a pass doesn't dim goes back to
 -- full, the ones the section has let go of too.
 
+--
+-- Color Objectives by Progress rides the same pass. It colors the text of an objective that
+-- counts ("3/8 Prowler slain") by how far along it is: Blizzard's own gray until it's started,
+-- toward yellow at half, toward green as it nears done. A color changes no size, so the layout
+-- is untouched. Two things of Blizzard's to work with (Blizzard_ObjectiveTrackerBlock.lua):
+-- SetStringText only sets a color when the line's colorStyle changes, so ours stays until we put
+-- the style's color back ourselves, and UpdateHighlight sets every line's color as the mouse
+-- enters and leaves the quest's title, so a block is colored again after the mouse leaves it and
+-- left white (Blizzard's highlight) while the mouse is on it.
+
 local dimmed = setmetatable({}, { __mode = "k" }) -- font string -> the section whose line we faded
+local colored = setmetatable({}, { __mode = "k" }) -- font string -> the section whose line we colored
 local seen = {} -- font string -> true: the lines of the pass under way
 
-local function finishedLine(line, objectives)
-    local key = line.objectiveKey
-    local objective = objectives and type(key) == "number" and objectives[key]
-    if type(objective) == "table" then
+local function finishedLine(line, objective)
+    if objective then
         return ns.IsTrue(objective.finished)
     end
     local states = ObjectiveTrackerAnimLineState
     local state = line.state
     return states ~= nil and state ~= nil and (state == states.Completing or state == states.Completed
         or state == states.Fading)
+end
+
+-- Blizzard's color for the line's style, which it won't set again by itself.
+local function restoreColor(text)
+    local style = text.colorStyle
+    if type(style) == "table" and style.r then
+        text:SetTextColor(style.r, style.g, style.b)
+    end
 end
 
 local function undim()
@@ -498,68 +523,160 @@ local function undim()
     end
 end
 
+local function uncolor()
+    for text in pairs(colored) do
+        restoreColor(text)
+        colored[text] = nil
+    end
+end
+
+-- The tracker's own text gray (OBJECTIVE_TRACKER_COLOR.Normal), then Blizzard's yellow and green.
+local PROGRESS_START = { r = 0.8, g = 0.8, b = 0.8 }
+local PROGRESS_HALF = NORMAL_FONT_COLOR or { r = 1, g = 0.82, b = 0 }
+local PROGRESS_DONE = GREEN_FONT_COLOR or { r = 0.1, g = 1, b = 0.1 }
+
+---The color of a counted objective that's under way, or nil for one to leave Blizzard's: not
+---started, counting to 1, or with numbers that can't be read.
+---@param objective table one of C_QuestLog.GetQuestObjectives
+---@return number? r
+---@return number? g
+---@return number? b
+local function progressColor(objective)
+    local have, need = objective.numFulfilled, objective.numRequired
+    if not (ns.IsNumber(have) and ns.IsNumber(need)) or need <= 1 or have <= 0 then
+        return nil
+    end
+    local part = min(have / need, 1) * 2
+    local from, to = PROGRESS_START, PROGRESS_HALF
+    if part > 1 then
+        from, to, part = PROGRESS_HALF, PROGRESS_DONE, part - 1
+    end
+    return from.r + (to.r - from.r) * part, from.g + (to.g - from.g) * part, from.b + (to.b - from.b) * part
+end
+
 local QUEST_TRACKERS = { "QuestObjectiveTracker", "CampaignQuestObjectiveTracker" }
 
----Dims the finished objectives of one quest section, and puts back the lines it no longer shows.
----@param section table QuestObjectiveTracker or CampaignQuestObjectiveTracker
-local function dimSection(section)
-    if not section.EnumerateActiveBlocks then
+---Dims and colors the objective lines of one quest, each as its option says, and notes them in
+---`seen`.
+---@param block table one of a quest section's blocks
+---@param section table the section it's in
+local function styleBlock(block, section)
+    local lines = block.usedLines
+    if type(lines) ~= "table" then
         return
     end
-    local alpha = module.db.dimOpacity / 100
-    section:EnumerateActiveBlocks(function(block)
-        local lines = block.usedLines
-        if type(lines) ~= "table" then
-            return
-        end
-        local questID = block.id
-        local objectives = type(questID) == "number" and C_QuestLog.GetQuestObjectives
-            and C_QuestLog.GetQuestObjectives(questID) or nil
-        for _, line in pairs(lines) do
-            local text = line.Text
-            if text and text.SetAlpha then
-                seen[text] = true
-                if finishedLine(line, objectives) then
-                    text:SetAlpha(alpha)
-                    dimmed[text] = section
-                elseif dimmed[text] then
-                    text:SetAlpha(1)
-                    dimmed[text] = nil
+    local db = module.db
+    local alpha = db.dim and db.dimOpacity / 100 or nil
+    -- Blizzard's highlight has the lines while the mouse is on the quest's title.
+    local color = db.progress and not block.isHighlighted
+    local questID = block.id
+    local objectives = type(questID) == "number" and C_QuestLog.GetQuestObjectives
+        and C_QuestLog.GetQuestObjectives(questID) or nil
+    for _, line in pairs(lines) do
+        local text = line.Text
+        if text and text.SetAlpha then
+            seen[text] = true
+            local key = line.objectiveKey
+            local objective = objectives and type(key) == "number" and objectives[key] or nil
+            if type(objective) ~= "table" then
+                objective = nil
+            end
+            local finished = finishedLine(line, objective)
+            if alpha and finished then
+                text:SetAlpha(alpha)
+                dimmed[text] = section
+            elseif dimmed[text] then
+                text:SetAlpha(1)
+                dimmed[text] = nil
+            end
+            local r, g, b
+            if color and objective and not finished then
+                r, g, b = progressColor(objective)
+            end
+            if r then
+                text:SetTextColor(r, g, b)
+                colored[text] = section
+            elseif colored[text] then
+                colored[text] = nil
+                if not block.isHighlighted then
+                    restoreColor(text)
                 end
             end
         end
+    end
+end
+
+local function clearSeen()
+    for text in pairs(seen) do
+        seen[text] = nil
+    end
+end
+
+-- After the mouse leaves a quest's title: Blizzard has just set its lines back to their styles.
+local function onBlockLeave(button)
+    local block = button:GetParent()
+    if module.db.progress and block and type(block.parentModule) == "table" then
+        styleBlock(block, block.parentModule)
+        clearSeen()
+    end
+end
+
+---Styles the objective lines of one quest section, and puts back the lines it no longer shows.
+---@param section table QuestObjectiveTracker or CampaignQuestObjectiveTracker
+local function styleSection(section)
+    if not section.EnumerateActiveBlocks then
+        return
+    end
+    local watchLeave = module.db.progress
+    section:EnumerateActiveBlocks(function(block)
+        styleBlock(block, section)
+        if watchLeave then
+            module:HookScript(block.HeaderButton, "OnLeave", onBlockLeave)
+        end
     end)
-    -- A line the section freed keeps our alpha until something else uses it.
+    -- A line the section freed keeps our alpha and color until something else uses it.
     for text, owner in pairs(dimmed) do
         if owner == section and not seen[text] then
             text:SetAlpha(1)
             dimmed[text] = nil
         end
     end
-    for text in pairs(seen) do
-        seen[text] = nil
+    for text, owner in pairs(colored) do
+        if owner == section and not seen[text] then
+            restoreColor(text)
+            colored[text] = nil
+        end
     end
+    clearSeen()
 end
 
-local function dimFinished()
-    if not module.db.dim then
-        if next(dimmed) ~= nil then
-            undim()
-        end
+-- Whether any option that styles objective lines is on.
+local function stylesLines()
+    return module.db.dim or module.db.progress
+end
+
+local function styleLines()
+    if not module.db.dim and next(dimmed) ~= nil then
+        undim()
+    end
+    if not module.db.progress and next(colored) ~= nil then
+        uncolor()
+    end
+    if not stylesLines() then
         return
     end
     for _, name in ipairs(QUEST_TRACKERS) do
         local section = _G[name]
         if type(section) == "table" then
-            dimSection(section)
+            styleSection(section)
         end
     end
 end
 
 -- After a quest section's own update (see above), with the section as `self`.
 local function onSectionUpdate(section)
-    if module.db.dim then
-        dimSection(section)
+    if stylesLines() then
+        styleSection(section)
     end
 end
 
@@ -573,7 +690,7 @@ local function onUpdate()
     if styled() then
         Profiler.Call(PART_FONTS, findFonts, tracker(), 4)
     end
-    dimFinished()
+    styleLines()
     Profiler.Call(PART_FIT, fitBox)
     fitSettled()
 end
@@ -1180,6 +1297,7 @@ function module:OnDisable()
     internal.updateHeader()
     restoreFonts()
     undim()
+    uncolor()
     restoreHidden()
     restoreDone(false)
     if box then
@@ -1216,8 +1334,8 @@ function module:OnOptionChanged(key)
         setZoneFilter(self.db.zone)
     elseif key == "completed" then
         setDoneFilter(self.db.completed)
-    elseif key == "dim" or key == "dimOpacity" then
-        dimFinished()
+    elseif key == "dim" or key == "dimOpacity" or key == "progress" then
+        styleLines()
     else
         fitBox()
     end
