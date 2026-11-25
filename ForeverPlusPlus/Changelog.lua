@@ -77,6 +77,9 @@ ns.changelog = {
                 { L.TOOLTIPS_TITLE, "Quest Item Drop Chance (on by default, needs the QuestieDB addon) "
                     .. "shows the chance a creature drops a quest's item after its line on the "
                     .. "creature's tooltip, like \"0/1 Intact Hailstrider Beak (35%)\"." },
+                { L.CHATSOUNDS_TITLE, "A new module, off by default, that plays a sound when someone "
+                    .. "else writes in guild chat, and in officer, party, or raid chat if you turn "
+                    .. "those on. Each has its own sound." },
             } },
             { L.CHANGELOG_CHANGED, {
                 { L.PROFTOOLTIPS_TITLE, "The game's minimap dots no longer get the skill line: since "

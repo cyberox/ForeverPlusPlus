@@ -404,6 +404,7 @@ What each module is, in the code's terms (what it does for players is in `README
 - **Chat Copy**
 - **Short Channel Names**
 - **Chat Levels**
+- **Chat Sounds**: a sound from `ns.Sounds` on `CHAT_MSG_GUILD`, `_OFFICER`, `_PARTY`, and `_RAID` lines that aren't the player's own, each kind heard only while its checkbox is on, one sound to a burst.
 - **Quest Links**: Questie's plain-text quests in chat made Blizzard quest links.
 - **Chat Font**
 - **Keep Chat Visible**: `PersistentChat`: chat doesn't fade.

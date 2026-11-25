@@ -28,6 +28,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Movable Combat Log Tab**: a new module, off by default, that lets you drag the Combat Log's tab anywhere among your chat tabs, even after the ones you made.
 - **Quest Reputation**: a new module, off by default, that shows the reputation a quest gives, and with which faction, in its Rewards in the quest log, or at the bottom of its description. Thanks to cyberox.
 - **Tooltips**: Quest Item Drop Chance (on by default, needs the QuestieDB addon) shows the chance a creature drops a quest's item after its line on the creature's tooltip, like "0/1 Intact Hailstrider Beak (35%)".
+- **Chat Sounds**: a new module, off by default, that plays a sound when someone else writes in guild chat, and in officer, party, or raid chat if you turn those on. Each has its own sound.
 
 ### Changed
 
