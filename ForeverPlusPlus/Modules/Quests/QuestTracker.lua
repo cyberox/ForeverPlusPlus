@@ -433,14 +433,34 @@ end
 -- Dim finished objectives -------------------------------------------------------------------------
 -- Hiding a finished objective would leave a gap (see Completed quests below), so this only fades
 -- its text: an alpha on the line's own font string, which the tracker never sets or reads for
--- layout. Lines are pooled and reused for other objectives, so every line it doesn't dim goes back
--- to full, and each pass follows the tracker's update. The line's state is Blizzard's
--- (ObjectiveTrackerAnimLineState, Blizzard_ObjectiveTrackerAnimTemplates.lua on the forever branch):
--- Completing and Completed are a finished objective, Fading one already on its way out.
+-- layout.
+--
+-- When: after each update of the two quest sections (QuestObjectiveTracker and
+-- CampaignQuestObjectiveTracker), by a hook on each one's own Update. A hook on
+-- ObjectiveTrackerFrame.Update misses nearly all of them: the tracker's updates after a quest
+-- event go through a closure its OnLoad made of the function itself
+-- (ObjectiveTrackerContainerMixin:OnLoad, SetDirtyMethod(GenerateClosure(self.Update, ...))), so
+-- they never look up the frame's Update key a hook replaces. Only a direct call (collapsing the
+-- tracker, Edit Mode's text size) reaches it. The container calls each section as
+-- module:Update(...), which a hook on the section does hear.
+--
+-- Which: a line of a numbered objective (its objectiveKey, the index DoQuestObjectives gives it)
+-- whose objective the quest log calls finished. The line's own state (ObjectiveTrackerAnimLineState,
+-- Blizzard_ObjectiveTrackerAnimTemplates.lua on the forever branch) is the fallback: Completing and
+-- Completed are a finished objective, Fading one already on its way out.
+--
+-- Lines are pooled and reused for other objectives, so every line a pass doesn't dim goes back to
+-- full, the ones the section has let go of too.
 
-local dimmed = setmetatable({}, { __mode = "k" }) -- font string -> true: one we faded
+local dimmed = setmetatable({}, { __mode = "k" }) -- font string -> the section whose line we faded
+local seen = {} -- font string -> true: the lines of the pass under way
 
-local function finishedLine(line)
+local function finishedLine(line, objectives)
+    local key = line.objectiveKey
+    local objective = objectives and type(key) == "number" and objectives[key]
+    if type(objective) == "table" then
+        return ns.IsTrue(objective.finished)
+    end
     local states = ObjectiveTrackerAnimLineState
     local state = line.state
     return states ~= nil and state ~= nil and (state == states.Completing or state == states.Completed
@@ -456,44 +476,75 @@ end
 
 local QUEST_TRACKERS = { "QuestObjectiveTracker", "CampaignQuestObjectiveTracker" }
 
+---Dims the finished objectives of one quest section, and puts back the lines it no longer shows.
+---@param section table QuestObjectiveTracker or CampaignQuestObjectiveTracker
+local function dimSection(section)
+    if not section.EnumerateActiveBlocks then
+        return
+    end
+    local alpha = module.db.dimOpacity / 100
+    section:EnumerateActiveBlocks(function(block)
+        local lines = block.usedLines
+        if type(lines) ~= "table" then
+            return
+        end
+        local questID = block.id
+        local objectives = type(questID) == "number" and C_QuestLog.GetQuestObjectives
+            and C_QuestLog.GetQuestObjectives(questID) or nil
+        for _, line in pairs(lines) do
+            local text = line.Text
+            if text and text.SetAlpha then
+                seen[text] = true
+                if finishedLine(line, objectives) then
+                    text:SetAlpha(alpha)
+                    dimmed[text] = section
+                elseif dimmed[text] then
+                    text:SetAlpha(1)
+                    dimmed[text] = nil
+                end
+            end
+        end
+    end)
+    -- A line the section freed keeps our alpha until something else uses it.
+    for text, owner in pairs(dimmed) do
+        if owner == section and not seen[text] then
+            text:SetAlpha(1)
+            dimmed[text] = nil
+        end
+    end
+    for text in pairs(seen) do
+        seen[text] = nil
+    end
+end
+
 local function dimFinished()
-    local db = module.db
-    if not db.dim then
+    if not module.db.dim then
         if next(dimmed) ~= nil then
             undim()
         end
         return
     end
-    local alpha = db.dimOpacity / 100
     for _, name in ipairs(QUEST_TRACKERS) do
-        local tracker = _G[name]
-        if tracker and tracker.EnumerateActiveBlocks then
-            tracker:EnumerateActiveBlocks(function(block)
-                local lines = block.usedLines
-                if type(lines) ~= "table" then
-                    return
-                end
-                for _, line in pairs(lines) do
-                    local text = line.Text
-                    if text and text.SetAlpha then
-                        if finishedLine(line) then
-                            text:SetAlpha(alpha)
-                            dimmed[text] = true
-                        elseif dimmed[text] then
-                            text:SetAlpha(1)
-                            dimmed[text] = nil
-                        end
-                    end
-                end
-            end)
+        local section = _G[name]
+        if type(section) == "table" then
+            dimSection(section)
         end
     end
 end
 
--- After each tracker update: style fonts it has started using, and fit the box. At Blizzard's
--- font and outline there's nothing to style, so its text isn't searched. The box is fitted now,
--- so it never trails a frame behind, and once more as the tracker settles, but not next frame
--- as well (as requestFit would), since nothing has moved since.
+-- After a quest section's own update (see above), with the section as `self`.
+local function onSectionUpdate(section)
+    if module.db.dim then
+        dimSection(section)
+    end
+end
+
+-- After a tracker update called directly (collapsing it, Edit Mode's text size), and when the
+-- module turns on: style fonts it has started using, and fit the box. At Blizzard's font and
+-- outline there's nothing to style, so its text isn't searched. The box is fitted now, so it
+-- never trails a frame behind, and once more as the tracker settles, but not next frame as well
+-- (as requestFit would), since nothing has moved since. The updates a quest event causes don't
+-- come through here (see Dim finished objectives); the frames `measure` watches refit the box then.
 local function onUpdate()
     if styled() then
         Profiler.Call(PART_FONTS, findFonts, tracker(), 4)
@@ -1053,6 +1104,9 @@ function module:OnEnable()
         -- Mainline's tracker has Update; this covers a client where it doesn't.
         self:On("QUEST_LOG_UPDATE", updateLater)
         self:On("QUEST_WATCH_LIST_CHANGED", updateLater)
+    end
+    for _, name in ipairs(QUEST_TRACKERS) do
+        self:Hook(_G[name], "Update", onSectionUpdate)
     end
     -- The header's collapse and Edit Mode's height change what shows without always updating.
     self:HookScript(frame, "OnSizeChanged", requestFit)
