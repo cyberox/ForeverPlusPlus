@@ -1,17 +1,23 @@
 -- Quest Tracker: restyles Blizzard's own objective tracker instead of replacing it, so it keeps
 -- its Edit Mode place, height, opacity and text size, its menus, quest items and clicks. It
 -- changes the tracker's font objects (face, outline), draws a tooltip-style box that fits what the
--- tracker shows, can fade the tracker in combat, can sort tracked quests by level, and can show
--- only the tracked quests of the current zone, or leave out the completed ones.
+-- tracker shows, can fade the tracker in combat, can sort tracked quests by level or zone, and can
+-- show only the tracked quests of the current zone, or leave out the completed ones. On a quest's
+-- lines it can dim the finished objectives and color the others by progress, and it can show the
+-- quest's tooltip on its title. Header.lua adds the quest count and the zone menu to the Quests
+-- header.
 -- It never calls the tracker's update or layout itself: that would run Blizzard's layout as
 -- addon code and could taint the quest item buttons. A font change the tracker has already laid
 -- out settles at its next update (any quest progress, or collapsing and expanding it).
 -- The one exception is Collapse at Login, off by default, which has no other way (see it below).
+-- It writes no field on Blizzard's frames either: what it changes there is a font string's alpha
+-- and color, through the widget's own setters, and which quests are tracked, through C_QuestLog.
 local _, ns = ...
 
 local pairs, ipairs, next, type, min, max = pairs, ipairs, next, type, math.min, math.max
-local setmetatable, sort, select = setmetatable, table.sort, select
+local setmetatable, sort, select, huge = setmetatable, table.sort, select, math.huge
 local InCombatLockdown, C_Timer, C_QuestLog, C_Map = InCombatLockdown, C_Timer, C_QuestLog, C_Map
+local C_CVar, GameTooltip, GetQuestLink, EventRegistry = C_CVar, GameTooltip, GetQuestLink, EventRegistry
 local GetRealZoneText = GetRealZoneText
 local GetQuestUiMapID, Enum = GetQuestUiMapID, Enum
 
@@ -33,7 +39,12 @@ local module = ns.NewModule("QuestTracker", L.QUESTTRACKER_DESC, {
     completed = false, -- untrack quests once they're ready to turn in
     dim = false, -- fade the text of finished objectives
     dimOpacity = 40, -- percent: how visible a finished objective stays with Dim Finished Objectives
+    progress = false, -- color a counted objective's text by how far along it is
+    difficulty = false, -- Blizzard's own CVar, shown here; nothing of ours is saved
+    tooltip = false, -- the quest's tooltip while the mouse is on its title
     collapse = false, -- collapse the tracker once at login and after a reload
+    count = false, -- the quest log's count on the Quests header (Header.lua)
+    zones = false, -- a click on the Quests header opens a menu of the quest log's zones (Header.lua)
     hidden = {}, -- [questID] = true: quests Current Zone Only untracked on this character
     -- [questID] = true: quests Hide Completed Quests untracked on this character; false: one the
     -- player tracked again by hand, to leave alone
@@ -43,6 +54,11 @@ module.title = L.QUESTTRACKER_TITLE
 module.category = "quests"
 module.presets = { developer = { options = { sort = "low" } } }
 module.perCharacter = { hidden = true, done = true }
+module.internal = {} -- what this folder's files share
+local internal = module.internal
+
+-- With the controller interface on, Collapse at Login and the Quests header's Zone Menu do nothing.
+module.notice = ns.Gamepad.LimitedNotice()
 
 -- 0.8.x saved every default as if the player chose it, so a 30% background from then is 0.8.4's
 -- default, not a choice: let it take today's.
@@ -53,9 +69,11 @@ ns.Migrate(1, function(db)
     end
 end)
 
--- Which quests and in what order, then the text, the box behind it, and combat.
+-- Which quests and in what order, the Quests header, then the text, the box behind it, and combat.
 local QUESTS, TEXT, BOX, COMBAT = L.QUESTTRACKER_SECTION_QUESTS, L.QUESTTRACKER_SECTION_TEXT,
     L.QUESTTRACKER_SECTION_BOX, L.QUESTTRACKER_SECTION_COMBAT
+local HEADER, OBJECTIVES = L.QUESTTRACKER_SECTION_HEADER, L.QUESTTRACKER_SECTION_OBJECTIVES
+local DIFFICULTY_CVAR = "showQuestDifficultyColor"
 module.options = {
     {
         key = "sort",
@@ -63,10 +81,12 @@ module.options = {
         description = L.QUESTTRACKER_SORT_DESC,
         section = QUESTS,
         added = "0.8.2",
+        changed = "1.9.0",
         choices = {
             { "off", L.QUESTTRACKER_SORT_OFF },
             { "low", L.QUESTTRACKER_SORT_LOW },
             { "high", L.QUESTTRACKER_SORT_HIGH },
+            { "zone", L.QUESTTRACKER_SORT_ZONE },
         },
     },
     {
@@ -84,21 +104,24 @@ module.options = {
         added = "1.9.0",
     },
     {
-        key = "dim",
-        name = L.QUESTTRACKER_DIM,
-        description = L.QUESTTRACKER_DIM_DESC,
+        -- Blizzard's own setting, which Forever's tracker and quest log read for a quest's title
+        -- (QuestUtilsOverrides.GetQuestTitleDifficultyColor and ObjectiveTrackerBlockMixin's
+        -- UpdateHighlight, on the forever branch). Titles change at the tracker's next update.
+        key = "difficulty",
+        name = L.QUESTTRACKER_DIFFICULTY,
+        description = L.QUESTTRACKER_DIFFICULTY_DESC,
         section = QUESTS,
-        slider = "dimOpacity",
+        cvar = DIFFICULTY_CVAR,
+        available = function() return C_CVar.GetCVar(DIFFICULTY_CVAR) ~= nil end,
+        needs = L.SETTINGS_NEEDS_CLIENT,
         added = "1.9.0",
     },
     {
-        key = "dimOpacity",
-        name = L.QUESTTRACKER_DIM_OPACITY,
-        description = L.QUESTTRACKER_DIM_OPACITY_DESC,
+        key = "tooltip",
+        name = L.QUESTTRACKER_TOOLTIP,
+        description = L.QUESTTRACKER_TOOLTIP_DESC,
         section = QUESTS,
-        requires = "dim",
         added = "1.9.0",
-        min = 10, max = 80, step = 5, format = "%d%%",
     },
     {
         key = "collapse",
@@ -106,6 +129,44 @@ module.options = {
         description = L.QUESTTRACKER_COLLAPSE_DESC,
         section = QUESTS,
         added = "1.8.0",
+    },
+    {
+        key = "progress",
+        name = L.QUESTTRACKER_PROGRESS,
+        description = L.QUESTTRACKER_PROGRESS_DESC,
+        section = OBJECTIVES,
+        added = "1.9.0",
+    },
+    {
+        key = "dim",
+        name = L.QUESTTRACKER_DIM,
+        description = L.QUESTTRACKER_DIM_DESC,
+        section = OBJECTIVES,
+        slider = "dimOpacity",
+        added = "1.9.0",
+    },
+    {
+        key = "dimOpacity",
+        name = L.QUESTTRACKER_DIM_OPACITY,
+        description = L.QUESTTRACKER_DIM_OPACITY_DESC,
+        section = OBJECTIVES,
+        requires = "dim",
+        added = "1.9.0",
+        min = 10, max = 80, step = 5, format = "%d%%",
+    },
+    {
+        key = "count",
+        name = L.QUESTTRACKER_COUNT,
+        description = L.QUESTTRACKER_COUNT_DESC,
+        section = HEADER,
+        added = "1.9.0",
+    },
+    {
+        key = "zones",
+        name = L.QUESTTRACKER_ZONES,
+        description = L.QUESTTRACKER_ZONES_DESC,
+        section = HEADER,
+        added = "1.9.0",
     },
     {
         key = "font",
@@ -433,18 +494,55 @@ end
 -- Dim finished objectives -------------------------------------------------------------------------
 -- Hiding a finished objective would leave a gap (see Completed quests below), so this only fades
 -- its text: an alpha on the line's own font string, which the tracker never sets or reads for
--- layout. Lines are pooled and reused for other objectives, so every line it doesn't dim goes back
--- to full, and each pass follows the tracker's update. The line's state is Blizzard's
--- (ObjectiveTrackerAnimLineState, Blizzard_ObjectiveTrackerAnimTemplates.lua on the forever branch):
--- Completing and Completed are a finished objective, Fading one already on its way out.
+-- layout.
+--
+-- When: after each update of the two quest sections (QuestObjectiveTracker and
+-- CampaignQuestObjectiveTracker), by a hook on each one's own Update. A hook on
+-- ObjectiveTrackerFrame.Update misses nearly all of them: the tracker's updates after a quest
+-- event go through a closure its OnLoad made of the function itself
+-- (ObjectiveTrackerContainerMixin:OnLoad, SetDirtyMethod(GenerateClosure(self.Update, ...))), so
+-- they never look up the frame's Update key a hook replaces. Only a direct call (collapsing the
+-- tracker, Edit Mode's text size) reaches it. The container calls each section as
+-- module:Update(...), which a hook on the section does hear.
+--
+-- Which: a line of a numbered objective (its objectiveKey, the index DoQuestObjectives gives it)
+-- whose objective the quest log calls finished. The line's own state (ObjectiveTrackerAnimLineState,
+-- Blizzard_ObjectiveTrackerAnimTemplates.lua on the forever branch) is the fallback: Completing and
+-- Completed are a finished objective, Fading one already on its way out.
+--
+-- Lines are pooled and reused for other objectives, so every line a pass doesn't dim goes back to
+-- full, the ones the section has let go of too.
 
-local dimmed = setmetatable({}, { __mode = "k" }) -- font string -> true: one we faded
+--
+-- Color Objectives by Progress rides the same pass. It colors the text of an objective that
+-- counts ("3/8 Prowler slain") by how far along it is: Blizzard's own gray until it's started,
+-- toward yellow at half, toward green as it nears done. A color changes no size, so the layout
+-- is untouched. Two things of Blizzard's to work with (Blizzard_ObjectiveTrackerBlock.lua):
+-- SetStringText only sets a color when the line's colorStyle changes, so ours stays until we put
+-- the style's color back ourselves, and UpdateHighlight sets every line's color as the mouse
+-- enters and leaves the quest's title, so a block is colored again after the mouse leaves it and
+-- left white (Blizzard's highlight) while the mouse is on it.
 
-local function finishedLine(line)
+local dimmed = setmetatable({}, { __mode = "k" }) -- font string -> the section whose line we faded
+local colored = setmetatable({}, { __mode = "k" }) -- font string -> the section whose line we colored
+local seen = {} -- font string -> true: the lines of the pass under way
+
+local function finishedLine(line, objective)
+    if objective then
+        return ns.IsTrue(objective.finished)
+    end
     local states = ObjectiveTrackerAnimLineState
     local state = line.state
     return states ~= nil and state ~= nil and (state == states.Completing or state == states.Completed
         or state == states.Fading)
+end
+
+-- Blizzard's color for the line's style, which it won't set again by itself.
+local function restoreColor(text)
+    local style = text.colorStyle
+    if type(style) == "table" and style.r then
+        text:SetTextColor(style.r, style.g, style.b)
+    end
 end
 
 local function undim()
@@ -454,51 +552,174 @@ local function undim()
     end
 end
 
+local function uncolor()
+    for text in pairs(colored) do
+        restoreColor(text)
+        colored[text] = nil
+    end
+end
+
+-- The tracker's own text gray (OBJECTIVE_TRACKER_COLOR.Normal), then Blizzard's yellow and green.
+local PROGRESS_START = { r = 0.8, g = 0.8, b = 0.8 }
+local PROGRESS_HALF = NORMAL_FONT_COLOR or { r = 1, g = 0.82, b = 0 }
+local PROGRESS_DONE = GREEN_FONT_COLOR or { r = 0.1, g = 1, b = 0.1 }
+
+---The color of a counted objective that's under way, or nil for one to leave Blizzard's: not
+---started, counting to 1, or with numbers that can't be read.
+---@param objective table one of C_QuestLog.GetQuestObjectives
+---@return number? r
+---@return number? g
+---@return number? b
+local function progressColor(objective)
+    local have, need = objective.numFulfilled, objective.numRequired
+    if not (ns.IsNumber(have) and ns.IsNumber(need)) or need <= 1 or have <= 0 then
+        return nil
+    end
+    local part = min(have / need, 1) * 2
+    local from, to = PROGRESS_START, PROGRESS_HALF
+    if part > 1 then
+        from, to, part = PROGRESS_HALF, PROGRESS_DONE, part - 1
+    end
+    return from.r + (to.r - from.r) * part, from.g + (to.g - from.g) * part, from.b + (to.b - from.b) * part
+end
+
 local QUEST_TRACKERS = { "QuestObjectiveTracker", "CampaignQuestObjectiveTracker" }
 
-local function dimFinished()
-    local db = module.db
-    if not db.dim then
-        if next(dimmed) ~= nil then
-            undim()
-        end
+---Dims and colors the objective lines of one quest, each as its option says, and notes them in
+---`seen`.
+---@param block table one of a quest section's blocks
+---@param section table the section it's in
+local function styleBlock(block, section)
+    local lines = block.usedLines
+    if type(lines) ~= "table" then
         return
     end
-    local alpha = db.dimOpacity / 100
-    for _, name in ipairs(QUEST_TRACKERS) do
-        local tracker = _G[name]
-        if tracker and tracker.EnumerateActiveBlocks then
-            tracker:EnumerateActiveBlocks(function(block)
-                local lines = block.usedLines
-                if type(lines) ~= "table" then
-                    return
+    local db = module.db
+    local alpha = db.dim and db.dimOpacity / 100 or nil
+    -- Blizzard's highlight has the lines while the mouse is on the quest's title.
+    local color = db.progress and not block.isHighlighted
+    local questID = block.id
+    local objectives = type(questID) == "number" and C_QuestLog.GetQuestObjectives
+        and C_QuestLog.GetQuestObjectives(questID) or nil
+    for _, line in pairs(lines) do
+        local text = line.Text
+        if text and text.SetAlpha then
+            seen[text] = true
+            local key = line.objectiveKey
+            local objective = objectives and type(key) == "number" and objectives[key] or nil
+            if type(objective) ~= "table" then
+                objective = nil
+            end
+            local finished = finishedLine(line, objective)
+            if alpha and finished then
+                text:SetAlpha(alpha)
+                dimmed[text] = section
+            elseif dimmed[text] then
+                text:SetAlpha(1)
+                dimmed[text] = nil
+            end
+            local r, g, b
+            if color and objective and not finished then
+                r, g, b = progressColor(objective)
+            end
+            if r then
+                text:SetTextColor(r, g, b)
+                colored[text] = section
+            elseif colored[text] then
+                colored[text] = nil
+                if not block.isHighlighted then
+                    restoreColor(text)
                 end
-                for _, line in pairs(lines) do
-                    local text = line.Text
-                    if text and text.SetAlpha then
-                        if finishedLine(line) then
-                            text:SetAlpha(alpha)
-                            dimmed[text] = true
-                        elseif dimmed[text] then
-                            text:SetAlpha(1)
-                            dimmed[text] = nil
-                        end
-                    end
-                end
-            end)
+            end
         end
     end
 end
 
--- After each tracker update: style fonts it has started using, and fit the box. At Blizzard's
--- font and outline there's nothing to style, so its text isn't searched. The box is fitted now,
--- so it never trails a frame behind, and once more as the tracker settles, but not next frame
--- as well (as requestFit would), since nothing has moved since.
+local function clearSeen()
+    for text in pairs(seen) do
+        seen[text] = nil
+    end
+end
+
+-- After the mouse leaves a quest's title: Blizzard has just set its lines back to their styles.
+local function onBlockLeave(button)
+    local block = button:GetParent()
+    if module.db.progress and block and type(block.parentModule) == "table" then
+        styleBlock(block, block.parentModule)
+        clearSeen()
+    end
+end
+
+---Styles the objective lines of one quest section, and puts back the lines it no longer shows.
+---@param section table QuestObjectiveTracker or CampaignQuestObjectiveTracker
+local function styleSection(section)
+    if not section.EnumerateActiveBlocks then
+        return
+    end
+    local watchLeave = module.db.progress
+    section:EnumerateActiveBlocks(function(block)
+        styleBlock(block, section)
+        if watchLeave then
+            module:HookScript(block.HeaderButton, "OnLeave", onBlockLeave)
+        end
+    end)
+    -- A line the section freed keeps our alpha and color until something else uses it.
+    for text, owner in pairs(dimmed) do
+        if owner == section and not seen[text] then
+            text:SetAlpha(1)
+            dimmed[text] = nil
+        end
+    end
+    for text, owner in pairs(colored) do
+        if owner == section and not seen[text] then
+            restoreColor(text)
+            colored[text] = nil
+        end
+    end
+    clearSeen()
+end
+
+-- Whether any option that styles objective lines is on.
+local function stylesLines()
+    return module.db.dim or module.db.progress
+end
+
+local function styleLines()
+    if not module.db.dim and next(dimmed) ~= nil then
+        undim()
+    end
+    if not module.db.progress and next(colored) ~= nil then
+        uncolor()
+    end
+    if not stylesLines() then
+        return
+    end
+    for _, name in ipairs(QUEST_TRACKERS) do
+        local section = _G[name]
+        if type(section) == "table" then
+            styleSection(section)
+        end
+    end
+end
+
+-- After a quest section's own update (see above), with the section as `self`.
+local function onSectionUpdate(section)
+    if stylesLines() then
+        styleSection(section)
+    end
+end
+
+-- After a tracker update called directly (collapsing it, Edit Mode's text size), and when the
+-- module turns on: style fonts it has started using, and fit the box. At Blizzard's font and
+-- outline there's nothing to style, so its text isn't searched. The box is fitted now, so it
+-- never trails a frame behind, and once more as the tracker settles, but not next frame as well
+-- (as requestFit would), since nothing has moved since. The updates a quest event causes don't
+-- come through here (see Dim finished objectives); the frames `measure` watches refit the box then.
 local function onUpdate()
     if styled() then
         Profiler.Call(PART_FONTS, findFonts, tracker(), 4)
     end
-    dimFinished()
+    styleLines()
     Profiler.Call(PART_FIT, fitBox)
     fitSettled()
 end
@@ -516,7 +737,7 @@ end
 
 -- Sorting -----------------------------------------------------------------------------------------
 -- The tracker lists quests in watch list order (after callings and quests that set their own
--- place) and has no sort of its own, and the comparison is a local in its code. So Sort by Level
+-- place) and has no sort of its own, and the comparison is a local in its code. So Sort Quests
 -- reorders the watch list: it untracks the quests out of place and tracks them again in level
 -- order. These are plain C_QuestLog calls, not the tracker's code; the tracker only marks itself
 -- dirty on QUEST_WATCH_LIST_CHANGED and redraws on its own next frame, and since the blocks still
@@ -545,6 +766,7 @@ local function watchesMatch(ids)
 end
 
 local requestSort
+local questHeaders -- under Current zone, below
 
 local function sortWatches()
     local order = module.db.sort
@@ -555,6 +777,15 @@ local function sortWatches()
         sortAfterCombat = true
         return
     end
+    -- Current Zone First: each quest's zone is its quest log header, as Current Zone Only reads
+    -- it. The zone you're in is group 0, the rest follow in the quest log's order, and a quest
+    -- under no header (or a collapsed one) goes last.
+    local headers, zoneOrder, here
+    if order == "zone" then
+        headers, zoneOrder = questHeaders()
+        here = GetRealZoneText()
+        here = type(here) == "string" and here:lower() or nil
+    end
     local watched = {}
     for i = 1, C_QuestLog.GetNumQuestWatches() do
         local questID = C_QuestLog.GetQuestIDForQuestWatchIndex(i)
@@ -562,7 +793,16 @@ local function sortWatches()
         if not level then
             return -- the quest log isn't ready; its next update sorts again
         end
-        watched[i] = { id = questID, level = level, index = i }
+        local group = 0
+        if headers then
+            local header = headers[questID]
+            if not header then
+                group = huge
+            elseif header:lower() ~= here then
+                group = zoneOrder[header] or huge
+            end
+        end
+        watched[i] = { id = questID, level = level, index = i, group = group }
     end
     local sorted = {}
     for i, quest in ipairs(watched) do
@@ -571,6 +811,9 @@ local function sortWatches()
     -- Same level keeps the order they were tracked in.
     local highFirst = order == "high"
     sort(sorted, function(a, b)
+        if a.group ~= b.group then
+            return a.group < b.group
+        end
         if a.level ~= b.level then
             if highFirst then
                 return a.level > b.level
@@ -639,10 +882,13 @@ local function onCombatEnd()
     end
 end
 
--- Listens for new quests and tracking only while Sort by Level is on.
+-- Listens for new quests and tracking only while Sort Quests is on. A new zone matters to Current
+-- Zone First, and Blizzard's tracker reorders the watch list itself then
+-- (ObjectiveTrackerFrameMixin:OnEvent, C_QuestLog.SortQuestWatches).
 module:OnWhile("sort", {
     QUEST_WATCH_LIST_CHANGED = requestSort,
     QUEST_LOG_UPDATE = requestSort,
+    ZONE_CHANGED_NEW_AREA = requestSort,
     PLAYER_REGEN_ENABLED = onCombatEnd,
 })
 
@@ -662,7 +908,7 @@ end
 -- that names no map or instance (a class, a profession, a holiday) goes by the zone of the quest's
 -- objective on the map instead, and shows when the map doesn't know it. The quest the map and
 -- arrow follow always shows. It filters once each time you arrive in a zone, so a quest tracked
--- by hand stays until you leave. Out of combat only, like sorting; Sort by Level then sorts
+-- by hand stays until you leave. Out of combat only, like sorting; Sort Quests then sorts
 -- what's left as the watch list changes.
 
 local AZEROTH = ns.WorldMap.AZEROTH -- Forever's Azeroth map, over every zone and instance
@@ -716,18 +962,23 @@ local function zoneMap(mapID)
     return info and info.mapType == ZONE_MAP and info.mapID or nil
 end
 
--- Each quest in the log by ID -> the title of the header it's under.
-local function questHeaders()
-    local headers, header = {}, nil
+-- Each quest in the log by ID -> the title of the header it's under, and each header's title ->
+-- its place among the headers.
+function questHeaders()
+    local headers, order, header, count = {}, {}, nil, 0
     for i = 1, (C_QuestLog.GetNumQuestLogEntries()) do
         local info = C_QuestLog.GetInfo(i)
         if info and info.isHeader then
             header = info.title
+            if type(header) == "string" and not order[header] then
+                count = count + 1
+                order[header] = count
+            end
         elseif info and info.questID and type(header) == "string" then
             headers[info.questID] = header
         end
     end
-    return headers
+    return headers, order
 end
 
 -- The watch list as questID -> true.
@@ -741,6 +992,7 @@ local function watchedQuests()
     end
     return watched
 end
+internal.watchedQuests = watchedQuests
 
 -- Whether a quest in the log is ready to turn in.
 local function questComplete(questID)
@@ -1034,6 +1286,39 @@ end
 
 module:OnWhile("collapse", { PLAYER_ENTERING_WORLD = collapseAtLogin })
 
+-- Quest tooltip -----------------------------------------------------------------------------------
+-- Quest Tooltip on Mouseover shows the quest's own tooltip (its link's: the title, what it asks,
+-- and what's done) while the mouse is on its title in the tracker. Blizzard shows one there only
+-- in a group (the party's progress, QuestObjectiveTrackerMixin:OnBlockHeaderEnter), and that one
+-- stays. Either way it says the mouse came with EventRegistry's "OnQuestBlockHeader.OnEnter",
+-- the last thing its handler does, which is what this hears; its OnBlockHeaderLeave hides
+-- GameTooltip for us too.
+
+local TOOLTIP_GAP = 30 -- pixels left of the title, clear of the quest's map button
+local tooltipHeard = false -- the callback is registered; it can't be taken back per module
+
+local function onBlockEnter(_, block, questID, inGroup)
+    if not (module.enabled and module.db.tooltip) or inGroup or type(block) ~= "table" then
+        return
+    end
+    local link = type(questID) == "number" and GetQuestLink and GetQuestLink(questID)
+    if not ns.IsText(link, true) then
+        return
+    end
+    GameTooltip:SetOwner(block, "ANCHOR_NONE")
+    GameTooltip:ClearAllPoints()
+    GameTooltip:SetPoint("TOPRIGHT", block, "TOPLEFT", -TOOLTIP_GAP, 0)
+    GameTooltip:SetHyperlink(link)
+    GameTooltip:Show()
+end
+
+local function setTooltip()
+    if module.db.tooltip and not tooltipHeard and EventRegistry and EventRegistry.RegisterCallback then
+        tooltipHeard = true
+        EventRegistry:RegisterCallback("OnQuestBlockHeader.OnEnter", onBlockEnter, module)
+    end
+end
+
 -- Module ------------------------------------------------------------------------------------------
 
 function module:IsAvailable()
@@ -1054,6 +1339,9 @@ function module:OnEnable()
         self:On("QUEST_LOG_UPDATE", updateLater)
         self:On("QUEST_WATCH_LIST_CHANGED", updateLater)
     end
+    for _, name in ipairs(QUEST_TRACKERS) do
+        self:Hook(_G[name], "Update", onSectionUpdate)
+    end
     -- The header's collapse and Edit Mode's height change what shows without always updating.
     self:HookScript(frame, "OnSizeChanged", requestFit)
     self:HookScript(frame, "OnShow", requestFit)
@@ -1063,12 +1351,16 @@ function module:OnEnable()
     setSorting(self.db.sort ~= "off")
     setZoneFilter(self.db.zone)
     setDoneFilter(self.db.completed)
+    internal.updateHeader()
+    setTooltip()
     onUpdate()
 end
 
 function module:OnDisable()
+    internal.updateHeader()
     restoreFonts()
     undim()
+    uncolor()
     restoreHidden()
     restoreDone(false)
     if box then
@@ -1084,7 +1376,11 @@ function module:OnOptionChanged(key)
     if not self.enabled then
         return
     end
-    if key == "font" or key == "outline" then
+    if key == "count" or key == "zones" then
+        internal.updateHeader()
+    elseif key == "tooltip" then
+        setTooltip()
+    elseif key == "font" or key == "outline" then
         if styled() then
             applyFonts()
         else
@@ -1103,8 +1399,8 @@ function module:OnOptionChanged(key)
         setZoneFilter(self.db.zone)
     elseif key == "completed" then
         setDoneFilter(self.db.completed)
-    elseif key == "dim" or key == "dimOpacity" then
-        dimFinished()
+    elseif key == "dim" or key == "dimOpacity" or key == "progress" then
+        styleLines()
     else
         fitBox()
     end

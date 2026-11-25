@@ -398,7 +398,7 @@ What each module is, in the code's terms (what it does for players is in `README
 - **Character Window**: a folder: the module, its durability bars, and equipped weapon skill colors.
 - **Durability Warning**: once when worn gear drops below a durability the player picks and again when it breaks: a chat line, red error-frame text, and a sound, each an option.
 - **Forever Quest Icons**
-- **Quest Tracker**
+- **Quest Tracker**: a folder: the module (fonts, the box, fading, and the watch list's sorting and filters) and what it adds to the tracker's Quests header (the quest count, and a button of ours over the title that opens the zone menu). Its line options (dim, progress colors) set only a font string's alpha and color after each update, and the quest tooltip hears `EventRegistry`'s `OnQuestBlockHeader.OnEnter`. It hooks each quest section's own `Update`, never calls the tracker's layout, and writes nothing on Blizzard's frames.
 - **Quest Levels**
 - **Quest Reputation**: the selected quest's `GetQuestLogRewardFactionInfo` rewards, after `QuestInfo_Display`: buttons of Blizzard's small reputation template in a frame of ours under the map's `MapQuestInfoRewardsFrame` (standing alone, with the panel resized after `QuestMapFrame_ShowQuestDetails`, when the quest has no other rewards), or lines on the end of `QuestInfoDescriptionText`.
 - **Quest Item Sparkles**: keeps the CVar for the sparkle on quest items in the world on.

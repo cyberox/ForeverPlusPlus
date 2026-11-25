@@ -452,6 +452,7 @@
     "QuestObjectiveTracker",
     "CampaignQuestObjectiveTracker",
     "ObjectiveTrackerAnimLineState",
+    "GetQuestLink",
     "C_Traits",
     "PlayerSpellsFrame",
     "TalentButtonUtil",

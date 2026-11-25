@@ -21,6 +21,11 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Quest Pins**: Hide in Unexplored Areas (off by default) leaves out the pins in parts of a zone your character hasn't explored yet.
 - **Quest Tracker**: Hide Completed Quests (off by default) takes a quest off the tracker once it's ready to turn in, and puts it back when turned off.
 - **Quest Tracker**: Dim Finished Objectives (off by default) fades the text of a quest's finished objectives, so the ones left stand out, with a slider for how faint.
+- **Quest Tracker**: Color Titles by Difficulty is the game's own setting, here with the tracker's other options: it colors each quest's title by its level against yours.
+- **Quest Tracker**: Quest Tooltip on Mouseover (off by default) shows a quest's tooltip, with what it asks of you, while the mouse is on its title in the tracker.
+- **Quest Tracker**: Color Objectives by Progress (off by default) colors an objective that counts, like "3/8", by how far along it is: gray until it's started, yellow at half, green as it nears done.
+- **Quest Tracker**: Quest Count (off by default) shows how many quests are in your quest log, and how many it holds, on the tracker's Quests header, like "12/25".
+- **Quest Tracker**: Zone Menu (off by default) opens a menu of your quest log's zones when you click the tracker's Quests header, to track or untrack all of a zone's quests at once.
 - **Auction Totals**: a new module that shows, next to Cancel Auction on the auction house's Auctions page, what your auctions are listed for in all and how much has sold.
 - **Item Tooltips**: Short Stat Text (on by default) writes an Equip: bonus that is a plain stat the way the game writes a stat, like "+29 Spell Power", "+2% Hit", "+14 Fire Damage", or "+20 Spell Healing and +7 Spell Damage". Four checkboxes pick which kinds it shortens: Attack and Defense, Spells and Healing, Mana and Health Regen, and Skills.
 - **Item Tooltips**: Show New in Forever (off by default) says "New in Forever" on an item Classic never had.
@@ -38,6 +43,7 @@ What changed in each release of Forever++. The same notes show in game under Set
 - **Gathering Skill Tooltips**: the game's minimap dots no longer get the skill line: since the latest patch the game hides from addons which dot is under the mouse. Herbs and veins in the world still show it.
 - **Gathering Map**: the same patch means minimap tooltips no longer add lines to the game's dots. They show for your own icons, as before.
 - **Error Catcher**: with the controller interface on, a blocked action's report also lists what an addon has written into the controller's own state, with the time it was first seen and the windows open then, to help find what caused it.
+- **Quest Tracker**: Sort by Level is now Sort Quests, and has a third order, Current Zone First: the quests of the zone you're in, then the rest grouped by zone, each lowest level first.
 
 ### Fixed
 

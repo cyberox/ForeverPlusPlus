@@ -55,6 +55,21 @@ ns.changelog = {
                 { L.QUESTTRACKER_TITLE, "Dim Finished Objectives (off by default) fades the text of a "
                     .. "quest's finished objectives, so the ones left stand out, with a slider for "
                     .. "how faint." },
+                { L.QUESTTRACKER_TITLE, "Color Titles by Difficulty is the game's own setting, here "
+                    .. "with the tracker's other options: it colors each quest's title by its "
+                    .. "level against yours." },
+                { L.QUESTTRACKER_TITLE, "Quest Tooltip on Mouseover (off by default) shows a quest's "
+                    .. "tooltip, with what it asks of you, while the mouse is on its title in the "
+                    .. "tracker." },
+                { L.QUESTTRACKER_TITLE, "Color Objectives by Progress (off by default) colors an "
+                    .. "objective that counts, like \"3/8\", by how far along it is: gray until "
+                    .. "it's started, yellow at half, green as it nears done." },
+                { L.QUESTTRACKER_TITLE, "Quest Count (off by default) shows how many quests are in "
+                    .. "your quest log, and how many it holds, on the tracker's Quests header, like "
+                    .. "\"12/25\"." },
+                { L.QUESTTRACKER_TITLE, "Zone Menu (off by default) opens a menu of your quest "
+                    .. "log's zones when you click the tracker's Quests header, to track or untrack "
+                    .. "all of a zone's quests at once." },
                 { L.AUCTIONTOTALS_TITLE, "A new module that shows, next to Cancel Auction on the "
                     .. "auction house's Auctions page, what your auctions are listed for in all and how much has sold." },
                 { L.ITEMTOOLTIPS_TITLE, "Short Stat Text (on by default) writes an Equip: bonus that is "
@@ -101,6 +116,9 @@ ns.changelog = {
                     .. "also lists what an addon has written into the controller's own state, with "
                     .. "the time it was first seen and the windows open then, to help find what "
                     .. "caused it." },
+                { L.QUESTTRACKER_TITLE, "Sort by Level is now Sort Quests, and has a third order, "
+                    .. "Current Zone First: the quests of the zone you're in, then the rest grouped "
+                    .. "by zone, each lowest level first." },
             } },
             { L.CHANGELOG_FIXED, {
                 { L.PROFTOOLTIPS_TITLE, "Spiders and birds no longer show a Skinning skill, since "
