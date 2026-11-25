@@ -43,6 +43,8 @@ module.title = L.QUESTTRACKER_TITLE
 module.category = "quests"
 module.presets = { developer = { options = { sort = "low" } } }
 module.perCharacter = { hidden = true, done = true }
+module.internal = {} -- what this folder's files share
+local internal = module.internal
 
 -- 0.8.x saved every default as if the player chose it, so a 30% background from then is 0.8.4's
 -- default, not a choice: let it take today's.
