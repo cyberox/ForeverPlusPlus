@@ -702,10 +702,29 @@ local function styleLines()
     end
 end
 
+-- The pass after a section's update is the main one, but it isn't always the last word: a burst of
+-- quests tracked and untracked (Zone Menu, the sort, a zone's filter) hands pooled lines from one
+-- quest to another over several updates, and a line's animation ends between them. So both
+-- sections are styled once more on the next frame and again as the tracker settles, and after the
+-- quest log or the watch list changes.
+local styleSoon = ns.Frames.Coalesce(styleLines, nil, module)
+local styleSettled = ns.Frames.Coalesce(styleLines, SETTLE, module)
+
+local function requestStyle()
+    styleSoon()
+    styleSettled()
+end
+
+module:OnWhile(function(db) return db.dim or db.progress end, {
+    QUEST_LOG_UPDATE = requestStyle,
+    QUEST_WATCH_LIST_CHANGED = requestStyle,
+})
+
 -- After a quest section's own update (see above), with the section as `self`.
 local function onSectionUpdate(section)
     if stylesLines() then
         styleSection(section)
+        requestStyle()
     end
 end
 
