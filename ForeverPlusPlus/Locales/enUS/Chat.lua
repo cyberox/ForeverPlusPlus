@@ -128,6 +128,19 @@ L.CHATFONT_FONT_DESC = "The font the chat windows use."
 L.CHATFONT_INPUT = "Chat Input"
 L.CHATFONT_INPUT_DESC = "Use the font for the text you type into the chat box too. Its size stays as it is."
 
+-- ChatBorder
+L.CHATBORDER_TITLE = "Chat Border"
+L.CHATBORDER_DESC = "Draw a border around each chat window, in the game's own frame art. Unlike "
+    .. "the chat window's own faint border, it doesn't fade with the window's background. Turning "
+    .. "this off takes it away."
+L.CHATBORDER_STYLE = "Border"
+L.CHATBORDER_STYLE_DESC = "The border around the chat windows, in Blizzard's own art."
+L.CHATBORDER_STYLE_THIN = "Thin" -- the tooltip border
+L.CHATBORDER_STYLE_STONE = "Stone" -- the dialog border
+L.CHATBORDER_STYLE_GOLD = "Gold" -- the gold dialog border
+L.CHATBORDER_OPACITY = "Opacity"
+L.CHATBORDER_OPACITY_DESC = "How solid the border is."
+
 -- PersistentChat
 L.PERSISTENTCHAT_TITLE = "Keep Chat Visible" -- Persistent Chat up to 1.4.0
 L.PERSISTENTCHAT_DESC = "Keep chat text on screen instead of fading it out after a while. Turning "

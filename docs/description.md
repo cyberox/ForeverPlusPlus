@@ -74,6 +74,7 @@ Everything is on by default except where noted. Each module can be turned off, a
 - **Quest Links**: Turns the plain-text quests Questie users link in chat into clickable Blizzard quest links.
 - **Short Channel Names**: Shortens chat channels to [1], [G], or [LFG], and [Guild], [Party], [Raid] to [GD], [P], [R]. Off by default.
 - **Chat Font**: Draws chat in another of the game's fonts, keeping its size. Not on Korean, Chinese, and Russian clients.
+- **Chat Border**: Draws a border around each chat window, in the game's own frame art: Thin, Stone, or Gold. Off by default.
 - **Keep Chat Visible**: Keeps chat text on screen instead of fading it out after a while.
 - **Chat History**: Shows each chat window's latest lines again after a login or reload, except whispers.
 - **Chat Arrow Keys**: Up and Down in the chat box bring back what you sent, and Left and Right move through the text, without holding Alt.
