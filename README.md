@@ -89,7 +89,7 @@ Everything is on by default except where noted. Each module can be turned off, a
 | Compass Bar | A compass across the top of the screen with your selected quest, map pin, corpse, and group on it, and optionally every quest, flight masters, gathering nodes, and rares. Sized in Edit Mode. Off by default. |
 | **Quests** | |
 | Best Quest Reward | Puts a gold coin on the quest reward that sells to a vendor for the most. It never picks for you. |
-| Quest Tracker | Restyles Blizzard's quest tracker without replacing it: font, a dark box behind it, fading in combat, sorting by level, and showing only the current zone's quests. |
+| Quest Tracker | Restyles Blizzard's quest tracker without replacing it: font, a dark box behind it, fading in combat, sorting by level, showing only the current zone's quests, and hiding completed ones. |
 | Forever Quest Icons | Marks quests that are new to Forever with a Forever icon after their name, in the quest log, the tracker, quest givers' lists, and the quest's details and turn-in windows. |
 | Quest Levels | Shows a quest's level before its name ([12], with a + for group quests) in a quest giver's list and the quest's details. Can color it by difficulty. |
 | Quest Reputation | Shows the reputation a quest gives, and with which faction, in its Rewards in the quest log (or at the bottom of its description), where Blizzard shows only a major faction's. Off by default. |

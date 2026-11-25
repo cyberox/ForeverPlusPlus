@@ -2,7 +2,7 @@
 -- its Edit Mode place, height, opacity and text size, its menus, quest items and clicks. It
 -- changes the tracker's font objects (face, outline), draws a tooltip-style box that fits what the
 -- tracker shows, can fade the tracker in combat, can sort tracked quests by level, and can show
--- only the tracked quests of the current zone.
+-- only the tracked quests of the current zone, or leave out the completed ones.
 -- It never calls the tracker's update or layout itself: that would run Blizzard's layout as
 -- addon code and could taint the quest item buttons. A font change the tracker has already laid
 -- out settles at its next update (any quest progress, or collapsing and expanding it).
@@ -30,13 +30,17 @@ local module = ns.NewModule("QuestTracker", L.QUESTTRACKER_DESC, {
     fadeOpacity = 30, -- percent: the tracker's alpha in combat with Fade in Combat
     sort = "off", -- or "low" / "high": which level comes first
     zone = false,
+    completed = false, -- untrack quests once they're ready to turn in
     collapse = false, -- collapse the tracker once at login and after a reload
     hidden = {}, -- [questID] = true: quests Current Zone Only untracked on this character
+    -- [questID] = true: quests Hide Completed Quests untracked on this character; false: one the
+    -- player tracked again by hand, to leave alone
+    done = {},
 })
 module.title = L.QUESTTRACKER_TITLE
 module.category = "quests"
 module.presets = { developer = { options = { sort = "low" } } }
-module.perCharacter = { hidden = true }
+module.perCharacter = { hidden = true, done = true }
 
 -- 0.8.x saved every default as if the player chose it, so a 30% background from then is 0.8.4's
 -- default, not a choice: let it take today's.
@@ -69,6 +73,13 @@ module.options = {
         description = L.QUESTTRACKER_ZONE_DESC,
         section = QUESTS,
         added = "0.9.0",
+    },
+    {
+        key = "completed",
+        name = L.QUESTTRACKER_COMPLETED,
+        description = L.QUESTTRACKER_COMPLETED_DESC,
+        section = QUESTS,
+        added = "1.9.0",
     },
     {
         key = "collapse",
@@ -651,6 +662,11 @@ local function watchedQuests()
     return watched
 end
 
+-- Whether a quest in the log is ready to turn in.
+local function questComplete(questID)
+    return C_QuestLog.IsComplete and C_QuestLog.IsComplete(questID) and true or false
+end
+
 -- Drops every quest that's tracked again from the hidden list: one the player tracks again by hand
 -- is theirs to keep, and one filterZone tracked again in its zone is no longer hidden.
 local function onWatchListChanged()
@@ -719,9 +735,12 @@ local function filterZone()
     if not hidden then
         return
     end
+    local holdDone = module.db.completed
     for questID in pairs(hidden) do
         if not C_QuestLog.GetLogIndexForQuestID(questID) then
             hidden[questID] = nil -- turned in or abandoned
+        elseif holdDone and questComplete(questID) then
+            -- Left hidden: Hide Completed Quests takes it over at its next pass.
         elseif belongs(questID) then
             C_QuestLog.AddQuestWatch(questID)
         end
@@ -767,6 +786,148 @@ local function setZoneFilter(on)
         filterZone()
     else
         restoreHidden()
+    end
+end
+
+-- Completed quests --------------------------------------------------------------------------------
+-- Hide Completed Quests untracks a tracked quest once it's ready to turn in, and remembers it per
+-- character, as Current Zone Only does. The two never track again a quest the other still hides:
+-- a quest Current Zone Only hid that is completed moves to this list, and one this list gives back
+-- while Current Zone Only is on goes to that list, for it to place. A quest the player tracks
+-- again by hand is theirs to keep. Out of combat only. The quest the map and arrow follow keeps
+-- being followed after it leaves the tracker.
+-- Hiding a quest's finished objectives instead isn't offered: the tracker's block adds up its own
+-- height line by line as it lays out (Blizzard_ObjectiveTrackerBlock.lua, AddObjective), so a
+-- line can only leave without a gap by changing that sum, a field of Blizzard's that the
+-- tracker's layout of the quest item buttons reads.
+
+local DONE_DELAY = 0.5 -- seconds; one pass after a burst of quest log events
+local doneAfterCombat = false
+
+-- Gives back a quest Hide Completed Quests untracked: to Current Zone Only when `toZone`, else
+-- tracked again. Returns whether it went to Current Zone Only, which then has to filter again.
+local function giveBack(questID, toZone)
+    if toZone then
+        module.db.hidden[questID] = true
+        return true
+    end
+    C_QuestLog.AddQuestWatch(questID)
+    return false
+end
+
+local function refilterZone()
+    filteredZone = nil
+    filterZone()
+end
+
+local function hideCompleted()
+    if not (module.enabled and module.db.completed) then
+        return
+    end
+    if InCombatLockdown() then
+        doneAfterCombat = true
+        return
+    end
+    if (C_QuestLog.GetNumQuestLogEntries()) == 0 or not C_QuestLog.IsComplete then
+        return -- the quest log isn't ready (or is empty); its next update looks again
+    end
+    local done, hidden = module.db.done, module.db.hidden
+    local toZone = module.db.zone and true or false
+    local refilter = false
+    for questID, untracked in pairs(done) do
+        if not C_QuestLog.GetLogIndexForQuestID(questID) then
+            done[questID] = nil -- turned in or abandoned
+        elseif not questComplete(questID) then
+            done[questID] = nil -- some objectives can be undone, like an item sold
+            if untracked and giveBack(questID, toZone) then
+                refilter = true
+            end
+        end
+    end
+    for questID in pairs(hidden) do
+        if questComplete(questID) then
+            hidden[questID] = nil
+            if done[questID] == nil then
+                done[questID] = true
+            end
+        end
+    end
+    -- One already on the list (or kept by hand) and tracked stays.
+    local super = ns.Quests.Selected()
+    local removed = false
+    for questID in pairs(watchedQuests()) do
+        if done[questID] == nil and questComplete(questID) then
+            C_QuestLog.RemoveQuestWatch(questID)
+            done[questID] = true
+            removed = true
+        end
+    end
+    if removed and super and C_SuperTrack and C_SuperTrack.SetSuperTrackedQuestID
+        and ns.Quests.Selected() ~= super then
+        C_SuperTrack.SetSuperTrackedQuestID(super)
+    end
+    if refilter then
+        refilterZone()
+    end
+end
+
+local requestDone = ns.Frames.Coalesce(hideCompleted, DONE_DELAY, module)
+
+-- A quest on the list that's tracked again was tracked by hand: this list never tracks one, and
+-- Current Zone Only never gets one back while it's on the list.
+local function onDoneWatchListChanged()
+    local done = module.db.done
+    if next(done) ~= nil then
+        local watched = watchedQuests()
+        for questID, untracked in pairs(done) do
+            if untracked and watched[questID] then
+                done[questID] = false
+            end
+        end
+    end
+    requestDone()
+end
+
+local function onDoneCombatEnd()
+    if doneAfterCombat then
+        doneAfterCombat = false
+        requestDone()
+    end
+end
+
+-- Gives back every quest Hide Completed Quests untracked on this character: to Current Zone Only
+-- when `toZone`, else tracked again.
+local function restoreDone(toZone)
+    ns.AfterCombat(function()
+        local done = module.db.done
+        if next(done) == nil then
+            return
+        end
+        module.db.done = {}
+        local refilter = false
+        for questID, untracked in pairs(done) do
+            if untracked and giveBack(questID, toZone) then
+                refilter = true
+            end
+        end
+        if refilter then
+            refilterZone()
+        end
+    end)
+end
+
+module:OnWhile("completed", {
+    QUEST_LOG_UPDATE = requestDone,
+    QUEST_WATCH_LIST_CHANGED = onDoneWatchListChanged,
+    PLAYER_REGEN_ENABLED = onDoneCombatEnd,
+})
+
+local function setDoneFilter(on)
+    doneAfterCombat = false
+    if on then
+        requestDone()
+    else
+        restoreDone(module.db.zone and true or false)
     end
 end
 
@@ -821,12 +982,14 @@ function module:OnEnable()
     setFaded(InCombatLockdown())
     setSorting(self.db.sort ~= "off")
     setZoneFilter(self.db.zone)
+    setDoneFilter(self.db.completed)
     onUpdate()
 end
 
 function module:OnDisable()
     restoreFonts()
     restoreHidden()
+    restoreDone(false)
     if box then
         box:Hide()
     end
@@ -857,6 +1020,8 @@ function module:OnOptionChanged(key)
         setSorting(self.db.sort ~= "off")
     elseif key == "zone" then
         setZoneFilter(self.db.zone)
+    elseif key == "completed" then
+        setDoneFilter(self.db.completed)
     else
         fitBox()
     end
