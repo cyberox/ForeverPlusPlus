@@ -1,12 +1,17 @@
 -- Quest Tracker: restyles Blizzard's own objective tracker instead of replacing it, so it keeps
 -- its Edit Mode place, height, opacity and text size, its menus, quest items and clicks. It
 -- changes the tracker's font objects (face, outline), draws a tooltip-style box that fits what the
--- tracker shows, can fade the tracker in combat, can sort tracked quests by level, and can show
--- only the tracked quests of the current zone, or leave out the completed ones.
+-- tracker shows, can fade the tracker in combat, can sort tracked quests by level or zone, and can
+-- show only the tracked quests of the current zone, or leave out the completed ones. On a quest's
+-- lines it can dim the finished objectives and color the others by progress, and it can show the
+-- quest's tooltip on its title. Header.lua adds the quest count and the zone menu to the Quests
+-- header.
 -- It never calls the tracker's update or layout itself: that would run Blizzard's layout as
 -- addon code and could taint the quest item buttons. A font change the tracker has already laid
 -- out settles at its next update (any quest progress, or collapsing and expanding it).
 -- The one exception is Collapse at Login, off by default, which has no other way (see it below).
+-- It writes no field on Blizzard's frames either: what it changes there is a font string's alpha
+-- and color, through the widget's own setters, and which quests are tracked, through C_QuestLog.
 local _, ns = ...
 
 local pairs, ipairs, next, type, min, max = pairs, ipairs, next, type, math.min, math.max
