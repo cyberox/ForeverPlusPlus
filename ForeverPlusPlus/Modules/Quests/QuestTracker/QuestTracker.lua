@@ -34,6 +34,7 @@ local module = ns.NewModule("QuestTracker", L.QUESTTRACKER_DESC, {
     dim = false, -- fade the text of finished objectives
     dimOpacity = 40, -- percent: how visible a finished objective stays with Dim Finished Objectives
     collapse = false, -- collapse the tracker once at login and after a reload
+    count = false, -- the quest log's count on the Quests header (Header.lua)
     hidden = {}, -- [questID] = true: quests Current Zone Only untracked on this character
     -- [questID] = true: quests Hide Completed Quests untracked on this character; false: one the
     -- player tracked again by hand, to leave alone
@@ -55,9 +56,10 @@ ns.Migrate(1, function(db)
     end
 end)
 
--- Which quests and in what order, then the text, the box behind it, and combat.
+-- Which quests and in what order, the Quests header, then the text, the box behind it, and combat.
 local QUESTS, TEXT, BOX, COMBAT = L.QUESTTRACKER_SECTION_QUESTS, L.QUESTTRACKER_SECTION_TEXT,
     L.QUESTTRACKER_SECTION_BOX, L.QUESTTRACKER_SECTION_COMBAT
+local HEADER = L.QUESTTRACKER_SECTION_HEADER
 module.options = {
     {
         key = "sort",
@@ -108,6 +110,13 @@ module.options = {
         description = L.QUESTTRACKER_COLLAPSE_DESC,
         section = QUESTS,
         added = "1.8.0",
+    },
+    {
+        key = "count",
+        name = L.QUESTTRACKER_COUNT,
+        description = L.QUESTTRACKER_COUNT_DESC,
+        section = HEADER,
+        added = "1.9.0",
     },
     {
         key = "font",
@@ -1119,10 +1128,12 @@ function module:OnEnable()
     setSorting(self.db.sort ~= "off")
     setZoneFilter(self.db.zone)
     setDoneFilter(self.db.completed)
+    internal.updateHeader()
     onUpdate()
 end
 
 function module:OnDisable()
+    internal.updateHeader()
     restoreFonts()
     undim()
     restoreHidden()
@@ -1140,7 +1151,9 @@ function module:OnOptionChanged(key)
     if not self.enabled then
         return
     end
-    if key == "font" or key == "outline" then
+    if key == "count" then
+        internal.updateHeader()
+    elseif key == "font" or key == "outline" then
         if styled() then
             applyFonts()
         else

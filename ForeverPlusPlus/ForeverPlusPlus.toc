@@ -185,6 +185,7 @@ Modules\Character\CharacterWindow\Skills.lua
 Modules\Character\DurabilityWarning.lua
 Modules\Quests\ForeverQuestIcons.lua
 Modules\Quests\QuestTracker\QuestTracker.lua
+Modules\Quests\QuestTracker\Header.lua
 Modules\Quests\QuestLevels.lua
 Modules\Quests\QuestReputation.lua
 Modules\Quests\QuestItemSparkles.lua

@@ -55,6 +55,9 @@ ns.changelog = {
                 { L.QUESTTRACKER_TITLE, "Dim Finished Objectives (off by default) fades the text of a "
                     .. "quest's finished objectives, so the ones left stand out, with a slider for "
                     .. "how faint." },
+                { L.QUESTTRACKER_TITLE, "Quest Count (off by default) shows how many quests are in "
+                    .. "your quest log, and how many it holds, on the tracker's Quests header, like "
+                    .. "\"12/25\"." },
                 { L.AUCTIONTOTALS_TITLE, "A new module that shows, next to Cancel Auction on the "
                     .. "auction house's Auctions page, what your auctions are listed for in all and how much has sold." },
                 { L.ITEMTOOLTIPS_TITLE, "Short Stat Text (on by default) writes an Equip: bonus that is "
