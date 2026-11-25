@@ -31,6 +31,8 @@ local module = ns.NewModule("QuestTracker", L.QUESTTRACKER_DESC, {
     sort = "off", -- or "low" / "high": which level comes first
     zone = false,
     completed = false, -- untrack quests once they're ready to turn in
+    dim = false, -- fade the text of finished objectives
+    dimOpacity = 40, -- percent: how visible a finished objective stays with Dim Finished Objectives
     collapse = false, -- collapse the tracker once at login and after a reload
     hidden = {}, -- [questID] = true: quests Current Zone Only untracked on this character
     -- [questID] = true: quests Hide Completed Quests untracked on this character; false: one the
@@ -80,6 +82,23 @@ module.options = {
         description = L.QUESTTRACKER_COMPLETED_DESC,
         section = QUESTS,
         added = "1.9.0",
+    },
+    {
+        key = "dim",
+        name = L.QUESTTRACKER_DIM,
+        description = L.QUESTTRACKER_DIM_DESC,
+        section = QUESTS,
+        slider = "dimOpacity",
+        added = "1.9.0",
+    },
+    {
+        key = "dimOpacity",
+        name = L.QUESTTRACKER_DIM_OPACITY,
+        description = L.QUESTTRACKER_DIM_OPACITY_DESC,
+        section = QUESTS,
+        requires = "dim",
+        added = "1.9.0",
+        min = 10, max = 80, step = 5, format = "%d%%",
     },
     {
         key = "collapse",
@@ -411,6 +430,66 @@ function fitBox()
     box:Show()
 end
 
+-- Dim finished objectives -------------------------------------------------------------------------
+-- Hiding a finished objective would leave a gap (see Completed quests below), so this only fades
+-- its text: an alpha on the line's own font string, which the tracker never sets or reads for
+-- layout. Lines are pooled and reused for other objectives, so every line it doesn't dim goes back
+-- to full, and each pass follows the tracker's update. The line's state is Blizzard's
+-- (ObjectiveTrackerAnimLineState, Blizzard_ObjectiveTrackerAnimTemplates.lua on the forever branch):
+-- Completing and Completed are a finished objective, Fading one already on its way out.
+
+local dimmed = setmetatable({}, { __mode = "k" }) -- font string -> true: one we faded
+
+local function finishedLine(line)
+    local states = ObjectiveTrackerAnimLineState
+    local state = line.state
+    return states ~= nil and state ~= nil and (state == states.Completing or state == states.Completed
+        or state == states.Fading)
+end
+
+local function undim()
+    for text in pairs(dimmed) do
+        text:SetAlpha(1)
+        dimmed[text] = nil
+    end
+end
+
+local QUEST_TRACKERS = { "QuestObjectiveTracker", "CampaignQuestObjectiveTracker" }
+
+local function dimFinished()
+    local db = module.db
+    if not db.dim then
+        if next(dimmed) ~= nil then
+            undim()
+        end
+        return
+    end
+    local alpha = db.dimOpacity / 100
+    for _, name in ipairs(QUEST_TRACKERS) do
+        local tracker = _G[name]
+        if tracker and tracker.EnumerateActiveBlocks then
+            tracker:EnumerateActiveBlocks(function(block)
+                local lines = block.usedLines
+                if type(lines) ~= "table" then
+                    return
+                end
+                for _, line in pairs(lines) do
+                    local text = line.Text
+                    if text and text.SetAlpha then
+                        if finishedLine(line) then
+                            text:SetAlpha(alpha)
+                            dimmed[text] = true
+                        elseif dimmed[text] then
+                            text:SetAlpha(1)
+                            dimmed[text] = nil
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end
+
 -- After each tracker update: style fonts it has started using, and fit the box. At Blizzard's
 -- font and outline there's nothing to style, so its text isn't searched. The box is fitted now,
 -- so it never trails a frame behind, and once more as the tracker settles, but not next frame
@@ -419,6 +498,7 @@ local function onUpdate()
     if styled() then
         Profiler.Call(PART_FONTS, findFonts, tracker(), 4)
     end
+    dimFinished()
     Profiler.Call(PART_FIT, fitBox)
     fitSettled()
 end
@@ -799,7 +879,7 @@ end
 -- Hiding a quest's finished objectives instead isn't offered: the tracker's block adds up its own
 -- height line by line as it lays out (Blizzard_ObjectiveTrackerBlock.lua, AddObjective), so a
 -- line can only leave without a gap by changing that sum, a field of Blizzard's that the
--- tracker's layout of the quest item buttons reads.
+-- tracker's layout of the quest item buttons reads. Dim Finished Objectives fades them instead.
 
 local DONE_DELAY = 0.5 -- seconds; one pass after a burst of quest log events
 local doneAfterCombat = false
@@ -988,6 +1068,7 @@ end
 
 function module:OnDisable()
     restoreFonts()
+    undim()
     restoreHidden()
     restoreDone(false)
     if box then
@@ -1022,6 +1103,8 @@ function module:OnOptionChanged(key)
         setZoneFilter(self.db.zone)
     elseif key == "completed" then
         setDoneFilter(self.db.completed)
+    elseif key == "dim" or key == "dimOpacity" then
+        dimFinished()
     else
         fitBox()
     end

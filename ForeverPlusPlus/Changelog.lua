@@ -52,6 +52,9 @@ ns.changelog = {
                     .. "parts of a zone your character hasn't explored yet." },
                 { L.QUESTTRACKER_TITLE, "Hide Completed Quests (off by default) takes a quest off "
                     .. "the tracker once it's ready to turn in, and puts it back when turned off." },
+                { L.QUESTTRACKER_TITLE, "Dim Finished Objectives (off by default) fades the text of a "
+                    .. "quest's finished objectives, so the ones left stand out, with a slider for "
+                    .. "how faint." },
                 { L.AUCTIONTOTALS_TITLE, "A new module that shows, next to Cancel Auction on the "
                     .. "auction house's Auctions page, what your auctions are listed for in all and how much has sold." },
                 { L.ITEMTOOLTIPS_TITLE, "Short Stat Text (on by default) writes an Equip: bonus that is "
