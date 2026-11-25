@@ -79,7 +79,8 @@ ns.changelog = {
                     .. "bottom of its description. Thanks to cyberox." },
                 { L.CHATBORDER_TITLE, "A new module, off by default, that draws a border around each "
                     .. "chat window in the game's own frame art (Thin, Stone, or Gold), with its own "
-                    .. "opacity. It shows whatever the window's background is set to, and Fade with "
+                    .. "color (the art's own, your class color, or one of a few of the game's "
+                    .. "colors) and opacity. It shows whatever the window's background is set to, and Fade with "
                     .. "Chat (on by default) fades it when the mouse leaves the chat, as the game "
                     .. "fades the tabs, with a slider for how much is left." },
                 { L.TOOLTIPS_TITLE, "Quest Item Drop Chance (on by default, needs the QuestieDB addon) "

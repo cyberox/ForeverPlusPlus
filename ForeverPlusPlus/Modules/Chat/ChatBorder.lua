@@ -21,6 +21,7 @@ local Chat = ns.Chat
 local module = ns.NewModule("ChatBorder", L.CHATBORDER_DESC, {
     enabled = false,
     style = "tooltip", -- a BORDERS key; set below to one this client has
+    color = "default", -- a COLORS key
     opacity = 100,
     fade = true,
     fadeOpacity = 40, -- as Blizzard's tab in front: CHAT_FRAME_TAB_SELECTED_NOMOUSE_ALPHA is 0.4
@@ -52,12 +53,62 @@ for _, style in ipairs(BORDERS) do
 end
 module.defaults.style = CHOICES[1] and CHOICES[1][1] or "tooltip"
 
+-- The colors, in the order the dropdown lists them: the art as Blizzard drew it, the character's
+-- class color, and a few of Blizzard's own font colors by the global each is kept in, with the
+-- same color written out for a client that drops one.
+local COLORS = {
+    { "default", L.CHATBORDER_COLOR_DEFAULT },
+    { "class", L.CHATBORDER_COLOR_CLASS },
+    { "gold", L.CHATBORDER_COLOR_GOLD, global = "NORMAL_FONT_COLOR", 1, 0.82, 0 },
+    { "gray", L.CHATBORDER_COLOR_GRAY, global = "GRAY_FONT_COLOR", 0.5, 0.5, 0.5 },
+    { "black", L.CHATBORDER_COLOR_BLACK, global = "BLACK_FONT_COLOR", 0, 0, 0 },
+    { "blue", L.CHATBORDER_COLOR_BLUE, global = "BLUE_FONT_COLOR", 0, 0.75, 0.95 },
+    { "green", L.CHATBORDER_COLOR_GREEN, global = "GREEN_FONT_COLOR", 0.1, 1, 0.1 },
+    { "red", L.CHATBORDER_COLOR_RED, global = "RED_FONT_COLOR", 1, 0.1, 0.1 },
+}
+
+local COLOR, COLOR_CHOICES = {}, {}
+for _, color in ipairs(COLORS) do
+    COLOR[color[1]] = color
+    COLOR_CHOICES[#COLOR_CHOICES + 1] = { color[1], color[2] }
+end
+
+---The chosen color, as the border's vertex color: white leaves the art as Blizzard drew it.
+---@return number r
+---@return number g
+---@return number b
+local function borderColor()
+    local key = module.db.color
+    local color
+    if key == "class" then
+        color = ns.Colors.Class("player")
+    else
+        local fixed = COLOR[key]
+        local known = fixed and fixed.global and _G[fixed.global]
+        if type(known) == "table" then
+            color = known
+        elseif fixed and fixed[3] then
+            return fixed[3], fixed[4], fixed[5]
+        end
+    end
+    if color and type(color.r) == "number" and type(color.g) == "number" and type(color.b) == "number" then
+        return color.r, color.g, color.b
+    end
+    return 1, 1, 1
+end
+
 module.options = {
     {
         key = "style",
         name = L.CHATBORDER_STYLE,
         description = L.CHATBORDER_STYLE_DESC,
         choices = CHOICES,
+    },
+    {
+        key = "color",
+        name = L.CHATBORDER_COLOR,
+        description = L.CHATBORDER_COLOR_DESC,
+        choices = COLOR_CHOICES,
     },
     {
         key = "opacity",
@@ -129,6 +180,8 @@ local function apply(frame)
         edgeFile = type(backdrop) == "table" and backdrop.edgeFile or style.file,
         edgeSize = style.size,
     })
+    -- After SetBackdrop, which draws the pieces anew.
+    border:SetBackdropBorderColor(borderColor())
     border:ClearAllPoints()
     border:SetPoint("TOPLEFT", background, "TOPLEFT", -style.outset, style.outset)
     border:SetPoint("BOTTOMRIGHT", background, "BOTTOMRIGHT", style.outset, -style.outset)
