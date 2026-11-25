@@ -35,6 +35,7 @@ local module = ns.NewModule("QuestTracker", L.QUESTTRACKER_DESC, {
     dimOpacity = 40, -- percent: how visible a finished objective stays with Dim Finished Objectives
     collapse = false, -- collapse the tracker once at login and after a reload
     count = false, -- the quest log's count on the Quests header (Header.lua)
+    zones = false, -- a click on the Quests header opens a menu of the quest log's zones (Header.lua)
     hidden = {}, -- [questID] = true: quests Current Zone Only untracked on this character
     -- [questID] = true: quests Hide Completed Quests untracked on this character; false: one the
     -- player tracked again by hand, to leave alone
@@ -46,6 +47,9 @@ module.presets = { developer = { options = { sort = "low" } } }
 module.perCharacter = { hidden = true, done = true }
 module.internal = {} -- what this folder's files share
 local internal = module.internal
+
+-- With the controller interface on, Collapse at Login and the Quests header's Zone Menu do nothing.
+module.notice = ns.Gamepad.LimitedNotice()
 
 -- 0.8.x saved every default as if the player chose it, so a 30% background from then is 0.8.4's
 -- default, not a choice: let it take today's.
@@ -115,6 +119,13 @@ module.options = {
         key = "count",
         name = L.QUESTTRACKER_COUNT,
         description = L.QUESTTRACKER_COUNT_DESC,
+        section = HEADER,
+        added = "1.9.0",
+    },
+    {
+        key = "zones",
+        name = L.QUESTTRACKER_ZONES,
+        description = L.QUESTTRACKER_ZONES_DESC,
         section = HEADER,
         added = "1.9.0",
     },
@@ -803,6 +814,7 @@ local function watchedQuests()
     end
     return watched
 end
+internal.watchedQuests = watchedQuests
 
 -- Whether a quest in the log is ready to turn in.
 local function questComplete(questID)
@@ -1151,7 +1163,7 @@ function module:OnOptionChanged(key)
     if not self.enabled then
         return
     end
-    if key == "count" then
+    if key == "count" or key == "zones" then
         internal.updateHeader()
     elseif key == "font" or key == "outline" then
         if styled() then

@@ -58,6 +58,9 @@ ns.changelog = {
                 { L.QUESTTRACKER_TITLE, "Quest Count (off by default) shows how many quests are in "
                     .. "your quest log, and how many it holds, on the tracker's Quests header, like "
                     .. "\"12/25\"." },
+                { L.QUESTTRACKER_TITLE, "Zone Menu (off by default) opens a menu of your quest "
+                    .. "log's zones when you click the tracker's Quests header, to track or untrack "
+                    .. "all of a zone's quests at once." },
                 { L.AUCTIONTOTALS_TITLE, "A new module that shows, next to Cancel Auction on the "
                     .. "auction house's Auctions page, what your auctions are listed for in all and how much has sold." },
                 { L.ITEMTOOLTIPS_TITLE, "Short Stat Text (on by default) writes an Equip: bonus that is "
