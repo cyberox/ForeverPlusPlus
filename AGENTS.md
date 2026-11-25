@@ -134,7 +134,7 @@ One line here says what each file is for. [docs/architecture.md](docs/architectu
 | `Confirm.lua` | `Confirm`, `ConfirmChoice`, `ConfirmButtons`, `Prompt`, `PromptName`, `ClosePopup` | Yes/no popups, ones with two or three choices, and text popups: Blizzard's, or a frame of our own while the controller interface is on. `ClosePopup` closes one of Blizzard's own, and leaves it up with the controller interface on. Never `StaticPopup_Show` or `StaticPopup_Hide` directly. |
 | `EditMode.lua` | `EditMode` | Our own frames in Blizzard's Edit Mode, looking and working like Blizzard's (`RegisterModule`), and Blizzard's own layouts (`Layouts`, `SetLayout`). |
 | `SettingsKit.lua` | `SettingsKit` | What a drawn Settings page is made of, for the Settings pages and a tool's `BuildPage`. |
-| `Chat.lua` | `Chat` | The chat windows, rewriting and filtering their lines, and the column of buttons beside them (`NewButton`, `SetBadge`). |
+| `Chat.lua` | `Chat` | The chat windows, rewriting and filtering their lines, following Blizzard's fade of a window as the mouse comes and goes (`OnFade`, `FadeAmount`), and the column of buttons beside them (`NewButton`, `SetBadge`). |
 | `ActionButtons.lua` | `ActionButtons` | Blizzard's action buttons, what each slot holds, and our marks over them. |
 | `StatusBars.lua` | `StatusBars` | Blizzard's experience and reputation bars: the Solid Bar option that takes the divider lines off one, and a font string of ours over each bar of a kind for a module's own bar text (`Texts`). |
 

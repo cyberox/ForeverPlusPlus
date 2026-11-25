@@ -3,7 +3,8 @@
 -- (FCF_SetWindowColor and FCF_SetWindowAlpha set every texture in CHAT_FRAME_TEXTURES alike), so
 -- it can't be seen unless the background can. Ours is a frame of our own in each window, around
 -- the window's background, so it shows and hides with the window: a docked window's only while
--- its tab is in front, and none while a window is minimized.
+-- its tab is in front, and none while a window is minimized. It moves and sizes with the window
+-- too, in Edit Mode as anywhere, and a window made for a whisper gets one as it opens.
 --
 -- The background is the texture `frame.Background` (FloatingBorderedFrame in FloatingChatFrame.xml),
 -- which Blizzard already stretches over the Combat Log's bar of filter buttons and a window's
@@ -21,6 +22,8 @@ local module = ns.NewModule("ChatBorder", L.CHATBORDER_DESC, {
     enabled = false,
     style = "tooltip", -- a BORDERS key; set below to one this client has
     opacity = 100,
+    fade = true,
+    fadeOpacity = 40, -- as Blizzard's tab in front: CHAT_FRAME_TAB_SELECTED_NOMOUSE_ALPHA is 0.4
 })
 module.title = L.CHATBORDER_TITLE
 module.category = "chat"
@@ -62,10 +65,43 @@ module.options = {
         description = L.CHATBORDER_OPACITY_DESC,
         min = 10, max = 100, step = 5, format = "%d%%",
     },
+    {
+        key = "fade",
+        name = L.CHATBORDER_FADE,
+        description = L.CHATBORDER_FADE_DESC,
+        slider = "fadeOpacity",
+    },
+    {
+        key = "fadeOpacity",
+        name = L.CHATBORDER_FADE_OPACITY,
+        description = L.CHATBORDER_FADE_OPACITY_DESC,
+        requires = "fade",
+        min = 0, max = 100, step = 5, format = "%d%%",
+    },
 }
 
 -- Our border frame in each chat window. Weak, so a window that goes takes its border with it.
 local borders = setmetatable({}, { __mode = "k" })
+
+---Sets how solid a window's border is: the Opacity, and with Fade with Chat less of it while
+---the mouse is away, as Blizzard's tabs are. The window's own background can't be the measure:
+---Blizzard fades it between the opacity the player gave the window and a quarter, which for a
+---window left as it came are the same (FCF_FadeOutChatFrame, DEFAULT_CHATFRAME_ALPHA).
+---@param frame table a chat window
+---@param amount number how far Blizzard has faded the window in, 0 to 1
+local function fade(frame, amount)
+    local border = borders[frame]
+    if not border then
+        return
+    end
+    local db = module.db
+    local alpha = db.opacity / 100
+    if db.fade then
+        local away = db.fadeOpacity / 100
+        alpha = alpha * (away + (1 - away) * amount)
+    end
+    border:SetAlpha(alpha)
+end
 
 ---Draws a window's border in the chosen style, making its frame the first time.
 ---@param frame table a chat window
@@ -96,7 +132,7 @@ local function apply(frame)
     border:ClearAllPoints()
     border:SetPoint("TOPLEFT", background, "TOPLEFT", -style.outset, style.outset)
     border:SetPoint("BOTTOMRIGHT", background, "BOTTOMRIGHT", style.outset, -style.outset)
-    border:SetAlpha(module.db.opacity / 100)
+    fade(frame, Chat.FadeAmount(frame))
     border:Show()
 end
 
@@ -105,6 +141,8 @@ function module:IsAvailable()
 end
 
 function module:OnEnable()
+    -- Before the borders are drawn, so each starts as faded as its window is now.
+    Chat.OnFade(self, fade)
     -- Also a window added later: one made for a whisper, or one a reset brings back.
     Chat.EachWindow(self, apply)
 end

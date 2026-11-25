@@ -55,6 +55,17 @@ eq(stamp("%I:%M %p ", "9:41 PM hi"), "9:41 PM ", "timestamp with AM or PM")
 eq(stamp("%I:%M ", "|Haddon:x|h09:41 |h hi"), nil, "timestamp not inside a link")
 eq(stamp("%H:%M ", "[Bob]: 12:30 tonight"), nil, "timestamp only at the start")
 
+-- Chat.FadeStep and Chat.FadeAmount: following Blizzard's fade of a chat window
+eq(Chat.FadeStep(0, 1, 0.05, 0.1, 2), 0.5, "fade step: half a fade in")
+eq(Chat.FadeStep(0.9, 1, 0.05, 0.1, 2), 1, "fade step: a fade in stops at its goal")
+eq(Chat.FadeStep(1, 0, 0.5, 0.1, 2), 0.75, "fade step: a fade out at its own speed")
+eq(Chat.FadeStep(0.1, 0, 0.5, 0.1, 2), 0, "fade step: a fade out stops at its goal")
+eq(Chat.FadeStep(0, 1, 0.01, 0, 2), 1, "fade step: no time to fade in gets there at once")
+eq(Chat.FadeStep(1, 0, 0.01, 0.1, 0), 0, "fade step: no time to fade out gets there at once")
+eq(Chat.FadeStep(1, 1, 0.5, 0.1, 2), 1, "fade step: nothing to do at the goal")
+eq(Chat.FadeAmount({ hasBeenFaded = true }), 1, "fade amount: a window Blizzard has faded in")
+eq(Chat.FadeAmount({}), 0, "fade amount: a window the mouse is away from")
+
 -- Chat.OnMessage: one hook a function on each window, called only with text that can be read.
 do
     T.game.secret = "<secret>"

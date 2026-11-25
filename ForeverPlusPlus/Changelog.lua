@@ -79,7 +79,9 @@ ns.changelog = {
                     .. "bottom of its description. Thanks to cyberox." },
                 { L.CHATBORDER_TITLE, "A new module, off by default, that draws a border around each "
                     .. "chat window in the game's own frame art (Thin, Stone, or Gold), with its own "
-                    .. "opacity. It stays visible whatever the window's background is set to." },
+                    .. "opacity. It shows whatever the window's background is set to, and Fade with "
+                    .. "Chat (on by default) fades it when the mouse leaves the chat, as the game "
+                    .. "fades the tabs, with a slider for how much is left." },
                 { L.TOOLTIPS_TITLE, "Quest Item Drop Chance (on by default, needs the QuestieDB addon) "
                     .. "shows the chance a creature drops a quest's item after its line on the "
                     .. "creature's tooltip, like \"0/1 Intact Hailstrider Beak (35%)\"." },

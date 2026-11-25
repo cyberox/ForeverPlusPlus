@@ -246,6 +246,7 @@ Generated files, in `Lib/Generated/` (never edited by hand; see Generated data):
 ### `Chat.lua`
 
 - `ns.Chat`: the chat windows as they come and go (`EachWindow`), each line a window adds that can be read (`OnMessage`, which a module uses instead of hooking `AddMessage` itself), rewriting the lines they show (`Transform`), a chat line in its colors for an edit box, filters that hide chat lines (`AddFilter`), and the column of buttons beside the chat window, with `NewButton` in Blizzard's art, those that don't fit a short chat window listed in its speech bubble's menu instead, and `SetBadge` for what one has waiting, which the speech bubble shows while it's there.
+- `OnFade` calls a module as Blizzard fades a chat window in and out with the mouse, with how far in it is from 0 to 1, stepped at Blizzard's own two speeds after its `FCF_FadeInChatFrame` and `FCF_FadeOutChatFrame` (`FadeStep`); `FadeAmount` reads it for a window met later. For something of ours that should fade along (Chat Border's border).
 - `QuietRefusals` keeps the yellow "Interface action failed because of an AddOn" line out of chat when it's the controller navigation refusing addon code with nothing lost (`HarmlessRefusal`, which Error Catcher skips by too); Settings calls it before it opens a page.
 
 ### `TalentPlan.lua`
@@ -411,7 +412,7 @@ What each module is, in the code's terms (what it does for players is in `README
 - **Chat Sounds**: a sound from `ns.Sounds` on `CHAT_MSG_GUILD`, `_OFFICER`, `_PARTY`, and `_RAID` lines that aren't the player's own, each kind heard only while its checkbox is on, one sound to a burst.
 - **Quest Links**: Questie's plain-text quests in chat made Blizzard quest links.
 - **Chat Font**
-- **Chat Border**: a backdrop frame of ours in each chat window, around the window's `Background` texture.
+- **Chat Border**: a backdrop frame of ours in each chat window, around the window's `Background` texture, its alpha following Blizzard's fade of the window through `ns.Chat.OnFade`.
 - **Keep Chat Visible**: `PersistentChat`: chat doesn't fade.
 - **Chat History**
 - **Chat Arrow Keys**: Up and Down in the chat box recall what was sent, without Alt.
