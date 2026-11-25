@@ -32,7 +32,7 @@ local count -- our font string on the header, made the first time it's needed
 
 -- How many quests the log holds: Blizzard's constant, as the quest log reads it.
 local function questLimit()
-    local consts = Constants and Constants.QuestLogConsts
+    local consts = Constants and rawget(Constants, "QuestLogConsts")
     local limit = consts and consts.MAXIMUM_NUM_QUESTS_LOG_CAN_ACCEPT
     if type(limit) ~= "number" and C_QuestLog.GetMaxNumQuestsCanAccept then
         limit = C_QuestLog.GetMaxNumQuestsCanAccept()
