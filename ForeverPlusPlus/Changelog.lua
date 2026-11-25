@@ -58,6 +58,9 @@ ns.changelog = {
                 { L.QUESTTRACKER_TITLE, "Color Titles by Difficulty is the game's own setting, here "
                     .. "with the tracker's other options: it colors each quest's title by its "
                     .. "level against yours." },
+                { L.QUESTTRACKER_TITLE, "Quest Tooltip on Mouseover (off by default) shows a quest's "
+                    .. "tooltip, with what it asks of you, while the mouse is on its title in the "
+                    .. "tracker." },
                 { L.QUESTTRACKER_TITLE, "Color Objectives by Progress (off by default) colors an "
                     .. "objective that counts, like \"3/8\", by how far along it is: gray until "
                     .. "it's started, yellow at half, green as it nears done." },

@@ -12,7 +12,7 @@ local _, ns = ...
 local pairs, ipairs, next, type, min, max = pairs, ipairs, next, type, math.min, math.max
 local setmetatable, sort, select, huge = setmetatable, table.sort, select, math.huge
 local InCombatLockdown, C_Timer, C_QuestLog, C_Map = InCombatLockdown, C_Timer, C_QuestLog, C_Map
-local C_CVar = C_CVar
+local C_CVar, GameTooltip, GetQuestLink, EventRegistry = C_CVar, GameTooltip, GetQuestLink, EventRegistry
 local GetRealZoneText = GetRealZoneText
 local GetQuestUiMapID, Enum = GetQuestUiMapID, Enum
 
@@ -36,6 +36,7 @@ local module = ns.NewModule("QuestTracker", L.QUESTTRACKER_DESC, {
     dimOpacity = 40, -- percent: how visible a finished objective stays with Dim Finished Objectives
     progress = false, -- color a counted objective's text by how far along it is
     difficulty = false, -- Blizzard's own CVar, shown here; nothing of ours is saved
+    tooltip = false, -- the quest's tooltip while the mouse is on its title
     collapse = false, -- collapse the tracker once at login and after a reload
     count = false, -- the quest log's count on the Quests header (Header.lua)
     zones = false, -- a click on the Quests header opens a menu of the quest log's zones (Header.lua)
@@ -108,6 +109,13 @@ module.options = {
         cvar = DIFFICULTY_CVAR,
         available = function() return C_CVar.GetCVar(DIFFICULTY_CVAR) ~= nil end,
         needs = L.SETTINGS_NEEDS_CLIENT,
+        added = "1.9.0",
+    },
+    {
+        key = "tooltip",
+        name = L.QUESTTRACKER_TOOLTIP,
+        description = L.QUESTTRACKER_TOOLTIP_DESC,
+        section = QUESTS,
         added = "1.9.0",
     },
     {
@@ -1273,6 +1281,39 @@ end
 
 module:OnWhile("collapse", { PLAYER_ENTERING_WORLD = collapseAtLogin })
 
+-- Quest tooltip -----------------------------------------------------------------------------------
+-- Quest Tooltip on Mouseover shows the quest's own tooltip (its link's: the title, what it asks,
+-- and what's done) while the mouse is on its title in the tracker. Blizzard shows one there only
+-- in a group (the party's progress, QuestObjectiveTrackerMixin:OnBlockHeaderEnter), and that one
+-- stays. Either way it says the mouse came with EventRegistry's "OnQuestBlockHeader.OnEnter",
+-- the last thing its handler does, which is what this hears; its OnBlockHeaderLeave hides
+-- GameTooltip for us too.
+
+local TOOLTIP_GAP = 30 -- pixels left of the title, clear of the quest's map button
+local tooltipHeard = false -- the callback is registered; it can't be taken back per module
+
+local function onBlockEnter(_, block, questID, inGroup)
+    if not (module.enabled and module.db.tooltip) or inGroup or type(block) ~= "table" then
+        return
+    end
+    local link = type(questID) == "number" and GetQuestLink and GetQuestLink(questID)
+    if not ns.IsText(link, true) then
+        return
+    end
+    GameTooltip:SetOwner(block, "ANCHOR_NONE")
+    GameTooltip:ClearAllPoints()
+    GameTooltip:SetPoint("TOPRIGHT", block, "TOPLEFT", -TOOLTIP_GAP, 0)
+    GameTooltip:SetHyperlink(link)
+    GameTooltip:Show()
+end
+
+local function setTooltip()
+    if module.db.tooltip and not tooltipHeard and EventRegistry and EventRegistry.RegisterCallback then
+        tooltipHeard = true
+        EventRegistry:RegisterCallback("OnQuestBlockHeader.OnEnter", onBlockEnter, module)
+    end
+end
+
 -- Module ------------------------------------------------------------------------------------------
 
 function module:IsAvailable()
@@ -1306,6 +1347,7 @@ function module:OnEnable()
     setZoneFilter(self.db.zone)
     setDoneFilter(self.db.completed)
     internal.updateHeader()
+    setTooltip()
     onUpdate()
 end
 
@@ -1331,6 +1373,8 @@ function module:OnOptionChanged(key)
     end
     if key == "count" or key == "zones" then
         internal.updateHeader()
+    elseif key == "tooltip" then
+        setTooltip()
     elseif key == "font" or key == "outline" then
         if styled() then
             applyFonts()
