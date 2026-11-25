@@ -406,6 +406,7 @@ What each module is, in the code's terms (what it does for players is in `README
 - **Chat Levels**
 - **Quest Links**: Questie's plain-text quests in chat made Blizzard quest links.
 - **Chat Font**
+- **Chat Border**: a backdrop frame of ours in each chat window, around the window's `Background` texture.
 - **Keep Chat Visible**: `PersistentChat`: chat doesn't fade.
 - **Chat History**
 - **Chat Arrow Keys**: Up and Down in the chat box recall what was sent, without Alt.

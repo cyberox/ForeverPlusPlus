@@ -59,6 +59,9 @@ ns.changelog = {
                 { L.QUESTREPUTATION_TITLE, "A new module, off by default, that shows the reputation a "
                     .. "quest gives, and with which faction, in its Rewards in the quest log, or at the "
                     .. "bottom of its description. Thanks to cyberox." },
+                { L.CHATBORDER_TITLE, "A new module, off by default, that draws a border around each "
+                    .. "chat window in the game's own frame art (Thin, Stone, or Gold), with its own "
+                    .. "opacity. It stays visible whatever the window's background is set to." },
                 { L.TOOLTIPS_TITLE, "Quest Item Drop Chance (on by default, needs the QuestieDB addon) "
                     .. "shows the chance a creature drops a quest's item after its line on the "
                     .. "creature's tooltip, like \"0/1 Intact Hailstrider Beak (35%)\"." },
