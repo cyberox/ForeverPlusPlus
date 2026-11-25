@@ -95,6 +95,7 @@ Lib\Plugins.lua
 Lib\Taxi.lua
 Lib\Generated\TaxiRoutes.lua
 Lib\RealmTime.lua
+Lib\Arrival.lua
 Modules\System\ErrorCatcher.lua
 Modules\Units\PlayerNameplates.lua
 Modules\Units\NpcNameplates.lua

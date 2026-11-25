@@ -83,6 +83,10 @@ ns.changelog = {
                 { L.CHATSOUNDS_TITLE, "A new module, off by default, that plays a sound when someone "
                     .. "else writes in guild chat, and in officer, party, or raid chat if you turn "
                     .. "those on. Each has its own sound." },
+                { L.WAYPOINTS_TITLE, "Show Time to Arrive (off by default) shows how long until you "
+                    .. "reach what the arrow points to, after the distance, like \"120 yds, 0:45\". "
+                    .. "It goes by how fast you're closing in, so it works on a mount, and shows "
+                    .. "nothing while you aren't getting closer." },
             } },
             { L.CHANGELOG_CHANGED, {
                 { L.PROFTOOLTIPS_TITLE, "The game's minimap dots no longer get the skill line: since "
